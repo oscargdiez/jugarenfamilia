@@ -322,13 +322,13 @@ button.stop-btn:hover { background: var(--red-dark); }
 }
 
 /* ── Pencil waiting animation ── */
-.pencil-wait { text-align: center; padding: 2rem 0 1rem; }
-.pencil-icon { font-size: 36px; display: inline-block; animation: pencilBounce 1s ease-in-out infinite; transform-origin: bottom center; }
+.pencil-wait { text-align: center; padding: 1.5rem 0 1rem; }
+.pencil-icon { font-size: 56px; display: inline-block; animation: pencilBounce 1s ease-in-out infinite; transform-origin: bottom center; }
 @keyframes pencilBounce {
   0%, 100% { transform: rotate(-15deg) translateY(0); }
   50%       { transform: rotate(15deg) translateY(-8px); }
 }
-.pencil-dots { font-family: 'Caveat', cursive; font-size: 18px; color: var(--ink-sec); margin-top: 8px; }
+.pencil-dots { font-family: 'Caveat', cursive; font-size: 22px; color: var(--ink-sec); margin-top: 8px; }
 .pencil-dots span { animation: dotPulse 1.4s ease-in-out infinite; display: inline-block; }
 .pencil-dots span:nth-child(2) { animation-delay: 0.2s; }
 .pencil-dots span:nth-child(3) { animation-delay: 0.4s; }
@@ -375,6 +375,16 @@ button.stop-btn:hover { background: var(--red-dark); }
   60%  { opacity: 1; }
   100% { transform: translateY(-500px) scale(0.4); opacity: 0; }
 }
+
+/* ── Guest lobby ── */
+.guest-confirmed { text-align: center; padding: 1rem 0; }
+.guest-confirmed .gc-emoji { font-size: 52px; margin-bottom: 6px; }
+.guest-confirmed .gc-name { font-family: 'Caveat', cursive; font-size: 28px; font-weight: 700; color: var(--ink); }
+.guest-confirmed .gc-status { font-family: 'Special Elite', monospace; font-size: 13px; color: var(--success); margin-top: 4px; letter-spacing: 1px; }
+.invite-toggle { width: 100%; background: transparent; border: 1px dashed var(--border-strong); color: var(--ink-muted); font-family: 'Special Elite', monospace; font-size: 12px; padding: 8px; border-radius: var(--radius); cursor: pointer; margin-top: 8px; letter-spacing: 1px; }
+.invite-toggle:hover { background: var(--paper-dark); }
+.invite-box { display: none; margin-top: 8px; }
+.invite-box.open { display: block; }
 
 /* ── Welcome back ── */
 .welcome-avatar { font-size: 48px; text-align: center; margin-bottom: 8px; }
@@ -623,7 +633,7 @@ button.stop-btn:hover { background: var(--red-dark); }
 <!-- ══ WAITING (guests) ══ -->
 <div id="s-waiting" class="screen">
   <h1 id="lbl-submitted">Respuestas enviadas</h1>
-  <p class="sub" id="lbl-host-reviewing">el anfitrión está revisando — toca 📖 para ver definiciones</p>
+  <p style="font-family:'Caveat',cursive;font-size:22px;color:var(--ink-sec);text-align:center;margin-bottom:1rem;letter-spacing:0.5px" id="lbl-host-reviewing">el anfitrión está revisando — toca 📖 para ver definiciones</p>
   <div class="pencil-wait">
     <div class="pencil-icon">✏️</div>
     <div class="pencil-dots"><span>•</span><span>•</span><span>•</span></div>
@@ -1334,9 +1344,39 @@ window.applyLang = function() {
   }
   // Rules & lang bar
   updateRulesBtn();
+  // Guest confirmed status
+  const gcStatus = document.getElementById('gc-status');
+  if (gcStatus) gcStatus.textContent = {es:'✅ ESTÁS DENTRO',en:'✅ YOU\'RE IN',fr:'✅ TU ES DEDANS',de:'✅ DU BIST DABEI',pt:'✅ ESTÁS DENTRO',it:'✅ SEI DENTRO'}[LANG] || '✅ ESTÁS DENTRO';
+  // Invite toggle label
+  const invBtn = document.getElementById('invite-toggle-btn');
+  const invBox = document.getElementById('invite-box');
+  if (invBtn && invBox) {
+    const isOpen = invBox.classList.contains('open');
+    const labels = {es:'− Ocultar',en:'− Hide',fr:"− Masquer",de:'− Ausblenden',pt:'− Ocultar',it:'− Nascondi'};
+    const showLabels = {es:'+ ¿Quieres invitar a alguien más?',en:'+ Want to invite someone?',fr:"+ Inviter quelqu'un d'autre?",de:'+ Jemanden einladen?',pt:'+ Quer convidar alguém?',it:'+ Vuoi invitare qualcuno?'};
+    invBtn.textContent = isOpen ? (labels[LANG]||labels.es) : (showLabels[LANG]||showLabels.es);
+  }
   applyQuickJoinLang();
   document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.getAttribute('onclick').includes("'"+LANG+"'")));
 }
+
+window.toggleInvite = () => {
+  const box = document.getElementById('invite-box');
+  const btn = document.getElementById('invite-toggle-btn');
+  const isOpen = box.classList.toggle('open');
+  // Sync guest share URL
+  const guestUrl = document.getElementById('share-url-guest');
+  const hostUrl = document.getElementById('share-url');
+  if (guestUrl && hostUrl) guestUrl.textContent = hostUrl.textContent;
+  const labels = {es:'− Ocultar',en:'− Hide',fr:"− Masquer",de:'− Ausblenden',pt:'− Ocultar',it:'− Nascondi'};
+  const showLabels = {es:'+ ¿Quieres invitar a alguien más?',en:'+ Want to invite someone?',fr:"+ Inviter quelqu'un d'autre?",de:'+ Jemanden einladen?',pt:'+ Quer convidar alguém?',it:'+ Vuoi invitare qualcuno?'};
+  if (btn) btn.textContent = isOpen ? (labels[LANG]||labels.es) : (showLabels[LANG]||showLabels.es);
+};
+
+window.copyLinkGuest = () => {
+  const url = document.getElementById('share-url');
+  if (url) { navigator.clipboard.writeText(url.textContent); toast(t('toastCopied')); }
+};
 
 window.shareWhatsApp = () => {
   const url = document.getElementById('share-url').textContent;
@@ -1571,6 +1611,18 @@ window.joinRoom = async () => {
 
 function enterLobby(room) {
   show('lobby');
+  // Show/hide host vs guest sections
+  const hostOnly = document.querySelectorAll('.host-only');
+  const guestOnly = document.querySelectorAll('.guest-only');
+  hostOnly.forEach(el => el.style.display = G.isHost ? '' : 'none');
+  guestOnly.forEach(el => el.style.display = G.isHost ? 'none' : '');
+  // Update guest confirmed card
+  if (!G.isHost) {
+    const gcEmoji = document.getElementById('gc-emoji');
+    const gcName = document.getElementById('gc-name');
+    if (gcEmoji) gcEmoji.textContent = G.playerEmoji || '🎲';
+    if (gcName) gcName.textContent = G.playerName;
+  }
   document.getElementById('lob-code').textContent = room.code || G.roomCode;
   const url = window.location.href.split('?')[0] + '?room=' + (room.code||G.roomCode);
   document.getElementById('share-url').textContent = url;
