@@ -326,6 +326,23 @@ button.stop-btn:hover { background: var(--red-dark); }
 .pencil-dots span:nth-child(3) { animation-delay: 0.4s; }
 @keyframes dotPulse { 0%, 80%, 100% { opacity: 0.2; } 40% { opacity: 1; } }
 
+/* ── Per-entry reactions & voting ── */
+.entry-reactions { display: flex; align-items: center; gap: 3px; flex-wrap: wrap; margin-top: 3px; padding-top: 3px; }
+.entry-emoji-strip { display: flex; gap: 2px; }
+.entry-emoji-btn { font-size: 13px; padding: 1px 3px; border-radius: 4px; border: none; background: transparent; cursor: pointer; opacity: 0.4; transition: all .1s; line-height: 1; }
+.entry-emoji-btn:hover { opacity: 1; transform: scale(1.15); }
+.entry-emoji-btn.active { opacity: 1; background: var(--paper-dark); }
+.vote-btn { font-size: 12px; padding: 2px 5px; border-radius: var(--radius); border: 1.5px solid var(--border); background: transparent; cursor: pointer; font-family: monospace; display: inline-flex; align-items: center; gap: 2px; transition: all .1s; }
+.vote-btn:hover { background: var(--paper-dark); }
+.vote-btn.thumbs-up.voted { background: var(--success-bg); border-color: var(--success); color: var(--success); }
+.vote-btn.thumbs-down.voted { background: var(--danger-bg); border-color: var(--danger); color: var(--danger); }
+.vote-count { font-size: 10px; font-weight: 700; }
+.democratic-badge { font-size: 10px; font-family: 'Special Elite', monospace; color: var(--ink-muted); padding: 1px 5px; border-radius: 3px; border: 1px solid var(--border); }
+.democratic-result { font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: var(--radius); }
+.democratic-result.valid { background: var(--success-bg); color: var(--success); }
+.democratic-result.invalid { background: var(--danger-bg); color: var(--danger); }
+.democratic-result.tie { background: var(--paper-dark); color: var(--ink-sec); }
+
 /* ── AI validation ── */
 .ai-btn { font-size: 12px; padding: 3px 8px; border-radius: var(--radius); border: 1.5px solid #8e44ad; background: transparent; color: #8e44ad; cursor: pointer; flex-shrink: 0; font-family: 'Special Elite', monospace; }
 .ai-btn:hover { background: #f5eef8; }
@@ -355,6 +372,13 @@ button.stop-btn:hover { background: var(--red-dark); }
 .welcome-avatar { font-size: 48px; text-align: center; margin-bottom: 8px; }
 .welcome-name { font-family: 'Caveat', cursive; font-size: 28px; font-weight: 700; text-align: center; color: var(--ink); margin-bottom: 4px; }
 .welcome-group { font-family: 'Special Elite', monospace; font-size: 12px; text-align: center; color: var(--ink-muted); margin-bottom: 20px; letter-spacing: 1px; }
+
+/* ── Help ── */
+.help-section { margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px dashed var(--border); }
+.help-section:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+.help-title { font-family: 'Caveat', cursive; font-size: 18px; font-weight: 700; color: var(--ink); margin-bottom: 6px; }
+.help-text { font-family: 'Special Elite', monospace; font-size: 13px; color: var(--ink-sec); line-height: 1.6; }
+.help-text li { margin-left: 16px; margin-bottom: 3px; }
 
 /* ── Rules ── */
 .rules-toggle { width: 100%; background: transparent; border: 1.5px dashed var(--border-strong); color: var(--ink-sec); font-size: 15px; padding: 10px; margin-bottom: 10px; font-family: 'Special Elite', monospace; letter-spacing: 1px; }
@@ -435,6 +459,7 @@ button.stop-btn:hover { background: var(--red-dark); }
   </div>
   <button class="rules-toggle" id="rules-btn" onclick="toggleRules()">▼ ¿Cómo se juega?</button>
   <div class="rules-box" id="rules-box"></div>
+
   <div class="brand-footer" id="footer-noreg">SIN REGISTRO · SIN DESCARGAS · GRATIS</div>
 </div>
 
@@ -517,6 +542,11 @@ button.stop-btn:hover { background: var(--red-dark); }
         <input type="range" min="30" max="120" step="10" value="90" id="sl-time" oninput="document.getElementById('v-time').textContent=this.value">
         <span class="range-val" id="v-time">90</span>
       </div>
+      <p class="lbl" style="margin-top:14px">🗳️ Modo de validación</p>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">
+        <button id="mode-host" onclick="setValidationMode('host')" style="font-size:13px;padding:5px 10px;border-radius:20px;border:1.5px solid #c0392b;background:#fdf0ee;cursor:pointer">👑 Anfitrión decide</button>
+        <button id="mode-democratic" onclick="setValidationMode('democratic')" style="font-size:13px;padding:5px 10px;border-radius:20px;border:1.5px solid var(--border-strong);background:var(--paper-dark);cursor:pointer">🗳️ Democrático</button>
+      </div>
       <p class="lbl" style="margin-top:14px" id="lbl-ai-strictness">🤖 Nivel de validación IA</p>
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px">
         <button id="ai-libre" onclick="setAILevel('libre')" style="font-size:13px;padding:5px 10px;border-radius:20px;border:1.5px solid var(--border-strong);background:var(--paper-dark);cursor:pointer">🟢 Libre</button>
@@ -562,7 +592,6 @@ button.stop-btn:hover { background: var(--red-dark); }
   <p class="sub" style="margin-bottom:2px"><svg width="14" height="14" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10 4 C7 4 2 5 2 5 L2 16 C2 16 7 15 10 17" stroke="currentColor" stroke-width="1.2" fill="#f7f3e8" stroke-linejoin="round"/><path d="M10 4 C13 4 18 5 18 5 L18 16 C18 16 13 15 10 17" stroke="currentColor" stroke-width="1.2" fill="#f7f3e8" stroke-linejoin="round"/><line x1="10" y1="4" x2="10" y2="17" stroke="currentColor" stroke-width="1.8"/><line x1="4" y1="8" x2="8.5" y2="7.5" stroke="currentColor" stroke-width="0.8" stroke-linecap="round" opacity="0.5"/><line x1="4" y1="10.5" x2="8.5" y2="10" stroke="currentColor" stroke-width="0.8" stroke-linecap="round" opacity="0.5"/><line x1="4" y1="13" x2="8.5" y2="12.5" stroke="currentColor" stroke-width="0.8" stroke-linecap="round" opacity="0.5"/><line x1="11.5" y1="7.5" x2="16" y2="8" stroke="currentColor" stroke-width="0.8" stroke-linecap="round" opacity="0.5"/><line x1="11.5" y1="10" x2="16" y2="10.5" stroke="currentColor" stroke-width="0.8" stroke-linecap="round" opacity="0.5"/><line x1="11.5" y1="12.5" x2="16" y2="13" stroke="currentColor" stroke-width="0.8" stroke-linecap="round" opacity="0.5"/></svg> <span id="lbl-validate-sub1"> buscar en Wikipedia &nbsp;·&nbsp; ✕ anular</span></p>
   <p class="sub" id="lbl-validate-sub2">única = 100 pts &nbsp;·&nbsp; repetida = 50 pts &nbsp;·&nbsp; anulada = 0 pts</p>
   <div id="val-content"></div>
-  <div class="reaction-bar" id="reaction-bar-host"></div>
   <button class="pri" onclick="finishValidation()" style="width:100%;margin-top:8px" id="btn-calculate">Calcular puntajes →</button>
 </div>
 
@@ -575,7 +604,6 @@ button.stop-btn:hover { background: var(--red-dark); }
     <div class="pencil-dots"><span>•</span><span>•</span><span>•</span></div>
   </div>
   <div id="guest-val-content"></div>
-  <div class="reaction-bar" id="reaction-bar-guest"></div>
 </div>
 
 <!-- ══ SCORES ══ -->
@@ -1061,6 +1089,9 @@ function rulesHTML() {
       <div class="rules-score-row"><span>${r.u}</span><span class="rules-pts">100 pts</span></div>
       <div class="rules-score-row"><span>${r.d}</span><span class="rules-pts">50 pts</span></div>
       <div class="rules-score-row"><span>${r.e}</span><span class="rules-pts">0 pts</span></div>
+    </div>
+    <div style="margin-top:14px;padding-top:14px;border-top:1px dashed var(--border-strong)">
+      ${helpHTML()}
     </div>`;
 }
 
@@ -1079,6 +1110,128 @@ window.updateRulesBtn = function() {
   btn.textContent = (isOpen ? '▲ ' : '▼ ') + (labels[LANG]||labels.es);
   if (isOpen) document.getElementById('rules-box').innerHTML = rulesHTML();
 }
+
+
+// ── Help section ──────────────────────────────────────
+function helpHTML() {
+  const h = {
+    es: {
+      t1: '🔍 Revisar respuestas',
+      b1: 'Después de cada ronda el anfitrión revisa las respuestas:',
+      l1: ['📖 Busca la definición en Wikipedia', '🤖 Pregunta a la IA si la respuesta es válida', '👍👎 Los jugadores votan cada respuesta', '✕ El anfitrión puede anular una respuesta manualmente'],
+      t2: '🗳️ Modo democrático',
+      b2: 'En lugar de que el anfitrión decida solo, los jugadores votan con 👍👎. Si la mayoría vota en contra, la respuesta se anula automáticamente.',
+      t3: '🤖 Validación IA',
+      b3: 'El anfitrión configura el nivel de rigor:',
+      l3: ['🟢 Libre — se aceptan palabras reales y ficticias', '🟡 Normal — se acepta lo real y lo ampliamente conocido', '🔴 Estricto — solo palabras del mundo real verificables'],
+      t4: '🏆 Marcador',
+      b4: 'Tu grupo acumula victorias a lo largo de todas las partidas. El marcador global compara con jugadores de todo el mundo.',
+      t5: '🎮 Grupo',
+      b5: 'El anfitrión escribe un nombre de grupo (ej. "Los García"). Tus partidas y victorias se guardan bajo ese nombre. ¡Siempre usa el mismo para acumular historia!',
+      btnLabel: '▲ ❓ Ayuda — funciones avanzadas',
+    },
+    en: {
+      t1: '🔍 Reviewing answers',
+      b1: 'After each round the host reviews all answers:',
+      l1: ['📖 Look up the definition on Wikipedia', '🤖 Ask AI if the answer is valid', '👍👎 Players vote on each answer', '✕ The host can manually invalidate an answer'],
+      t2: '🗳️ Democratic mode',
+      b2: 'Instead of the host deciding alone, players vote 👍👎. If the majority votes against, the answer is automatically invalidated.',
+      t3: '🤖 AI validation',
+      b3: 'The host sets the strictness level:',
+      l3: ['🟢 Free — real and fictional words accepted', '🟡 Normal — real and widely-known fictional accepted', '🔴 Strict — only real, verifiable things accepted'],
+      t4: '🏆 Leaderboard',
+      b4: 'Your group accumulates wins across all games. The global leaderboard compares you with players worldwide.',
+      t5: '🎮 Group',
+      b5: 'The host types a group name (e.g. "The Smiths"). Your games and wins are saved under that name. Always use the same one to build up history!',
+      btnLabel: '▲ ❓ Help — advanced features',
+    },
+    fr: {
+      t1: '🔍 Vérifier les réponses',
+      b1: "Après chaque manche l'hôte vérifie toutes les réponses:",
+      l1: ["📖 Cherche la définition sur Wikipedia", "🤖 Demande à l'IA si la réponse est valide", "👍👎 Les joueurs votent pour chaque réponse", "✕ L'hôte peut annuler une réponse manuellement"],
+      t2: '🗳️ Mode démocratique',
+      b2: "Au lieu que l'hôte décide seul, les joueurs votent 👍👎. Si la majorité vote contre, la réponse est automatiquement annulée.",
+      t3: '🤖 Validation IA',
+      b3: "L'hôte configure le niveau de rigueur:",
+      l3: ['🟢 Libre — mots réels et fictifs acceptés', '🟡 Normal — réel et fictif bien connu accepté', '🔴 Strict — uniquement des choses réelles vérifiables'],
+      t4: '🏆 Classement',
+      b4: 'Votre groupe accumule des victoires sur toutes les parties. Le classement mondial vous compare aux joueurs du monde entier.',
+      t5: '🎮 Groupe',
+      b5: "L'hôte tape un nom de groupe (ex. 'Les Dupont'). Vos parties et victoires sont sauvegardées sous ce nom. Utilisez toujours le même pour accumuler l'historique!",
+      btnLabel: '▲ ❓ Aide — fonctions avancées',
+    },
+    de: {
+      t1: '🔍 Antworten überprüfen',
+      b1: 'Nach jeder Runde überprüft der Gastgeber alle Antworten:',
+      l1: ['📖 Definition auf Wikipedia nachschlagen', '🤖 KI fragen ob die Antwort gültig ist', '👍👎 Spieler stimmen über jede Antwort ab', '✕ Der Gastgeber kann eine Antwort manuell ungültig machen'],
+      t2: '🗳️ Demokratischer Modus',
+      b2: 'Statt dass der Gastgeber alleine entscheidet, stimmen die Spieler 👍👎. Wenn die Mehrheit dagegen stimmt, wird die Antwort automatisch ungültig.',
+      t3: '🤖 KI-Validierung',
+      b3: 'Der Gastgeber legt den Strenge-Grad fest:',
+      l3: ['🟢 Frei — echte und fiktive Wörter akzeptiert', '🟡 Normal — Echtes und bekannte Fiktion akzeptiert', '🔴 Streng — nur echte, überprüfbare Dinge akzeptiert'],
+      t4: '🏆 Bestenliste',
+      b4: 'Ihre Gruppe sammelt Siege über alle Spiele hinweg. Die globale Bestenliste vergleicht Sie mit Spielern weltweit.',
+      t5: '🎮 Gruppe',
+      b5: 'Der Gastgeber gibt einen Gruppennamen ein (z.B. "Die Müllers"). Ihre Spiele und Siege werden unter diesem Namen gespeichert. Benutzen Sie immer denselben!',
+      btnLabel: '▲ ❓ Hilfe — erweiterte Funktionen',
+    },
+    pt: {
+      t1: '🔍 Rever respostas',
+      b1: 'Depois de cada ronda o anfitrião revê todas as respostas:',
+      l1: ['📖 Procura a definição na Wikipedia', '🤖 Pergunta à IA se a resposta é válida', '👍👎 Os jogadores votam em cada resposta', '✕ O anfitrião pode anular uma resposta manualmente'],
+      t2: '🗳️ Modo democrático',
+      b2: 'Em vez do anfitrião decidir sozinho, os jogadores votam 👍👎. Se a maioria votar contra, a resposta é automaticamente anulada.',
+      t3: '🤖 Validação IA',
+      b3: 'O anfitrião configura o nível de rigor:',
+      l3: ['🟢 Livre — palavras reais e fictícias aceites', '🟡 Normal — real e ficção amplamente conhecida aceite', '🔴 Estrito — apenas coisas reais e verificáveis aceites'],
+      t4: '🏆 Classificação',
+      b4: 'O teu grupo acumula vitórias em todas as partidas. A classificação global compara-te com jogadores de todo o mundo.',
+      t5: '🎮 Grupo',
+      b5: 'O anfitrião escreve um nome de grupo (ex. "Os Silva"). As tuas partidas e vitórias ficam guardadas sob esse nome. Usa sempre o mesmo para acumular histórico!',
+      btnLabel: '▲ ❓ Ajuda — funções avançadas',
+    },
+    it: {
+      t1: '🔍 Rivedere le risposte',
+      b1: "Dopo ogni round l'host rivede tutte le risposte:",
+      l1: ["📖 Cerca la definizione su Wikipedia", "🤖 Chiede all'IA se la risposta è valida", "👍👎 I giocatori votano ogni risposta", "✕ L'host può annullare una risposta manualmente"],
+      t2: '🗳️ Modalità democratica',
+      b2: "Invece che l'host decida da solo, i giocatori votano 👍👎. Se la maggioranza vota contro, la risposta viene automaticamente annullata.",
+      t3: '🤖 Validazione IA',
+      b3: "L'host configura il livello di rigore:",
+      l3: ['🟢 Libero — parole reali e fittizie accettate', '🟡 Normale — reale e finzione ampiamente nota accettata', '🔴 Rigoroso — solo cose reali e verificabili accettate'],
+      t4: '🏆 Classifica',
+      b4: 'Il tuo gruppo accumula vittorie in tutte le partite. La classifica globale ti confronta con giocatori di tutto il mondo.',
+      t5: '🎮 Gruppo',
+      b5: "L'host scrive un nome gruppo (es. 'I Rossi'). Le tue partite e vittorie vengono salvate sotto quel nome. Usa sempre lo stesso per accumulare storia!",
+      btnLabel: '▲ ❓ Aiuto — funzioni avanzate',
+    },
+  };
+  const d = h[LANG] || h.es;
+  const li = (items) => items.map(i => `<li>${i}</li>`).join('');
+  return `
+    <div class="help-section">
+      <div class="help-title">${d.t1}</div>
+      <div class="help-text">${d.b1}<ul>${li(d.l1)}</ul></div>
+    </div>
+    <div class="help-section">
+      <div class="help-title">${d.t2}</div>
+      <div class="help-text">${d.b2}</div>
+    </div>
+    <div class="help-section">
+      <div class="help-title">${d.t3}</div>
+      <div class="help-text">${d.b3}<ul>${li(d.l3)}</ul></div>
+    </div>
+    <div class="help-section">
+      <div class="help-title">${d.t4}</div>
+      <div class="help-text">${d.b4}</div>
+    </div>
+    <div class="help-section">
+      <div class="help-title">${d.t5}</div>
+      <div class="help-text">${d.b5}</div>
+    </div>`;
+}
+
+
 
 window.applyLang = function() {
   function s(id, txt, ph) {
@@ -1335,6 +1488,7 @@ function handleRoom(room) {
   }
   else if (G.screen === 'validate') {
     processReactions(room);
+    applyVotesAndReactions(room, true);
     if (room.phase === 'scores') showScores(room);
   }
   else if (G.screen === 'waiting') {
@@ -1342,6 +1496,7 @@ function handleRoom(room) {
     if (room.dictLookup) applyDictLookup(room.dictLookup);
     else clearGuestDictResults();
     if (room.aiResults) applyAIResults(room.aiResults);
+    applyVotesAndReactions(room, false);
     processReactions(room);
     if (room.phase === 'scores') showScores(room);
   }
@@ -1492,7 +1647,7 @@ window.startGame = async () => {
     currentRound:1, phase:'playing',
     currentLetter:letter, usedLetters:[letter],
     allAnswers:{}, calledStop:false, stopCaller:'',
-    scores, easyLetters:easy, stopPenalty:penalty, groupName:groupName, aiLevel:G_aiLevel,
+    scores, easyLetters:easy, stopPenalty:penalty, groupName:groupName, aiLevel:G_aiLevel, validationMode:G_validationMode,
   });
 };
 
@@ -1501,6 +1656,8 @@ function enterPlaying(room) {
   show('playing');
   document.getElementById('rnd-cur').textContent = room.currentRound;
   document.getElementById('rnd-tot').textContent = room.rounds;
+  const ftCur = document.getElementById('ft-rnd-cur'); if(ftCur) ftCur.textContent = room.currentRound;
+  const ftTot = document.getElementById('ft-rnd-tot'); if(ftTot) ftTot.textContent = room.rounds;
   const rndLbl = document.getElementById('lbl-round-of'); if(rndLbl) rndLbl.textContent = t('of');
   document.getElementById('cur-letter').textContent = room.currentLetter;
   const stopBtn = document.querySelector('.stop-btn');
@@ -1591,8 +1748,8 @@ function buildValidationHTML(room, invalidMap) {
 function showValidation(room) {
   show('validate');
   G.invalidAnswers = {};
-  buildReactionBar('reaction-bar-host');
   if (room.aiLevel) { G_aiLevel = room.aiLevel; window.setAILevel(room.aiLevel); }
+  if (room.validationMode) { G_validationMode = room.validationMode; window.setValidationMode(room.validationMode); }
   const cats = room.categories||[];
   const players = Object.keys(room.players||{});
   const allAns = room.allAnswers||{};
@@ -1613,11 +1770,16 @@ function showValidation(room) {
       const dictDiv = ans ? `<div class="dict-result" id="dict_${key}"></div>` : '';
       const aiBtn = ans ? `<button class="ai-btn" id="ai_btn_${key}" onclick="askAI('${ans.replace(/'/g,"\'")}','${cat}','${room.currentLetter}','${key}')">🤖</button>` : '';
       const aiRes = ans ? `<div class="ai-result" id="ai_res_${key}"></div>` : '';
+      const voteHtml = ans ? renderVotes(key, {}, G_validationMode, players, true) : '';
       html += `<div class="val-entry" id="ve_${key}">
         <span class="val-name">${p}</span>
         <span class="ans-disp">${ans||'<span style="color:var(--ink-muted)">—</span>'}</span>
-        ${ptsBadge}${dictBtn}${aiBtn}${invBtn}
-      </div>${dictDiv}${aiRes}`;
+        ${ptsBadge}${dictBtn}${aiBtn}
+        ${ans ? `<span id="votes_${key}" style="display:inline-flex;gap:3px;align-items:center">${voteHtml}</span>` : ''}
+        ${invBtn}
+      </div>
+      ${ans ? `<div class="entry-reactions"><div id="emojis_${key}">${renderEntryEmojis(key, {}, true)}</div></div>` : ''}
+      ${dictDiv}${aiRes}`;
     });
     html += '</div>';
   });
@@ -1627,7 +1789,6 @@ function showValidation(room) {
 function showGuestValidation(room) {
   show('waiting');
   document.getElementById('guest-val-content').innerHTML = buildValidationHTML(room, {});
-  buildReactionBar('reaction-bar-guest');
 }
 
 let G_lastInvalidHash = '';
@@ -1958,6 +2119,128 @@ window.askAI = async (word, category, letter, key) => {
   btn.classList.remove('loading');
 };
 
+
+// ── Per-entry reactions & voting ─────────────────────
+const ENTRY_EMOJIS = ['😂','🔥','👏','🤔','😱','💀'];
+let G_validationMode = 'host'; // 'host' or 'democratic'
+let G_myVotes = {}; // key -> 'up' or 'down'
+let G_myEntryEmojis = {}; // key+emoji -> true
+
+window.setValidationMode = (mode) => {
+  G_validationMode = mode;
+  ['host','democratic'].forEach(m => {
+    const btn = document.getElementById('mode-' + m);
+    if (!btn) return;
+    if (m === mode) { btn.style.borderColor = '#c0392b'; btn.style.background = '#fdf0ee'; }
+    else { btn.style.borderColor = 'var(--border-strong)'; btn.style.background = 'var(--paper-dark)'; }
+  });
+};
+
+window.voteEntry = async (key, dir) => {
+  const prev = G_myVotes[key];
+  // Toggle off if same vote
+  if (prev === dir) {
+    G_myVotes[key] = null;
+    await update(roomRef(G.roomCode), { [`votes/${key}/${G.playerName}`]: null });
+  } else {
+    G_myVotes[key] = dir;
+    await update(roomRef(G.roomCode), { [`votes/${key}/${G.playerName}`]: dir });
+  }
+};
+
+window.reactToEntry = async (key, emoji) => {
+  const eKey = key + '_' + emoji;
+  const active = G_myEntryEmojis[eKey];
+  G_myEntryEmojis[eKey] = !active;
+  await update(roomRef(G.roomCode), {
+    [`entryReactions/${key}/${G.playerName}_${emoji}`]: active ? null : { emoji, name: G.playerName }
+  });
+};
+
+function renderVotes(key, votes, mode, players, isHost) {
+  const voteData = votes || {};
+  const ups = Object.values(voteData).filter(v => v === 'up').length;
+  const downs = Object.values(voteData).filter(v => v === 'down').length;
+  const total = ups + downs;
+  const myVote = G_myVotes[key];
+  const totalPlayers = players.length;
+
+  let democraticResult = '';
+  if (mode === 'democratic' && total > 0) {
+    const majority = Math.floor(totalPlayers / 2) + 1;
+    if (ups >= majority) democraticResult = '<span class="democratic-result valid">✅ Válido</span>';
+    else if (downs >= majority) democraticResult = '<span class="democratic-result invalid">❌ Inválido</span>';
+    else democraticResult = '<span class="democratic-result tie">⚖️ Empate</span>';
+  }
+
+  const upClass = myVote === 'up' ? 'vote-btn thumbs-up voted' : 'vote-btn thumbs-up';
+  const downClass = myVote === 'down' ? 'vote-btn thumbs-down voted' : 'vote-btn thumbs-down';
+  const pct = total > 0 ? Math.round((ups / total) * 100) : 50;
+
+  return `<button class="${upClass}" onclick="voteEntry('${key}','up')">👍 <span class="vote-count">${ups}</span></button>
+    <button class="${downClass}" onclick="voteEntry('${key}','down')">👎 <span class="vote-count">${downs}</span></button>
+    ${democraticResult}`;
+}
+
+function renderEntryEmojis(key, entryReactions, isHost) {
+  const reactions = entryReactions || {};
+  // Count each emoji
+  const counts = {};
+  Object.values(reactions).forEach(r => {
+    if (r) counts[r.emoji] = (counts[r.emoji] || 0) + 1;
+  });
+  const myActive = Object.keys(G_myEntryEmojis).filter(k => k.startsWith(key + '_') && G_myEntryEmojis[k]);
+
+  const strip = ENTRY_EMOJIS.map(e => {
+    const count = counts[e] || 0;
+    const active = G_myEntryEmojis[key + '_' + e];
+    return `<button class="entry-emoji-btn${active ? ' active' : ''}" onclick="reactToEntry('${key}','${e}')">${e}${count > 0 ? `<sup style="font-size:9px">${count}</sup>` : ''}</button>`;
+  }).join('');
+
+  return `<div class="entry-emoji-strip">${strip}</div>`;
+}
+
+function applyVotesAndReactions(room, isHost) {
+  const votes = room.votes || {};
+  const entryReactions = room.entryReactions || {};
+  const players = Object.keys(room.players || {});
+  const mode = room.validationMode || 'host';
+
+  // Update my votes from Firebase (in case rejoining)
+  Object.entries(votes).forEach(([key, playerVotes]) => {
+    if (playerVotes[G.playerName]) G_myVotes[key] = playerVotes[G.playerName];
+  });
+
+  // Update vote displays (now inline spans)
+  Object.keys(votes).forEach(key => {
+    const voteEl = document.getElementById('votes_' + key);
+    if (voteEl) voteEl.innerHTML = renderVotes(key, votes[key], mode, players, isHost);
+  });
+
+  // Update emoji reaction displays
+  Object.keys(entryReactions).forEach(key => {
+    const emojiEl = document.getElementById('emojis_' + key);
+    if (emojiEl) emojiEl.innerHTML = renderEntryEmojis(key, entryReactions[key], isHost);
+  });
+
+  // In democratic mode, auto-invalidate entries where majority voted down
+  if (isHost && mode === 'democratic') {
+    const majority = Math.floor(players.length / 2) + 1;
+    Object.entries(votes).forEach(([key, playerVotes]) => {
+      const downs = Object.values(playerVotes).filter(v => v === 'down').length;
+      if (downs >= majority && !G.invalidAnswers[key]) {
+        // Auto-invalidate
+        G.invalidAnswers[key] = true;
+        const entry = document.getElementById('ve_' + key);
+        const ib = document.getElementById('ib_' + key);
+        if (entry) entry.classList.add('invalid');
+        if (ib) ib.innerHTML = '↩';
+        update(roomRef(G.roomCode), { invalidAnswers: G.invalidAnswers });
+      }
+    });
+  }
+}
+
 // ── Reactions ────────────────────────────────────────
 const REACTION_EMOJIS = ['😂','🔥','👏','😱','🤔','❌','✅','🎉'];
 let G_lastReaction = 0;
@@ -2096,7 +2379,7 @@ window.nextRound = async () => {
   used.push(letter);
   await update(roomRef(G.roomCode), {
     currentRound:room.currentRound+1, currentLetter:letter, usedLetters:used,
-    phase:'playing', allAnswers:{}, calledStop:false, stopCaller:'', aiResults:{},
+    phase:'playing', allAnswers:{}, calledStop:false, stopCaller:'', aiResults:{}, votes:{}, entryReactions:{},
   });
 };
 
