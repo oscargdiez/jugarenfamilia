@@ -431,6 +431,23 @@ button.stop-btn:hover { background: var(--red-dark); }
 <div class="confetti-stage" id="confetti-stage"></div>
 <div id="toast"></div>
 
+<!-- ══ QUICK JOIN (when arriving via link) ══ -->
+<div id="s-quickjoin" class="screen">
+  <div class="logo-wrap" style="margin-bottom:1.5rem">
+    <div class="logo-main" style="font-size:52px">¡Alto!</div>
+    <div class="logo-tag" id="qj-tagline">el juego de siempre, con los de siempre</div>
+  </div>
+  <div class="card">
+    <p class="lbl" id="qj-invited">¡Te han invitado a jugar!</p>
+    <p class="lbl" id="qj-name-lbl" style="margin-top:12px">tu nombre</p>
+    <input type="text" id="qj-name" placeholder="María..." maxlength="20" autocomplete="nickname" inputmode="text" style="width:100%;margin-bottom:14px">
+    <p class="lbl" id="qj-emoji-lbl">elige tu emoji <span class="emoji-display" id="qj-selected-emoji">🎲</span></p>
+    <div class="emoji-grid" id="qj-emoji-grid"></div>
+    <button class="pri" onclick="quickJoin()" style="width:100%;font-size:20px;padding:14px;margin-top:14px" id="qj-btn">¡Unirse a la sala! →</button>
+    <p style="text-align:center;margin-top:12px;font-size:12px;font-family:'Special Elite',monospace;color:var(--ink-muted)" id="qj-code-label">sala: <span id="qj-room-code"></span></p>
+  </div>
+</div>
+
 <!-- ══ HOME ══ -->
 <div id="s-home" class="screen on">
   <div class="lang-bar">
@@ -452,9 +469,9 @@ button.stop-btn:hover { background: var(--red-dark); }
     <input type="text" id="inp-name" placeholder="María..." maxlength="20" autocomplete="nickname" inputmode="text" style="margin-bottom:14px">
     <p class="lbl" id="lbl-choose-emoji">elige tu emoji <span class="emoji-display" id="selected-emoji">🎲</span></p>
     <div class="emoji-grid" id="emoji-grid"></div>
-    <div class="btn-row" style="margin-top:14px">
-      <button class="pri" onclick="createRoom()" style="flex:1" id="btn-create">Crear sala</button>
-      <button onclick="showJoin()" style="flex:1" id="btn-join">Unirse</button>
+    <div style="margin-top:14px">
+      <button class="pri" onclick="createRoom()" style="width:100%;font-size:20px;padding:14px;margin-bottom:8px" id="btn-create">Crear sala →</button>
+      <button onclick="showJoin()" style="width:100%;font-size:14px;opacity:0.7" id="btn-join">Unirse con código</button>
     </div>
   </div>
   <div id="join-box" style="display:none">
@@ -1317,6 +1334,7 @@ window.applyLang = function() {
   }
   // Rules & lang bar
   updateRulesBtn();
+  applyQuickJoinLang();
   document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.getAttribute('onclick').includes("'"+LANG+"'")));
 }
 
@@ -2128,6 +2146,81 @@ window.askAI = async (word, category, letter, key) => {
 };
 
 
+
+// ── Quick Join (via WhatsApp link) ───────────────────
+function buildQuickJoinEmojiGrid() {
+  const saved = localStorage.getItem('alto_emoji');
+  const defaultEmoji = saved || '🎲';
+  G.playerEmoji = defaultEmoji;
+  const grid = document.getElementById('qj-emoji-grid');
+  if (!grid) return;
+  grid.innerHTML = EMOJIS.map((e, i) =>
+    `<div class="emoji-opt" id="qj_emoji_${i}" onclick="pickEmojiQJ(${i})">${e}</div>`
+  ).join('');
+  const savedIdx = EMOJIS.indexOf(defaultEmoji);
+  if (savedIdx >= 0 && saved) {
+    const sel = document.getElementById('qj_emoji_' + savedIdx);
+    if (sel) sel.classList.add('selected');
+  }
+  const display = document.getElementById('qj-selected-emoji');
+  if (display) display.textContent = defaultEmoji;
+}
+
+window.pickEmojiQJ = (idx) => {
+  const e = EMOJIS[idx];
+  G.playerEmoji = e;
+  localStorage.setItem('alto_emoji', e);
+  document.querySelectorAll('#qj-emoji-grid .emoji-opt').forEach(el => el.classList.remove('selected'));
+  // Also sync main grid
+  document.querySelectorAll('#emoji-grid .emoji-opt, #emoji-grid-wb .emoji-opt').forEach(el => el.classList.remove('selected'));
+  const sel = document.getElementById('qj_emoji_' + idx);
+  if (sel) sel.classList.add('selected');
+  const display = document.getElementById('qj-selected-emoji');
+  if (display) display.textContent = e;
+};
+
+window.quickJoin = async () => {
+  const nameEl = document.getElementById('qj-name');
+  const name = nameEl ? nameEl.value.trim() : '';
+  if (!name) { toast(t('toastName')); return; }
+  G.playerName = name;
+  localStorage.setItem('alto_last_name', name);
+  // Join the room
+  const code = G.roomCode;
+  const snap = await get(roomRef(code));
+  if (!snap.exists()) {
+    toast(t('toastNotFound'));
+    // Room gone - go to home
+    G.roomCode = '';
+    window.show('home');
+    return;
+  }
+  const room = snap.val();
+  G.isHost = false;
+  await update(roomRef(code), {
+    [`players/${name}`]: G.playerEmoji,
+    [`scores/${name}`]: room.scores?.[name] ?? 0
+  });
+  subscribe(code);
+  enterLobby(room);
+};
+
+// ── Translate quick join screen ───────────────────────
+function applyQuickJoinLang() {
+  const tagline = document.getElementById('qj-tagline');
+  if (tagline) tagline.textContent = t('tagline');
+  const invited = document.getElementById('qj-invited');
+  if (invited) invited.textContent = {es:'¡Te han invitado a jugar!',en:"You've been invited to play!",fr:'Tu as été invité à jouer!',de:'Du wurdest eingeladen zu spielen!',pt:'Foste convidado a jogar!',it:'Sei stato invitato a giocare!'}[LANG] || '¡Te han invitado a jugar!';
+  const nameLbl = document.getElementById('qj-name-lbl');
+  if (nameLbl) nameLbl.textContent = t('yourName');
+  const qjName = document.getElementById('qj-name');
+  if (qjName) qjName.placeholder = t('namePlaceholder');
+  const emojiLbl = document.getElementById('qj-emoji-lbl');
+  if (emojiLbl) emojiLbl.textContent = t('chooseEmoji') + ' ';
+  const btn = document.getElementById('qj-btn');
+  if (btn) btn.textContent = {es:'¡Unirse a la sala! →',en:'Join the room! →',fr:'Rejoindre la salle! →',de:'Raum beitreten! →',pt:'Entrar na sala! →',it:'Unisciti alla stanza! →'}[LANG] || '¡Unirse a la sala! →';
+}
+
 // ── Per-entry reactions & voting ─────────────────────
 const ENTRY_EMOJIS = ['😂','🔥','👏','🤔','😱','💀'];
 let G_validationMode = 'host'; // 'host' or 'democratic'
@@ -2569,8 +2662,19 @@ async function restoreToScreen() {
 async function tryRestore() {
   const urlCode = new URLSearchParams(window.location.search).get('room');
   if (urlCode) {
-    document.getElementById('inp-code').value = urlCode.toUpperCase();
-    window.showJoin(); return;
+    const code = urlCode.toUpperCase();
+    G.roomCode = code;
+    // Show quick join screen
+    buildQuickJoinEmojiGrid();
+    applyQuickJoinLang();
+    // Pre-fill name from last session
+    const lastSession = JSON.parse(localStorage.getItem('alto_session') || '{}');
+    const qjName = document.getElementById('qj-name');
+    if (qjName && lastSession.name) qjName.value = lastSession.name;
+    const codeLabel = document.getElementById('qj-room-code');
+    if (codeLabel) codeLabel.textContent = code;
+    window.show('quickjoin');
+    return;
   }
   const saved = localStorage.getItem('alto_session');
   if (!saved) return;
@@ -2578,8 +2682,10 @@ async function tryRestore() {
   if (emoji) G.playerEmoji = emoji;
   if (!name||!code) return;
   const snap = await get(roomRef(code));
+  // Room gone or finished — clear silently and show home fresh
   if (!snap.exists()) { clearSession(); return; }
   const room = snap.val();
+  if (room.phase === 'final') { clearSession(); return; }
   G.playerName=name; G.roomCode=code;
   G.isHost = isHost && room.host===name;
 

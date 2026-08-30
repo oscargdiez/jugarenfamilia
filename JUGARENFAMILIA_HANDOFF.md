@@ -163,24 +163,23 @@ CNAME     www  oscargdiez.github.io
 ## 🚀 Deploy Workflow
 
 ### Standard deploy (one double-click!)
-Claude always downloads these files to `C:\Users\User\Downloads\`:
+Claude ALWAYS provides these files at the end of each session:
 - `jugarenfamilia.html` — the game (required)
-- `gitinfo.txt` — commit message and git config (required)
+- `gitinfo.txt` — commit message and git config (required, always with HTML)
 - `preview.png` — WhatsApp OG image (optional, only when changed)
 - `JUGARENFAMILIA_HANDOFF.md` — this doc (optional, when updated)
+- `rollback.bat` — only needed once, already in D:\09_ALTO\
 
-Then double-click `D:\09_ALTO\deploy.bat` — it:
-1. Reads `gitinfo.txt` from Downloads (falls back to local copy)
-2. Copies `jugarenfamilia.html` → `index.html`
-3. Copies `preview.png` if present
-4. Copies `JUGARENFAMILIA_HANDOFF.md` if present
-5. Git commits with the message from `gitinfo.txt`
-6. Pushes to GitHub → auto-deploys to jugarenfamilia.es in ~30 seconds
-7. **Cleans up all downloaded files** from Downloads folder
+**Steps:**
+1. Download all files from Claude to `C:\Users\User\Downloads\`
+2. Double-click `D:\09_ALTO\deploy.bat`
+3. It reads `gitinfo.txt`, copies files, commits, pushes, cleans up Downloads
+4. Live at jugarenfamilia.es in ~30 seconds ✅
 
-### Files in D:\09_ALTO\
-- `deploy.bat` — deploy script (never changes)
-- `gitinfo.txt` — updated by Claude each session
+### Files in D:\09_ALTO\ (already set up, don't touch)
+- `deploy.bat` — double-click to deploy ✅ already working
+- `rollback.bat` — double-click to rollback ✅ already working
+- `gitinfo.txt` — updated by Claude each session with commit message
 - `index.html` — current live game
 - `preview.png` — WhatsApp preview image
 - `CNAME` — contains `jugarenfamilia.es`
@@ -195,6 +194,36 @@ EMAIL=oscar.g.diez@gmail.com
 MESSAGE=feat: description of what changed this session
 ```
 Claude updates the MESSAGE line each session to describe what was built.
+
+---
+
+## ⏪ Rollback Workflow
+
+If a deploy breaks something and you need to revert:
+
+1. Double-click `D:\09_ALTO\rollback.bat`
+2. It shows the last 10 commits like:
+```
+fe07617 feat: Google Analytics, reactions... [30/08/2026]
+118fe9c feat: AI validation... [30/08/2026]
+13eb6db Initial upload
+```
+3. Copy the 7-character hash of the last good version
+4. Paste it in, confirm with `y`
+5. That version is live in ~30 seconds ✅
+
+**After rolling back:**
+- Tell Claude what broke
+- Claude fixes it in the chat
+- Download new `jugarenfamilia.html` + `gitinfo.txt`
+- Run `deploy.bat` to push the fix
+
+Every deploy creates a new commit — you can always go back to any version in history. GitHub keeps everything forever.
+
+**Commit message prefixes used by Claude:**
+- `feat:` — new feature added
+- `fix:` — bug fixed
+- `rollback:` — reverted to older version
 
 ---
 
