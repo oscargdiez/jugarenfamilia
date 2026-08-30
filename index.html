@@ -1614,8 +1614,8 @@ function enterLobby(room) {
   // Show/hide host vs guest sections
   const hostOnly = document.querySelectorAll('.host-only');
   const guestOnly = document.querySelectorAll('.guest-only');
-  hostOnly.forEach(el => el.style.display = G.isHost ? '' : 'none');
-  guestOnly.forEach(el => el.style.display = G.isHost ? 'none' : '');
+  hostOnly.forEach(el => el.style.display = G.isHost ? 'block' : 'none');
+  guestOnly.forEach(el => el.style.display = G.isHost ? 'none' : 'block');
   // Update guest confirmed card
   if (!G.isHost) {
     const gcEmoji = document.getElementById('gc-emoji');
