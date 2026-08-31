@@ -1757,6 +1757,7 @@ window.startGame = async () => {
     currentLetter:letter, usedLetters:[letter],
     allAnswers:{}, calledStop:false, stopCaller:'',
     scores, easyLetters:easy, stopPenalty:penalty, groupName:groupName, aiLevel:G_aiLevel, aiEnabled:G_aiEnabled, validationMode:G_validationMode, gameLang:LANG,
+    roundStartTime: Date.now(),
   });
 };
 
@@ -1782,7 +1783,10 @@ function enterPlaying(room) {
     </div>`
   ).join('');
   document.querySelector('.ans-inp')?.focus();
-  startTimer(room.timePerRound);
+  // Calculate remaining time so rejoiners don't get full timer
+  const elapsed = room.roundStartTime ? Math.floor((Date.now() - room.roundStartTime) / 1000) : 0;
+  const remaining = Math.max(5, (room.timePerRound || 60) - elapsed);
+  startTimer(remaining);
 }
 
 function startTimer(secs) {
@@ -1831,13 +1835,14 @@ function allAnswered(room) {
   return players.length>0 && players.every(p=>answers[p]);
 }
 
-function buildValidationHTML(room, invalidMap) {
+function buildValidationHTML(room, invalidMap, isHost) {
   const cats = room.categories||[];
   const players = Object.keys(room.players||{});
   const allAns = room.allAnswers||{};
   const votes = room.votes||{};
   const entryReactions = room.entryReactions||{};
   const mode = room.validationMode||'host';
+  const letter = room.currentLetter||'';
   let html = '';
   cats.forEach(cat => {
     html += `<div class="card"><p class="lbl">${cat}</p>`;
@@ -1849,71 +1854,46 @@ function buildValidationHTML(room, invalidMap) {
       const key = p+'__'+cat;
       const isInvalid = !!(invalidMap&&invalidMap[key]);
       const pts = ans ? (isDup?50:100) : 0;
-      const gSafeAns = ans ? ans.replace(/'/g,"\\'") : '';
-      const dictBtn = ans ? `<button class="dict-btn" id="gdictbtn_${key}" onclick="lookupWordGuest('${gSafeAns}','${key}')">${'<svg width="16" height="16" viewBox="0 0 22 22" fill="none"><path d="M11 3.5 C8.5 3 3 4 3 4 L3 17.5 C3 17.5 8 16.5 11 19" stroke="currentColor" stroke-width="1.3" fill="#faf8f3" stroke-linejoin="round"/><path d="M11 3.5 C13.5 3 19 4 19 4 L19 17.5 C19 17.5 14 16.5 11 19" stroke="currentColor" stroke-width="1.3" fill="#faf8f3" stroke-linejoin="round"/><line x1="11" y1="3.5" x2="11" y2="19" stroke="currentColor" stroke-width="2"/><line x1="4.5" y1="7.5" x2="9.5" y2="7" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.55"/><line x1="4.5" y1="10" x2="9.5" y2="9.5" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.55"/><line x1="4.5" y1="12.5" x2="9.5" y2="12" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.55"/><line x1="4.5" y1="15" x2="7.5" y2="14.7" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.55"/><line x1="12.5" y1="7" x2="17.5" y2="7.5" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.55"/><line x1="12.5" y1="9.5" x2="17.5" y2="10" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.55"/><line x1="12.5" y1="12" x2="17.5" y2="12.5" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.55"/><line x1="12.5" y1="14.7" x2="15.5" y2="15" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.55"/></svg>'}</button>` : '';
-      const voteHtml = ans ? renderVotes(key, votes[key]||{}, mode, players, false) : '';
-      const emojiHtml = renderEntryEmojis(key, entryReactions[key]||{}, false);
-      html += `<div class="val-entry${isInvalid?' invalid':''}">
+      const safeAns = ans ? ans.replace(/'/g,"\'") : '';
+      // Dict button — host uses lookupWord, guest uses lookupWordGuest
+      const BOOK_SVG = '<svg width="16" height="16" viewBox="0 0 22 22" fill="none"><path d="M11 3.5 C8.5 3 3 4 3 4 L3 17.5 C3 17.5 8 16.5 11 19" stroke="currentColor" stroke-width="1.3" fill="#faf8f3" stroke-linejoin="round"/><path d="M11 3.5 C13.5 3 19 4 19 4 L19 17.5 C19 17.5 14 16.5 11 19" stroke="currentColor" stroke-width="1.3" fill="#faf8f3" stroke-linejoin="round"/><line x1="11" y1="3.5" x2="11" y2="19" stroke="currentColor" stroke-width="2"/><line x1="4.5" y1="7.5" x2="9.5" y2="7" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.55"/><line x1="4.5" y1="10" x2="9.5" y2="9.5" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.55"/><line x1="4.5" y1="12.5" x2="9.5" y2="12" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.55"/><line x1="4.5" y1="15" x2="7.5" y2="14.7" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.55"/><line x1="12.5" y1="7" x2="17.5" y2="7.5" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.55"/><line x1="12.5" y1="9.5" x2="17.5" y2="10" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.55"/><line x1="12.5" y1="12" x2="17.5" y2="12.5" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.55"/><line x1="12.5" y1="14.7" x2="15.5" y2="15" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.55"/></svg>';
+      const dictFn = isHost ? `lookupWord('${safeAns}','${key}')` : `lookupWordGuest('${safeAns}','${key}')`;
+      const dictId = isHost ? `dictbtn_${key}` : `gdictbtn_${key}`;
+      const dictResId = isHost ? `dict_${key}` : `gdict_${key}`;
+      const dictBtn = ans ? `<button class="dict-btn" id="${dictId}" onclick="${dictFn}" aria-label="Buscar en Wikipedia">${BOOK_SVG}</button>` : '';
+      // Host-only controls
+      const invBtn = (ans && isHost) ? `<button class="inv-btn" id="ib_${key}" onclick="toggleInvalid('${key}',${pts})">${isInvalid?'↩':'✕'}</button>` : '';
+      const aiBtn = (ans && isHost && G_aiEnabled) ? `<button class="ai-btn" id="ai_btn_${key}" onclick="askAI('${safeAns}','${cat}','${letter}','${key}')">🤖</button>` : '';
+      const ptsBadge = ans ? `<span class="pts-badge" id="pb_${key}">${isInvalid?'anulada':pts+' pts'}</span>` : '';
+      const voteHtml = ans ? renderVotes(key, votes[key]||{}, mode, players, isHost) : '';
+      const emojiHtml = renderEntryEmojis(key, entryReactions[key]||{}, isHost);
+      html += `<div class="val-entry${isInvalid?' invalid':''}" id="ve_${key}">
         <span class="val-name">${p}</span>
         <span class="ans-disp">${ans||'<span style="color:var(--ink-muted)">—</span>'}</span>
-        ${ans?`<span class="pts-badge">${isInvalid?'anulada':pts+' pts'}</span>`:''}
-        ${dictBtn}
+        ${ptsBadge}${dictBtn}${aiBtn}
         ${ans?`<span id="votes_${key}" style="display:inline-flex;gap:3px;align-items:center">${voteHtml}</span>`:''}
+        ${invBtn}
       </div>
       ${ans?`<div class="entry-reactions"><div id="emojis_${key}">${emojiHtml}</div></div>`:''}
-      ${ans?`<div class="dict-result" id="gdict_${key}"></div>`:''}
-      ${ans?`<div class="ai-result" id="ai_res_${key}"></div>`:''}`;
+      ${ans?`<div class="dict-result" id="${dictResId}"></div>`:''}
+      ${ans?`<div class="ai-result" id="ai_res_${key}"></div>`:''}\`;
     });
     html += '</div>';
   });
   return html;
 }
-
 function showValidation(room) {
   show('validate');
   G.invalidAnswers = {};
   if (room.aiEnabled !== undefined) { G_aiEnabled = room.aiEnabled; window.setAIEnabled(room.aiEnabled); } else { window.setAIEnabled(false); }
   if (room.aiLevel) { G_aiLevel = room.aiLevel; window.setAILevel(room.aiLevel); }
   if (room.validationMode) { G_validationMode = room.validationMode; window.setValidationMode(room.validationMode); }
-  const cats = room.categories||[];
-  const players = Object.keys(room.players||{});
-  const allAns = room.allAnswers||{};
-  let html = '';
-  cats.forEach(cat => {
-    html += `<div class="card"><p class="lbl">${cat}</p>`;
-    const answers = players.map(p => ({p, ans:(allAns[p]||{})[cat]||''}));
-    const lowers = answers.map(a => normalize(a.ans)).filter(Boolean);
-    answers.forEach(({p, ans}) => {
-      const lower = normalize(ans);
-      const isDup = lower && lowers.filter(x=>x===lower).length>1;
-      const key = p+'__'+cat;
-      const pts = ans ? (isDup?50:100) : 0;
-      const safeAns = ans ? ans.replace(/'/g,"\'") : '';
-      const dictBtn = ans ? `<button class="dict-btn" id="dictbtn_${key}" onclick="lookupWord('${safeAns}','${key}')" aria-label="Buscar en Wikipedia"><svg width="16" height="16" viewBox="0 0 22 22" fill="none"><path d="M11 3.5 C8.5 3 3 4 3 4 L3 17.5 C3 17.5 8 16.5 11 19" stroke="currentColor" stroke-width="1.3" fill="#faf8f3" stroke-linejoin="round"/><path d="M11 3.5 C13.5 3 19 4 19 4 L19 17.5 C19 17.5 14 16.5 11 19" stroke="currentColor" stroke-width="1.3" fill="#faf8f3" stroke-linejoin="round"/><line x1="11" y1="3.5" x2="11" y2="19" stroke="currentColor" stroke-width="2"/><line x1="4.5" y1="7.5" x2="9.5" y2="7" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.55"/><line x1="4.5" y1="10" x2="9.5" y2="9.5" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.55"/><line x1="4.5" y1="12.5" x2="9.5" y2="12" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.55"/><line x1="4.5" y1="15" x2="7.5" y2="14.7" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.55"/><line x1="12.5" y1="7" x2="17.5" y2="7.5" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.55"/><line x1="12.5" y1="9.5" x2="17.5" y2="10" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.55"/><line x1="12.5" y1="12" x2="17.5" y2="12.5" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.55"/><line x1="12.5" y1="14.7" x2="15.5" y2="15" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.55"/></svg></button>` : '';
-      const invBtn = ans ? `<button class="inv-btn" id="ib_${key}" onclick="toggleInvalid('${key}',${pts})">✕</button>` : '';
-      const ptsBadge = ans ? `<span class="pts-badge" id="pb_${key}">${pts} pts</span>` : '';
-      const dictDiv = ans ? `<div class="dict-result" id="dict_${key}"></div>` : '';
-      const aiBtn = ans ? `<button class="ai-btn" id="ai_btn_${key}" onclick="askAI('${ans.replace(/'/g,"\'")}','${cat}','${room.currentLetter}','${key}')">🤖</button>` : '';
-      const aiRes = ans ? `<div class="ai-result" id="ai_res_${key}"></div>` : '';
-      const voteHtml = ans ? renderVotes(key, {}, G_validationMode, players, true) : '';
-      html += `<div class="val-entry" id="ve_${key}">
-        <span class="val-name">${p}</span>
-        <span class="ans-disp">${ans||'<span style="color:var(--ink-muted)">—</span>'}</span>
-        ${ptsBadge}${dictBtn}${aiBtn}
-        ${ans ? `<span id="votes_${key}" style="display:inline-flex;gap:3px;align-items:center">${voteHtml}</span>` : ''}
-        ${invBtn}
-      </div>
-      ${ans ? `<div class="entry-reactions"><div id="emojis_${key}">${renderEntryEmojis(key, {}, true)}</div></div>` : ''}
-      ${dictDiv}${aiRes}`;
-    });
-    html += '</div>';
-  });
-  document.getElementById('val-content').innerHTML = html;
+  document.getElementById('val-content').innerHTML = buildValidationHTML(room, {}, true);
 }
 
 function showGuestValidation(room) {
   show('waiting');
-  document.getElementById('guest-val-content').innerHTML = buildValidationHTML(room, {});
+  document.getElementById('guest-val-content').innerHTML = buildValidationHTML(room, room.invalidAnswers||{}, false);
 }
 
 let G_lastInvalidHash = '';
@@ -1924,7 +1904,7 @@ function refreshGuestValidation(room) {
   const newHash = JSON.stringify(room.invalidAnswers||{});
   if (newHash !== G_lastInvalidHash) {
     G_lastInvalidHash = newHash;
-    el.innerHTML = buildValidationHTML(room, room.invalidAnswers||{});
+    el.innerHTML = buildValidationHTML(room, room.invalidAnswers||{}, false);
   }
 }
 
@@ -2274,7 +2254,7 @@ window.askAI = async (word, category, letter, key) => {
     result.innerHTML = '⚠️ ' + (e.message || 'IA no disponible');
     result.className = 'ai-result show unsure';
     btn.textContent = '🤖';
-    console.error('Gemini error:', e);
+    console.error('OpenRouter error:', e);
   }
   btn.classList.remove('loading');
 };
@@ -2466,18 +2446,23 @@ function applyVotesAndReactions(room, isHost) {
   // In democratic mode, auto-invalidate entries where majority voted down
   if (isHost && mode === 'democratic') {
     const majority = Math.floor(players.length / 2) + 1;
+    let changed = false;
     Object.entries(votes).forEach(([key, playerVotes]) => {
       const downs = Object.values(playerVotes).filter(v => v === 'down').length;
       if (downs >= majority && !G.invalidAnswers[key]) {
-        // Auto-invalidate
+        // Auto-invalidate (local state + UI only; batch Firebase write below)
         G.invalidAnswers[key] = true;
+        changed = true;
         const entry = document.getElementById('ve_' + key);
         const ib = document.getElementById('ib_' + key);
         if (entry) entry.classList.add('invalid');
         if (ib) ib.innerHTML = '↩';
-        update(roomRef(G.roomCode), { invalidAnswers: G.invalidAnswers });
       }
     });
+    // Single batched Firebase write only when something actually changed
+    if (changed) {
+      update(roomRef(G.roomCode), { invalidAnswers: G.invalidAnswers });
+    }
   }
 }
 
@@ -2505,7 +2490,7 @@ window.sendReaction = async (emoji) => {
   }, 6000);
 };
 
-function showReactionFloat(emoji, name, id) {
+function showReactionFloat(emoji, name, id, _key) { // _key unused, kept for call compat
   const stage = document.getElementById('reactions-stage');
   if (!stage) return;
   // Random horizontal position
@@ -2563,6 +2548,9 @@ window.finishValidation = async () => {
   const scores = {...(room.scores||{})};
   // Save pre-round scores so we can undo
   const preRoundScores = {...scores};
+  // Merge Firebase invalidAnswers with local (democratic mode saves to Firebase)
+  const firebaseInvalids = room.invalidAnswers || {};
+  Object.assign(G.invalidAnswers, firebaseInvalids);
   players.forEach(p => { if (!scores[p]) scores[p]=0; });
   const penalty = room.stopPenalty??50;
   const stopper = room.stopCaller||'';
@@ -2603,11 +2591,11 @@ function showScores(room) {
   let btns = '';
   if (G.isHost) {
     const isLast = room.currentRound >= room.rounds;
-    if (!isLast) btns += `<button class="pri" onclick="nextRound()" style="flex:1">Siguiente ronda →</button>`;
-    btns += `<button onclick="endGame()" style="flex:1">Terminar</button>`;
-    btns += `<button onclick="goBackToValidation()" style="flex:1;font-size:13px;color:var(--ink-sec)">← Revisar</button>`;
+    if (!isLast) btns += `<button class="pri" onclick="nextRound()" style="flex:1">${t("nextRound")}</button>`;
+    btns += `<button onclick="endGame()" style="flex:1">${t("endGame")}</button>`;
+    btns += `<button onclick="goBackToValidation()" style="flex:1;font-size:13px;color:var(--ink-sec)">← ${t("review")}</button>`;
   } else {
-    btns = '<p class="wait" style="padding:.5rem 0 0">Esperando al anfitrión…</p>';
+    btns = \`<p class="wait" style="padding:.5rem 0 0">\${t('hostWait')}</p>\`;
   }
   document.getElementById('sc-btns').innerHTML = btns;
 }
@@ -2616,10 +2604,19 @@ window.goBackToValidation = async () => {
   const snap = await get(roomRef(G.roomCode));
   const room = snap.val();
   if (!room) return;
-  // Restore pre-round scores and go back to validate
+  // Restore pre-round scores, clear all validation state, go back to validate
   const restoredScores = room.preRoundScores || room.scores || {};
-  await update(roomRef(G.roomCode), { phase: 'validate', scores: restoredScores });
+  await update(roomRef(G.roomCode), {
+    phase: 'validate',
+    scores: restoredScores,
+    invalidAnswers: {},
+    aiResults: {},
+    votes: {},
+    entryReactions: {},
+  });
   G.invalidAnswers = {};
+  G_myVotes = {};
+  G_myEntryEmojis = {};
   showValidation(room);
 };
 
@@ -2632,6 +2629,7 @@ window.nextRound = async () => {
   await update(roomRef(G.roomCode), {
     currentRound:room.currentRound+1, currentLetter:letter, usedLetters:used,
     phase:'playing', allAnswers:{}, calledStop:false, stopCaller:'', aiResults:{}, votes:{}, entryReactions:{},
+    roundStartTime: Date.now(),
   });
 };
 
@@ -2765,8 +2763,8 @@ window.playAgain = async () => {
   const scores = {};
   Object.keys(room.players||{}).forEach(p => scores[p]=0);
   await update(roomRef(G.roomCode), {
-    phase:'lobby', currentRound:0, scores, allAnswers:[], usedLetters:[],
-    calledStop:false, stopCaller:'',
+    phase:'lobby', currentRound:0, scores, allAnswers:{}, usedLetters:[],
+    calledStop:false, stopCaller:'', aiResults:{}, votes:{}, entryReactions:{},
   });
 };
 
@@ -2786,7 +2784,7 @@ window.continueSession = async () => {
   const phase = room.phase;
   if (phase==='lobby') enterLobby(room);
   else if (phase==='playing') enterPlaying(room);
-  else if (phase==='validate') { if(G.isHost){G.invalidAnswers={};showValidation(room);}else show('waiting'); }
+  else if (phase==='validate') { if(G.isHost){G.invalidAnswers={};showValidation(room);}else{show('waiting');refreshGuestValidation(room);applyVotesAndReactions(room,false);if(room.aiResults)applyAIResults(room.aiResults);} }
   else if (phase==='scores') showScores(room);
   else if (phase==='final') showFinal(room);
 };
@@ -2805,7 +2803,7 @@ async function restoreToScreen() {
   const phase = room.phase;
   if (phase==='lobby') enterLobby(room);
   else if (phase==='playing') enterPlaying(room);
-  else if (phase==='validate') { if(G.isHost){G.invalidAnswers={};showValidation(room);}else window.show('waiting'); }
+  else if (phase==='validate') { if(G.isHost){G.invalidAnswers={};showValidation(room);}else{show('waiting');refreshGuestValidation(room);applyVotesAndReactions(room,false);if(room.aiResults)applyAIResults(room.aiResults);} }
   else if (phase==='scores') showScores(room);
   else if (phase==='final') showFinal(room);
 }
@@ -2868,7 +2866,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260831.1502</div>
+  <div style="font-size:9px;opacity:0.5">v260831.1800</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
