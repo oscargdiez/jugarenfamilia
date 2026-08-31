@@ -655,6 +655,7 @@ button.stop-btn:hover { background: var(--red-dark); }
   <h1 id="lbl-validate-title">Revisar</h1>
   <p class="sub" style="margin-bottom:2px"><svg width="14" height="14" viewBox="0 0 22 22" fill="none"><path d="M11 3.5 C8.5 3 3 4 3 4 L3 17.5 C3 17.5 8 16.5 11 19" stroke="currentColor" stroke-width="1.3" fill="#faf8f3" stroke-linejoin="round"/><path d="M11 3.5 C13.5 3 19 4 19 4 L19 17.5 C19 17.5 14 16.5 11 19" stroke="currentColor" stroke-width="1.3" fill="#faf8f3" stroke-linejoin="round"/><line x1="11" y1="3.5" x2="11" y2="19" stroke="currentColor" stroke-width="2"/><line x1="4.5" y1="7.5" x2="9.5" y2="7" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.55"/><line x1="4.5" y1="10" x2="9.5" y2="9.5" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.55"/><line x1="4.5" y1="12.5" x2="9.5" y2="12" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.55"/><line x1="4.5" y1="15" x2="7.5" y2="14.7" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.55"/><line x1="12.5" y1="7" x2="17.5" y2="7.5" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.55"/><line x1="12.5" y1="9.5" x2="17.5" y2="10" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.55"/><line x1="12.5" y1="12" x2="17.5" y2="12.5" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.55"/><line x1="12.5" y1="14.7" x2="15.5" y2="15" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.55"/></svg> <span id="lbl-validate-sub1"> buscar en Wikipedia &nbsp;·&nbsp; ✕ anular</span></p>
   <p class="sub" id="lbl-validate-sub2">única = 100 pts &nbsp;·&nbsp; repetida = 50 pts &nbsp;·&nbsp; anulada = 0 pts</p>
+  <div id="stop-caller-banner" style="display:none;text-align:center;font-family:'Special Elite',monospace;font-size:13px;color:var(--ink-sec);margin-bottom:8px;padding:6px 10px;background:var(--paper-dark);border-radius:var(--radius);border:1px dashed var(--border)"></div>
   <div id="val-content"></div>
   <button class="pri" onclick="finishValidation()" style="width:100%;margin-top:8px" id="btn-calculate">Calcular puntajes →</button>
 </div>
@@ -704,7 +705,7 @@ button.stop-btn:hover { background: var(--red-dark); }
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, set, get, onValue, update, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getDatabase, ref, set, get, onValue, update, runTransaction, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAnUEgyQ2i9fR3T1CyYWNVb8k6xtHz1OZg",
@@ -850,7 +851,7 @@ const T = {
     stop: '¡ A L T O !',
     review: 'Revisar',
     reviewSub: '✕ para anular · única = 100 · repetida = 50 · anulada = 0',
-    calculate: 'Calcular puntajes →',
+    calculate: 'Calcular puntajes →', stopCallerMsg: '{name} llamó al ¡Alto!', timerRanOut: 'se acabó el tiempo',
     submitted: 'Respuestas enviadas',
     hostReviewing: 'el anfitrión está revisando',
     scores: 'Puntajes', nextRound: 'Siguiente ronda →',
@@ -871,7 +872,7 @@ const T = {
     toastCats: 'Selecciona al menos una categoría',
     toastFreeCats: 'Escribe al menos 2 categorías',
     toastHostOnly: 'Solo el anfitrión puede reiniciar',
-    continueBtn: 'Continuar →', notMe: 'No soy yo — cambiar', groupHint2: 'familia, amigos, trabajo... como queráis', easyHint: '(sin K, Ñ, Q, U, W, X, Y, Z)', validate: 'Revisar', validateSub1: 'buscar en Wikipedia · ✕ anular', validateSub2: 'única = 100 pts · repetida = 50 pts · anulada = 0 pts', submitted2: 'Respuestas enviadas', hostReviewing2: 'el anfitrión está revisando', leaderboardBack: '← volver', loading: 'Cargando…', final2: '¡Fin del juego!', searching: 'Buscando...', hostSearching: 'El anfitrión está buscando...', rndLabel: 'ronda', of: 'de', freeCatLabel: 'escreve as tuas categorias (uma por linha)', freeCatPlaceholder: 'Jogadores do Barça\nFilmes de terror\nCoisas na cozinha', freeCatLabel: 'escribe tus categorías (una por línea)', freeCatPlaceholder: 'Jugadores del Barça\nPelículas de terror\nCosas en la cocina', of: 'de', freeCatLabel: 'escreve as tuas categorias (uma por linha)', freeCatPlaceholder: 'Jogadores do Barça\nFilmes de terror\nCoisas na cozinha', freeCatLabel: 'escribe tus categorías (una por línea)', freeCatPlaceholder: 'Jugadores del Barça\nPelículas de terror\nCosas en la cocina', letterLabel: 'letra', calculate: 'Calcular puntajes →', scoresTitle: 'Puntajes', lbTitle: 'Marcador',
+    continueBtn: 'Continuar →', notMe: 'No soy yo — cambiar', groupHint2: 'familia, amigos, trabajo... como queráis', easyHint: '(sin K, Ñ, Q, U, W, X, Y, Z)', validate: 'Revisar', validateSub1: 'buscar en Wikipedia · ✕ anular', validateSub2: 'única = 100 pts · repetida = 50 pts · anulada = 0 pts', submitted2: 'Respuestas enviadas', hostReviewing2: 'el anfitrión está revisando', leaderboardBack: '← volver', loading: 'Cargando…', final2: '¡Fin del juego!', searching: 'Buscando...', hostSearching: 'El anfitrión está buscando...', rndLabel: 'ronda', of: 'de', freeCatLabel: 'escreve as tuas categorias (uma por linha)', freeCatPlaceholder: 'Jogadores do Barça\nFilmes de terror\nCoisas na cozinha', freeCatLabel: 'escribe tus categorías (una por línea)', freeCatPlaceholder: 'Jugadores del Barça\nPelículas de terror\nCosas en la cocina', of: 'de', freeCatLabel: 'escreve as tuas categorias (uma por linha)', freeCatPlaceholder: 'Jogadores do Barça\nFilmes de terror\nCoisas na cozinha', freeCatLabel: 'escribe tus categorías (una por línea)', freeCatPlaceholder: 'Jugadores del Barça\nPelículas de terror\nCosas en la cocina', letterLabel: 'letra', calculate: 'Calcular puntajes →', stopCallerMsg: '{name} llamó al ¡Alto!', timerRanOut: 'se acabó el tiempo', scoresTitle: 'Puntajes', lbTitle: 'Marcador',
     toastBack: 'Volviendo como',
     waMsg: '¡Juega conmigo al ¡Alto! 🎮 Únete aquí:',
   },
@@ -899,7 +900,7 @@ const T = {
     stop: '¡ A L T O !',
     review: 'Review answers',
     reviewSub: '✕ to invalidate · unique = 100 · duplicate = 50 · invalid = 0',
-    calculate: 'Calculate scores →',
+    calculate: 'Calculate scores →', stopCallerMsg: '{name} called Stop!', timerRanOut: 'time ran out',
     submitted: 'Answers submitted',
     hostReviewing: 'the host is reviewing answers',
     scores: 'Scores', nextRound: 'Next round →',
@@ -920,7 +921,7 @@ const T = {
     toastCats: 'Select at least one category',
     toastFreeCats: 'Enter at least 2 categories',
     toastHostOnly: 'Only the host can restart',
-    continueBtn: 'Continue →', notMe: "That's not me — change", groupHint2: 'family, friends, work... whatever you like', easyHint: '(no Q, U, W, X, Y, Z)', validate: 'Review', validateSub1: 'search Wikipedia · ✕ invalidate', validateSub2: 'unique = 100 pts · duplicate = 50 pts · invalid = 0 pts', submitted2: 'Answers submitted', hostReviewing2: 'host is reviewing', leaderboardBack: '← back', loading: 'Loading…', final2: 'Game over!', searching: 'Searching...', hostSearching: 'Host is searching...', rndLabel: 'round', of: 'di', freeCatLabel: 'scrivi le tue categorie (una per riga)', freeCatPlaceholder: 'Giocatori del Barça\nFilm horror\nCose in cucina', of: 'of', freeCatLabel: 'write your categories (one per line)', freeCatPlaceholder: 'Football players\nHorror films\nThings in the kitchen', letterLabel: 'letter', calculate: 'Calculate scores →', scoresTitle: 'Scores', lbTitle: 'Leaderboard',
+    continueBtn: 'Continue →', notMe: "That's not me — change", groupHint2: 'family, friends, work... whatever you like', easyHint: '(no Q, U, W, X, Y, Z)', validate: 'Review', validateSub1: 'search Wikipedia · ✕ invalidate', validateSub2: 'unique = 100 pts · duplicate = 50 pts · invalid = 0 pts', submitted2: 'Answers submitted', hostReviewing2: 'host is reviewing', leaderboardBack: '← back', loading: 'Loading…', final2: 'Game over!', searching: 'Searching...', hostSearching: 'Host is searching...', rndLabel: 'round', of: 'di', freeCatLabel: 'scrivi le tue categorie (una per riga)', freeCatPlaceholder: 'Giocatori del Barça\nFilm horror\nCose in cucina', of: 'of', freeCatLabel: 'write your categories (one per line)', freeCatPlaceholder: 'Football players\nHorror films\nThings in the kitchen', letterLabel: 'letter', calculate: 'Calculate scores →', stopCallerMsg: '{name} called Stop!', timerRanOut: 'time ran out', scoresTitle: 'Scores', lbTitle: 'Leaderboard',
     toastBack: 'Rejoining as',
     waMsg: 'Play Stop! with me 🎮 Join here:',
   },
@@ -948,7 +949,7 @@ const T = {
     stop: '¡ A L T O !',
     review: 'Vérifier',
     reviewSub: '✕ pour annuler · unique = 100 · doublon = 50 · annulé = 0',
-    calculate: 'Calculer les scores →',
+    calculate: 'Calculer les scores →', stopCallerMsg: '{name} a crié Stop !', timerRanOut: 'temps écoulé',
     submitted: 'Réponses envoyées',
     hostReviewing: "l'hôte vérifie les réponses",
     scores: 'Scores', nextRound: 'Manche suivante →',
@@ -969,7 +970,7 @@ const T = {
     toastCats: 'Sélectionne au moins une catégorie',
     toastFreeCats: 'Entre au moins 2 catégories',
     toastHostOnly: "Seul l'hôte peut recommencer",
-    continueBtn: 'Continuer →', notMe: "Ce n'est pas moi — changer", groupHint2: 'famille, amis, travail... comme vous voulez', easyHint: '(sans K, Q, U, W, X, Y, Z)', validate: 'Vérifier', validateSub1: 'chercher sur Wikipedia · ✕ annuler', validateSub2: 'unique = 100 pts · doublon = 50 pts · annulé = 0 pts', submitted2: 'Réponses envoyées', hostReviewing2: "l'hôte vérifie", leaderboardBack: '← retour', loading: 'Chargement…', final2: 'Fin de partie!', searching: 'Recherche...', hostSearching: "L'hôte cherche...", rndLabel: 'manche', of: 'sur', freeCatLabel: 'écris tes catégories (une par ligne)', freeCatPlaceholder: 'Joueurs du Barça\nFilms d\'horreur\nChoses dans la cuisine', letterLabel: 'lettre', calculate: 'Calculer les scores →', scoresTitle: 'Scores', lbTitle: 'Classement',
+    continueBtn: 'Continuer →', notMe: "Ce n'est pas moi — changer", groupHint2: 'famille, amis, travail... comme vous voulez', easyHint: '(sans K, Q, U, W, X, Y, Z)', validate: 'Vérifier', validateSub1: 'chercher sur Wikipedia · ✕ annuler', validateSub2: 'unique = 100 pts · doublon = 50 pts · annulé = 0 pts', submitted2: 'Réponses envoyées', hostReviewing2: "l'hôte vérifie", leaderboardBack: '← retour', loading: 'Chargement…', final2: 'Fin de partie!', searching: 'Recherche...', hostSearching: "L'hôte cherche...", rndLabel: 'manche', of: 'sur', freeCatLabel: 'écris tes catégories (une par ligne)', freeCatPlaceholder: 'Joueurs du Barça\nFilms d\'horreur\nChoses dans la cuisine', letterLabel: 'lettre', calculate: 'Calculer les scores →', stopCallerMsg: '{name} a crié Stop !', timerRanOut: 'temps écoulé', scoresTitle: 'Scores', lbTitle: 'Classement',
     toastBack: 'Reconnexion en tant que',
     waMsg: 'Joue au Stop! avec moi 🎮 Rejoins ici:',
   },
@@ -997,7 +998,7 @@ const T = {
     stop: '¡ A L T O !',
     review: 'Überprüfen',
     reviewSub: '✕ zum Annullieren · einzigartig = 100 · doppelt = 50 · ungültig = 0',
-    calculate: 'Punkte berechnen →',
+    calculate: 'Punkte berechnen →', stopCallerMsg: '{name} hat Stop gerufen!', timerRanOut: 'Zeit abgelaufen',
     submitted: 'Antworten gesendet',
     hostReviewing: 'der Gastgeber prüft die Antworten',
     scores: 'Punkte', nextRound: 'Nächste Runde →',
@@ -1018,7 +1019,7 @@ const T = {
     toastCats: 'Mindestens eine Kategorie auswählen',
     toastFreeCats: 'Mindestens 2 Kategorien eingeben',
     toastHostOnly: 'Nur der Gastgeber kann neu starten',
-    continueBtn: 'Weiter →', notMe: 'Das bin ich nicht — ändern', groupHint2: 'Familie, Freunde, Arbeit... wie ihr wollt', easyHint: '(ohne Q, X, Y, Z)', validate: 'Überprüfen', validateSub1: 'Wikipedia suchen · ✕ ungültig', validateSub2: 'einmalig = 100 Pkt · doppelt = 50 Pkt · ungültig = 0 Pkt', submitted2: 'Antworten gesendet', hostReviewing2: 'Gastgeber prüft', leaderboardBack: '← zurück', loading: 'Laden…', final2: 'Spiel vorbei!', searching: 'Suche...', hostSearching: 'Gastgeber sucht...', rndLabel: 'Runde', of: 'von', freeCatLabel: 'Schreib deine Kategorien (eine pro Zeile)', freeCatPlaceholder: 'Fußballspieler\nHorrorfilme\nDinge in der Küche', letterLabel: 'Buchstabe', calculate: 'Punkte berechnen →', scoresTitle: 'Punkte', lbTitle: 'Bestenliste',
+    continueBtn: 'Weiter →', notMe: 'Das bin ich nicht — ändern', groupHint2: 'Familie, Freunde, Arbeit... wie ihr wollt', easyHint: '(ohne Q, X, Y, Z)', validate: 'Überprüfen', validateSub1: 'Wikipedia suchen · ✕ ungültig', validateSub2: 'einmalig = 100 Pkt · doppelt = 50 Pkt · ungültig = 0 Pkt', submitted2: 'Antworten gesendet', hostReviewing2: 'Gastgeber prüft', leaderboardBack: '← zurück', loading: 'Laden…', final2: 'Spiel vorbei!', searching: 'Suche...', hostSearching: 'Gastgeber sucht...', rndLabel: 'Runde', of: 'von', freeCatLabel: 'Schreib deine Kategorien (eine pro Zeile)', freeCatPlaceholder: 'Fußballspieler\nHorrorfilme\nDinge in der Küche', letterLabel: 'Buchstabe', calculate: 'Punkte berechnen →', stopCallerMsg: '{name} hat Stop gerufen!', timerRanOut: 'Zeit abgelaufen', scoresTitle: 'Punkte', lbTitle: 'Bestenliste',
     toastBack: 'Wiederbeitritt als',
     waMsg: 'Spiel Stop! mit mir 🎮 Tritt hier bei:',
   },
@@ -1046,7 +1047,7 @@ const T = {
     stop: '¡ A L T O !',
     review: 'Rever',
     reviewSub: '✕ para anular · única = 100 · repetida = 50 · anulada = 0',
-    calculate: 'Calcular pontuações →',
+    calculate: 'Calcular pontuações →', stopCallerMsg: '{name} chamou o Stop!', timerRanOut: 'tempo esgotado',
     submitted: 'Respostas enviadas',
     hostReviewing: 'o anfitrião está a rever',
     scores: 'Pontuações', nextRound: 'Próxima ronda →',
@@ -1067,7 +1068,7 @@ const T = {
     toastCats: 'Seleciona pelo menos uma categoria',
     toastFreeCats: 'Escreve pelo menos 2 categorias',
     toastHostOnly: 'Só o anfitrião pode reiniciar',
-    continueBtn: 'Continuar →', notMe: 'Não sou eu — mudar', groupHint2: 'família, amigos, trabalho... como quiserem', easyHint: '(sem K, Q, U, W, X, Y, Z)', validate: 'Rever', validateSub1: 'pesquisar Wikipedia · ✕ anular', validateSub2: 'única = 100 pts · repetida = 50 pts · anulada = 0 pts', submitted2: 'Respostas enviadas', hostReviewing2: 'anfitrião a rever', leaderboardBack: '← voltar', loading: 'A carregar…', final2: 'Fim do jogo!', searching: 'A pesquisar...', hostSearching: 'Anfitrião a pesquisar...', rndLabel: 'ronda', of: 'de', freeCatLabel: 'escreve as tuas categorias (uma por linha)', freeCatPlaceholder: 'Jogadores do Barça\nFilmes de terror\nCoisas na cozinha', freeCatLabel: 'escribe tus categorías (una por línea)', freeCatPlaceholder: 'Jugadores del Barça\nPelículas de terror\nCosas en la cocina', of: 'de', freeCatLabel: 'escreve as tuas categorias (uma por linha)', freeCatPlaceholder: 'Jogadores do Barça\nFilmes de terror\nCoisas na cozinha', freeCatLabel: 'escribe tus categorías (una por línea)', freeCatPlaceholder: 'Jugadores del Barça\nPelículas de terror\nCosas en la cocina', letterLabel: 'letra', calculate: 'Calcular pontuações →', scoresTitle: 'Pontuações', lbTitle: 'Classificação',
+    continueBtn: 'Continuar →', notMe: 'Não sou eu — mudar', groupHint2: 'família, amigos, trabalho... como quiserem', easyHint: '(sem K, Q, U, W, X, Y, Z)', validate: 'Rever', validateSub1: 'pesquisar Wikipedia · ✕ anular', validateSub2: 'única = 100 pts · repetida = 50 pts · anulada = 0 pts', submitted2: 'Respostas enviadas', hostReviewing2: 'anfitrião a rever', leaderboardBack: '← voltar', loading: 'A carregar…', final2: 'Fim do jogo!', searching: 'A pesquisar...', hostSearching: 'Anfitrião a pesquisar...', rndLabel: 'ronda', of: 'de', freeCatLabel: 'escreve as tuas categorias (uma por linha)', freeCatPlaceholder: 'Jogadores do Barça\nFilmes de terror\nCoisas na cozinha', freeCatLabel: 'escribe tus categorías (una por línea)', freeCatPlaceholder: 'Jugadores del Barça\nPelículas de terror\nCosas en la cocina', of: 'de', freeCatLabel: 'escreve as tuas categorias (uma por linha)', freeCatPlaceholder: 'Jogadores do Barça\nFilmes de terror\nCoisas na cozinha', freeCatLabel: 'escribe tus categorías (una por línea)', freeCatPlaceholder: 'Jugadores del Barça\nPelículas de terror\nCosas en la cocina', letterLabel: 'letra', calculate: 'Calcular pontuações →', stopCallerMsg: '{name} chamou o Stop!', timerRanOut: 'tempo esgotado', scoresTitle: 'Pontuações', lbTitle: 'Classificação',
     toastBack: 'A voltar como',
     waMsg: 'Joga Stop! comigo 🎮 Junta-te aqui:',
   },
@@ -1116,7 +1117,7 @@ const T = {
     toastCats: 'Seleziona almeno una categoria',
     toastFreeCats: 'Inserisci almeno 2 categorie',
     toastHostOnly: "Solo l'host può ricominciare",
-    continueBtn: 'Continua →', notMe: 'Non sono io — cambia', groupHint2: 'famiglia, amici, lavoro... come volete', easyHint: '(senza J, K, Q, U, W, X, Y, Z)', validate: 'Revisione', validateSub1: 'cerca su Wikipedia · ✕ annulla', validateSub2: 'unica = 100 pts · ripetuta = 50 pts · annullata = 0 pts', submitted2: 'Risposte inviate', hostReviewing2: "l'host sta revisionando", leaderboardBack: '← indietro', loading: 'Caricamento…', final2: 'Fine del gioco!', searching: 'Ricerca...', hostSearching: "L'host sta cercando...", rndLabel: 'round', of: 'di', freeCatLabel: 'scrivi le tue categorie (una per riga)', freeCatPlaceholder: 'Giocatori del Barça\nFilm horror\nCose in cucina', of: 'of', freeCatLabel: 'write your categories (one per line)', freeCatPlaceholder: 'Football players\nHorror films\nThings in the kitchen', letterLabel: 'lettera', calculate: 'Calcola i punteggi →', scoresTitle: 'Punteggi', lbTitle: 'Classifica',
+    continueBtn: 'Continua →', notMe: 'Non sono io — cambia', groupHint2: 'famiglia, amici, lavoro... come volete', easyHint: '(senza J, K, Q, U, W, X, Y, Z)', validate: 'Revisione', validateSub1: 'cerca su Wikipedia · ✕ annulla', validateSub2: 'unica = 100 pts · ripetuta = 50 pts · annullata = 0 pts', submitted2: 'Risposte inviate', hostReviewing2: "l'host sta revisionando", leaderboardBack: '← indietro', loading: 'Caricamento…', final2: 'Fine del gioco!', searching: 'Ricerca...', hostSearching: "L'host sta cercando...", rndLabel: 'round', of: 'di', freeCatLabel: 'scrivi le tue categorie (una per riga)', freeCatPlaceholder: 'Giocatori del Barça\nFilm horror\nCose in cucina', of: 'of', freeCatLabel: 'write your categories (one per line)', freeCatPlaceholder: 'Football players\nHorror films\nThings in the kitchen', letterLabel: 'lettera', calculate: 'Calcola i punteggi →', stopCallerMsg: '{name} ha chiamato Stop!', timerRanOut: 'tempo scaduto', scoresTitle: 'Punteggi', lbTitle: 'Classifica',
     toastBack: 'Riconnessione come',
     waMsg: 'Gioca a Stop! con me 🎮 Unisciti qui:',
   },
@@ -1530,6 +1531,14 @@ function toast(msg) {
 function genCode() {
   return Array.from({length:4}, () => 'ABCDEFGHJKLMNPQRSTUVWXYZ'[Math.floor(Math.random()*23)]).join('');
 }
+async function genUniqueCode() {
+  let code, snap;
+  do {
+    code = genCode();
+    snap = await get(roomRef(code));
+  } while (snap.exists() && snap.val()?.phase !== 'final');
+  return code;
+}
 
 function pickLetter(used=[], easy=true) {
   const lang = LANG || 'es';
@@ -1608,7 +1617,7 @@ window.showJoin = () => document.getElementById('join-box').style.display = 'blo
 window.createRoom = async () => {
   const name = document.getElementById('inp-name').value.trim();
   if (!name) { toast(t('toastName')); return; }
-  G.playerName = name; G.isHost = true; G.roomCode = genCode();
+  G.playerName = name; G.isHost = true; G.roomCode = await genUniqueCode();
   localStorage.setItem('alto_emoji', G.playerEmoji);
   const room = {
     code:G.roomCode, host:name,
@@ -1888,6 +1897,22 @@ function showValidation(room) {
   if (room.aiEnabled !== undefined) { G_aiEnabled = room.aiEnabled; window.setAIEnabled(room.aiEnabled); } else { window.setAIEnabled(false); }
   if (room.aiLevel) { G_aiLevel = room.aiLevel; window.setAILevel(room.aiLevel); }
   if (room.validationMode) { G_validationMode = room.validationMode; window.setValidationMode(room.validationMode); }
+  // Show who called Stop
+  const banner = document.getElementById('stop-caller-banner');
+  if (banner) {
+    const caller = room.stopCaller || '';
+    if (caller && caller !== 'Tiempo' && caller !== 'Time') {
+      const callerEmoji = (room.players||{})[caller] || '🛑';
+      const msg = t('stopCallerMsg').replace('{name}', callerEmoji + ' ' + caller);
+      banner.textContent = msg;
+      banner.style.display = 'block';
+    } else if (caller === 'Tiempo' || caller === 'Time') {
+      banner.textContent = '⏱️ ' + t('timerRanOut');
+      banner.style.display = 'block';
+    } else {
+      banner.style.display = 'none';
+    }
+  }
   document.getElementById('val-content').innerHTML = buildValidationHTML(room, {}, true);
 }
 
@@ -2215,9 +2240,11 @@ window.askAI = async (word, category, letter, key) => {
           'HTTP-Referer': 'https://jugarenfamilia.es',
           'X-Title': 'JugarEnFamilia'
         },
-        signal: AbortSignal.timeout(8000),
+        signal: AbortSignal.timeout(12000),
         body: JSON.stringify({
-          model: 'openrouter/free',
+          model: 'qwen/qwen3-8b:free',
+          models: ['qwen/qwen3-8b:free','mistralai/mistral-small-3.2-24b-instruct:free','meta-llama/llama-3.2-3b-instruct:free'],
+          route: 'fallback',
           messages: [{ role: 'user', content: prompt }],
           max_tokens: 80,
           temperature: 0.1
@@ -2251,7 +2278,11 @@ window.askAI = async (word, category, letter, key) => {
     result.className = 'ai-result show ' + cls;
     btn.textContent = '🤖';
   } catch(e) {
-    result.innerHTML = '⚠️ ' + (e.message || 'IA no disponible');
+    // On timeout, show a friendlier message with retry option
+    const isTimeout = e.name === 'TimeoutError' || e.name === 'AbortError';
+    result.innerHTML = isTimeout
+      ? `⏳ IA lenta… <button onclick="askAI('${word.replace(/'/g,"\'")}','${category}','${letter}','${key}')" style="font-size:11px;padding:2px 6px;margin-left:4px;border-radius:4px;border:1px solid var(--border);cursor:pointer;background:var(--paper-dark)">Reintentar</button>`
+      : '⚠️ ' + (e.message || 'IA no disponible');
     result.className = 'ai-result show unsure';
     btn.textContent = '🤖';
     console.error('OpenRouter error:', e);
@@ -2669,6 +2700,11 @@ window.endGame = async () => {
     }
   }
   await update(roomRef(G.roomCode), {phase:'final'});
+  // Clean up room from Firebase after 60s — leaderboard data is in global/groups, not here
+  const codeToDelete = G.roomCode;
+  setTimeout(async () => {
+    try { await remove(roomRef(codeToDelete)); } catch(e) { /* ignore */ }
+  }, 60000);
 };
 
 let G_lbTab = 'group';
@@ -2866,7 +2902,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260831.1800</div>
+  <div style="font-size:9px;opacity:0.5">v260831.1900</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
