@@ -3024,7 +3024,7 @@ function dbg(screen) {
       enterPlaying(room);
       break;
 
-    case 'playing-stop':
+    case 'playing-stop': {
       G.isHost = false;
       G.submitted = true;
       G.stopHandled = true;
@@ -3033,12 +3033,12 @@ function dbg(screen) {
       document.getElementById('ans-inputs').innerHTML = '<p class="wait">✏️ Respuestas enviadas. Esperando a los demás…</p>';
       const sb = document.querySelector('.stop-btn');
       if (sb) sb.style.display = 'none';
-      // Show stop banner
       const stopBanner = document.createElement('div');
       stopBanner.style.cssText = 'text-align:center;font-family:Special Elite,monospace;font-size:14px;color:var(--red);padding:10px;';
       stopBanner.textContent = '🛑 Carlos llamó al ¡Alto!';
       document.getElementById('ans-inputs').appendChild(stopBanner);
       break;
+    }
 
     case 'validate': {
       G.isHost = true;
@@ -3105,11 +3105,10 @@ function dbg(screen) {
       showFinal(dbgFakeRoom({ phase: 'final' }));
       break;
 
-    case 'leaderboard':
+    case 'leaderboard': {
       G.isHost = true;
       show('leaderboard');
       G_lbTab = 'group';
-      // Render fake leaderboard without Firebase
       document.getElementById('lb-group-name').textContent = 'Los García';
       document.getElementById('lb-list').innerHTML = [
         { name: '__debug__', emoji: '🎯', wins: 12, games: 20 },
@@ -3123,6 +3122,7 @@ function dbg(screen) {
         </div>`;
       }).join('');
       break;
+    }
   }
 }
 
@@ -3152,7 +3152,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260831.2030</div>
+  <div style="font-size:9px;opacity:0.5">v260831.2045</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
