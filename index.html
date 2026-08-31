@@ -602,11 +602,18 @@ button.stop-btn:hover { background: var(--red-dark); }
         <button id="mode-host" onclick="setValidationMode('host')" style="font-size:13px;padding:5px 10px;border-radius:20px;border:1.5px solid #c0392b;background:#fdf0ee;cursor:pointer">👑 Anfitrión decide</button>
         <button id="mode-democratic" onclick="setValidationMode('democratic')" style="font-size:13px;padding:5px 10px;border-radius:20px;border:1.5px solid var(--border-strong);background:var(--paper-dark);cursor:pointer">🗳️ Democrático</button>
       </div>
-      <p class="lbl" style="margin-top:14px" id="lbl-ai-strictness">🤖 Nivel de validación IA</p>
+      <p class="lbl" style="margin-top:14px">🤖 Validación IA</p>
+      <div style="display:flex;gap:6px;align-items:center;margin-bottom:8px">
+        <button id="ai-off" onclick="setAIEnabled(false)" style="font-size:13px;padding:5px 12px;border-radius:20px;border:1.5px solid #c0392b;background:#fdf0ee;cursor:pointer">OFF</button>
+        <button id="ai-on" onclick="setAIEnabled(true)" style="font-size:13px;padding:5px 12px;border-radius:20px;border:1.5px solid var(--border-strong);background:var(--paper-dark);cursor:pointer">ON</button>
+      </div>
+      <div id="ai-level-section" style="display:none">
+      <p class="lbl" style="margin-top:4px" id="lbl-ai-strictness">nivel de rigor</p>
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px">
         <button id="ai-libre" onclick="setAILevel('libre')" style="font-size:13px;padding:5px 10px;border-radius:20px;border:1.5px solid var(--border-strong);background:var(--paper-dark);cursor:pointer">🟢 Libre</button>
         <button id="ai-normal" onclick="setAILevel('normal')" style="font-size:13px;padding:5px 10px;border-radius:20px;border:1.5px solid #c0392b;background:#fdf0ee;cursor:pointer">🟡 Normal</button>
         <button id="ai-estricto" onclick="setAILevel('estricto')" style="font-size:13px;padding:5px 10px;border-radius:20px;border:1.5px solid var(--border-strong);background:var(--paper-dark);cursor:pointer">🔴 Estricto</button>
+      </div>
       </div>
       <p class="lbl" style="margin-top:14px" id="lbl-penalty">penalización por ¡Alto! inválido</p>
       <div class="range-row">
@@ -1745,7 +1752,7 @@ window.startGame = async () => {
     currentRound:1, phase:'playing',
     currentLetter:letter, usedLetters:[letter],
     allAnswers:{}, calledStop:false, stopCaller:'',
-    scores, easyLetters:easy, stopPenalty:penalty, groupName:groupName, aiLevel:G_aiLevel, validationMode:G_validationMode,
+    scores, easyLetters:easy, stopPenalty:penalty, groupName:groupName, aiLevel:G_aiLevel, aiEnabled:G_aiEnabled, validationMode:G_validationMode,
   });
 };
 
@@ -1846,6 +1853,7 @@ function buildValidationHTML(room, invalidMap) {
 function showValidation(room) {
   show('validate');
   G.invalidAnswers = {};
+  if (room.aiEnabled !== undefined) { G_aiEnabled = room.aiEnabled; window.setAIEnabled(room.aiEnabled); } else { window.setAIEnabled(false); }
   if (room.aiLevel) { G_aiLevel = room.aiLevel; window.setAILevel(room.aiLevel); }
   if (room.validationMode) { G_validationMode = room.validationMode; window.setValidationMode(room.validationMode); }
   const cats = room.categories||[];
@@ -2118,6 +2126,24 @@ function stopConfetti() {
 // ── AI Validation ─────────────────────────────────────
 const OPENROUTER_KEY = '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';
 let G_aiLevel = 'normal';
+let G_aiEnabled = false; // OFF by default
+
+window.setAIEnabled = (enabled) => {
+  G_aiEnabled = enabled;
+  const offBtn = document.getElementById('ai-off');
+  const onBtn = document.getElementById('ai-on');
+  const levelSection = document.getElementById('ai-level-section');
+  if (offBtn && onBtn) {
+    if (enabled) {
+      onBtn.style.borderColor = '#c0392b'; onBtn.style.background = '#fdf0ee';
+      offBtn.style.borderColor = 'var(--border-strong)'; offBtn.style.background = 'var(--paper-dark)';
+    } else {
+      offBtn.style.borderColor = '#c0392b'; offBtn.style.background = '#fdf0ee';
+      onBtn.style.borderColor = 'var(--border-strong)'; onBtn.style.background = 'var(--paper-dark)';
+    }
+  }
+  if (levelSection) levelSection.style.display = enabled ? 'block' : 'none';
+};
 
 window.setAILevel = (level) => {
   G_aiLevel = level;
@@ -2174,8 +2200,8 @@ window.askAI = async (word, category, letter, key) => {
         },
         signal: AbortSignal.timeout(8000),
         body: JSON.stringify({
-          model: 'openrouter/auto',
-          models: ['qwen/qwen3-235b-a22b:free','nvidia/llama-3.1-nemotron-ultra-253b-v1:free','mistralai/mistral-small-3.2-24b-instruct:free'],
+          model: 'qwen/qwen3-235b-a22b:free',
+          models: ['qwen/qwen3-235b-a22b:free','mistralai/mistral-small-3.2-24b-instruct:free','deepseek/deepseek-r1:free'],
           messages: [{ role: 'user', content: prompt }],
           max_tokens: 80,
           temperature: 0.1
@@ -2789,6 +2815,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
+  <div style="font-size:9px;opacity:0.5">v260831.1251</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
