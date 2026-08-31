@@ -3126,22 +3126,6 @@ function dbg(screen) {
   }
 }
 
-// Detect __debug__ login on createRoom
-const _origCreateRoom = window.createRoom;
-window.createRoom = async function() {
-  const name = document.getElementById('inp-name').value.trim();
-  if (name === DEBUG_NAME) {
-    G.playerName = DEBUG_NAME;
-    G.playerEmoji = '🎯';
-    G_debugMode = true;
-    document.getElementById('debug-bar').style.display = 'block';
-    show('home');
-    // Scroll bar into view briefly
-    document.getElementById('debug-bar').scrollIntoView({ behavior: 'smooth', block: 'end' });
-    return;
-  }
-  return _origCreateRoom.apply(this, arguments);
-};
 // ══ END DEBUG MODE ═══════════════════════════════════════════════════════════
 
 // Init
@@ -3150,10 +3134,25 @@ applyLang();
 document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.getAttribute('onclick').includes("'"+LANG+"'")));
 try { const s=JSON.parse(localStorage.getItem('alto_session')||'{}'); if(s.name) document.getElementById('inp-name').value=s.name; } catch(e){}
 tryRestore();
+// Debug: intercept createRoom AFTER it's been defined
+(function() {
+  const _orig = window.createRoom;
+  window.createRoom = async function() {
+    const name = document.getElementById('inp-name')?.value.trim();
+    if (name === '__debug__') {
+      G.playerName = '__debug__';
+      G.playerEmoji = '🎯';
+      document.getElementById('debug-bar').style.display = 'block';
+      document.getElementById('debug-bar').scrollIntoView({ behavior: 'smooth', block: 'end' });
+      return;
+    }
+    return _orig.apply(this, arguments);
+  };
+})();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260831.2000</div>
+  <div style="font-size:9px;opacity:0.5">v260831.2030</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
