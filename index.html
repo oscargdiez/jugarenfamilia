@@ -1970,7 +1970,7 @@ window.lookupWord = async (word, key) => {
 
   try {
     // Try Wikipedia summary first
-    const wikiRes = await fetchWT(`https://${lang}.wikipedia.org/api/rest_v1/page/summary/${encoded}`, 4000);
+    const wikiRes = await fetchWT(`https://${lang}.wikipedia.org/api/rest_v1/page/summary/${encoded}`, 6000);
     if (wikiRes.ok) {
       const data = await wikiRes.json();
       if (data.extract && data.type !== 'disambiguation') {
@@ -1981,7 +1981,7 @@ window.lookupWord = async (word, key) => {
       }
     }
     // Fallback: Free Dictionary API (English only)
-    const dictRes = await fetchWT(`https://api.dictionaryapi.dev/api/v2/entries/en/${encoded}`, 3000);
+    const dictRes = await fetchWT(`https://api.dictionaryapi.dev/api/v2/entries/en/${encoded}`, 5000);
     if (dictRes.ok) {
       const data = await dictRes.json();
       const meaning = data[0]?.meanings[0]?.definitions[0]?.definition;
@@ -1992,7 +1992,7 @@ window.lookupWord = async (word, key) => {
       }
     }
     // Try Wikipedia opensearch for suggestions (more reliable than spellcheck API)
-    const searchRes = await fetchWT(`https://${lang}.wikipedia.org/w/api.php?action=opensearch&search=${encoded}&limit=3&format=json&origin=*`, 3000);
+    const searchRes = await fetchWT(`https://${lang}.wikipedia.org/w/api.php?action=opensearch&search=${encoded}&limit=3&format=json&origin=*`, 5000);
     if (searchRes.ok) {
       const searchData = await searchRes.json();
       // opensearch returns [query, [titles], [descriptions], [urls]]
@@ -2028,19 +2028,19 @@ window.lookupWordGuest = async (word, key) => {
   const lang = WIKI_LANG[LANG] || 'es';
   const encoded = encodeURIComponent(word.trim());
   try {
-    const wikiRes = await fetchWT(`https://${lang}.wikipedia.org/api/rest_v1/page/summary/${encoded}`, 4000);
+    const wikiRes = await fetchWT(`https://${lang}.wikipedia.org/api/rest_v1/page/summary/${encoded}`, 6000);
     if (wikiRes.ok) {
       const data = await wikiRes.json();
       if (data.extract && data.type !== 'disambiguation') { resultEl.innerHTML = `<div class="dict-word">${data.title}</div>${data.extract.split('.')[0]}.`; return; }
     }
-    const dictRes = await fetchWT(`https://api.dictionaryapi.dev/api/v2/entries/en/${encoded}`, 3000);
+    const dictRes = await fetchWT(`https://api.dictionaryapi.dev/api/v2/entries/en/${encoded}`, 5000);
     if (dictRes.ok) {
       const data = await dictRes.json();
       const meaning = data[0]?.meanings[0]?.definitions[0]?.definition;
       if (meaning) { resultEl.innerHTML = `<div class="dict-word">${word}</div>${meaning}`; return; }
     }
     // Did you mean? Use opensearch
-    const searchRes = await fetchWT(`https://${lang}.wikipedia.org/w/api.php?action=opensearch&search=${encoded}&limit=3&format=json&origin=*`, 3000);
+    const searchRes = await fetchWT(`https://${lang}.wikipedia.org/w/api.php?action=opensearch&search=${encoded}&limit=3&format=json&origin=*`, 5000);
     if (searchRes.ok) {
       const searchData = await searchRes.json();
       const titles = searchData[1] || [];
@@ -2861,7 +2861,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260831.1437</div>
+  <div style="font-size:9px;opacity:0.5">v260831.1448</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
