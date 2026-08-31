@@ -597,23 +597,29 @@ button.stop-btn:hover { background: var(--red-dark); }
         <input type="range" min="30" max="120" step="10" value="90" id="sl-time" oninput="document.getElementById('v-time').textContent=this.value">
         <span class="range-val" id="v-time">90</span>
       </div>
-      <p class="lbl" style="margin-top:14px">🗳️ Modo de validación</p>
-      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">
-        <button id="mode-host" onclick="setValidationMode('host')" style="font-size:13px;padding:5px 10px;border-radius:20px;border:1.5px solid #c0392b;background:#fdf0ee;cursor:pointer">👑 Anfitrión decide</button>
-        <button id="mode-democratic" onclick="setValidationMode('democratic')" style="font-size:13px;padding:5px 10px;border-radius:20px;border:1.5px solid var(--border-strong);background:var(--paper-dark);cursor:pointer">🗳️ Democrático</button>
-      </div>
-      <p class="lbl" style="margin-top:14px">🤖 Validación IA <span style="font-size:10px;font-family:'Special Elite',monospace;color:var(--ink-muted);border:1px solid var(--border);padding:1px 5px;border-radius:3px;vertical-align:middle">BETA</span></p>
-      <div style="display:flex;gap:6px;align-items:center;margin-bottom:8px">
-        <button id="ai-off" onclick="setAIEnabled(false)" style="font-size:13px;padding:5px 12px;border-radius:20px;border:1.5px solid #c0392b;background:#fdf0ee;cursor:pointer">OFF</button>
-        <button id="ai-on" onclick="promptAIPassword()" style="font-size:13px;padding:5px 12px;border-radius:20px;border:1.5px solid var(--border-strong);background:var(--paper-dark);cursor:pointer">ON</button>
-      </div>
-      <div id="ai-level-section" style="display:none">
-      <p class="lbl" style="margin-top:4px" id="lbl-ai-strictness">nivel de rigor</p>
-      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px">
-        <button id="ai-libre" onclick="setAILevel('libre')" style="font-size:13px;padding:5px 10px;border-radius:20px;border:1.5px solid var(--border-strong);background:var(--paper-dark);cursor:pointer">🟢 Libre</button>
-        <button id="ai-normal" onclick="setAILevel('normal')" style="font-size:13px;padding:5px 10px;border-radius:20px;border:1.5px solid #c0392b;background:#fdf0ee;cursor:pointer">🟡 Normal</button>
-        <button id="ai-estricto" onclick="setAILevel('estricto')" style="font-size:13px;padding:5px 10px;border-radius:20px;border:1.5px solid var(--border-strong);background:var(--paper-dark);cursor:pointer">🔴 Estricto</button>
-      </div>
+      
+      <div style="margin-top:16px;border-top:1px dashed var(--border);padding-top:12px">
+        <button onclick="promptExperimental()" style="width:100%;background:transparent;border:1px dashed var(--border-strong);color:var(--ink-muted);font-family:'Special Elite',monospace;font-size:11px;padding:7px;border-radius:var(--radius);cursor:pointer;letter-spacing:1px">⚗️ FUNCIONES EXPERIMENTALES</button>
+        <div id="experimental-panel" style="display:none;margin-top:10px">
+          <p class="lbl" style="margin-bottom:6px">🤖 Validación IA <span style="font-size:9px;background:var(--paper-dark);padding:1px 5px;border-radius:3px;font-family:'Special Elite',monospace">BETA</span></p>
+          <div style="display:flex;gap:6px;margin-bottom:8px">
+            <button id="ai-off" onclick="setAIEnabled(false)" style="font-size:12px;padding:4px 10px;border-radius:20px;border:1.5px solid #c0392b;background:#fdf0ee;cursor:pointer">OFF</button>
+            <button id="ai-on" onclick="setAIEnabled(true)" style="font-size:12px;padding:4px 10px;border-radius:20px;border:1.5px solid var(--border-strong);background:var(--paper-dark);cursor:pointer">ON</button>
+          </div>
+          <div id="ai-level-section" style="display:none;margin-bottom:10px">
+            <p class="lbl" style="margin-bottom:4px" id="lbl-ai-strictness">nivel de rigor</p>
+            <div style="display:flex;gap:5px;flex-wrap:wrap">
+              <button id="ai-libre" onclick="setAILevel('libre')" style="font-size:12px;padding:3px 8px;border-radius:20px;border:1.5px solid var(--border-strong);background:var(--paper-dark);cursor:pointer">🟢 Libre</button>
+              <button id="ai-normal" onclick="setAILevel('normal')" style="font-size:12px;padding:3px 8px;border-radius:20px;border:1.5px solid #c0392b;background:#fdf0ee;cursor:pointer">🟡 Normal</button>
+              <button id="ai-estricto" onclick="setAILevel('estricto')" style="font-size:12px;padding:3px 8px;border-radius:20px;border:1.5px solid var(--border-strong);background:var(--paper-dark);cursor:pointer">🔴 Estricto</button>
+            </div>
+          </div>
+          <p class="lbl" style="margin-bottom:6px">🗳️ Modo democrático <span style="font-size:9px;background:var(--paper-dark);padding:1px 5px;border-radius:3px;font-family:'Special Elite',monospace">EN PRUEBAS</span></p>
+          <div style="display:flex;gap:6px">
+            <button id="mode-host" onclick="setValidationMode('host')" style="font-size:12px;padding:4px 10px;border-radius:20px;border:1.5px solid #c0392b;background:#fdf0ee;cursor:pointer">👑 Normal</button>
+            <button id="mode-democratic" onclick="setValidationMode('democratic')" style="font-size:12px;padding:4px 10px;border-radius:20px;border:1.5px solid var(--border-strong);background:var(--paper-dark);cursor:pointer">🗳️ Democrático</button>
+          </div>
+        </div>
       </div>
       <p class="lbl" style="margin-top:14px" id="lbl-penalty">penalización por ¡Alto! inválido</p>
       <div class="range-row">
@@ -660,7 +666,7 @@ button.stop-btn:hover { background: var(--red-dark); }
 <!-- ══ WAITING (guests) ══ -->
 <div id="s-waiting" class="screen">
   <h1 id="lbl-submitted">Respuestas enviadas</h1>
-  <p style="font-family:'Caveat',cursive;font-size:22px;color:var(--ink-sec);text-align:center;margin-bottom:1rem;letter-spacing:0.5px" id="lbl-host-reviewing">el anfitrión está revisando — toca 📖 para ver definiciones</p>
+  <p style="font-family:'Caveat',cursive;font-size:22px;color:var(--ink-sec);text-align:center;margin-bottom:1rem;letter-spacing:0.5px" id="lbl-host-reviewing">el anfitrión está revisando</p>
   <div class="pencil-wait">
     <div class="pencil-icon">✏️</div>
     <div class="pencil-dots"><span>•</span><span>•</span><span>•</span></div>
@@ -869,7 +875,7 @@ const T = {
     toastCats: 'Selecciona al menos una categoría',
     toastFreeCats: 'Escribe al menos 2 categorías',
     toastHostOnly: 'Solo el anfitrión puede reiniciar',
-    continueBtn: 'Continuar →', notMe: 'No soy yo — cambiar', groupHint2: 'familia, amigos, trabajo... como queráis', easyHint: '(sin K, Ñ, Q, U, W, X, Y, Z)', validate: 'Revisar', validateSub1: 'buscar en Wikipedia · ✕ anular', validateSub2: 'única = 100 pts · repetida = 50 pts · anulada = 0 pts', submitted2: 'Respuestas enviadas', hostReviewing2: 'el anfitrión está revisando — toca 📖 para ver definiciones', leaderboardBack: '← volver', loading: 'Cargando…', final2: '¡Fin del juego!', searching: 'Buscando...', hostSearching: 'El anfitrión está buscando...', rndLabel: 'ronda', of: 'de', freeCatLabel: 'escreve as tuas categorias (uma por linha)', freeCatPlaceholder: 'Jogadores do Barça\nFilmes de terror\nCoisas na cozinha', freeCatLabel: 'escribe tus categorías (una por línea)', freeCatPlaceholder: 'Jugadores del Barça\nPelículas de terror\nCosas en la cocina', of: 'de', freeCatLabel: 'escreve as tuas categorias (uma por linha)', freeCatPlaceholder: 'Jogadores do Barça\nFilmes de terror\nCoisas na cozinha', freeCatLabel: 'escribe tus categorías (una por línea)', freeCatPlaceholder: 'Jugadores del Barça\nPelículas de terror\nCosas en la cocina', letterLabel: 'letra', calculate: 'Calcular puntajes →', scoresTitle: 'Puntajes', lbTitle: 'Marcador',
+    continueBtn: 'Continuar →', notMe: 'No soy yo — cambiar', groupHint2: 'familia, amigos, trabajo... como queráis', easyHint: '(sin K, Ñ, Q, U, W, X, Y, Z)', validate: 'Revisar', validateSub1: 'buscar en Wikipedia · ✕ anular', validateSub2: 'única = 100 pts · repetida = 50 pts · anulada = 0 pts', submitted2: 'Respuestas enviadas', hostReviewing2: 'el anfitrión está revisando', leaderboardBack: '← volver', loading: 'Cargando…', final2: '¡Fin del juego!', searching: 'Buscando...', hostSearching: 'El anfitrión está buscando...', rndLabel: 'ronda', of: 'de', freeCatLabel: 'escreve as tuas categorias (uma por linha)', freeCatPlaceholder: 'Jogadores do Barça\nFilmes de terror\nCoisas na cozinha', freeCatLabel: 'escribe tus categorías (una por línea)', freeCatPlaceholder: 'Jugadores del Barça\nPelículas de terror\nCosas en la cocina', of: 'de', freeCatLabel: 'escreve as tuas categorias (uma por linha)', freeCatPlaceholder: 'Jogadores do Barça\nFilmes de terror\nCoisas na cozinha', freeCatLabel: 'escribe tus categorías (una por línea)', freeCatPlaceholder: 'Jugadores del Barça\nPelículas de terror\nCosas en la cocina', letterLabel: 'letra', calculate: 'Calcular puntajes →', scoresTitle: 'Puntajes', lbTitle: 'Marcador',
     toastBack: 'Volviendo como',
     waMsg: '¡Juega conmigo al ¡Alto! 🎮 Únete aquí:',
   },
@@ -918,7 +924,7 @@ const T = {
     toastCats: 'Select at least one category',
     toastFreeCats: 'Enter at least 2 categories',
     toastHostOnly: 'Only the host can restart',
-    continueBtn: 'Continue →', notMe: "That's not me — change", groupHint2: 'family, friends, work... whatever you like', easyHint: '(no Q, U, W, X, Y, Z)', validate: 'Review', validateSub1: 'search Wikipedia · ✕ invalidate', validateSub2: 'unique = 100 pts · duplicate = 50 pts · invalid = 0 pts', submitted2: 'Answers submitted', hostReviewing2: 'host is reviewing — tap 📖 for definitions', leaderboardBack: '← back', loading: 'Loading…', final2: 'Game over!', searching: 'Searching...', hostSearching: 'Host is searching...', rndLabel: 'round', of: 'di', freeCatLabel: 'scrivi le tue categorie (una per riga)', freeCatPlaceholder: 'Giocatori del Barça\nFilm horror\nCose in cucina', of: 'of', freeCatLabel: 'write your categories (one per line)', freeCatPlaceholder: 'Football players\nHorror films\nThings in the kitchen', letterLabel: 'letter', calculate: 'Calculate scores →', scoresTitle: 'Scores', lbTitle: 'Leaderboard',
+    continueBtn: 'Continue →', notMe: "That's not me — change", groupHint2: 'family, friends, work... whatever you like', easyHint: '(no Q, U, W, X, Y, Z)', validate: 'Review', validateSub1: 'search Wikipedia · ✕ invalidate', validateSub2: 'unique = 100 pts · duplicate = 50 pts · invalid = 0 pts', submitted2: 'Answers submitted', hostReviewing2: 'host is reviewing', leaderboardBack: '← back', loading: 'Loading…', final2: 'Game over!', searching: 'Searching...', hostSearching: 'Host is searching...', rndLabel: 'round', of: 'di', freeCatLabel: 'scrivi le tue categorie (una per riga)', freeCatPlaceholder: 'Giocatori del Barça\nFilm horror\nCose in cucina', of: 'of', freeCatLabel: 'write your categories (one per line)', freeCatPlaceholder: 'Football players\nHorror films\nThings in the kitchen', letterLabel: 'letter', calculate: 'Calculate scores →', scoresTitle: 'Scores', lbTitle: 'Leaderboard',
     toastBack: 'Rejoining as',
     waMsg: 'Play Stop! with me 🎮 Join here:',
   },
@@ -967,7 +973,7 @@ const T = {
     toastCats: 'Sélectionne au moins une catégorie',
     toastFreeCats: 'Entre au moins 2 catégories',
     toastHostOnly: "Seul l'hôte peut recommencer",
-    continueBtn: 'Continuer →', notMe: "Ce n'est pas moi — changer", groupHint2: 'famille, amis, travail... comme vous voulez', easyHint: '(sans K, Q, U, W, X, Y, Z)', validate: 'Vérifier', validateSub1: 'chercher sur Wikipedia · ✕ annuler', validateSub2: 'unique = 100 pts · doublon = 50 pts · annulé = 0 pts', submitted2: 'Réponses envoyées', hostReviewing2: "l'hôte vérifie — appuie 📖 pour les définitions", leaderboardBack: '← retour', loading: 'Chargement…', final2: 'Fin de partie!', searching: 'Recherche...', hostSearching: "L'hôte cherche...", rndLabel: 'manche', of: 'sur', freeCatLabel: 'écris tes catégories (une par ligne)', freeCatPlaceholder: 'Joueurs du Barça\nFilms d\'horreur\nChoses dans la cuisine', letterLabel: 'lettre', calculate: 'Calculer les scores →', scoresTitle: 'Scores', lbTitle: 'Classement',
+    continueBtn: 'Continuer →', notMe: "Ce n'est pas moi — changer", groupHint2: 'famille, amis, travail... comme vous voulez', easyHint: '(sans K, Q, U, W, X, Y, Z)', validate: 'Vérifier', validateSub1: 'chercher sur Wikipedia · ✕ annuler', validateSub2: 'unique = 100 pts · doublon = 50 pts · annulé = 0 pts', submitted2: 'Réponses envoyées', hostReviewing2: "l'hôte vérifie", leaderboardBack: '← retour', loading: 'Chargement…', final2: 'Fin de partie!', searching: 'Recherche...', hostSearching: "L'hôte cherche...", rndLabel: 'manche', of: 'sur', freeCatLabel: 'écris tes catégories (une par ligne)', freeCatPlaceholder: 'Joueurs du Barça\nFilms d\'horreur\nChoses dans la cuisine', letterLabel: 'lettre', calculate: 'Calculer les scores →', scoresTitle: 'Scores', lbTitle: 'Classement',
     toastBack: 'Reconnexion en tant que',
     waMsg: 'Joue au Stop! avec moi 🎮 Rejoins ici:',
   },
@@ -1016,7 +1022,7 @@ const T = {
     toastCats: 'Mindestens eine Kategorie auswählen',
     toastFreeCats: 'Mindestens 2 Kategorien eingeben',
     toastHostOnly: 'Nur der Gastgeber kann neu starten',
-    continueBtn: 'Weiter →', notMe: 'Das bin ich nicht — ändern', groupHint2: 'Familie, Freunde, Arbeit... wie ihr wollt', easyHint: '(ohne Q, X, Y, Z)', validate: 'Überprüfen', validateSub1: 'Wikipedia suchen · ✕ ungültig', validateSub2: 'einmalig = 100 Pkt · doppelt = 50 Pkt · ungültig = 0 Pkt', submitted2: 'Antworten gesendet', hostReviewing2: 'Gastgeber prüft — tippe 📖 für Definitionen', leaderboardBack: '← zurück', loading: 'Laden…', final2: 'Spiel vorbei!', searching: 'Suche...', hostSearching: 'Gastgeber sucht...', rndLabel: 'Runde', of: 'von', freeCatLabel: 'Schreib deine Kategorien (eine pro Zeile)', freeCatPlaceholder: 'Fußballspieler\nHorrorfilme\nDinge in der Küche', letterLabel: 'Buchstabe', calculate: 'Punkte berechnen →', scoresTitle: 'Punkte', lbTitle: 'Bestenliste',
+    continueBtn: 'Weiter →', notMe: 'Das bin ich nicht — ändern', groupHint2: 'Familie, Freunde, Arbeit... wie ihr wollt', easyHint: '(ohne Q, X, Y, Z)', validate: 'Überprüfen', validateSub1: 'Wikipedia suchen · ✕ ungültig', validateSub2: 'einmalig = 100 Pkt · doppelt = 50 Pkt · ungültig = 0 Pkt', submitted2: 'Antworten gesendet', hostReviewing2: 'Gastgeber prüft', leaderboardBack: '← zurück', loading: 'Laden…', final2: 'Spiel vorbei!', searching: 'Suche...', hostSearching: 'Gastgeber sucht...', rndLabel: 'Runde', of: 'von', freeCatLabel: 'Schreib deine Kategorien (eine pro Zeile)', freeCatPlaceholder: 'Fußballspieler\nHorrorfilme\nDinge in der Küche', letterLabel: 'Buchstabe', calculate: 'Punkte berechnen →', scoresTitle: 'Punkte', lbTitle: 'Bestenliste',
     toastBack: 'Wiederbeitritt als',
     waMsg: 'Spiel Stop! mit mir 🎮 Tritt hier bei:',
   },
@@ -1065,7 +1071,7 @@ const T = {
     toastCats: 'Seleciona pelo menos uma categoria',
     toastFreeCats: 'Escreve pelo menos 2 categorias',
     toastHostOnly: 'Só o anfitrião pode reiniciar',
-    continueBtn: 'Continuar →', notMe: 'Não sou eu — mudar', groupHint2: 'família, amigos, trabalho... como quiserem', easyHint: '(sem K, Q, U, W, X, Y, Z)', validate: 'Rever', validateSub1: 'pesquisar Wikipedia · ✕ anular', validateSub2: 'única = 100 pts · repetida = 50 pts · anulada = 0 pts', submitted2: 'Respostas enviadas', hostReviewing2: 'anfitrião a rever — toca 📖 para definições', leaderboardBack: '← voltar', loading: 'A carregar…', final2: 'Fim do jogo!', searching: 'A pesquisar...', hostSearching: 'Anfitrião a pesquisar...', rndLabel: 'ronda', of: 'de', freeCatLabel: 'escreve as tuas categorias (uma por linha)', freeCatPlaceholder: 'Jogadores do Barça\nFilmes de terror\nCoisas na cozinha', freeCatLabel: 'escribe tus categorías (una por línea)', freeCatPlaceholder: 'Jugadores del Barça\nPelículas de terror\nCosas en la cocina', of: 'de', freeCatLabel: 'escreve as tuas categorias (uma por linha)', freeCatPlaceholder: 'Jogadores do Barça\nFilmes de terror\nCoisas na cozinha', freeCatLabel: 'escribe tus categorías (una por línea)', freeCatPlaceholder: 'Jugadores del Barça\nPelículas de terror\nCosas en la cocina', letterLabel: 'letra', calculate: 'Calcular pontuações →', scoresTitle: 'Pontuações', lbTitle: 'Classificação',
+    continueBtn: 'Continuar →', notMe: 'Não sou eu — mudar', groupHint2: 'família, amigos, trabalho... como quiserem', easyHint: '(sem K, Q, U, W, X, Y, Z)', validate: 'Rever', validateSub1: 'pesquisar Wikipedia · ✕ anular', validateSub2: 'única = 100 pts · repetida = 50 pts · anulada = 0 pts', submitted2: 'Respostas enviadas', hostReviewing2: 'anfitrião a rever', leaderboardBack: '← voltar', loading: 'A carregar…', final2: 'Fim do jogo!', searching: 'A pesquisar...', hostSearching: 'Anfitrião a pesquisar...', rndLabel: 'ronda', of: 'de', freeCatLabel: 'escreve as tuas categorias (uma por linha)', freeCatPlaceholder: 'Jogadores do Barça\nFilmes de terror\nCoisas na cozinha', freeCatLabel: 'escribe tus categorías (una por línea)', freeCatPlaceholder: 'Jugadores del Barça\nPelículas de terror\nCosas en la cocina', of: 'de', freeCatLabel: 'escreve as tuas categorias (uma por linha)', freeCatPlaceholder: 'Jogadores do Barça\nFilmes de terror\nCoisas na cozinha', freeCatLabel: 'escribe tus categorías (una por línea)', freeCatPlaceholder: 'Jugadores del Barça\nPelículas de terror\nCosas en la cocina', letterLabel: 'letra', calculate: 'Calcular pontuações →', scoresTitle: 'Pontuações', lbTitle: 'Classificação',
     toastBack: 'A voltar como',
     waMsg: 'Joga Stop! comigo 🎮 Junta-te aqui:',
   },
@@ -1114,7 +1120,7 @@ const T = {
     toastCats: 'Seleziona almeno una categoria',
     toastFreeCats: 'Inserisci almeno 2 categorie',
     toastHostOnly: "Solo l'host può ricominciare",
-    continueBtn: 'Continua →', notMe: 'Non sono io — cambia', groupHint2: 'famiglia, amici, lavoro... come volete', easyHint: '(senza J, K, Q, U, W, X, Y, Z)', validate: 'Revisione', validateSub1: 'cerca su Wikipedia · ✕ annulla', validateSub2: 'unica = 100 pts · ripetuta = 50 pts · annullata = 0 pts', submitted2: 'Risposte inviate', hostReviewing2: "l'host sta revisionando — tocca 📖 per definizioni", leaderboardBack: '← indietro', loading: 'Caricamento…', final2: 'Fine del gioco!', searching: 'Ricerca...', hostSearching: "L'host sta cercando...", rndLabel: 'round', of: 'di', freeCatLabel: 'scrivi le tue categorie (una per riga)', freeCatPlaceholder: 'Giocatori del Barça\nFilm horror\nCose in cucina', of: 'of', freeCatLabel: 'write your categories (one per line)', freeCatPlaceholder: 'Football players\nHorror films\nThings in the kitchen', letterLabel: 'lettera', calculate: 'Calcola i punteggi →', scoresTitle: 'Punteggi', lbTitle: 'Classifica',
+    continueBtn: 'Continua →', notMe: 'Non sono io — cambia', groupHint2: 'famiglia, amici, lavoro... come volete', easyHint: '(senza J, K, Q, U, W, X, Y, Z)', validate: 'Revisione', validateSub1: 'cerca su Wikipedia · ✕ annulla', validateSub2: 'unica = 100 pts · ripetuta = 50 pts · annullata = 0 pts', submitted2: 'Risposte inviate', hostReviewing2: "l'host sta revisionando", leaderboardBack: '← indietro', loading: 'Caricamento…', final2: 'Fine del gioco!', searching: 'Ricerca...', hostSearching: "L'host sta cercando...", rndLabel: 'round', of: 'di', freeCatLabel: 'scrivi le tue categorie (una per riga)', freeCatPlaceholder: 'Giocatori del Barça\nFilm horror\nCose in cucina', of: 'of', freeCatLabel: 'write your categories (one per line)', freeCatPlaceholder: 'Football players\nHorror films\nThings in the kitchen', letterLabel: 'lettera', calculate: 'Calcola i punteggi →', scoresTitle: 'Punteggi', lbTitle: 'Classifica',
     toastBack: 'Riconnessione come',
     waMsg: 'Gioca a Stop! con me 🎮 Unisciti qui:',
   },
@@ -1586,8 +1592,6 @@ function handleRoom(room) {
   }
   else if (G.screen === 'waiting') {
     refreshGuestValidation(room);
-    if (room.dictLookup) applyDictLookup(room.dictLookup);
-    else clearGuestDictResults();
     if (room.aiResults) applyAIResults(room.aiResults);
     applyVotesAndReactions(room, false);
     processReactions(room);
@@ -1935,7 +1939,7 @@ async function fetchWT(url, ms=4000) {
 window.lookupWord = async (word, key) => {
   const resultId = 'dict_' + key;
   const btnId = 'dictbtn_' + key;
-  const resultEl = document.getElementById(resultId);
+  const resultEl = document.getElementById(resultId) || document.getElementById('g' + resultId);
   const btnEl = document.getElementById(btnId);
   if (!resultEl) return;
 
@@ -1953,8 +1957,6 @@ window.lookupWord = async (word, key) => {
   btnEl.innerHTML = '<svg width="16" height="16" viewBox="0 0 22 22" fill="none"><path d="M11 3.5 C8.5 3 3 4 3 4 L3 17.5 C3 17.5 8 16.5 11 19" stroke="currentColor" stroke-width="1.3" fill="#faf8f3" stroke-linejoin="round"/><path d="M11 3.5 C13.5 3 19 4 19 4 L19 17.5 C19 17.5 14 16.5 11 19" stroke="currentColor" stroke-width="1.3" fill="#faf8f3" stroke-linejoin="round"/><line x1="11" y1="3.5" x2="11" y2="19" stroke="currentColor" stroke-width="2"/><line x1="4.5" y1="7.5" x2="9.5" y2="7" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.55"/><line x1="4.5" y1="10" x2="9.5" y2="9.5" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.55"/><line x1="4.5" y1="12.5" x2="9.5" y2="12" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.55"/><line x1="4.5" y1="15" x2="7.5" y2="14.7" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.55"/><line x1="12.5" y1="7" x2="17.5" y2="7.5" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.55"/><line x1="12.5" y1="9.5" x2="17.5" y2="10" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.55"/><line x1="12.5" y1="12" x2="17.5" y2="12.5" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.55"/><line x1="12.5" y1="14.7" x2="15.5" y2="15" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.55"/></svg>';
 
   // Broadcast to guests that host is looking up this word
-  update(roomRef(G.roomCode), {dictLookup: {word, key, result: null}});
-
   const lang = WIKI_LANG[LANG] || 'es';
   const encoded = encodeURIComponent(word.trim());
 
@@ -1967,7 +1969,6 @@ window.lookupWord = async (word, key) => {
         const short = data.extract.split('.')[0] + '.';
         const html = `<div class="dict-word">${data.title}</div>${short}`;
         resultEl.innerHTML = html;
-        update(roomRef(G.roomCode), {dictLookup: {word, key, result: html, source: 'wiki'}});
         return;
       }
     }
@@ -1979,7 +1980,6 @@ window.lookupWord = async (word, key) => {
       if (meaning) {
         const html = `<div class="dict-word">${word}</div>${meaning}`;
         resultEl.innerHTML = html;
-        update(roomRef(G.roomCode), {dictLookup: {word, key, result: html, source: 'dict'}});
         return;
       }
     }
@@ -1999,7 +1999,6 @@ window.lookupWord = async (word, key) => {
     }
     const notFound = `<span class="dict-error">📭 No se encontró ninguna definición para "<strong>${word}</strong>"</span>`;
     resultEl.innerHTML = notFound;
-    update(roomRef(G.roomCode), {dictLookup: {word, key, result: notFound, source: 'none'}});
   } catch(e) {
     const errMsg = `<span class="dict-error">📭 No se encontró ninguna definición para "<strong>${word}</strong>"</span>`;
     resultEl.innerHTML = errMsg;
@@ -2127,6 +2126,19 @@ function stopConfetti() {
 const OPENROUTER_KEY = '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';
 let G_aiLevel = 'normal';
 let G_aiEnabled = false; // OFF by default
+
+window.promptExperimental = () => {
+  const panel = document.getElementById('experimental-panel');
+  if (!panel) return;
+  if (panel.style.display === 'block') { panel.style.display = 'none'; return; }
+  const pwd = prompt('⚗️ Funciones Experimentales\nEstas funciones están en desarrollo y pueden no funcionar correctamente.\n\nContraseña:');
+  if (pwd === 'monica8') {
+    panel.style.display = 'block';
+    toast('⚗️ Funciones experimentales activadas');
+  } else if (pwd !== null) {
+    toast('❌ Contraseña incorrecta');
+  }
+};
 
 window.promptAIPassword = () => {
   const pwd = prompt('🤖 Validación IA — BETA\nIntroduce la contraseña para activar:');
@@ -2425,10 +2437,15 @@ function applyVotesAndReactions(room, isHost) {
     if (voteEl) voteEl.innerHTML = renderVotes(key, votes[key], mode, players, isHost);
   });
 
-  // Update emoji reaction displays
+  // Update emoji reaction displays (works for both host and guest)
   Object.keys(entryReactions).forEach(key => {
     const emojiEl = document.getElementById('emojis_' + key);
     if (emojiEl) emojiEl.innerHTML = renderEntryEmojis(key, entryReactions[key], isHost);
+  });
+  // Also update vote displays for guest screens
+  Object.keys(votes).forEach(key => {
+    const voteEl = document.getElementById('votes_' + key);
+    if (voteEl) voteEl.innerHTML = renderVotes(key, votes[key], mode, players, isHost);
   });
 
   // In democratic mode, auto-invalidate entries where majority voted down
@@ -2824,7 +2841,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260831.1304</div>
+  <div style="font-size:9px;opacity:0.5">v260831.1322</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
