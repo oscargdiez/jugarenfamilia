@@ -37,7 +37,7 @@ A multiplayer browser-based version of the classic Spanish word game "Stop/Tutti
 |---|---|---|
 | Frontend | Single HTML file | No framework, vanilla JS |
 | Realtime multiplayer | Firebase Realtime Database | europe-west1 |
-| AI validation | OpenRouter API | Free tier, auto model routing |
+| AI validation | OpenRouter API | Free tier, fallback model chain |
 | Hosting | GitHub Pages | Unlimited deploys, free SSL |
 | Domain | jugarenfamilia.es | Registered on Namecheap |
 | DNS | Namecheap BasicDNS | Points to GitHub IPs |
@@ -56,7 +56,7 @@ A multiplayer browser-based version of the classic Spanish word game "Stop/Tutti
 - **Key name:** Alto-Game
 - **Spending cap:** $0 (safe, free tier only)
 - **Free limit:** 200 requests/day, resets daily
-- **Models used:** `openrouter/auto` with fallbacks: Qwen3, Nemotron, Mistral Small
+- **Models used:** `qwen/qwen3-8b:free` primary, fallback to `mistralai/mistral-small-3.2-24b-instruct:free`, then `meta-llama/llama-3.2-3b-instruct:free`
 
 ### GitHub
 - **Repo:** github.com/oscargdiez/jugarenfamilia (public)
@@ -94,6 +94,7 @@ CNAME     www  oscargdiez.github.io
 - Session restore / welcome-back screen with emoji picker
 - Letter selection (easy/full pool, language-aware per language)
 - Fixed countdown timer (works on mobile)
+- Correct remaining timer for players who rejoin mid-round
 - Answer submission, ¡Alto! button
 - Accent-insensitive comparison (México = Mexico)
 - Stop penalty (configurable, host sets)
@@ -104,15 +105,18 @@ CNAME     www  oscargdiez.github.io
   - Strictness: 🟢 Libre / 🟡 Normal / 🔴 Estricto
   - Responds in game language
   - AI results broadcast to all guests via Firebase
+  - Fallback model chain (qwen → mistral → llama) with 12s timeout
+  - "Reintentar" retry button on timeout
 - 👍👎 Per-entry voting (all players, live counts)
 - 😂🔥👏🤔😱💀 Per-entry emoji reactions (attached to specific answers, visible to all)
 - ✕ Manual invalidation by host
-- 🗳️ Democratic mode: majority vote auto-invalidates entries
-- ← Revisar button on scores screen (undo, restores pre-round scores)
+- 🗳️ Democratic mode: majority vote auto-invalidates entries (batched Firebase writes)
+- 🛑 Stop caller banner: shows who called ¡Alto! at top of validation screen
+- ← Revisar button on scores screen (undo, restores pre-round scores, clears all validation state)
 - AI results + dict results + invalidations all broadcast to guest waiting screen
 
 ### Waiting Screen (guests)
-- Read-only view of all answers
+- Read-only view of all answers (properly populated on rejoin)
 - Wikipedia lookups (private, guest-initiated)
 - Sees host's Wikipedia results, AI results, invalidations, votes in real time
 - Per-entry emoji reactions
@@ -123,7 +127,7 @@ CNAME     www  oscargdiez.github.io
 - Group identity: group name + player name + emoji = unique ID
 - Group leaderboard (private per group)
 - Global leaderboard (worldwide, by wins)
-- Scores screen with ← Revisar button
+- Scores screen with ← Revisar button (fully clears validation state in Firebase)
 
 ### UX/Polish
 - 🎊 Continuous confetti on final screen (winner's emoji)
@@ -157,6 +161,14 @@ CNAME     www  oscargdiez.github.io
 ### Languages
 - 🇪🇸 Spanish, 🇬🇧 English, 🇫🇷 French, 🇩🇪 German, 🇧🇷 Portuguese, 🇮🇹 Italian
 - Full UI + categories + themes + rules + help all translated
+- Scores screen buttons fully translated (next round, end game, review)
+
+### Debug Mode
+- Type `__debug__` as player name → unlocks debug bar at bottom of screen
+- 14 screen buttons: Home, Welcome, QuickJoin, Lobby Host, Lobby Guest, Playing, Playing+Stop, Validate, Validate Demo (democratic), Waiting, Scores, Scores Last, Final, Leaderboard
+- All screens rendered with realistic fake data (3 players, letter M, duplicate answers, one invalid, votes pre-populated, fake AI result)
+- Zero Firebase calls — fully offline debug
+- Password: just type `__debug__` as name and tap "Crear sala"
 
 ---
 
@@ -166,24 +178,15 @@ CNAME     www  oscargdiez.github.io
 Claude ALWAYS provides these files at the end of each session:
 - `jugarenfamilia.html` — the game (required)
 - `gitinfo.txt` — commit message and git config (required, always with HTML)
-- `preview.png` — WhatsApp OG image (optional, only when changed)
-- `JUGARENFAMILIA_HANDOFF.md` — this doc (optional, when updated)
-- `rollback.bat` — only needed once, already in D:\09_ALTO\
+- `JUGARENFAMILIA_HANDOFF.md` — this doc (when updated)
 
 **Steps:**
 1. Download all files from Claude to `C:\Users\User\Downloads\`
 2. Double-click `D:\09_ALTO\deploy.bat`
-3. It reads `gitinfo.txt`, copies files, commits, pushes, cleans up Downloads
-4. Live at jugarenfamilia.es in ~30 seconds ✅
+3. Live at jugarenfamilia.es in ~30 seconds ✅
 
-### Files in D:\09_ALTO\ (already set up, don't touch)
-- `deploy.bat` — double-click to deploy ✅ already working
-- `rollback.bat` — double-click to rollback ✅ already working
-- `gitinfo.txt` — updated by Claude each session with commit message
-- `index.html` — current live game
-- `preview.png` — WhatsApp preview image
-- `CNAME` — contains `jugarenfamilia.es`
-- `JUGARENFAMILIA_HANDOFF.md` — this document
+### Version number
+Claude always states the version number (e.g. `v260831.2145`) when deploying. Check the footer of the live site to confirm the deploy took effect.
 
 ### gitinfo.txt format
 ```
@@ -193,65 +196,20 @@ NAME=oscargdiez
 EMAIL=oscar.g.diez@gmail.com
 MESSAGE=feat: description of what changed this session
 ```
-Claude updates the MESSAGE line each session to describe what was built.
 
 ---
 
 ## ⏪ Rollback Workflow
 
-If a deploy breaks something and you need to revert:
-
+If a deploy breaks something:
 1. Double-click `D:\09_ALTO\rollback.bat`
-2. It shows the last 10 commits like:
-```
-fe07617 feat: Google Analytics, reactions... [30/08/2026]
-118fe9c feat: AI validation... [30/08/2026]
-13eb6db Initial upload
-```
-3. Copy the 7-character hash of the last good version
-4. Paste it in, confirm with `y`
-5. That version is live in ~30 seconds ✅
+2. Pick the hash of the last good version
+3. Live in ~30 seconds ✅
 
-**After rolling back:**
-- Tell Claude what broke
-- Claude fixes it in the chat
-- Download new `jugarenfamilia.html` + `gitinfo.txt`
-- Run `deploy.bat` to push the fix
-
-Every deploy creates a new commit — you can always go back to any version in history. GitHub keeps everything forever.
-
-**Commit message prefixes used by Claude:**
-- `feat:` — new feature added
-- `fix:` — bug fixed
-- `rollback:` — reverted to older version
-
----
-
-## 🗺 Roadmap
-
-### 🔧 Medium term
-1. Google login — proper identity across devices
-2. WhatsApp deep link invites — direct notification to join
-3. 🎵 Background soundtrack — seamless looping audio (acoustic guitar), auto-play muted, tap to unmute. Need MP3 from Pixabay first
-4. 🔔 Sound effects — pencil scratch on submit, bell on ¡Alto!, fanfare on winner screen
-5. Letter reveal animation
-6. 🎮 Solo practice mode — play alone against clock, localStorage personal best
-7. 🎭 End of game reaction stats — recap screen: most voted answer, funniest player (most 😂), most controversial (mixed votes), most 🔥 answer. Needs reaction data preserved across rounds.
-
-### 🚀 Bigger features
-8. Public rooms — join random game with strangers
-9. Tournaments — scheduled games with brackets
-10. Second game under jugarenfamilia.es
-11. Custom theme packs — Harry Potter, Netflix, Football clubs…
-12. Cloudflare Workers backend — hides API keys, private GitHub repo
-
-### 💰 Business
-13. Google Analytics
-14. Privacy policy page
-15. Google AdSense — ads between rounds
-16. Premium tier — host pays (€2.99/mo or €19.99/yr). Unlocks: no ads, extra themes, saved categories, permanent rooms. AI validation is the killer feature.
-17. App Store via Capacitor/Cordova
-18. Social sharing — post score to Instagram stories
+Alternatively, if Claude provides a `jugarenfamilia_WORKING_BACKUP.html`:
+1. Rename it to `jugarenfamilia.html`
+2. Use the matching `gitinfo_RESTORE.txt` renamed to `gitinfo.txt`
+3. Run `deploy.bat`
 
 ---
 
@@ -261,25 +219,62 @@ Every deploy creates a new commit — you can always go back to any version in h
 - GitHub repo is public — API key visible in source. Mitigated by $0 spending cap.
 - iOS Chrome sticky counter — using fixed topbar workaround, test each session
 - `.es` domain DNS can be slow to propagate (up to 48h)
+- Rooms auto-delete from Firebase 60s after game ends (leaderboard data in `global/` and `groups/` is preserved)
+
+## ⚠️ Critical Deploy Rule
+Claude MUST run `node --check` on the extracted module script AND verify `buildEmojiGrid()` + `tryRestore()` are present at the end of the module before outputting any file. Injecting code near the end of the module script has repeatedly wiped the init block, breaking the home screen silently.
 
 ---
 
-## 🔧 Pending Tech Tasks
+## 🗺 Roadmap
 
-- [ ] Set up auto-deploy script (.bat) — copies HTML from Downloads to project folder, git commits and pushes to GitHub automatically
-- [ ] Move to private GitHub repo + Cloudflare Pages for security
-- [ ] Cloudflare Workers proxy for API keys
+### 🔧 Medium term
+1. Google login — proper identity across devices
+2. WhatsApp deep link invites — direct notification to join
+3. 🎵 Background soundtrack — seamless looping audio (acoustic guitar), auto-play muted, tap to unmute
+4. 🔔 Sound effects — pencil scratch on submit, bell on ¡Alto!, fanfare on winner screen
+5. Letter reveal animation
+6. 🎮 Solo practice mode — play alone against clock, localStorage personal best
+7. 🎭 End of game reaction stats — most voted answer, funniest player, most controversial
+
+### 🚀 Bigger features
+8. Public rooms — join random game with strangers
+9. Tournaments — scheduled games with brackets
+10. Second game under jugarenfamilia.es
+11. Custom theme packs — Harry Potter, Netflix, Football clubs…
+12. Cloudflare Workers backend — hides API keys, private GitHub repo
+
+### 💰 Business
+13. Privacy policy page
+14. Google AdSense — ads between rounds
+15. Premium tier — host pays (€2.99/mo or €19.99/yr)
+16. App Store via Capacitor/Cordova
+17. Social sharing — post score to Instagram stories
 
 ---
 
-## 📝 Deploy Script (TODO)
+## 📝 Session Log
 
-A Windows `.bat` file that:
-1. Copies `jugarenfamilia.html` from `Downloads\` to the project folder
-2. Renames it to `index.html`
-3. Copies `preview.png` if present
-4. `git add .`
-5. `git commit -m "Update game"`
-6. `git push`
+### Session 1 (Aug 29)
+- Initial build: multiplayer, Firebase, rooms, scoring, themes, 6 languages
 
-This would make deploying a 1-second operation.
+### Session 2 (Aug 30)
+- Quick join screen, guest lobby confirmation card
+- Per-entry emoji reactions and votes for all players
+- Private Wikipedia lookups, flying emoji animations
+- Experimental features panel (pwd: monica8) with AI validation and democratic mode
+- Guest language auto-switch, new book icon, Google Analytics
+- Deploy/rollback scripts
+
+### Session 3 (Aug 31)
+- Full audit pass: 15 bugs fixed
+- Room cleanup from Firebase (60s delay after game ends)
+- Collision-safe room code generation
+- Stop caller banner in validation screen
+- AI fallback model chain + retry button on timeout
+- Timer on rejoin uses elapsed time correctly
+- Guest rejoin during validate shows full state
+- Democratic mode batches Firebase writes
+- Scores screen buttons fully translated
+- Debug mode: type `__debug__` to inspect all 14 screens
+- Fixed recurring init block wipe bug (node --check now mandatory before deploy)
