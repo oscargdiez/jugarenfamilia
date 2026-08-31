@@ -602,10 +602,10 @@ button.stop-btn:hover { background: var(--red-dark); }
         <button id="mode-host" onclick="setValidationMode('host')" style="font-size:13px;padding:5px 10px;border-radius:20px;border:1.5px solid #c0392b;background:#fdf0ee;cursor:pointer">👑 Anfitrión decide</button>
         <button id="mode-democratic" onclick="setValidationMode('democratic')" style="font-size:13px;padding:5px 10px;border-radius:20px;border:1.5px solid var(--border-strong);background:var(--paper-dark);cursor:pointer">🗳️ Democrático</button>
       </div>
-      <p class="lbl" style="margin-top:14px">🤖 Validación IA</p>
+      <p class="lbl" style="margin-top:14px">🤖 Validación IA <span style="font-size:10px;font-family:'Special Elite',monospace;color:var(--ink-muted);border:1px solid var(--border);padding:1px 5px;border-radius:3px;vertical-align:middle">BETA</span></p>
       <div style="display:flex;gap:6px;align-items:center;margin-bottom:8px">
         <button id="ai-off" onclick="setAIEnabled(false)" style="font-size:13px;padding:5px 12px;border-radius:20px;border:1.5px solid #c0392b;background:#fdf0ee;cursor:pointer">OFF</button>
-        <button id="ai-on" onclick="setAIEnabled(true)" style="font-size:13px;padding:5px 12px;border-radius:20px;border:1.5px solid var(--border-strong);background:var(--paper-dark);cursor:pointer">ON</button>
+        <button id="ai-on" onclick="promptAIPassword()" style="font-size:13px;padding:5px 12px;border-radius:20px;border:1.5px solid var(--border-strong);background:var(--paper-dark);cursor:pointer">ON</button>
       </div>
       <div id="ai-level-section" style="display:none">
       <p class="lbl" style="margin-top:4px" id="lbl-ai-strictness">nivel de rigor</p>
@@ -2128,6 +2128,16 @@ const OPENROUTER_KEY = 'sk-or-v1-9141b90287fbc86e3d715698e66788b1c60feab13b79e64
 let G_aiLevel = 'normal';
 let G_aiEnabled = false; // OFF by default
 
+window.promptAIPassword = () => {
+  const pwd = prompt('🤖 Validación IA — BETA\nIntroduce la contraseña para activar:');
+  if (pwd === 'monica8') {
+    window.setAIEnabled(true);
+    toast('🤖 IA activada (Beta)');
+  } else if (pwd !== null) {
+    toast('❌ Contraseña incorrecta');
+  }
+};
+
 window.setAIEnabled = (enabled) => {
   G_aiEnabled = enabled;
   const offBtn = document.getElementById('ai-off');
@@ -2814,7 +2824,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260831.1251</div>
+  <div style="font-size:9px;opacity:0.5">v260831.1304</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
