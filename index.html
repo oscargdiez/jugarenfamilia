@@ -594,6 +594,11 @@ button.stop-btn:hover { background: var(--red-dark); }
         <input type="range" min="30" max="120" step="10" value="90" id="sl-time" oninput="document.getElementById('v-time').textContent=this.value">
         <span class="range-val" id="v-time">90</span>
       </div>
+      <p class="lbl" style="margin-top:14px" id="lbl-penalty">penalización por ¡Alto! inválido</p>
+      <div class="range-row">
+        <input type="range" min="0" max="200" step="50" value="50" id="sl-penalty" oninput="document.getElementById('v-penalty').textContent=this.value">
+        <span class="range-val" id="v-penalty">50</span>
+      </div>
       
       <div style="margin-top:16px;border-top:1px dashed var(--border);padding-top:12px">
         <button onclick="promptExperimental()" style="width:100%;background:transparent;border:1px dashed var(--border-strong);color:var(--ink-muted);font-family:'Special Elite',monospace;font-size:11px;padding:7px;border-radius:var(--radius);cursor:pointer;letter-spacing:1px">⚗️ FUNCIONES EXPERIMENTALES</button>
@@ -1729,7 +1734,7 @@ window.startGame = async () => {
     cats = [...new Set(raw.split('\n').map(s=>s.trim()).filter(Boolean))];
     if (cats.length < 2) { toast(t('toastFreeCats')); return; }
   } else {
-    cats = [...THEMES[G.selectedTheme]];
+    cats = [...G.selectedCats];
   }
   if (!cats || cats.length === 0) { toast(t('toastCats')); return; }
   const rounds = parseInt(document.getElementById('sl-rounds').value);
@@ -2856,7 +2861,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260831.1430</div>
+  <div style="font-size:9px;opacity:0.5">v260831.1437</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
