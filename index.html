@@ -1639,6 +1639,10 @@ window.joinRoom = async () => {
 
 function enterLobby(room) {
   show('lobby');
+  // Apply host's game language for guests
+  if (!G.isHost && room.gameLang && room.gameLang !== LANG) {
+    window.setLang(room.gameLang);
+  }
   // Show/hide host vs guest sections
   const hostOnly = document.querySelectorAll('.host-only');
   const guestOnly = document.querySelectorAll('.guest-only');
@@ -1753,12 +1757,16 @@ window.startGame = async () => {
     currentRound:1, phase:'playing',
     currentLetter:letter, usedLetters:[letter],
     allAnswers:{}, calledStop:false, stopCaller:'',
-    scores, easyLetters:easy, stopPenalty:penalty, groupName:groupName, aiLevel:G_aiLevel, aiEnabled:G_aiEnabled, validationMode:G_validationMode,
+    scores, easyLetters:easy, stopPenalty:penalty, groupName:groupName, aiLevel:G_aiLevel, aiEnabled:G_aiEnabled, validationMode:G_validationMode, gameLang:LANG,
   });
 };
 
 function enterPlaying(room) {
   G.submitted = false; G.stopHandled = false;
+  // Enforce game language
+  if (!G.isHost && room.gameLang && room.gameLang !== LANG) {
+    window.setLang(room.gameLang);
+  }
   show('playing');
   document.getElementById('rnd-cur').textContent = room.currentRound;
   document.getElementById('rnd-tot').textContent = room.rounds;
@@ -2861,7 +2869,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260831.1451</div>
+  <div style="font-size:9px;opacity:0.5">v260831.1457</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
