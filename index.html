@@ -2893,6 +2893,257 @@ async function tryRestore() {
 }
 
 
+
+// ══ DEBUG MODE ════════════════════════════════════════════════════════════════
+const DEBUG_NAME = '__debug__';
+let G_debugMode = false;
+
+// Fake data used across all debug screens
+const DBG = {
+  players: { 'María': '🌸', 'Carlos': '🦊', '__debug__': '🎯' },
+  categories: ['Nombre', 'Ciudad', 'Animal', 'Fruta', 'Cosa en casa'],
+  letter: 'M',
+  round: 2,
+  rounds: 5,
+  allAnswers: {
+    'María':       { 'Nombre':'Marta',    'Ciudad':'Madrid',  'Animal':'Mono',     'Fruta':'Mango',       'Cosa en casa':'Mesa' },
+    'Carlos':      { 'Nombre':'Miguel',   'Ciudad':'Madrid',  'Animal':'Murciélago','Fruta':'Mango',      'Cosa en casa':'Mando' },
+    '__debug__':   { 'Nombre':'Marcos',   'Ciudad':'Málaga',  'Animal':'Mono',     'Fruta':'Mandarina',   'Cosa en casa':'' },
+  },
+  scores: { 'María': 350, 'Carlos': 250, '__debug__': 400 },
+  votes: {
+    'María__Animal': { 'Carlos': 'up', '__debug__': 'up' },
+    'Carlos__Fruta': { 'María': 'down', '__debug__': 'down' },
+  },
+  aiResults: {
+    'Carlos__Animal': { html: '✅ Murciélago es un mamífero volador', key: 'Carlos__Animal' }
+  },
+  invalidAnswers: { '__debug____Cosa en casa': true },
+  stopCaller: 'Carlos',
+};
+
+function dbgFakeRoom(overrides) {
+  return Object.assign({
+    code: 'DBUG',
+    host: 'María',
+    players: DBG.players,
+    categories: DBG.categories,
+    currentLetter: DBG.letter,
+    currentRound: DBG.round,
+    rounds: DBG.rounds,
+    timePerRound: 90,
+    roundStartTime: Date.now() - 25000,
+    allAnswers: DBG.allAnswers,
+    scores: DBG.scores,
+    phase: 'validate',
+    calledStop: true,
+    stopCaller: DBG.stopCaller,
+    stopPenalty: 50,
+    easyLetters: true,
+    groupName: 'Los García',
+    aiEnabled: true,
+    aiLevel: 'normal',
+    validationMode: 'host',
+    votes: DBG.votes,
+    entryReactions: {},
+    aiResults: DBG.aiResults,
+    invalidAnswers: DBG.invalidAnswers,
+    preRoundScores: { 'María': 200, 'Carlos': 150, '__debug__': 300 },
+    gameLang: LANG,
+  }, overrides || {});
+}
+
+function dbg(screen) {
+  // Set up fake G state
+  G.playerName = '__debug__';
+  G.playerEmoji = '🎯';
+  G.roomCode = 'DBUG';
+  G_myVotes = {};
+  G_myEntryEmojis = {};
+  G_lastInvalidHash = '';
+
+  const room = dbgFakeRoom();
+
+  switch(screen) {
+    case 'home':
+      show('home');
+      break;
+
+    case 'welcome':
+      show('welcome');
+      document.getElementById('wb-emoji').textContent = '🎯';
+      document.getElementById('wb-name').textContent = '__debug__';
+      document.getElementById('wb-group').textContent = '🎮 Los García';
+      document.getElementById('selected-emoji-wb').textContent = '🎯';
+      document.getElementById('wb-continue').textContent = 'Continuar →';
+      break;
+
+    case 'quickjoin':
+      show('quickjoin');
+      buildQuickJoinEmojiGrid();
+      applyQuickJoinLang();
+      document.getElementById('qj-name').value = '__debug__';
+      document.getElementById('qj-room-code').textContent = 'DBUG';
+      break;
+
+    case 'lobby-host':
+      G.isHost = true;
+      show('lobby');
+      document.getElementById('lob-code').textContent = 'DBUG';
+      document.getElementById('share-url').textContent = 'jugarenfamilia.es?room=DBUG';
+      document.getElementById('share-url-guest') && (document.getElementById('share-url-guest').textContent = 'jugarenfamilia.es?room=DBUG');
+      document.querySelectorAll('.host-only').forEach(el => el.style.display = '');
+      document.querySelectorAll('.guest-only').forEach(el => el.style.display = 'none');
+      document.getElementById('host-panel').style.display = '';
+      document.getElementById('guest-panel').style.display = 'none';
+      document.getElementById('lob-role').textContent = 'anfitrión · sala DBUG';
+      renderPlayers(DBG.players);
+      buildThemePicker();
+      buildCatGrid();
+      break;
+
+    case 'lobby-guest':
+      G.isHost = false;
+      show('lobby');
+      document.querySelectorAll('.host-only').forEach(el => el.style.display = 'none');
+      document.querySelectorAll('.guest-only').forEach(el => el.style.display = '');
+      document.getElementById('host-panel').style.display = 'none';
+      document.getElementById('guest-panel').style.display = '';
+      document.getElementById('lob-role').textContent = 'jugador · sala DBUG';
+      document.getElementById('gc-emoji').textContent = '🎯';
+      document.getElementById('gc-name').textContent = '__debug__';
+      document.getElementById('gc-status') && (document.getElementById('gc-status').textContent = '✅ ESTÁS DENTRO');
+      document.getElementById('share-url-guest') && (document.getElementById('share-url-guest').textContent = 'jugarenfamilia.es?room=DBUG');
+      renderPlayers(DBG.players);
+      break;
+
+    case 'playing':
+      G.isHost = true;
+      G.submitted = false;
+      G.stopHandled = false;
+      enterPlaying(room);
+      break;
+
+    case 'playing-stop':
+      G.isHost = false;
+      G.submitted = true;
+      G.stopHandled = true;
+      enterPlaying(room);
+      clearInterval(G.timerInterval);
+      document.getElementById('ans-inputs').innerHTML = '<p class="wait">✏️ Respuestas enviadas. Esperando a los demás…</p>';
+      const sb = document.querySelector('.stop-btn');
+      if (sb) sb.style.display = 'none';
+      // Show stop banner
+      const stopBanner = document.createElement('div');
+      stopBanner.style.cssText = 'text-align:center;font-family:Special Elite,monospace;font-size:14px;color:var(--red);padding:10px;';
+      stopBanner.textContent = '🛑 Carlos llamó al ¡Alto!';
+      document.getElementById('ans-inputs').appendChild(stopBanner);
+      break;
+
+    case 'validate': {
+      G.isHost = true;
+      G_aiEnabled = true;
+      G_aiLevel = 'normal';
+      G_validationMode = 'host';
+      G.invalidAnswers = Object.assign({}, DBG.invalidAnswers);
+      show('validate');
+      // Stop caller banner
+      const banner = document.getElementById('stop-caller-banner');
+      if (banner) {
+        banner.textContent = '🦊 Carlos llamó al ¡Alto!';
+        banner.style.display = 'block';
+      }
+      document.getElementById('val-content').innerHTML = buildValidationHTML(room, G.invalidAnswers, true);
+      // Inject some fake AI + dict results
+      setTimeout(() => {
+        const aiEl = document.getElementById('ai_res_Carlos__Animal');
+        if (aiEl) { aiEl.innerHTML = '✅ Murciélago es un mamífero volador'; aiEl.className = 'ai-result show valid'; }
+        const dictEl = document.getElementById('dict_María__Ciudad');
+        if (dictEl) { dictEl.innerHTML = '📖 <strong>Madrid</strong> — Capital y ciudad más grande de España.'; dictEl.style.display='block'; }
+      }, 100);
+      break;
+    }
+
+    case 'validate-demo': {
+      G.isHost = true;
+      G_aiEnabled = false;
+      G_validationMode = 'democratic';
+      G.invalidAnswers = {};
+      const demoRoom = dbgFakeRoom({ validationMode: 'democratic', invalidAnswers: {}, votes: DBG.votes });
+      show('validate');
+      const banner2 = document.getElementById('stop-caller-banner');
+      if (banner2) { banner2.textContent = '🦊 Carlos llamó al ¡Alto!'; banner2.style.display = 'block'; }
+      document.getElementById('val-content').innerHTML = buildValidationHTML(demoRoom, {}, true);
+      break;
+    }
+
+    case 'waiting': {
+      G.isHost = false;
+      const waitRoom = dbgFakeRoom({ validationMode: 'host' });
+      show('waiting');
+      document.getElementById('guest-val-content').innerHTML = buildValidationHTML(waitRoom, DBG.invalidAnswers, false);
+      // Simulate AI result visible to guest
+      setTimeout(() => {
+        const aiEl = document.getElementById('ai_res_Carlos__Animal');
+        if (aiEl) { aiEl.innerHTML = '✅ Murciélago es un mamífero volador'; aiEl.className = 'ai-result show valid'; }
+      }, 100);
+      break;
+    }
+
+    case 'scores':
+      G.isHost = true;
+      showScores(dbgFakeRoom({ phase: 'scores', currentRound: 2, rounds: 5 }));
+      break;
+
+    case 'scores-last':
+      G.isHost = true;
+      showScores(dbgFakeRoom({ phase: 'scores', currentRound: 5, rounds: 5 }));
+      break;
+
+    case 'final':
+      G.isHost = true;
+      showFinal(dbgFakeRoom({ phase: 'final' }));
+      break;
+
+    case 'leaderboard':
+      G.isHost = true;
+      show('leaderboard');
+      G_lbTab = 'group';
+      // Render fake leaderboard without Firebase
+      document.getElementById('lb-group-name').textContent = 'Los García';
+      document.getElementById('lb-list').innerHTML = [
+        { name: '__debug__', emoji: '🎯', wins: 12, games: 20 },
+        { name: 'María',     emoji: '🌸', wins: 8,  games: 20 },
+        { name: 'Carlos',    emoji: '🦊', wins: 4,  games: 20 },
+      ].map(({ name, emoji, wins, games }, i) => {
+        const wr = Math.round((wins/games)*100);
+        return `<div class="score-row">
+          <span>${['🥇','🥈','🥉'][i]||''} ${emoji} ${name}</span>
+          <span class="pts">${wins} victorias · ${wr}%</span>
+        </div>`;
+      }).join('');
+      break;
+  }
+}
+
+// Detect __debug__ login on createRoom
+const _origCreateRoom = window.createRoom;
+window.createRoom = async function() {
+  const name = document.getElementById('inp-name').value.trim();
+  if (name === DEBUG_NAME) {
+    G.playerName = DEBUG_NAME;
+    G.playerEmoji = '🎯';
+    G_debugMode = true;
+    document.getElementById('debug-bar').style.display = 'block';
+    show('home');
+    // Scroll bar into view briefly
+    document.getElementById('debug-bar').scrollIntoView({ behavior: 'smooth', block: 'end' });
+    return;
+  }
+  return _origCreateRoom.apply(this, arguments);
+};
+// ══ END DEBUG MODE ═══════════════════════════════════════════════════════════
+
 // Init
 buildEmojiGrid();
 applyLang();
@@ -2902,9 +3153,41 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260831.1900</div>
+  <div style="font-size:9px;opacity:0.5">v260831.2000</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
+
+<!-- ══ DEBUG BAR (hidden until __debug__ login) ══ -->
+<div id="debug-bar" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:99999;background:#1a1a2e;border-top:2px solid #e94560;padding:6px 8px;font-family:monospace;font-size:11px;">
+  <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px">
+    <span style="color:#e94560;font-weight:bold;flex-shrink:0">⚗️ DEBUG</span>
+    <span style="color:#aaa;font-size:10px">tap a screen to jump to it</span>
+    <button onclick="document.getElementById('debug-bar').style.display='none'" style="margin-left:auto;background:transparent;border:1px solid #555;color:#aaa;padding:1px 6px;border-radius:3px;cursor:pointer;font-size:10px">✕</button>
+  </div>
+  <div style="display:flex;flex-wrap:wrap;gap:4px">
+    <button class="dbtn" onclick="dbg('home')">🏠 Home</button>
+    <button class="dbtn" onclick="dbg('welcome')">👋 Welcome</button>
+    <button class="dbtn" onclick="dbg('quickjoin')">🔗 QuickJoin</button>
+    <button class="dbtn" onclick="dbg('lobby-host')">👑 Lobby Host</button>
+    <button class="dbtn" onclick="dbg('lobby-guest')">👤 Lobby Guest</button>
+    <button class="dbtn" onclick="dbg('playing')">✏️ Playing</button>
+    <button class="dbtn" onclick="dbg('playing-stop')">🛑 Playing+Stop</button>
+    <button class="dbtn" onclick="dbg('validate')">🔍 Validate</button>
+    <button class="dbtn" onclick="dbg('validate-demo')">🗳️ Validate Demo</button>
+    <button class="dbtn" onclick="dbg('waiting')">⏳ Waiting</button>
+    <button class="dbtn" onclick="dbg('scores')">📊 Scores</button>
+    <button class="dbtn" onclick="dbg('scores-last')">📊 Scores Last</button>
+    <button class="dbtn" onclick="dbg('final')">🏆 Final</button>
+    <button class="dbtn" onclick="dbg('leaderboard')">🌍 Leaderboard</button>
+  </div>
+</div>
+<style>
+.dbtn {
+  background:#16213e;border:1px solid #e94560;color:#eee;padding:4px 8px;
+  border-radius:4px;cursor:pointer;font-size:10px;font-family:monospace;white-space:nowrap;
+}
+.dbtn:active { background:#e94560; }
+</style>
 </body>
 </html>
