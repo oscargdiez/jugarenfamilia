@@ -619,9 +619,15 @@ document.addEventListener('DOMContentLoaded', function() {
       
       <div style="margin-top:16px;border-top:1px dashed var(--border);padding-top:12px">
         <p class="lbl" id="lbl-ai-validation" style="margin-bottom:6px">🤖 <span id="lbl-ai-validation-text">Validación IA</span></p>
-        <div style="display:flex;gap:6px;margin-bottom:12px">
+        <div style="display:flex;gap:6px;margin-bottom:8px">
           <button id="ai-off" onclick="setAIEnabled(false)" style="font-size:12px;padding:4px 10px;border-radius:20px;border:1.5px solid #c0392b;background:#fdf0ee;cursor:pointer">OFF</button>
           <button id="ai-on" onclick="setAIEnabled(true)" style="font-size:12px;padding:4px 10px;border-radius:20px;border:1.5px solid var(--border-strong);background:var(--paper-dark);cursor:pointer">ON</button>
+        </div>
+        <div id="ai-strictness-section" style="display:none;margin-bottom:12px">
+          <div style="display:flex;gap:6px">
+            <button id="ai-relajado" onclick="setAIStrictness('relajado')" style="font-size:12px;padding:4px 10px;border-radius:20px;border:1.5px solid #c0392b;background:#fdf0ee;cursor:pointer">🟢 Relajado</button>
+            <button id="ai-estricto" onclick="setAIStrictness('estricto')" style="font-size:12px;padding:4px 10px;border-radius:20px;border:1.5px solid var(--border-strong);background:var(--paper-dark);cursor:pointer">🔴 Estricto</button>
+          </div>
         </div>
         <button onclick="promptExperimental()" style="width:100%;background:transparent;border:1px dashed var(--border-strong);color:var(--ink-muted);font-family:'Special Elite',monospace;font-size:11px;padding:7px;border-radius:var(--radius);cursor:pointer;letter-spacing:1px" id="btn-experimental">⚗️ FUNCIONES EXPERIMENTALES</button>
         <div id="experimental-panel" style="display:none;margin-top:10px">
@@ -1792,7 +1798,7 @@ window.startGame = async () => {
     currentRound:1, phase:'playing',
     currentLetter:letter, usedLetters:[letter],
     allAnswers:{}, calledStop:false, stopCaller:'',
-    scores, easyLetters:easy, stopPenalty:penalty, groupName:groupName, aiEnabled:G_aiEnabled, validationMode:G_validationMode, gameLang:LANG,
+    scores, easyLetters:easy, stopPenalty:penalty, groupName:groupName, aiEnabled:G_aiEnabled, aiStrictness:G_aiStrictness, validationMode:G_validationMode, gameLang:LANG,
     roundStartTime: Date.now(),
   });
 };
@@ -1916,6 +1922,7 @@ function showValidation(room) {
   show('validate');
   G.invalidAnswers = {};
   if (room.aiEnabled !== undefined) { G_aiEnabled = room.aiEnabled; window.setAIEnabled(room.aiEnabled); } else { window.setAIEnabled(false); }
+  if (room.aiStrictness) { G_aiStrictness = room.aiStrictness; window.setAIStrictness(room.aiStrictness); }
   if (room.validationMode) { G_validationMode = room.validationMode; window.setValidationMode(room.validationMode); }
   const cats = room.categories||[];
   const players = Object.keys(room.players||{});
@@ -2185,6 +2192,7 @@ function stopConfetti() {
 // ── AI Validation ─────────────────────────────────────
 const OPENROUTER_KEY = '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';
 let G_aiEnabled = false; // OFF by default
+let G_aiStrictness = 'relajado'; // 'relajado' or 'estricto'
 
 window.promptExperimental = () => {
   const panel = document.getElementById('experimental-panel');
@@ -2222,8 +2230,25 @@ window.setAIEnabled = (enabled) => {
       onBtn.style.borderColor = 'var(--border-strong)'; onBtn.style.background = 'var(--paper-dark)';
     }
   }
+  const strictnessSection = document.getElementById('ai-strictness-section');
+  if (strictnessSection) strictnessSection.style.display = enabled ? 'block' : 'none';
+  if (enabled) window.setAIStrictness(G_aiStrictness);
 };
 
+
+window.setAIStrictness = (level) => {
+  G_aiStrictness = level;
+  const relajadoBtn = document.getElementById('ai-relajado');
+  const estrictoBtn = document.getElementById('ai-estricto');
+  if (!relajadoBtn || !estrictoBtn) return;
+  if (level === 'relajado') {
+    relajadoBtn.style.borderColor = '#c0392b'; relajadoBtn.style.background = '#fdf0ee';
+    estrictoBtn.style.borderColor = 'var(--border-strong)'; estrictoBtn.style.background = 'var(--paper-dark)';
+  } else {
+    estrictoBtn.style.borderColor = '#c0392b'; estrictoBtn.style.background = '#fdf0ee';
+    relajadoBtn.style.borderColor = 'var(--border-strong)'; relajadoBtn.style.background = 'var(--paper-dark)';
+  }
+};
 
 window.askAI = async (word, category, letter, key) => {
   const btn = document.getElementById('ai_btn_' + key);
@@ -2244,8 +2269,10 @@ window.askAI = async (word, category, letter, key) => {
 
   const langNames = {es:'Spanish',en:'English',fr:'French',de:'German',pt:'Portuguese',it:'Italian'};
   const gameLang = langNames[LANG] || 'Spanish';
-  const systemPrompt = `You are a knowledgeable and fair judge of a ${gameLang}-language word game. Rules: (1) Ignore accents and diacritics — Ramon=Ramón, Iruna=Iruña. (2) The answer must genuinely belong to the category, not just start with the right letter — a word that happens to start with the letter but belongs to a different category is INVALIDO. (3) Abbreviated or informal names are accepted if the reference is clear (Nueva Guinea = Papua Nueva Guinea). (4) Real things and well-known fictional things are both accepted. (5) Use DUDOSO only when genuinely uncertain — prefer a clear verdict. (6) Common nouns, adjectives, months, and job titles do not qualify as proper-noun categories like names, surnames, cities, or countries unless the category explicitly asks for them.`;
-  const prompt = `${gameLang}-language game. Letter: "${letter}". Category: "${category}". Answer: "${word}". Does this answer genuinely fit the category? Reply with ONE word only, no punctuation, no explanation: VALIDO, INVALIDO, or DUDOSO.`;
+  const systemPromptRelajado = `You are a generous and fair judge of a ${gameLang}-language word game. Rules: (1) Ignore accents and diacritics — Ramon=Ramón, Iruna=Iruña. (2) The answer must belong to the category — but be generous with borderline cases like colour names, informal terms, or less common but real examples. (3) Abbreviated or informal names accepted if reference is clear (Nueva Guinea = Papua Nueva Guinea). (4) Real things and well-known fictional things accepted. (5) Common nouns don't qualify for proper-noun categories (names, surnames, cities, countries) but are fine for open categories like colours, objects, foods. (6) Use DUDOSO only when truly uncertain — prefer VALIDO on close calls.`;
+  const systemPromptEstricto = `You are a strict and precise judge of a ${gameLang}-language word game. Rules: (1) Ignore accents and diacritics — Ramon=Ramón, Iruna=Iruña. (2) The answer must clearly and unambiguously belong to the category — reject borderline or creative interpretations. (3) Only well-known, widely recognised examples accepted. (4) Common nouns, adjectives, months, and job titles do not qualify for proper-noun categories (names, surnames, cities, countries). (5) Use INVALIDO on any doubt — DUDOSO only for genuinely ambiguous cases.`;
+  const systemPrompt = G_aiStrictness === 'estricto' ? systemPromptEstricto : systemPromptRelajado;
+  const prompt = `${gameLang}-language game. Letter: "${letter}". Category: "${category}". Answer: "${word}". Does this answer fit the category? Reply with ONE word only, no punctuation, no explanation: VALIDO, INVALIDO, or DUDOSO.`;
 
   try {
     const response = await fetch(
@@ -3215,7 +3242,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260901.1415</div>
+  <div style="font-size:9px;opacity:0.5">v260901.1416</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
