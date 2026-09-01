@@ -2242,7 +2242,10 @@ window.askAI = async (word, category, letter, key) => {
   result.className = 'ai-result';
   result.innerHTML = '';
 
-  const prompt = `You are judging a word game. Letter: "${letter}". Category: "${category}". Answer: "${word}". Rules: ignore accents and diacritics (Ramon=Ramón, Rumania=Rumanía). Be generous — if the answer could reasonably fit the category, accept it. Real and well-known fictional things accepted. Reply with ONE word only, no punctuation, no explanation: VALIDO, INVALIDO, or DUDOSO.`;
+  const langNames = {es:'Spanish',en:'English',fr:'French',de:'German',pt:'Portuguese',it:'Italian'};
+  const gameLang = langNames[LANG] || 'Spanish';
+  const systemPrompt = `You are a knowledgeable and fair judge of a ${gameLang}-language word game. Rules: ignore accents and diacritics (Ramon=Ramón, Rumania=Rumanía). A surname must be a real surname used by real people — months, adjectives, and job titles are NOT surnames. A country must be a sovereign nation or well-known territory — abbreviated names are accepted (Nueva Guinea = Papua Nueva Guinea). An animal must be a species or type of animal — professions and adjectives are not animals. Be fair: accept clear answers, reject clear mismatches, use DUDOSO only when genuinely uncertain.`;
+  const prompt = `This is a ${gameLang}-language game. Letter: "${letter}". Category: "${category}". Answer: "${word}". Does this answer fit the category? Real and well-known fictional things accepted. Reply with ONE word only, no punctuation, no explanation: VALIDO, INVALIDO, or DUDOSO.`;
 
   try {
     const response = await fetch(
@@ -2260,10 +2263,12 @@ window.askAI = async (word, category, letter, key) => {
           models: [
             'inclusionai/ling-3.0-flash-fin:free',
             'nvidia/nemotron-3-super-120b-a12b:free',
-            'z-ai/glm-5.2:free'
+            'z-ai/glm-5.2:free',
+            'nvidia/nemotron-3.5-lightning:free',
+            'tencent/hy3-preview:free'
           ],
-          messages: [{ role: 'user', content: prompt }],
-          max_tokens: 500,
+          messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: prompt }],
+          max_tokens: 800,
           temperature: 0
         })
       }
@@ -3212,7 +3217,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260901.1411</div>
+  <div style="font-size:9px;opacity:0.5">v260901.1413</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
