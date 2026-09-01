@@ -2967,8 +2967,10 @@ window.dbg = function dbg(screen) {
   G_myVotes = {};
   G_myEntryEmojis = {};
   G_lastInvalidHash = '';
+  G_dbgLastScreen = screen;
 
   const room = dbgFakeRoom();
+  G_dbgLastScreen = screen;
 
   switch(screen) {
     case 'home':
@@ -3132,6 +3134,36 @@ window.dbg = function dbg(screen) {
   }
 }
 
+// Debug control functions
+let G_dbgLastScreen = 'validate';
+window.dbgSetLang = function(lang) {
+  window.setLang(lang);
+};
+window.dbgSetAI = function(on) {
+  G_aiEnabled = on;
+  window.setAIEnabled(on);
+  dbgRefresh();
+};
+window.dbgSetDemocratic = function(on) {
+  G_validationMode = on ? 'democratic' : 'host';
+  window.setValidationMode(G_validationMode);
+  dbgRefresh();
+};
+window.dbgSetLongWord = function(on) {
+  if (on) {
+    DBG._origAnswers = JSON.parse(JSON.stringify(DBG.allAnswers));
+    DBG.allAnswers['María']['Animal'] = 'Murciélagodelasgrutasprofundas';
+    DBG.allAnswers['Carlos']['Ciudad'] = 'Alcalá de Henares del Valle Profundo';
+    DBG.allAnswers['__debug__']['Cosa en casa'] = 'Microondasdealtapotenciaindustrial';
+  } else {
+    if (DBG._origAnswers) DBG.allAnswers = JSON.parse(JSON.stringify(DBG._origAnswers));
+  }
+  dbgRefresh();
+};
+window.dbgRefresh = function() {
+  if (G_dbgLastScreen) window.dbg(G_dbgLastScreen);
+};
+
 // ══ END DEBUG MODE ═══════════════════════════════════════════════════════════
 
 // Init
@@ -3165,17 +3197,49 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260831.2215</div>
+  <div style="font-size:9px;opacity:0.5">v260831.2230</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
 <!-- ══ DEBUG BAR (hidden until __debug__ login) ══ -->
 <div id="debug-bar" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:99999;background:#1a1a2e;border-top:2px solid #e94560;padding:6px 8px;font-family:monospace;font-size:11px;">
+  <!-- Header -->
   <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px">
     <span style="color:#e94560;font-weight:bold;flex-shrink:0">⚗️ DEBUG</span>
     <span style="color:#aaa;font-size:10px">tap a screen to jump to it</span>
     <button onclick="document.getElementById('debug-bar').style.display='none'" style="margin-left:auto;background:transparent;border:1px solid #555;color:#aaa;padding:1px 6px;border-radius:3px;cursor:pointer;font-size:10px">✕</button>
   </div>
+  <!-- Controls row -->
+  <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:6px;padding-bottom:6px;border-bottom:1px solid #2a2a4a">
+    <span style="color:#888;font-size:10px;flex-shrink:0">OPTS:</span>
+    <!-- Language -->
+    <select id="dbg-lang" onchange="dbgSetLang(this.value)" style="background:#16213e;border:1px solid #555;color:#eee;padding:2px 4px;border-radius:3px;font-size:10px;font-family:monospace">
+      <option value="es">🇪🇸 ES</option>
+      <option value="en">🇬🇧 EN</option>
+      <option value="fr">🇫🇷 FR</option>
+      <option value="de">🇩🇪 DE</option>
+      <option value="pt">🇧🇷 PT</option>
+      <option value="it">🇮🇹 IT</option>
+    </select>
+    <!-- AI toggle -->
+    <label style="color:#eee;font-size:10px;display:flex;align-items:center;gap:3px;cursor:pointer">
+      <input type="checkbox" id="dbg-ai" onchange="dbgSetAI(this.checked)" checked style="cursor:pointer">
+      🤖 AI
+    </label>
+    <!-- Long word toggle -->
+    <label style="color:#eee;font-size:10px;display:flex;align-items:center;gap:3px;cursor:pointer">
+      <input type="checkbox" id="dbg-longword" onchange="dbgSetLongWord(this.checked)" style="cursor:pointer">
+      📏 Long word
+    </label>
+    <!-- Democratic mode toggle -->
+    <label style="color:#eee;font-size:10px;display:flex;align-items:center;gap:3px;cursor:pointer">
+      <input type="checkbox" id="dbg-demo" onchange="dbgSetDemocratic(this.checked)" style="cursor:pointer">
+      🗳️ Democratic
+    </label>
+    <!-- Refresh current screen -->
+    <button class="dbtn" onclick="dbgRefresh()" style="margin-left:auto">🔄 Refresh</button>
+  </div>
+  <!-- Screen buttons -->
   <div style="display:flex;flex-wrap:wrap;gap:4px">
     <button class="dbtn" onclick="dbg('home')">🏠 Home</button>
     <button class="dbtn" onclick="dbg('welcome')">👋 Welcome</button>
