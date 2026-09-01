@@ -2253,7 +2253,7 @@ window.askAI = async (word, category, letter, key) => {
         body: JSON.stringify({
           model: 'openrouter/free',
           messages: [{ role: 'user', content: prompt }],
-          max_tokens: 20,
+          max_tokens: 200,
           temperature: 0
         })
       }
@@ -2265,6 +2265,7 @@ window.askAI = async (word, category, letter, key) => {
     }
     const data = await response.json();
     // Strip <think>...</think> blocks emitted by reasoning models before parsing
+    console.log('[AI full data]', JSON.stringify(data));
     const raw = data.choices?.[0]?.message?.content?.trim() || '';
     const text = raw.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
     console.log('[AI raw response]', JSON.stringify(text));
@@ -3199,7 +3200,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260901.1404</div>
+  <div style="font-size:9px;opacity:0.5">v260901.1406</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
