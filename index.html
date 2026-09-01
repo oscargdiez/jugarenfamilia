@@ -481,17 +481,9 @@ button.stop-btn:hover { background: var(--red-dark); }
     <div class="emoji-grid" id="emoji-grid"></div>
     <div style="margin-top:14px">
       <button class="pri" onclick="createRoom()" style="width:100%;font-size:20px;padding:14px;margin-bottom:8px" id="btn-create">Crear sala →</button>
-      <button onclick="showJoin()" style="width:100%;font-size:14px;opacity:0.7" id="btn-join">Unirse con código</button>
     </div>
   </div>
-  <div id="join-box" style="display:none">
-    <div class="card">
-      <p class="lbl" id="lbl-room-code">código de sala</p>
-      <input type="text" id="inp-code" placeholder="ABCD" maxlength="4" autocomplete="off" inputmode="text"
-        style="text-transform:uppercase;letter-spacing:10px;font-size:28px;text-align:center;margin-bottom:12px">
-      <button class="pri" onclick="joinRoom()" style="width:100%" id="btn-enter">Entrar</button>
-    </div>
-  </div>
+
   <button class="rules-toggle" id="rules-btn" onclick="toggleRules()">▼ ¿Cómo se juega?</button>
   <div class="rules-box" id="rules-box"></div>
 
@@ -1315,8 +1307,6 @@ window.applyLang = function() {
   s('lbl-your-name', t('yourName'));
   s('lbl-choose-emoji', t('chooseEmoji') + ' ');
   s('btn-create', t('createRoom'));
-  s('btn-join', t('join'));
-  s('lbl-room-code', t('roomCode'));
   s('btn-enter', t('enter'));
   s('footer-noreg', t('noReg'));
   // Welcome
@@ -3206,7 +3196,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260831.2300</div>
+  <div style="font-size:9px;opacity:0.5">v260831.2315</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
