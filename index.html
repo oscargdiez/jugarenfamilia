@@ -2415,6 +2415,12 @@ window.reactToEntry = async (key, emoji) => {
   const eKey = key + '_' + emoji;
   const active = G_myEntryEmojis[eKey];
   G_myEntryEmojis[eKey] = !active;
+  // Show float immediately for sender when adding (not removing) a reaction
+  if (!active) {
+    const floatId = 'er_' + key + '_' + G.playerName + '_' + emoji;
+    G_shownReactions.add(floatId);
+    showReactionFloat(emoji, G.playerName, floatId, key);
+  }
   await update(roomRef(G.roomCode), {
     [`entryReactions/${key}/${G.playerName}_${emoji}`]: active ? null : { emoji, name: G.playerName }
   });
@@ -2527,6 +2533,9 @@ window.sendReaction = async (emoji) => {
   if (now - G_lastReaction < 2000) return; // 2s throttle
   G_lastReaction = now;
   const reaction = { emoji, name: G.playerName, ts: now, id: Math.random().toString(36).slice(2) };
+  // Show float immediately for sender — don't wait for Firebase round-trip
+  G_shownReactions.add(reaction.id);
+  showReactionFloat(emoji, G.playerName, reaction.id);
   await update(roomRef(G.roomCode), { [`reactions/${reaction.id}`]: reaction });
   // Auto-clean after 6s
   setTimeout(async () => {
@@ -2565,7 +2574,7 @@ function processReactions(room) {
     Object.entries(players || {}).forEach(([pKey, r]) => {
       if (!r) return;
       const floatId = 'er_' + key + '_' + pKey;
-      if (!G_shownReactions.has(floatId) && r.name !== G.playerName) {
+      if (!G_shownReactions.has(floatId)) {
         G_shownReactions.add(floatId);
         showReactionFloat(r.emoji, r.name, floatId, key);
       }
@@ -3197,7 +3206,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260831.2230</div>
+  <div style="font-size:9px;opacity:0.5">v260831.2245</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
