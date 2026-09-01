@@ -618,13 +618,13 @@ document.addEventListener('DOMContentLoaded', function() {
       </div>
       
       <div style="margin-top:16px;border-top:1px dashed var(--border);padding-top:12px">
+        <p class="lbl" id="lbl-ai-validation" style="margin-bottom:6px">🤖 <span id="lbl-ai-validation-text">Validación IA</span></p>
+        <div style="display:flex;gap:6px;margin-bottom:12px">
+          <button id="ai-off" onclick="setAIEnabled(false)" style="font-size:12px;padding:4px 10px;border-radius:20px;border:1.5px solid #c0392b;background:#fdf0ee;cursor:pointer">OFF</button>
+          <button id="ai-on" onclick="setAIEnabled(true)" style="font-size:12px;padding:4px 10px;border-radius:20px;border:1.5px solid var(--border-strong);background:var(--paper-dark);cursor:pointer">ON</button>
+        </div>
         <button onclick="promptExperimental()" style="width:100%;background:transparent;border:1px dashed var(--border-strong);color:var(--ink-muted);font-family:'Special Elite',monospace;font-size:11px;padding:7px;border-radius:var(--radius);cursor:pointer;letter-spacing:1px" id="btn-experimental">⚗️ FUNCIONES EXPERIMENTALES</button>
         <div id="experimental-panel" style="display:none;margin-top:10px">
-          <p class="lbl" id="lbl-ai-validation" style="margin-bottom:6px">🤖 Validación IA <span style="font-size:9px;background:var(--paper-dark);padding:1px 5px;border-radius:3px;font-family:'Special Elite',monospace">BETA</span></p>
-          <div style="display:flex;gap:6px;margin-bottom:8px">
-            <button id="ai-off" onclick="setAIEnabled(false)" style="font-size:12px;padding:4px 10px;border-radius:20px;border:1.5px solid #c0392b;background:#fdf0ee;cursor:pointer">OFF</button>
-            <button id="ai-on" onclick="setAIEnabled(true)" style="font-size:12px;padding:4px 10px;border-radius:20px;border:1.5px solid var(--border-strong);background:var(--paper-dark);cursor:pointer">ON</button>
-          </div>
           <p class="lbl" style="margin-bottom:6px">🗳️ Modo democrático <span style="font-size:9px;background:var(--paper-dark);padding:1px 5px;border-radius:3px;font-family:'Special Elite',monospace">EN PRUEBAS</span></p>
           <div style="display:flex;gap:6px">
             <button id="mode-host" onclick="setValidationMode('host')" style="font-size:12px;padding:4px 10px;border-radius:20px;border:1.5px solid #c0392b;background:#fdf0ee;cursor:pointer">👑 Normal</button>
@@ -1354,7 +1354,7 @@ window.applyLang = function() {
   s('gc-status', t('gcInside'));
   s('mode-host', t('modeHost'));
   s('mode-democratic', t('modeDemocratic'));
-  s('lbl-ai-validation', t('aiValidation'));
+  s('lbl-ai-validation-text', t('aiValidation'));
   s('lbl-guest-wait', t('guestWait'));
   // Playing
   s('lbl-letter', t('letterLabel'));
@@ -2275,14 +2275,12 @@ window.askAI = async (word, category, letter, key) => {
     }
     const data = await response.json();
     // Strip <think>...</think> blocks emitted by reasoning models before parsing
-    console.log('[AI full data]', JSON.stringify(data));
     const msg = data.choices?.[0]?.message || {};
     // Some reasoning models put the answer in reasoning_details, not content
     const rawContent = msg.content?.trim() || '';
     const rawReasoning = msg.reasoning?.trim() || '';
     const combined = rawContent || rawReasoning;
     const text = combined.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
-    console.log('[AI raw response]', JSON.stringify(text));
 
     // Normalise: remove accents, lowercase, strip punctuation
     const norm = text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z]/g, ' ').trim();
@@ -3214,7 +3212,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260901.1410</div>
+  <div style="font-size:9px;opacity:0.5">v260901.1411</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
