@@ -1454,10 +1454,16 @@ function buildEmojiGrid() {
   const saved = localStorage.getItem('alto_emoji');
   const defaultEmoji = saved || '🎲';
   G.playerEmoji = defaultEmoji;
-  document.getElementById('selected-emoji').textContent = defaultEmoji;
-  document.getElementById('emoji-grid').innerHTML = EMOJIS.map((e, i) =>
+  const gridHtml = EMOJIS.map((e, i) =>
     `<div class="emoji-opt" id="emoji_${i}" onclick="pickEmoji(${i})">${e}</div>`
   ).join('');
+  const gridWbHtml = EMOJIS.map((e, i) =>
+    `<div class="emoji-opt" id="emoji_wb_${i}" onclick="pickEmoji(${i})">${e}</div>`
+  ).join('');
+  const homeDisplay = document.getElementById('selected-emoji');
+  if (homeDisplay) { homeDisplay.textContent = defaultEmoji; document.getElementById('emoji-grid').innerHTML = gridHtml; }
+  const wbDisplay = document.getElementById('selected-emoji-wb');
+  if (wbDisplay) { wbDisplay.textContent = defaultEmoji; document.getElementById('emoji-grid-wb').innerHTML = gridWbHtml; }
   if (saved) {
     const savedIdx = EMOJIS.indexOf(defaultEmoji);
     if (savedIdx >= 0) applyEmojiHighlight(savedIdx);
@@ -2236,7 +2242,7 @@ window.askAI = async (word, category, letter, key) => {
   result.className = 'ai-result';
   result.innerHTML = '';
 
-  const prompt = `You are judging a word game. Letter: "${letter}". Category: "${category}". Answer: "${word}". Real or well-known fictional things are accepted. Reply with ONE word only — no punctuation, no explanation: VALIDO, INVALIDO, or DUDOSO.`;
+  const prompt = `You are judging a word game. Letter: "${letter}". Category: "${category}". Answer: "${word}". Rules: ignore accents and diacritics (Ramon=Ramón, Rumania=Rumanía). Be generous — if the answer could reasonably fit the category, accept it. Real and well-known fictional things accepted. Reply with ONE word only, no punctuation, no explanation: VALIDO, INVALIDO, or DUDOSO.`;
 
   try {
     const response = await fetch(
@@ -3200,7 +3206,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260901.1406</div>
+  <div style="font-size:9px;opacity:0.5">v260901.1408</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
