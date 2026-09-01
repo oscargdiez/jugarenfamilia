@@ -159,6 +159,7 @@ assert len(c) < 250000
 ### Validation Screen (host)
 - 📖 Wikipedia lookup (host + guests, language-aware, did-you-mean suggestions)
 - 🤖 AI validation via OpenRouter (fallback chain, 12s timeout, Reintentar on timeout)
+- Automatic validation (AI) on by default, Estricta mode by default
 - AI button/results hidden when AI is disabled
 - 👍👎 Per-entry voting with live counts
 - 😂🔥👏 Per-entry emoji reactions (visible to all, float shown to sender too)
@@ -259,7 +260,11 @@ Full audit — 15 bugs fixed. Room cleanup, collision-safe codes, stop caller ba
 - All new strings translated in 6 languages with correct gender agreement (relajada/estricta etc.)
 - Emoji grid fixed on welcome-back screen (was not populating emoji-grid-wb)
 - Stale "emoji picker broken on Windows" removed from known issues (was already fixed in session 4)
-- Last version deployed: v260901.1420
+- Renamed "AI" to "Validación automática" across all UI, how to play, and translations
+- How to play updated in all 6 languages: new Relajada/Estricta/spelling descriptions, old Libre/Normal/Estricto removed
+- Automatic validation ON by default, Estricta by default
+- Yes/No spelling toggle translated in all 6 languages
+- Last version deployed: v260901.1424
 
 ### Session 4 (Sep 1)
 - AI button/results hidden when off

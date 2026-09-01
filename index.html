@@ -1689,6 +1689,7 @@ window.joinRoom = async () => {
 };
 
 function enterLobby(room) {
+  stopConfetti();
   show('lobby');
   // Apply host's game language for guests
   if (!G.isHost && room.gameLang && room.gameLang !== LANG) {
@@ -2202,8 +2203,8 @@ function stopConfetti() {
 
 // ── AI Validation ─────────────────────────────────────
 const OPENROUTER_KEY = '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';
-let G_aiEnabled = false; // OFF by default
-let G_aiStrictness = 'relajado'; // 'relajado' or 'estricto'
+let G_aiEnabled = true; // ON by default
+let G_aiStrictness = 'estricto'; // 'relajado' or 'estricto'
 let G_aiSpelling = false; // false = no spelling mistakes allowed
 
 window.promptExperimental = () => {
@@ -3272,7 +3273,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260901.1423</div>
+  <div style="font-size:9px;opacity:0.5">v260901.1425</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
