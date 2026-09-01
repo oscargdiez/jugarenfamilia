@@ -88,6 +88,12 @@ Double-click `D:\09_ALTO\rollback.bat` and pick the commit hash.
 
 ## ⚠️ CRITICAL RULES FOR CLAUDE
 
+**Version bump on every deploy:** Always update the footer version string at line ~3202:
+`<div style="font-size:9px;opacity:0.5">vYYMMDD.HHMM</div>`
+State the version number clearly when presenting deploy files. This is how the user confirms the live site has refreshed.
+
+
+
 **The home screen buttons and emojis break silently if ANY of these happen:**
 
 ### 1. Init calls wiped
@@ -193,13 +199,17 @@ assert len(c) < 250000
 
 ## 🐛 Known Issues / Watch List
 
-- OpenRouter free tier: 200 req/day cap, resets daily
+- OpenRouter free tier: 200 req/day cap, resets daily (50/day on unfunded account)
 - iOS Chrome sticky counter — not solved (flagged for layout redesign)
-- Emoji picker emojis still broken on Windows (only lang buttons have SVG fix)
+- Free models rotate out without warning — if AI breaks, check OpenRouter logs and swap models in the `models[]` array. Re-add `console.log('[AI full data]', JSON.stringify(data))` before the raw extraction line to debug. Max 3 models in the array (OpenRouter limit).
 
 ---
 
 ## 🗺 Flagged for Future Discussion
+
+- **Daily Challenge mode** — solo, same puzzle for everyone per day, deterministic letter from date. Scoring: word length + speed bonus + originality vs other submissions. Validation: predefined answer keys (finite/knowable categories). Spanish only for v1. Parked until answer key designed.
+- **AI 3-step validation pipeline** — Step 1: letter check as model health test (if model fails "does X start with letter Y?" skip it). Step 2: category validation. Step 3: optional confidence. Self-healing model selection, much more accurate.
+- **AI model config in Firebase** — store `models[]` array in Firebase so it can be updated without a redeploy. Part of future Cloudflare Workers backend work.
 
 - **Fixed shell layout** — non-scrolling outer frame, scrollable content area. Solves timer visibility, keeps branding visible, helps mobile UX. Needs full design discussion — touches every screen.
 - **Timer visibility on mobile** — related to fixed shell above
@@ -234,6 +244,22 @@ Quick join, guest lobby card, per-entry reactions/votes, Wikipedia lookups, flyi
 
 ### Session 3 (Aug 31)
 Full audit — 15 bugs fixed. Room cleanup, collision-safe codes, stop caller banner, AI fallback chain, timer on rejoin, democratic mode fixes, debug mode (14 screens)
+
+### Session 5 (Sep 1)
+- AI validation fully fixed and tuned across many iterations
+- Model: `models[]` array with 3 verified working free models (ling-3.0-flash-fin, nemotron-3-super, glm-5.2) — max 3 per OpenRouter limit
+- Stripped `<think>...</think>` blocks; reads `msg.reasoning` as fallback if `msg.content` is null
+- Response parser: accent-normalised, regex-based, catches valido/invalido variants
+- Removed old strictness levels (Libre/Normal/Estricto); replaced with Relajada/Estricta (2 modes)
+- Added ✏️ Faltas de ortografía toggle (Sí/No, default No)
+- Game language enforced in prompt — answers in wrong language = INVALIDO
+- AI on/off moved out of experimental panel into main lobby (visible to host)
+- Experimental panel now only contains democratic mode
+- Generic system prompt + user prompt, works across all categories and special categories
+- All new strings translated in 6 languages with correct gender agreement (relajada/estricta etc.)
+- Emoji grid fixed on welcome-back screen (was not populating emoji-grid-wb)
+- Stale "emoji picker broken on Windows" removed from known issues (was already fixed in session 4)
+- Last version deployed: v260901.1420
 
 ### Session 4 (Sep 1)
 - AI button/results hidden when off
