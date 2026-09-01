@@ -625,14 +625,6 @@ document.addEventListener('DOMContentLoaded', function() {
             <button id="ai-off" onclick="setAIEnabled(false)" style="font-size:12px;padding:4px 10px;border-radius:20px;border:1.5px solid #c0392b;background:#fdf0ee;cursor:pointer">OFF</button>
             <button id="ai-on" onclick="setAIEnabled(true)" style="font-size:12px;padding:4px 10px;border-radius:20px;border:1.5px solid var(--border-strong);background:var(--paper-dark);cursor:pointer">ON</button>
           </div>
-          <div id="ai-level-section" style="display:none;margin-bottom:10px">
-            <p class="lbl" style="margin-bottom:4px" id="lbl-ai-strictness">nivel de rigor</p>
-            <div style="display:flex;gap:5px;flex-wrap:wrap">
-              <button id="ai-libre" onclick="setAILevel('libre')" style="font-size:12px;padding:3px 8px;border-radius:20px;border:1.5px solid var(--border-strong);background:var(--paper-dark);cursor:pointer">🟢 Libre</button>
-              <button id="ai-normal" onclick="setAILevel('normal')" style="font-size:12px;padding:3px 8px;border-radius:20px;border:1.5px solid #c0392b;background:#fdf0ee;cursor:pointer">🟡 Normal</button>
-              <button id="ai-estricto" onclick="setAILevel('estricto')" style="font-size:12px;padding:3px 8px;border-radius:20px;border:1.5px solid var(--border-strong);background:var(--paper-dark);cursor:pointer">🔴 Estricto</button>
-            </div>
-          </div>
           <p class="lbl" style="margin-bottom:6px">🗳️ Modo democrático <span style="font-size:9px;background:var(--paper-dark);padding:1px 5px;border-radius:3px;font-family:'Special Elite',monospace">EN PRUEBAS</span></p>
           <div style="display:flex;gap:6px">
             <button id="mode-host" onclick="setValidationMode('host')" style="font-size:12px;padding:4px 10px;border-radius:20px;border:1.5px solid #c0392b;background:#fdf0ee;cursor:pointer">👑 Normal</button>
@@ -891,7 +883,7 @@ const T = {
     toastFreeCats: 'Escribe al menos 2 categorías',
     toastHostOnly: 'Solo el anfitrión puede reiniciar',
     continueBtn: 'Continuar →', notMe: 'No soy yo — cambiar', groupHint2: 'familia, amigos, trabajo... como queráis', easyHint: '(sin K, Ñ, Q, U, W, X, Y, Z)', validate: 'Revisar', validateSub1: 'buscar en Wikipedia · ✕ anular', validateSub2: 'única = 100 pts · repetida = 50 pts · anulada = 0 pts', submitted2: 'Respuestas enviadas', hostReviewing2: 'el anfitrión está revisando', leaderboardBack: '← volver', loading: 'Cargando…', final2: '¡Fin del juego!', searching: 'Buscando...', hostSearching: 'El anfitrión está buscando...', rndLabel: 'ronda', of: 'de', freeCatLabel: 'escreve as tuas categorias (uma por linha)', freeCatPlaceholder: 'Jogadores do Barça\nFilmes de terror\nCoisas na cozinha', freeCatLabel: 'escribe tus categorías (una por línea)', freeCatPlaceholder: 'Jugadores del Barça\nPelículas de terror\nCosas en la cocina', of: 'de', freeCatLabel: 'escreve as tuas categorias (uma por linha)', freeCatPlaceholder: 'Jogadores do Barça\nFilmes de terror\nCoisas na cozinha', freeCatLabel: 'escribe tus categorías (una por línea)', freeCatPlaceholder: 'Jugadores del Barça\nPelículas de terror\nCosas en la cocina', letterLabel: 'letra', calculate: 'Calcular puntajes →', stopCallerMsg: '{name} llamó al ¡Alto!', timerRanOut: 'se acabó el tiempo', scoresTitle: 'Puntajes', lbTitle: 'Marcador',
-    invited: '¡Te han invitado a jugar!', rulesBtn: '¿Cómo se juega?', expBtn: '⚗️ FUNCIONES EXPERIMENTALES', aiValidation: '🤖 Validación IA', aiStrictness: 'nivel de rigor', aiLibre: '🟢 Libre', aiNormal: '🟡 Normal', aiEstricto: '🔴 Estricto', modeHost: '👑 Normal', modeDemocratic: '🗳️ Democrático', invalidated: 'anulada', winnerLine: '{emoji} {name} gana con {pts} puntos!', wrongPwd: '❌ Contraseña incorrecta', expActivated: '⚗️ Funciones experimentales activadas', qjCodeLabel: 'sala:', gcInside: '✅ ESTÁS DENTRO', inviteMore: '+ ¿Quieres invitar a alguien más?',
+    invited: '¡Te han invitado a jugar!', rulesBtn: '¿Cómo se juega?', expBtn: '⚗️ FUNCIONES EXPERIMENTALES', aiValidation: '🤖 Validación IA', modeHost: '👑 Normal', modeDemocratic: '🗳️ Democrático', invalidated: 'anulada', winnerLine: '{emoji} {name} gana con {pts} puntos!', wrongPwd: '❌ Contraseña incorrecta', expActivated: '⚗️ Funciones experimentales activadas', qjCodeLabel: 'sala:', gcInside: '✅ ESTÁS DENTRO', inviteMore: '+ ¿Quieres invitar a alguien más?',
     toastBack: 'Volviendo como', notFoundWord: '📭 No se encontró', didYouMean: '¿Quisiste decir', noDefinition: '📭 Sin definición para',
     waMsg: '¡Juega conmigo al ¡Alto! 🎮 Únete aquí:',
   },
@@ -941,7 +933,7 @@ const T = {
     toastFreeCats: 'Enter at least 2 categories',
     toastHostOnly: 'Only the host can restart',
     continueBtn: 'Continue →', notMe: "That's not me — change", groupHint2: 'family, friends, work... whatever you like', easyHint: '(no Q, U, W, X, Y, Z)', validate: 'Review', validateSub1: 'search Wikipedia · ✕ invalidate', validateSub2: 'unique = 100 pts · duplicate = 50 pts · invalid = 0 pts', submitted2: 'Answers submitted', hostReviewing2: 'host is reviewing', leaderboardBack: '← back', loading: 'Loading…', final2: 'Game over!', searching: 'Searching...', hostSearching: 'Host is searching...', rndLabel: 'round', of: 'di', freeCatLabel: 'scrivi le tue categorie (una per riga)', freeCatPlaceholder: 'Giocatori del Barça\nFilm horror\nCose in cucina', of: 'of', freeCatLabel: 'write your categories (one per line)', freeCatPlaceholder: 'Football players\nHorror films\nThings in the kitchen', letterLabel: 'letter', calculate: 'Calculate scores →', stopCallerMsg: '{name} called Stop!', timerRanOut: 'time ran out', scoresTitle: 'Scores', lbTitle: 'Leaderboard',
-    invited: "You've been invited to play!", rulesBtn: 'How to play?', expBtn: '⚗️ EXPERIMENTAL FEATURES', aiValidation: '🤖 AI Validation', aiStrictness: 'strictness level', aiLibre: '🟢 Free', aiNormal: '🟡 Normal', aiEstricto: '🔴 Strict', modeHost: '👑 Normal', modeDemocratic: '🗳️ Democratic', invalidated: 'invalid', winnerLine: '{emoji} {name} wins with {pts} points!', wrongPwd: '❌ Wrong password', expActivated: '⚗️ Experimental features activated', qjCodeLabel: 'room:', gcInside: "✅ YOU'RE IN", inviteMore: '+ Want to invite someone?',
+    invited: "You've been invited to play!", rulesBtn: 'How to play?', expBtn: '⚗️ EXPERIMENTAL FEATURES', aiValidation: '🤖 AI Validation', modeHost: '👑 Normal', modeDemocratic: '🗳️ Democratic', invalidated: 'invalid', winnerLine: '{emoji} {name} wins with {pts} points!', wrongPwd: '❌ Wrong password', expActivated: '⚗️ Experimental features activated', qjCodeLabel: 'room:', gcInside: "✅ YOU'RE IN", inviteMore: '+ Want to invite someone?',
     toastBack: 'Rejoining as', notFoundWord: '📭 Not found', didYouMean: 'Did you mean', noDefinition: '📭 No definition for',
     waMsg: 'Play Stop! with me 🎮 Join here:',
   },
@@ -991,7 +983,7 @@ const T = {
     toastFreeCats: 'Entre au moins 2 catégories',
     toastHostOnly: "Seul l'hôte peut recommencer",
     continueBtn: 'Continuer →', notMe: "Ce n'est pas moi — changer", groupHint2: 'famille, amis, travail... comme vous voulez', easyHint: '(sans K, Q, U, W, X, Y, Z)', validate: 'Vérifier', validateSub1: 'chercher sur Wikipedia · ✕ annuler', validateSub2: 'unique = 100 pts · doublon = 50 pts · annulé = 0 pts', submitted2: 'Réponses envoyées', hostReviewing2: "l'hôte vérifie", leaderboardBack: '← retour', loading: 'Chargement…', final2: 'Fin de partie!', searching: 'Recherche...', hostSearching: "L'hôte cherche...", rndLabel: 'manche', of: 'sur', freeCatLabel: 'écris tes catégories (une par ligne)', freeCatPlaceholder: 'Joueurs du Barça\nFilms d\'horreur\nChoses dans la cuisine', letterLabel: 'lettre', calculate: 'Calculer les scores →', stopCallerMsg: '{name} a crié Stop !', timerRanOut: 'temps écoulé', scoresTitle: 'Scores', lbTitle: 'Classement',
-    invited: 'Tu as été invité à jouer!', rulesBtn: 'Comment jouer?', expBtn: '⚗️ FONCTIONS EXPÉRIMENTALES', aiValidation: '🤖 Validation IA', aiStrictness: 'niveau de rigueur', aiLibre: '🟢 Libre', aiNormal: '🟡 Normal', aiEstricto: '🔴 Strict', modeHost: '👑 Normal', modeDemocratic: '🗳️ Démocratique', invalidated: 'annulée', winnerLine: '{emoji} {name} gagne avec {pts} points!', wrongPwd: '❌ Mot de passe incorrect', expActivated: '⚗️ Fonctions expérimentales activées', qjCodeLabel: 'salle:', gcInside: '✅ VOUS ÊTES DEDANS', inviteMore: "+ Inviter quelqu'un d'autre?",
+    invited: 'Tu as été invité à jouer!', rulesBtn: 'Comment jouer?', expBtn: '⚗️ FONCTIONS EXPÉRIMENTALES', aiValidation: '🤖 Validation IA', modeHost: '👑 Normal', modeDemocratic: '🗳️ Démocratique', invalidated: 'annulée', winnerLine: '{emoji} {name} gagne avec {pts} points!', wrongPwd: '❌ Mot de passe incorrect', expActivated: '⚗️ Fonctions expérimentales activées', qjCodeLabel: 'salle:', gcInside: '✅ VOUS ÊTES DEDANS', inviteMore: "+ Inviter quelqu'un d'autre?",
     toastBack: 'Reconnexion en tant que', notFoundWord: '📭 Introuvable', didYouMean: 'Vouliez-vous dire', noDefinition: '📭 Aucune définition pour',
     waMsg: 'Joue au Stop! avec moi 🎮 Rejoins ici:',
   },
@@ -1041,7 +1033,7 @@ const T = {
     toastFreeCats: 'Mindestens 2 Kategorien eingeben',
     toastHostOnly: 'Nur der Gastgeber kann neu starten',
     continueBtn: 'Weiter →', notMe: 'Das bin ich nicht — ändern', groupHint2: 'Familie, Freunde, Arbeit... wie ihr wollt', easyHint: '(ohne Q, X, Y, Z)', validate: 'Überprüfen', validateSub1: 'Wikipedia suchen · ✕ ungültig', validateSub2: 'einmalig = 100 Pkt · doppelt = 50 Pkt · ungültig = 0 Pkt', submitted2: 'Antworten gesendet', hostReviewing2: 'Gastgeber prüft', leaderboardBack: '← zurück', loading: 'Laden…', final2: 'Spiel vorbei!', searching: 'Suche...', hostSearching: 'Gastgeber sucht...', rndLabel: 'Runde', of: 'von', freeCatLabel: 'Schreib deine Kategorien (eine pro Zeile)', freeCatPlaceholder: 'Fußballspieler\nHorrorfilme\nDinge in der Küche', letterLabel: 'Buchstabe', calculate: 'Punkte berechnen →', stopCallerMsg: '{name} hat Stop gerufen!', timerRanOut: 'Zeit abgelaufen', scoresTitle: 'Punkte', lbTitle: 'Bestenliste',
-    invited: 'Du wurdest eingeladen zu spielen!', rulesBtn: 'Wie spielt man?', expBtn: '⚗️ EXPERIMENTELLE FUNKTIONEN', aiValidation: '🤖 KI-Validierung', aiStrictness: 'Strengestufe', aiLibre: '🟢 Frei', aiNormal: '🟡 Normal', aiEstricto: '🔴 Streng', modeHost: '👑 Normal', modeDemocratic: '🗳️ Demokratisch', invalidated: 'ungültig', winnerLine: '{emoji} {name} gewinnt mit {pts} Punkten!', wrongPwd: '❌ Falsches Passwort', expActivated: '⚗️ Experimentelle Funktionen aktiviert', qjCodeLabel: 'Raum:', gcInside: '✅ DU BIST DRIN', inviteMore: '+ Jemanden einladen?',
+    invited: 'Du wurdest eingeladen zu spielen!', rulesBtn: 'Wie spielt man?', expBtn: '⚗️ EXPERIMENTELLE FUNKTIONEN', aiValidation: '🤖 KI-Validierung', modeHost: '👑 Normal', modeDemocratic: '🗳️ Demokratisch', invalidated: 'ungültig', winnerLine: '{emoji} {name} gewinnt mit {pts} Punkten!', wrongPwd: '❌ Falsches Passwort', expActivated: '⚗️ Experimentelle Funktionen aktiviert', qjCodeLabel: 'Raum:', gcInside: '✅ DU BIST DRIN', inviteMore: '+ Jemanden einladen?',
     toastBack: 'Wiederbeitritt als', notFoundWord: '📭 Nicht gefunden', didYouMean: 'Meinten Sie', noDefinition: '📭 Keine Definition fuer',
     waMsg: 'Spiel Stop! mit mir 🎮 Tritt hier bei:',
   },
@@ -1091,7 +1083,7 @@ const T = {
     toastFreeCats: 'Escreve pelo menos 2 categorias',
     toastHostOnly: 'Só o anfitrião pode reiniciar',
     continueBtn: 'Continuar →', notMe: 'Não sou eu — mudar', groupHint2: 'família, amigos, trabalho... como quiserem', easyHint: '(sem K, Q, U, W, X, Y, Z)', validate: 'Rever', validateSub1: 'pesquisar Wikipedia · ✕ anular', validateSub2: 'única = 100 pts · repetida = 50 pts · anulada = 0 pts', submitted2: 'Respostas enviadas', hostReviewing2: 'anfitrião a rever', leaderboardBack: '← voltar', loading: 'A carregar…', final2: 'Fim do jogo!', searching: 'A pesquisar...', hostSearching: 'Anfitrião a pesquisar...', rndLabel: 'ronda', of: 'de', freeCatLabel: 'escreve as tuas categorias (uma por linha)', freeCatPlaceholder: 'Jogadores do Barça\nFilmes de terror\nCoisas na cozinha', freeCatLabel: 'escribe tus categorías (una por línea)', freeCatPlaceholder: 'Jugadores del Barça\nPelículas de terror\nCosas en la cocina', of: 'de', freeCatLabel: 'escreve as tuas categorias (uma por linha)', freeCatPlaceholder: 'Jogadores do Barça\nFilmes de terror\nCoisas na cozinha', freeCatLabel: 'escribe tus categorías (una por línea)', freeCatPlaceholder: 'Jugadores del Barça\nPelículas de terror\nCosas en la cocina', letterLabel: 'letra', calculate: 'Calcular pontuações →', stopCallerMsg: '{name} chamou o Stop!', timerRanOut: 'tempo esgotado', scoresTitle: 'Pontuações', lbTitle: 'Classificação',
-    invited: 'Foste convidado a jogar!', rulesBtn: 'Como se joga?', expBtn: '⚗️ FUNÇÕES EXPERIMENTAIS', aiValidation: '🤖 Validação IA', aiStrictness: 'nível de rigor', aiLibre: '🟢 Livre', aiNormal: '🟡 Normal', aiEstricto: '🔴 Estrito', modeHost: '👑 Normal', modeDemocratic: '🗳️ Democrático', invalidated: 'anulada', winnerLine: '{emoji} {name} ganha com {pts} pontos!', wrongPwd: '❌ Palavra-passe incorreta', expActivated: '⚗️ Funções experimentais ativadas', qjCodeLabel: 'sala:', gcInside: '✅ ESTÁS DENTRO', inviteMore: '+ Queres convidar alguém?',
+    invited: 'Foste convidado a jogar!', rulesBtn: 'Como se joga?', expBtn: '⚗️ FUNÇÕES EXPERIMENTAIS', aiValidation: '🤖 Validação IA', modeHost: '👑 Normal', modeDemocratic: '🗳️ Democrático', invalidated: 'anulada', winnerLine: '{emoji} {name} ganha com {pts} pontos!', wrongPwd: '❌ Palavra-passe incorreta', expActivated: '⚗️ Funções experimentais ativadas', qjCodeLabel: 'sala:', gcInside: '✅ ESTÁS DENTRO', inviteMore: '+ Queres convidar alguém?',
     toastBack: 'A voltar como', notFoundWord: '📭 Nao encontrado', didYouMean: 'Quiseste dizer', noDefinition: '📭 Sem definicao para',
     waMsg: 'Joga Stop! comigo 🎮 Junta-te aqui:',
   },
@@ -1141,7 +1133,7 @@ const T = {
     toastFreeCats: 'Inserisci almeno 2 categorie',
     toastHostOnly: "Solo l'host può ricominciare",
     continueBtn: 'Continua →', notMe: 'Non sono io — cambia', groupHint2: 'famiglia, amici, lavoro... come volete', easyHint: '(senza J, K, Q, U, W, X, Y, Z)', validate: 'Revisione', validateSub1: 'cerca su Wikipedia · ✕ annulla', validateSub2: 'unica = 100 pts · ripetuta = 50 pts · annullata = 0 pts', submitted2: 'Risposte inviate', hostReviewing2: "l'host sta revisionando", leaderboardBack: '← indietro', loading: 'Caricamento…', final2: 'Fine del gioco!', searching: 'Ricerca...', hostSearching: "L'host sta cercando...", rndLabel: 'round', of: 'di', freeCatLabel: 'scrivi le tue categorie (una per riga)', freeCatPlaceholder: 'Giocatori del Barça\nFilm horror\nCose in cucina', of: 'of', freeCatLabel: 'write your categories (one per line)', freeCatPlaceholder: 'Football players\nHorror films\nThings in the kitchen', letterLabel: 'lettera', calculate: 'Calcola i punteggi →', stopCallerMsg: '{name} ha chiamato Stop!', timerRanOut: 'tempo scaduto', scoresTitle: 'Punteggi', lbTitle: 'Classifica',
-    invited: 'Sei stato invitato a giocare!', rulesBtn: 'Come si gioca?', expBtn: '⚗️ FUNZIONI SPERIMENTALI', aiValidation: '🤖 Validazione IA', aiStrictness: 'livello di rigore', aiLibre: '🟢 Libero', aiNormal: '🟡 Normale', aiEstricto: '🔴 Rigoroso', modeHost: '👑 Normale', modeDemocratic: '🗳️ Democratico', invalidated: 'annullata', winnerLine: '{emoji} {name} vince con {pts} punti!', wrongPwd: '❌ Password errata', expActivated: '⚗️ Funzioni sperimentali attivate', qjCodeLabel: 'stanza:', gcInside: '✅ SEI DENTRO', inviteMore: '+ Vuoi invitare qualcuno?',
+    invited: 'Sei stato invitato a giocare!', rulesBtn: 'Come si gioca?', expBtn: '⚗️ FUNZIONI SPERIMENTALI', aiValidation: '🤖 Validazione IA', modeHost: '👑 Normale', modeDemocratic: '🗳️ Democratico', invalidated: 'annullata', winnerLine: '{emoji} {name} vince con {pts} punti!', wrongPwd: '❌ Password errata', expActivated: '⚗️ Funzioni sperimentali attivate', qjCodeLabel: 'stanza:', gcInside: '✅ SEI DENTRO', inviteMore: '+ Vuoi invitare qualcuno?',
     toastBack: 'Riconnessione come', notFoundWord: '📭 Non trovato', didYouMean: 'Intendevi', noDefinition: '📭 Nessuna definizione per',
     waMsg: 'Gioca a Stop! con me 🎮 Unisciti qui:',
   },
@@ -1360,10 +1352,6 @@ window.applyLang = function() {
   s('btn-leave', t('leaveRoom'));
   s('btn-experimental', t('expBtn'));
   s('gc-status', t('gcInside'));
-  s('lbl-ai-strictness', t('aiStrictness'));
-  s('ai-libre', t('aiLibre'));
-  s('ai-normal', t('aiNormal'));
-  s('ai-estricto', t('aiEstricto'));
   s('mode-host', t('modeHost'));
   s('mode-democratic', t('modeDemocratic'));
   s('lbl-ai-validation', t('aiValidation'));
@@ -1798,7 +1786,7 @@ window.startGame = async () => {
     currentRound:1, phase:'playing',
     currentLetter:letter, usedLetters:[letter],
     allAnswers:{}, calledStop:false, stopCaller:'',
-    scores, easyLetters:easy, stopPenalty:penalty, groupName:groupName, aiLevel:G_aiLevel, aiEnabled:G_aiEnabled, validationMode:G_validationMode, gameLang:LANG,
+    scores, easyLetters:easy, stopPenalty:penalty, groupName:groupName, aiEnabled:G_aiEnabled, validationMode:G_validationMode, gameLang:LANG,
     roundStartTime: Date.now(),
   });
 };
@@ -1922,7 +1910,6 @@ function showValidation(room) {
   show('validate');
   G.invalidAnswers = {};
   if (room.aiEnabled !== undefined) { G_aiEnabled = room.aiEnabled; window.setAIEnabled(room.aiEnabled); } else { window.setAIEnabled(false); }
-  if (room.aiLevel) { G_aiLevel = room.aiLevel; window.setAILevel(room.aiLevel); }
   if (room.validationMode) { G_validationMode = room.validationMode; window.setValidationMode(room.validationMode); }
   const cats = room.categories||[];
   const players = Object.keys(room.players||{});
@@ -2191,7 +2178,6 @@ function stopConfetti() {
 
 // ── AI Validation ─────────────────────────────────────
 const OPENROUTER_KEY = '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';
-let G_aiLevel = 'normal';
 let G_aiEnabled = false; // OFF by default
 
 window.promptExperimental = () => {
@@ -2221,7 +2207,6 @@ window.setAIEnabled = (enabled) => {
   G_aiEnabled = enabled;
   const offBtn = document.getElementById('ai-off');
   const onBtn = document.getElementById('ai-on');
-  const levelSection = document.getElementById('ai-level-section');
   if (offBtn && onBtn) {
     if (enabled) {
       onBtn.style.borderColor = '#c0392b'; onBtn.style.background = '#fdf0ee';
@@ -2231,23 +2216,8 @@ window.setAIEnabled = (enabled) => {
       onBtn.style.borderColor = 'var(--border-strong)'; onBtn.style.background = 'var(--paper-dark)';
     }
   }
-  if (levelSection) levelSection.style.display = enabled ? 'block' : 'none';
 };
 
-window.setAILevel = (level) => {
-  G_aiLevel = level;
-  ['libre','normal','estricto'].forEach(l => {
-    const btn = document.getElementById('ai-' + l);
-    if (!btn) return;
-    if (l === level) {
-      btn.style.borderColor = '#c0392b';
-      btn.style.background = '#fdf0ee';
-    } else {
-      btn.style.borderColor = 'var(--border-strong)';
-      btn.style.background = 'var(--paper-dark)';
-    }
-  });
-};
 
 window.askAI = async (word, category, letter, key) => {
   const btn = document.getElementById('ai_btn_' + key);
@@ -2266,15 +2236,7 @@ window.askAI = async (word, category, letter, key) => {
   result.className = 'ai-result';
   result.innerHTML = '';
 
-  const langNames = {es:'Spanish',en:'English',fr:'French',de:'German',pt:'Portuguese',it:'Italian'};
-  const gameLang = langNames[LANG] || 'Spanish';
-  const strictnessPrompts = {
-    libre: `You are judging a word game. Letter: "${letter}". Category: "${category}". Answer: "${word}". Note: Fruta/Fruit includes botanical fruits like tomato, avocado, cucumber. Does this answer fit? Be generous. Reply ONLY in ${gameLang}: start with válido/invalid/unsure then dash then ONE brief reason. Example: "válido - es una fruta botánica"`,
-    normal: `You are judging a word game. Letter: "${letter}". Category: "${category}". Answer: "${word}". Real or well-known fictional things accepted. Note: Fruta/Fruit includes botanical fruits. Reply ONLY in ${gameLang}: start with válido/invalid/unsure then dash then ONE brief reason.`,
-    estricto: `You are judging a word game. Letter: "${letter}". Category: "${category}". Answer: "${word}". Only real verifiable things accepted. Note: Fruta/Fruit includes botanical fruits. Reply ONLY in ${gameLang}: start with válido/invalid/unsure then dash then ONE brief reason.`
-  };
-
-  const prompt = strictnessPrompts[G_aiLevel] || strictnessPrompts.normal;
+  const prompt = `You are judging a word game. Letter: "${letter}". Category: "${category}". Answer: "${word}". Real or well-known fictional things are accepted. Reply with ONE word only — no punctuation, no explanation: VALIDO, INVALIDO, or DUDOSO.`;
 
   try {
     const response = await fetch(
@@ -2289,12 +2251,10 @@ window.askAI = async (word, category, letter, key) => {
         },
         signal: AbortSignal.timeout(12000),
         body: JSON.stringify({
-          model: 'qwen/qwen3-8b:free',
-          models: ['qwen/qwen3-8b:free','mistralai/mistral-small-3.2-24b-instruct:free','meta-llama/llama-3.2-3b-instruct:free'],
-          route: 'fallback',
+          model: 'openrouter/auto',
           messages: [{ role: 'user', content: prompt }],
-          max_tokens: 80,
-          temperature: 0.1
+          max_tokens: 20,
+          temperature: 0
         })
       }
     );
@@ -2304,21 +2264,24 @@ window.askAI = async (word, category, letter, key) => {
       throw new Error(errData?.error?.message || 'API error ' + response.status);
     }
     const data = await response.json();
-    const text = data.choices?.[0]?.message?.content?.trim() || '';
-    
-    const lower = text.toLowerCase();
+    // Strip <think>...</think> blocks emitted by reasoning models before parsing
+    const raw = data.choices?.[0]?.message?.content?.trim() || '';
+    const text = raw.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+    console.log('[AI raw response]', JSON.stringify(text));
+
+    // Normalise: remove accents, lowercase, strip punctuation
+    const norm = text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z]/g, ' ').trim();
     let cls = 'unsure';
-    // Check for valid in all languages
-    const validWords = ['valid','válido','valide','gültig','valido','válida'];
-    const invalidWords = ['invalid','inválido','invalide','ungültig','invalido','inválida'];
-    if (validWords.some(w => lower.startsWith(w))) cls = 'valid';
-    else if (invalidWords.some(w => lower.startsWith(w))) cls = 'invalid';
-    else if (lower.includes('válido') || lower.includes('correcto') || lower.includes('sí,') || lower.includes('yes,')) cls = 'valid';
-    else if (lower.includes('inválido') || lower.includes('incorrecto') || lower.includes('no,') || lower.includes('not a')) cls = 'invalid';
+    // Match valid/valido/válido but not invalid/invalido
+    if (/\binvalid(o)?\b/.test(norm)) cls = 'invalid';
+    else if (/\bvalid(o)?\b/.test(norm)) cls = 'valid';
+    else if (/\byes\b|\bcorrect\b|\bsi\b|\bcorrecto\b/.test(norm)) cls = 'valid';
+    else if (/\bno\b|\bincorrect\b|\bwrong\b|\bincorrecto\b/.test(norm)) cls = 'invalid';
 
     const icon = cls === 'valid' ? '✅' : cls === 'invalid' ? '❌' : '🤔';
-    const cleaned = text.replace(/^(valid|invalid|unsure|válido|inválido|valide|invalide|gültig|ungültig|valido|invalido)\s*[-–:]\s*/i, '');
-    const aiHtml = icon + ' ' + cleaned;
+    const labelMap = { valid: {es:'Válido',en:'Valid',fr:'Valide',de:'Gültig',pt:'Válido',it:'Valido'}, invalid: {es:'Inválido',en:'Invalid',fr:'Invalide',de:'Ungültig',pt:'Inválido',it:'Invalido'}, unsure: {es:'Dudoso',en:'Unsure',fr:'Incertain',de:'Unsicher',pt:'Duvidoso',it:'Incerto'} };
+    const label = (labelMap[cls]||labelMap.unsure)[LANG] || (labelMap[cls]||labelMap.unsure).es;
+    const aiHtml = icon + ' ' + label;
     result.innerHTML = aiHtml;
     // Broadcast to guests via Firebase
     update(roomRef(G.roomCode), { [`aiResults/${key}`]: { html: aiHtml, key } });
@@ -3091,7 +3054,6 @@ window.dbg = function dbg(screen) {
     case 'validate': {
       G.isHost = true;
       G_aiEnabled = true;
-      G_aiLevel = 'normal';
       G_validationMode = 'host';
       G.invalidAnswers = Object.assign({}, DBG.invalidAnswers);
       show('validate');
