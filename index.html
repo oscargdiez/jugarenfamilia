@@ -2251,7 +2251,7 @@ window.askAI = async (word, category, letter, key) => {
         },
         signal: AbortSignal.timeout(12000),
         body: JSON.stringify({
-          model: 'openrouter/auto',
+          model: 'openrouter/free',
           messages: [{ role: 'user', content: prompt }],
           max_tokens: 20,
           temperature: 0
@@ -3199,7 +3199,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260901.1300</div>
+  <div style="font-size:9px;opacity:0.5">v260901.1404</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
