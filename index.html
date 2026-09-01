@@ -624,9 +624,14 @@ document.addEventListener('DOMContentLoaded', function() {
           <button id="ai-on" onclick="setAIEnabled(true)" style="font-size:12px;padding:4px 10px;border-radius:20px;border:1.5px solid var(--border-strong);background:var(--paper-dark);cursor:pointer">ON</button>
         </div>
         <div id="ai-strictness-section" style="display:none;margin-bottom:12px">
+          <div style="display:flex;gap:6px;margin-bottom:8px">
+            <button id="ai-relajado" onclick="setAIStrictness('relajado')" style="font-size:12px;padding:4px 10px;border-radius:20px;border:1.5px solid #c0392b;background:#fdf0ee;cursor:pointer">🟢 Relajada</button>
+            <button id="ai-estricto" onclick="setAIStrictness('estricto')" style="font-size:12px;padding:4px 10px;border-radius:20px;border:1.5px solid var(--border-strong);background:var(--paper-dark);cursor:pointer">🔴 Estricta</button>
+          </div>
+          <p class="lbl" style="margin-bottom:4px"><span id="lbl-ai-spelling-text">✏️ Permitir faltas de ortografía</span></p>
           <div style="display:flex;gap:6px">
-            <button id="ai-relajado" onclick="setAIStrictness('relajado')" style="font-size:12px;padding:4px 10px;border-radius:20px;border:1.5px solid #c0392b;background:#fdf0ee;cursor:pointer">🟢 Relajado</button>
-            <button id="ai-estricto" onclick="setAIStrictness('estricto')" style="font-size:12px;padding:4px 10px;border-radius:20px;border:1.5px solid var(--border-strong);background:var(--paper-dark);cursor:pointer">🔴 Estricto</button>
+            <button id="ai-spelling-no" onclick="setAISpelling(false)" style="font-size:12px;padding:4px 10px;border-radius:20px;border:1.5px solid #c0392b;background:#fdf0ee;cursor:pointer">No</button>
+            <button id="ai-spelling-si" onclick="setAISpelling(true)" style="font-size:12px;padding:4px 10px;border-radius:20px;border:1.5px solid var(--border-strong);background:var(--paper-dark);cursor:pointer">Sí</button>
           </div>
         </div>
         <button onclick="promptExperimental()" style="width:100%;background:transparent;border:1px dashed var(--border-strong);color:var(--ink-muted);font-family:'Special Elite',monospace;font-size:11px;padding:7px;border-radius:var(--radius);cursor:pointer;letter-spacing:1px" id="btn-experimental">⚗️ FUNCIONES EXPERIMENTALES</button>
@@ -889,7 +894,7 @@ const T = {
     toastFreeCats: 'Escribe al menos 2 categorías',
     toastHostOnly: 'Solo el anfitrión puede reiniciar',
     continueBtn: 'Continuar →', notMe: 'No soy yo — cambiar', groupHint2: 'familia, amigos, trabajo... como queráis', easyHint: '(sin K, Ñ, Q, U, W, X, Y, Z)', validate: 'Revisar', validateSub1: 'buscar en Wikipedia · ✕ anular', validateSub2: 'única = 100 pts · repetida = 50 pts · anulada = 0 pts', submitted2: 'Respuestas enviadas', hostReviewing2: 'el anfitrión está revisando', leaderboardBack: '← volver', loading: 'Cargando…', final2: '¡Fin del juego!', searching: 'Buscando...', hostSearching: 'El anfitrión está buscando...', rndLabel: 'ronda', of: 'de', freeCatLabel: 'escreve as tuas categorias (uma por linha)', freeCatPlaceholder: 'Jogadores do Barça\nFilmes de terror\nCoisas na cozinha', freeCatLabel: 'escribe tus categorías (una por línea)', freeCatPlaceholder: 'Jugadores del Barça\nPelículas de terror\nCosas en la cocina', of: 'de', freeCatLabel: 'escreve as tuas categorias (uma por linha)', freeCatPlaceholder: 'Jogadores do Barça\nFilmes de terror\nCoisas na cozinha', freeCatLabel: 'escribe tus categorías (una por línea)', freeCatPlaceholder: 'Jugadores del Barça\nPelículas de terror\nCosas en la cocina', letterLabel: 'letra', calculate: 'Calcular puntajes →', stopCallerMsg: '{name} llamó al ¡Alto!', timerRanOut: 'se acabó el tiempo', scoresTitle: 'Puntajes', lbTitle: 'Marcador',
-    invited: '¡Te han invitado a jugar!', rulesBtn: '¿Cómo se juega?', expBtn: '⚗️ FUNCIONES EXPERIMENTALES', aiValidation: '🤖 Validación IA', modeHost: '👑 Normal', aiRelajado: '🟢 Relaxada', aiEstricto: '🔴 Estrita', aiRelajado: '🟢 Locker', aiEstricto: '🔴 Streng', aiRelajado: '🟢 Détendue', aiEstricto: '🔴 Stricte', aiRelajado: '🟢 Relaxed', aiEstricto: '🔴 Strict', aiRelajado: '🟢 Relajada', aiEstricto: '🔴 Estricta', modeDemocratic: '🗳️ Democrático', invalidated: 'anulada', winnerLine: '{emoji} {name} gana con {pts} puntos!', wrongPwd: '❌ Contraseña incorrecta', expActivated: '⚗️ Funciones experimentales activadas', qjCodeLabel: 'sala:', gcInside: '✅ ESTÁS DENTRO', inviteMore: '+ ¿Quieres invitar a alguien más?',
+    invited: '¡Te han invitado a jugar!', rulesBtn: '¿Cómo se juega?', expBtn: '⚗️ FUNCIONES EXPERIMENTALES', aiValidation: '🤖 Validación IA', modeHost: '👑 Normal', aiRelajado: '🟢 Relaxada', aiEstricto: '🔴 Estrita', aiSpelling: '✏️ Permitir erros ortográficos', aiRelajado: '🟢 Locker', aiEstricto: '🔴 Streng', aiSpelling: '✏️ Rechtschreibfehler erlauben', aiRelajado: '🟢 Détendue', aiEstricto: '🔴 Stricte', aiSpelling: '✏️ Autoriser les fautes d\'orthographe', aiRelajado: '🟢 Relaxed', aiEstricto: '🔴 Strict', aiSpelling: '✏️ Allow spelling mistakes', aiRelajado: '🟢 Relajada', aiEstricto: '🔴 Estricta', aiSpelling: '✏️ Permitir faltas de ortografía', modeDemocratic: '🗳️ Democrático', invalidated: 'anulada', winnerLine: '{emoji} {name} gana con {pts} puntos!', wrongPwd: '❌ Contraseña incorrecta', expActivated: '⚗️ Funciones experimentales activadas', qjCodeLabel: 'sala:', gcInside: '✅ ESTÁS DENTRO', inviteMore: '+ ¿Quieres invitar a alguien más?',
     toastBack: 'Volviendo como', notFoundWord: '📭 No se encontró', didYouMean: '¿Quisiste decir', noDefinition: '📭 Sin definición para',
     waMsg: '¡Juega conmigo al ¡Alto! 🎮 Únete aquí:',
   },
@@ -1139,7 +1144,7 @@ const T = {
     toastFreeCats: 'Inserisci almeno 2 categorie',
     toastHostOnly: "Solo l'host può ricominciare",
     continueBtn: 'Continua →', notMe: 'Non sono io — cambia', groupHint2: 'famiglia, amici, lavoro... come volete', easyHint: '(senza J, K, Q, U, W, X, Y, Z)', validate: 'Revisione', validateSub1: 'cerca su Wikipedia · ✕ annulla', validateSub2: 'unica = 100 pts · ripetuta = 50 pts · annullata = 0 pts', submitted2: 'Risposte inviate', hostReviewing2: "l'host sta revisionando", leaderboardBack: '← indietro', loading: 'Caricamento…', final2: 'Fine del gioco!', searching: 'Ricerca...', hostSearching: "L'host sta cercando...", rndLabel: 'round', of: 'di', freeCatLabel: 'scrivi le tue categorie (una per riga)', freeCatPlaceholder: 'Giocatori del Barça\nFilm horror\nCose in cucina', of: 'of', freeCatLabel: 'write your categories (one per line)', freeCatPlaceholder: 'Football players\nHorror films\nThings in the kitchen', letterLabel: 'lettera', calculate: 'Calcola i punteggi →', stopCallerMsg: '{name} ha chiamato Stop!', timerRanOut: 'tempo scaduto', scoresTitle: 'Punteggi', lbTitle: 'Classifica',
-    invited: 'Sei stato invitato a giocare!', rulesBtn: 'Come si gioca?', expBtn: '⚗️ FUNZIONI SPERIMENTALI', aiValidation: '🤖 Validazione IA', modeHost: '👑 Normale', aiRelajado: '🟢 Rilassata', aiEstricto: '🔴 Rigorosa', modeDemocratic: '🗳️ Democratico', invalidated: 'annullata', winnerLine: '{emoji} {name} vince con {pts} punti!', wrongPwd: '❌ Password errata', expActivated: '⚗️ Funzioni sperimentali attivate', qjCodeLabel: 'stanza:', gcInside: '✅ SEI DENTRO', inviteMore: '+ Vuoi invitare qualcuno?',
+    invited: 'Sei stato invitato a giocare!', rulesBtn: 'Come si gioca?', expBtn: '⚗️ FUNZIONI SPERIMENTALI', aiValidation: '🤖 Validazione IA', modeHost: '👑 Normale', aiRelajado: '🟢 Rilassata', aiEstricto: '🔴 Rigorosa', aiSpelling: '✏️ Permettere errori ortografici', modeDemocratic: '🗳️ Democratico', invalidated: 'annullata', winnerLine: '{emoji} {name} vince con {pts} punti!', wrongPwd: '❌ Password errata', expActivated: '⚗️ Funzioni sperimentali attivate', qjCodeLabel: 'stanza:', gcInside: '✅ SEI DENTRO', inviteMore: '+ Vuoi invitare qualcuno?',
     toastBack: 'Riconnessione come', notFoundWord: '📭 Non trovato', didYouMean: 'Intendevi', noDefinition: '📭 Nessuna definizione per',
     waMsg: 'Gioca a Stop! con me 🎮 Unisciti qui:',
   },
@@ -1363,6 +1368,7 @@ window.applyLang = function() {
   s('lbl-ai-validation-text', t('aiValidation'));
   s('ai-relajado', t('aiRelajado'));
   s('ai-estricto', t('aiEstricto'));
+  s('lbl-ai-spelling-text', t('aiSpelling'));
   s('lbl-guest-wait', t('guestWait'));
   // Playing
   s('lbl-letter', t('letterLabel'));
@@ -1800,7 +1806,7 @@ window.startGame = async () => {
     currentRound:1, phase:'playing',
     currentLetter:letter, usedLetters:[letter],
     allAnswers:{}, calledStop:false, stopCaller:'',
-    scores, easyLetters:easy, stopPenalty:penalty, groupName:groupName, aiEnabled:G_aiEnabled, aiStrictness:G_aiStrictness, validationMode:G_validationMode, gameLang:LANG,
+    scores, easyLetters:easy, stopPenalty:penalty, groupName:groupName, aiEnabled:G_aiEnabled, aiStrictness:G_aiStrictness, aiSpelling:G_aiSpelling, validationMode:G_validationMode, gameLang:LANG,
     roundStartTime: Date.now(),
   });
 };
@@ -1925,6 +1931,7 @@ function showValidation(room) {
   G.invalidAnswers = {};
   if (room.aiEnabled !== undefined) { G_aiEnabled = room.aiEnabled; window.setAIEnabled(room.aiEnabled); } else { window.setAIEnabled(false); }
   if (room.aiStrictness) { G_aiStrictness = room.aiStrictness; window.setAIStrictness(room.aiStrictness); }
+  if (room.aiSpelling !== undefined) { G_aiSpelling = room.aiSpelling; window.setAISpelling(room.aiSpelling); }
   if (room.validationMode) { G_validationMode = room.validationMode; window.setValidationMode(room.validationMode); }
   const cats = room.categories||[];
   const players = Object.keys(room.players||{});
@@ -2195,6 +2202,7 @@ function stopConfetti() {
 const OPENROUTER_KEY = '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';
 let G_aiEnabled = false; // OFF by default
 let G_aiStrictness = 'relajado'; // 'relajado' or 'estricto'
+let G_aiSpelling = false; // false = no spelling mistakes allowed
 
 window.promptExperimental = () => {
   const panel = document.getElementById('experimental-panel');
@@ -2234,7 +2242,7 @@ window.setAIEnabled = (enabled) => {
   }
   const strictnessSection = document.getElementById('ai-strictness-section');
   if (strictnessSection) strictnessSection.style.display = enabled ? 'block' : 'none';
-  if (enabled) window.setAIStrictness(G_aiStrictness);
+  if (enabled) { window.setAIStrictness(G_aiStrictness); window.setAISpelling(G_aiSpelling); }
 };
 
 
@@ -2249,6 +2257,20 @@ window.setAIStrictness = (level) => {
   } else {
     estrictoBtn.style.borderColor = '#c0392b'; estrictoBtn.style.background = '#fdf0ee';
     relajadoBtn.style.borderColor = 'var(--border-strong)'; relajadoBtn.style.background = 'var(--paper-dark)';
+  }
+};
+
+window.setAISpelling = (allow) => {
+  G_aiSpelling = allow;
+  const siBtn = document.getElementById('ai-spelling-si');
+  const noBtn = document.getElementById('ai-spelling-no');
+  if (!siBtn || !noBtn) return;
+  if (allow) {
+    siBtn.style.borderColor = '#c0392b'; siBtn.style.background = '#fdf0ee';
+    noBtn.style.borderColor = 'var(--border-strong)'; noBtn.style.background = 'var(--paper-dark)';
+  } else {
+    noBtn.style.borderColor = '#c0392b'; noBtn.style.background = '#fdf0ee';
+    siBtn.style.borderColor = 'var(--border-strong)'; siBtn.style.background = 'var(--paper-dark)';
   }
 };
 
@@ -2271,8 +2293,12 @@ window.askAI = async (word, category, letter, key) => {
 
   const langNames = {es:'Spanish',en:'English',fr:'French',de:'German',pt:'Portuguese',it:'Italian'};
   const gameLang = langNames[LANG] || 'Spanish';
-  const systemPromptRelajado = `You are a generous and fair judge of a ${gameLang}-language word game. Rules: (1) Ignore accents and diacritics — Ramon=Ramón, Iruna=Iruña. (2) The answer must belong to the category — but be generous with borderline cases like colour names, informal terms, or less common but real examples. (3) Abbreviated or informal names accepted if reference is clear (Nueva Guinea = Papua Nueva Guinea). (4) Real things and well-known fictional things accepted. (5) Common nouns don't qualify for proper-noun categories (names, surnames, cities, countries) but are fine for open categories like colours, objects, foods. (6) Use DUDOSO only when truly uncertain — prefer VALIDO on close calls.`;
-  const systemPromptEstricto = `You are a strict and precise judge of a ${gameLang}-language word game. Rules: (1) Ignore accents and diacritics — Ramon=Ramón, Iruna=Iruña. (2) The answer must clearly and unambiguously belong to the category — reject borderline or creative interpretations. (3) Only well-known, widely recognised examples accepted. (4) Common nouns, adjectives, months, and job titles do not qualify for proper-noun categories (names, surnames, cities, countries). (5) Use INVALIDO on any doubt — DUDOSO only for genuinely ambiguous cases.`;
+  const spellingRule = G_aiSpelling
+    ? '(6) Minor spelling mistakes and phonetic spellings are acceptable as long as the intended word is clear.'
+    : '(6) The answer must be spelled correctly (accents/tildes excepted) — significant spelling mistakes or wrong letters make it INVALIDO.';
+  const langRule = `(7) The answer must be in ${gameLang} — answers in any other language are INVALIDO.`;
+  const systemPromptRelajado = `You are a generous and fair judge of a ${gameLang}-language word game. Rules: (1) Ignore accents and tildes — Ramon=Ramón, areas=áreas. (2) The answer must belong to the category — be generous with borderline cases like colour names, informal terms, or less common but real examples. (3) Abbreviated or informal names accepted if reference is clear (Nueva Guinea = Papua Nueva Guinea). (4) Real things and well-known fictional things accepted. (5) Common nouns don't qualify for proper-noun categories (names, surnames, cities, countries) but are fine for open categories like colours, objects, foods. ${spellingRule} ${langRule} Use DUDOSO only when truly uncertain — prefer VALIDO on close calls.`;
+  const systemPromptEstricto = `You are a strict and precise judge of a ${gameLang}-language word game. Rules: (1) Ignore accents and tildes — Ramon=Ramón, areas=áreas. (2) The answer must clearly and unambiguously belong to the category — reject borderline or creative interpretations. (3) Only well-known, widely recognised examples accepted. (4) Common nouns, adjectives, months, and job titles do not qualify for proper-noun categories (names, surnames, cities, countries). (5) Use INVALIDO on any doubt — DUDOSO only for genuinely ambiguous cases. ${spellingRule} ${langRule}`;
   const systemPrompt = G_aiStrictness === 'estricto' ? systemPromptEstricto : systemPromptRelajado;
   const prompt = `${gameLang}-language game. Letter: "${letter}". Category: "${category}". Answer: "${word}". Does this answer fit the category? Reply with ONE word only, no punctuation, no explanation: VALIDO, INVALIDO, or DUDOSO.`;
 
@@ -3244,7 +3270,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260901.1419</div>
+  <div style="font-size:9px;opacity:0.5">v260901.1420</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
