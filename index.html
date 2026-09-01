@@ -412,7 +412,7 @@ button.stop-btn:hover { background: var(--red-dark); }
 
 /* ── Language picker ── */
 .lang-bar { display: flex; justify-content: flex-end; gap: 4px; margin-bottom: 1rem; }
-.lang-btn { font-size: 18px; padding: 4px 6px; border: 1.5px solid transparent; background: transparent; cursor: pointer; border-radius: 4px; opacity: 0.5; }
+.lang-btn { font-size: 18px; padding: 3px 5px; border: 1.5px solid transparent; background: transparent; cursor: pointer; border-radius: 4px; opacity: 0.6; line-height:1; }
 .lang-btn.active { opacity: 1; background: var(--paper-dark); border-color: var(--border-strong); }
 
 /* ── WhatsApp button ── */
@@ -853,8 +853,8 @@ const T = {
     scores: 'Puntajes', nextRound: 'Siguiente ronda →',
     endGame: 'Terminar', hostWait: 'Esperando al anfitrión…',
     leaderboard: 'Marcador', myGroup: 'Mi grupo', world: 'Mundial',
-    worldSub: 'los mejores jugadores del mundo',
-    noGroup: 'asigna un nombre de grupo para ver este marcador',
+    worldSub: t('worldSub'),
+    noGroup: t('noGroup'),
     noGroupGlobal: 'Aún no hay partidas registradas.',
     noGroupLocal: 'Aún no hay partidas para este grupo.',
     endGame2: '¡Fin del juego!', playAgain: 'Jugar de nuevo',
@@ -2760,9 +2760,9 @@ async function renderLb() {
   document.getElementById('btn-lb-global').style.color = G_lbTab==='global' ? 'var(--paper)' : '';
 
   if (G_lbTab === 'global') {
-    document.getElementById('lb-group-name').textContent = 'los mejores jugadores del mundo';
+    document.getElementById('lb-group-name').textContent = t('worldSub');
     const gSnap = await get(ref(db, 'global'));
-    if (!gSnap.exists()) { document.getElementById('lb-list').innerHTML = '<p class="wait">Aún no hay partidas registradas.</p>'; return; }
+    if (!gSnap.exists()) { document.getElementById('lb-list').innerHTML = `<p class="wait">${t('noGroupGlobal')}</p>`; return; }
     const data = gSnap.val();
     const sorted = Object.entries(data).sort((a,b)=>(b[1].wins||0)-(a[1].wins||0)).slice(0,20);
     document.getElementById('lb-list').innerHTML = sorted.map(([key,d],i) => {
@@ -2779,13 +2779,13 @@ async function renderLb() {
   } else {
     const group = G_lbRoom?.groupName || '';
     if (!group) {
-      document.getElementById('lb-group-name').textContent = 'asigna un nombre de grupo para ver este marcador';
-      document.getElementById('lb-list').innerHTML = '<p class="wait">Sin nombre de grupo.</p>'; return;
+      document.getElementById('lb-group-name').textContent = t('noGroup');
+      document.getElementById('lb-list').innerHTML = `<p class="wait">${t('noGroup')}</p>`; return;
     }
     document.getElementById('lb-group-name').textContent = '🎮 ' + group;
     const gKey = normalize(group).replace(/[^a-z0-9]/g,'_');
     const gSnap = await get(ref(db, 'groups/'+gKey));
-    if (!gSnap.exists()) { document.getElementById('lb-list').innerHTML = '<p class="wait">Aún no hay partidas para este grupo.</p>'; return; }
+    if (!gSnap.exists()) { document.getElementById('lb-list').innerHTML = `<p class="wait">${t('noGroupLocal')}</p>`; return; }
     const data = gSnap.val();
     const sorted = Object.entries(data).sort((a,b)=>(b[1].wins||0)-(a[1].wins||0));
     document.getElementById('lb-list').innerHTML = sorted.map(([key,d],i) => {
@@ -2793,7 +2793,7 @@ async function renderLb() {
       return `<div class="lb-row">
         <span>${MEDALS[i]||'  '} ${d.emoji||'🎲'} ${d.name||key}</span>
         <div class="lb-stats">
-          <span>🏆 ${d.wins||0} victorias</span>
+          <span>🏆 ${d.wins||0} ${t('wins')}</span>
           <span>🎮 ${d.games||0} partidas</span>
           <span class="lb-pts">${winRate}%</span>
         </div>
@@ -3184,6 +3184,7 @@ window.dbgRefresh = function() {
 
 // ══ END DEBUG MODE ═══════════════════════════════════════════════════════════
 
+
 // Init
 buildEmojiGrid();
 applyLang();
@@ -3206,6 +3207,37 @@ tryRestore();
   };
 })();
 
+
+// Replace flag emoji in lang buttons with SVG images (cross-platform)
+(function() {
+  const FLAGS = {
+    es: 'PD94bWwgdmVyc2lvbj0nMy4wJz48c3ZnIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgdmlld0JveD0iMCAwIDQ0IDMwIj48cmVjdCB3aWR0aD0iNDQiIGhlaWdodD0iMzAiIGZpbGw9IiNjNjBiMWUiLz48cmVjdCB5PSI3LjUiIHdpZHRoPSI0NCIgaGVpZ2h0PSIxNSIgZmlsbD0iI2ZmYzQwMCIvPjwvc3ZnPg==',
+  };
+  // Use URL-encoded SVGs to avoid base64 quote issues
+  const svgMap = {
+    es: '%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 44 30%22%3E%3Crect width=%2244%22 height=%2230%22 fill=%22%23c60b1e%22/%3E%3Crect y=%227.5%22 width=%2244%22 height=%2215%22 fill=%22%23ffc400%22/%3E%3C/svg%3E',
+    en: '%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 44 30%22%3E%3Crect width=%2244%22 height=%2230%22 fill=%22%23012169%22/%3E%3Cline x1=%220%22 y1=%220%22 x2=%2244%22 y2=%2230%22 stroke=%22white%22 stroke-width=%227%22/%3E%3Cline x1=%2244%22 y1=%220%22 x2=%220%22 y2=%2230%22 stroke=%22white%22 stroke-width=%227%22/%3E%3Cline x1=%220%22 y1=%220%22 x2=%2244%22 y2=%2230%22 stroke=%22%23C8102E%22 stroke-width=%224%22/%3E%3Cline x1=%2244%22 y1=%220%22 x2=%220%22 y2=%2230%22 stroke=%22%23C8102E%22 stroke-width=%224%22/%3E%3Crect x=%2218%22 y=%220%22 width=%228%22 height=%2230%22 fill=%22white%22/%3E%3Crect x=%220%22 y=%2211%22 width=%2244%22 height=%228%22 fill=%22white%22/%3E%3Crect x=%2219.5%22 y=%220%22 width=%225%22 height=%2230%22 fill=%22%23C8102E%22/%3E%3Crect x=%220%22 y=%2212.5%22 width=%2244%22 height=%225%22 fill=%22%23C8102E%22/%3E%3C/svg%3E',
+    fr: '%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 44 30%22%3E%3Crect width=%2244%22 height=%2230%22 fill=%22%23ED2939%22/%3E%3Crect width=%2229.5%22 height=%2230%22 fill=%22white%22/%3E%3Crect width=%2214.5%22 height=%2230%22 fill=%22%23002395%22/%3E%3C/svg%3E',
+    de: '%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 44 30%22%3E%3Crect width=%2244%22 height=%2230%22 fill=%22%23FFCE00%22/%3E%3Crect width=%2244%22 height=%2220%22 fill=%22%23DD0000%22/%3E%3Crect width=%2244%22 height=%2210%22 fill=%22%23000000%22/%3E%3C/svg%3E',
+    pt: '%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 44 30%22%3E%3Crect width=%2244%22 height=%2230%22 fill=%22%23009C3B%22/%3E%3Cpolygon points=%2222%2C3 41%2C15 22%2C27 3%2C15%22 fill=%22%23FEDF00%22/%3E%3Ccircle cx=%2222%22 cy=%2215%22 r=%227%22 fill=%22%23002776%22/%3E%3C/svg%3E',
+    it: '%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 44 30%22%3E%3Crect width=%2244%22 height=%2230%22 fill=%22%23CE2B37%22/%3E%3Crect width=%2229.5%22 height=%2230%22 fill=%22white%22/%3E%3Crect width=%2214.5%22 height=%2230%22 fill=%22%23009246%22/%3E%3C/svg%3E',
+  };
+  document.querySelectorAll('.lang-btn').forEach(btn => {
+    const onclick = btn.getAttribute('onclick') || '';
+    const m = onclick.match(/setLang\('([a-z]+)'\)/);
+    if (!m) return;
+    const lang = m[1];
+    if (!svgMap[lang]) return;
+    const img = document.createElement('img');
+    img.src = 'data:image/svg+xml,' + svgMap[lang];
+    img.width = 22;
+    img.height = 15;
+    img.alt = lang.toUpperCase();
+    img.style.cssText = 'vertical-align:middle;border-radius:2px;border:0.5px solid rgba(0,0,0,0.15);display:block';
+    btn.innerHTML = '';
+    btn.appendChild(img);
+  });
+})();
 // Init
 buildEmojiGrid();
 applyLang();
@@ -3215,7 +3247,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260831.2345</div>
+  <div style="font-size:9px;opacity:0.5">v260901.0930</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
@@ -3232,12 +3264,12 @@ tryRestore();
     <span style="color:#888;font-size:10px;flex-shrink:0">OPTS:</span>
     <!-- Language -->
     <select id="dbg-lang" onchange="dbgSetLang(this.value)" style="background:#16213e;border:1px solid #555;color:#eee;padding:2px 4px;border-radius:3px;font-size:10px;font-family:monospace">
-      <option value="es">🇪🇸 ES</option>
-      <option value="en">🇬🇧 EN</option>
-      <option value="fr">🇫🇷 FR</option>
-      <option value="de">🇩🇪 DE</option>
-      <option value="pt">🇧🇷 PT</option>
-      <option value="it">🇮🇹 IT</option>
+      <option value="es"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0NCAzMCI+PHJlY3Qgd2lkdGg9IjQ0IiBoZWlnaHQ9IjMwIiBmaWxsPSIjYzYwYjFlIi8+PHJlY3QgeT0iNy41IiB3aWR0aD0iNDQiIGhlaWdodD0iMTUiIGZpbGw9IiNmZmM0MDAiLz48L3N2Zz4=" width="22" height="15" alt="ES" style="vertical-align:middle;border-radius:2px;border:0.5px solid rgba(0,0,0,0.15)"> ES</option>
+      <option value="en"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0NCAzMCI+PHJlY3Qgd2lkdGg9IjQ0IiBoZWlnaHQ9IjMwIiBmaWxsPSIjMDEyMTY5Ii8+PGxpbmUgeDE9IjAiIHkxPSIwIiB4Mj0iNDQiIHkyPSIzMCIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSI3Ii8+PGxpbmUgeDE9IjQ0IiB5MT0iMCIgeDI9IjAiIHkyPSIzMCIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSI3Ii8+PGxpbmUgeDE9IjAiIHkxPSIwIiB4Mj0iNDQiIHkyPSIzMCIgc3Ryb2tlPSIjQzgxMDJFIiBzdHJva2Utd2lkdGg9IjQiLz48bGluZSB4MT0iNDQiIHkxPSIwIiB4Mj0iMCIgeTI9IjMwIiBzdHJva2U9IiNDODEwMkUiIHN0cm9rZS13aWR0aD0iNCIvPjxyZWN0IHg9IjE4IiB5PSIwIiB3aWR0aD0iOCIgaGVpZ2h0PSIzMCIgZmlsbD0id2hpdGUiLz48cmVjdCB4PSIwIiB5PSIxMSIgd2lkdGg9IjQ0IiBoZWlnaHQ9IjgiIGZpbGw9IndoaXRlIi8+PHJlY3QgeD0iMTkuNSIgeT0iMCIgd2lkdGg9IjUiIGhlaWdodD0iMzAiIGZpbGw9IiNDODEwMkUiLz48cmVjdCB4PSIwIiB5PSIxMi41IiB3aWR0aD0iNDQiIGhlaWdodD0iNSIgZmlsbD0iI0M4MTAyRSIvPjwvc3ZnPg==" width="22" height="15" alt="EN" style="vertical-align:middle;border-radius:2px;border:0.5px solid rgba(0,0,0,0.15)"> EN</option>
+      <option value="fr"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0NCAzMCI+PHJlY3Qgd2lkdGg9IjQ0IiBoZWlnaHQ9IjMwIiBmaWxsPSIjRUQyOTM5Ii8+PHJlY3Qgd2lkdGg9IjI5LjUiIGhlaWdodD0iMzAiIGZpbGw9IndoaXRlIi8+PHJlY3Qgd2lkdGg9IjE0LjUiIGhlaWdodD0iMzAiIGZpbGw9IiMwMDIzOTUiLz48L3N2Zz4=" width="22" height="15" alt="FR" style="vertical-align:middle;border-radius:2px;border:0.5px solid rgba(0,0,0,0.15)"> FR</option>
+      <option value="de"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0NCAzMCI+PHJlY3Qgd2lkdGg9IjQ0IiBoZWlnaHQ9IjMwIiBmaWxsPSIjRkZDRTAwIi8+PHJlY3Qgd2lkdGg9IjQ0IiBoZWlnaHQ9IjIwIiBmaWxsPSIjREQwMDAwIi8+PHJlY3Qgd2lkdGg9IjQ0IiBoZWlnaHQ9IjEwIiBmaWxsPSIjMDAwMDAwIi8+PC9zdmc+" width="22" height="15" alt="DE" style="vertical-align:middle;border-radius:2px;border:0.5px solid rgba(0,0,0,0.15)"> DE</option>
+      <option value="pt"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0NCAzMCI+PHJlY3Qgd2lkdGg9IjQ0IiBoZWlnaHQ9IjMwIiBmaWxsPSIjMDA5QzNCIi8+PHBvbHlnb24gcG9pbnRzPSIyMiwzIDQxLDE1IDIyLDI3IDMsMTUiIGZpbGw9IiNGRURGMDAiLz48Y2lyY2xlIGN4PSIyMiIgY3k9IjE1IiByPSI3IiBmaWxsPSIjMDAyNzc2Ii8+PC9zdmc+" width="22" height="15" alt="PT" style="vertical-align:middle;border-radius:2px;border:0.5px solid rgba(0,0,0,0.15)"> PT</option>
+      <option value="it"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0NCAzMCI+PHJlY3Qgd2lkdGg9IjQ0IiBoZWlnaHQ9IjMwIiBmaWxsPSIjQ0UyQjM3Ii8+PHJlY3Qgd2lkdGg9IjI5LjUiIGhlaWdodD0iMzAiIGZpbGw9IndoaXRlIi8+PHJlY3Qgd2lkdGg9IjE0LjUiIGhlaWdodD0iMzAiIGZpbGw9IiMwMDkyNDYiLz48L3N2Zz4=" width="22" height="15" alt="IT" style="vertical-align:middle;border-radius:2px;border:0.5px solid rgba(0,0,0,0.15)"> IT</option>
     </select>
     <!-- AI toggle -->
     <label style="color:#eee;font-size:10px;display:flex;align-items:center;gap:3px;cursor:pointer">
