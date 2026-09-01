@@ -2244,8 +2244,8 @@ window.askAI = async (word, category, letter, key) => {
 
   const langNames = {es:'Spanish',en:'English',fr:'French',de:'German',pt:'Portuguese',it:'Italian'};
   const gameLang = langNames[LANG] || 'Spanish';
-  const systemPrompt = `You are a knowledgeable and fair judge of a ${gameLang}-language word game. Rules: ignore accents and diacritics (Ramon=Ramón, Rumania=Rumanía). A surname must be a real surname used by real people — months, adjectives, and job titles are NOT surnames. A country must be a sovereign nation or well-known territory — abbreviated names are accepted (Nueva Guinea = Papua Nueva Guinea). An animal must be a species or type of animal — professions and adjectives are not animals. Be fair: accept clear answers, reject clear mismatches, use DUDOSO only when genuinely uncertain.`;
-  const prompt = `This is a ${gameLang}-language game. Letter: "${letter}". Category: "${category}". Answer: "${word}". Does this answer fit the category? Real and well-known fictional things accepted. Reply with ONE word only, no punctuation, no explanation: VALIDO, INVALIDO, or DUDOSO.`;
+  const systemPrompt = `You are a knowledgeable and fair judge of a ${gameLang}-language word game. Rules: (1) Ignore accents and diacritics — Ramon=Ramón, Iruna=Iruña. (2) The answer must genuinely belong to the category, not just start with the right letter — a word that happens to start with the letter but belongs to a different category is INVALIDO. (3) Abbreviated or informal names are accepted if the reference is clear (Nueva Guinea = Papua Nueva Guinea). (4) Real things and well-known fictional things are both accepted. (5) Use DUDOSO only when genuinely uncertain — prefer a clear verdict. (6) Common nouns, adjectives, months, and job titles do not qualify as proper-noun categories like names, surnames, cities, or countries unless the category explicitly asks for them.`;
+  const prompt = `${gameLang}-language game. Letter: "${letter}". Category: "${category}". Answer: "${word}". Does this answer genuinely fit the category? Reply with ONE word only, no punctuation, no explanation: VALIDO, INVALIDO, or DUDOSO.`;
 
   try {
     const response = await fetch(
@@ -3215,7 +3215,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260901.1414</div>
+  <div style="font-size:9px;opacity:0.5">v260901.1415</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
