@@ -430,6 +430,28 @@ button.stop-btn:hover { background: var(--red-dark); }
 .leave-link { text-align: center; margin-top: 1rem; }
 .leave-link button { font-size: 13px; color: var(--ink-muted); border: none; background: none; padding: 4px; font-family: 'Special Elite', monospace; }
 </style>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var S = ' style="display:block;border-radius:3px;border:0.5px solid rgba(0,0,0,0.15)"';
+  var FLAGS = {
+    es: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 30" width="28" height="19"'+S+'><rect width="44" height="30" fill="#c60b1e"/><rect y="7.5" width="44" height="15" fill="#ffc400"/></svg>',
+    en: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 30" width="28" height="19"'+S+'><rect width="44" height="30" fill="#012169"/><line x1="0" y1="0" x2="44" y2="30" stroke="white" stroke-width="7"/><line x1="44" y1="0" x2="0" y2="30" stroke="white" stroke-width="7"/><line x1="0" y1="0" x2="44" y2="30" stroke="#C8102E" stroke-width="4"/><line x1="44" y1="0" x2="0" y2="30" stroke="#C8102E" stroke-width="4"/><rect x="18" y="0" width="8" height="30" fill="white"/><rect x="0" y="11" width="44" height="8" fill="white"/><rect x="19.5" y="0" width="5" height="30" fill="#C8102E"/><rect x="0" y="12.5" width="44" height="5" fill="#C8102E"/></svg>',
+    fr: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 30" width="28" height="19"'+S+'><rect width="44" height="30" fill="#ED2939"/><rect width="29.5" height="30" fill="white"/><rect width="14.5" height="30" fill="#002395"/></svg>',
+    de: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 30" width="28" height="19"'+S+'><rect width="44" height="30" fill="#FFCE00"/><rect width="44" height="20" fill="#DD0000"/><rect width="44" height="10" fill="#000"/></svg>',
+    pt: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 30" width="28" height="19"'+S+'><rect width="44" height="30" fill="#009C3B"/><polygon points="22,3 41,15 22,27 3,15" fill="#FEDF00"/><circle cx="22" cy="15" r="7" fill="#002776"/></svg>',
+    it: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 30" width="28" height="19"'+S+'><rect width="44" height="30" fill="#CE2B37"/><rect width="29.5" height="30" fill="white"/><rect width="14.5" height="30" fill="#009246"/></svg>',
+  };
+  document.querySelectorAll('.lang-btn').forEach(function(btn) {
+    var m = (btn.getAttribute('onclick')||'').match(/setLang\('([a-z]+)'\)/);
+    if (m && FLAGS[m[1]]) {
+      btn.innerHTML = FLAGS[m[1]];
+      btn.style.padding = '2px 3px';
+      btn.style.lineHeight = '1';
+      btn.style.verticalAlign = 'middle';
+    }
+  });
+});
+</script>
 </head>
 <body>
 <div class="page">
@@ -3215,7 +3237,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260901.1200</div>
+  <div style="font-size:9px;opacity:0.5">v260901.1300</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
