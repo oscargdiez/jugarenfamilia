@@ -853,8 +853,8 @@ const T = {
     scores: 'Puntajes', nextRound: 'Siguiente ronda →',
     endGame: 'Terminar', hostWait: 'Esperando al anfitrión…',
     leaderboard: 'Marcador', myGroup: 'Mi grupo', world: 'Mundial',
-    worldSub: 'los mejores jugadores del mundo',
-    noGroup: 'asigna un nombre de grupo para ver este marcador',
+    worldSub: t('worldSub'),
+    noGroup: t('noGroup'),
     noGroupGlobal: 'Aún no hay partidas registradas.',
     noGroupLocal: 'Aún no hay partidas para este grupo.',
     endGame2: '¡Fin del juego!', playAgain: 'Jugar de nuevo',
@@ -2760,9 +2760,9 @@ async function renderLb() {
   document.getElementById('btn-lb-global').style.color = G_lbTab==='global' ? 'var(--paper)' : '';
 
   if (G_lbTab === 'global') {
-    document.getElementById('lb-group-name').textContent = 'los mejores jugadores del mundo';
+    document.getElementById('lb-group-name').textContent = t('worldSub');
     const gSnap = await get(ref(db, 'global'));
-    if (!gSnap.exists()) { document.getElementById('lb-list').innerHTML = '<p class="wait">Aún no hay partidas registradas.</p>'; return; }
+    if (!gSnap.exists()) { document.getElementById('lb-list').innerHTML = `<p class="wait">${t('noGroupGlobal')}</p>`; return; }
     const data = gSnap.val();
     const sorted = Object.entries(data).sort((a,b)=>(b[1].wins||0)-(a[1].wins||0)).slice(0,20);
     document.getElementById('lb-list').innerHTML = sorted.map(([key,d],i) => {
@@ -2779,13 +2779,13 @@ async function renderLb() {
   } else {
     const group = G_lbRoom?.groupName || '';
     if (!group) {
-      document.getElementById('lb-group-name').textContent = 'asigna un nombre de grupo para ver este marcador';
-      document.getElementById('lb-list').innerHTML = '<p class="wait">Sin nombre de grupo.</p>'; return;
+      document.getElementById('lb-group-name').textContent = t('noGroup');
+      document.getElementById('lb-list').innerHTML = `<p class="wait">${t('noGroup')}</p>`; return;
     }
     document.getElementById('lb-group-name').textContent = '🎮 ' + group;
     const gKey = normalize(group).replace(/[^a-z0-9]/g,'_');
     const gSnap = await get(ref(db, 'groups/'+gKey));
-    if (!gSnap.exists()) { document.getElementById('lb-list').innerHTML = '<p class="wait">Aún no hay partidas para este grupo.</p>'; return; }
+    if (!gSnap.exists()) { document.getElementById('lb-list').innerHTML = `<p class="wait">${t('noGroupLocal')}</p>`; return; }
     const data = gSnap.val();
     const sorted = Object.entries(data).sort((a,b)=>(b[1].wins||0)-(a[1].wins||0));
     document.getElementById('lb-list').innerHTML = sorted.map(([key,d],i) => {
@@ -2793,7 +2793,7 @@ async function renderLb() {
       return `<div class="lb-row">
         <span>${MEDALS[i]||'  '} ${d.emoji||'🎲'} ${d.name||key}</span>
         <div class="lb-stats">
-          <span>🏆 ${d.wins||0} victorias</span>
+          <span>🏆 ${d.wins||0} ${t('wins')}</span>
           <span>🎮 ${d.games||0} partidas</span>
           <span class="lb-pts">${winRate}%</span>
         </div>
@@ -3215,7 +3215,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260831.2345</div>
+  <div style="font-size:9px;opacity:0.5">v260831.2355</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
