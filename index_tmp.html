@@ -710,7 +710,7 @@ document.addEventListener('DOMContentLoaded', function() {
   </div>
   <div class="card">
     <p class="lbl" id="lbl-your-name">tu nombre</p>
-    <input type="text" id="inp-name" placeholder="María..." maxlength="20" autocomplete="nickname" inputmode="text" style="margin-bottom:14px">
+    <input type="text" id="inp-name" placeholder="María..." maxlength="20" autocomplete="nickname" inputmode="text" style="margin-bottom:14px" oninput="localStorage.setItem('alto_name', this.value.trim())">
     <p class="lbl" id="lbl-choose-emoji">elige tu emoji <span class="emoji-display" id="selected-emoji">🎲</span></p>
     <div class="emoji-grid" id="emoji-grid"></div>
     <div style="margin-top:14px;display:flex;flex-direction:column;gap:8px">
@@ -1910,8 +1910,13 @@ function updateShellHeader(screenId) {
 // Called when user taps the ¡Alto! logo in the shell header
 window.shellLogoClick = function() {
   if (G.screen === 'lobby') {
-    // Same as tapping leave room
     leaveGame();
+    return;
+  }
+  if (['daily-play','daily-result'].includes(G.screen)) {
+    clearInterval(G_daily.timerInterval);
+    setUrgencyPulse(false);
+    show('home');
     return;
   }
   const inGame = ['playing','validate','waiting','scores'].includes(G.screen);
@@ -2019,8 +2024,9 @@ let G_daily = {
 
 window.startDailyChallenge = function() {
   const key = getDailyKey();
+  const _debugMode = (G.playerName || document.getElementById('inp-name')?.value?.trim() || '') === '__debug__';
   const stored = localStorage.getItem('alto_daily_' + key);
-  if (stored) {
+  if (stored && !_debugMode) {
     // Already played today — show result directly
     try {
       const data = JSON.parse(stored);
@@ -2028,6 +2034,8 @@ window.startDailyChallenge = function() {
       return;
     } catch(e) {}
   }
+  // In debug mode, clear stored result so we can replay
+  if (_debugMode && stored) localStorage.removeItem('alto_daily_' + key);
 
   const setup = getDailySetup();
   G_daily.letter = setup.letter;
@@ -2119,15 +2127,24 @@ window.dailySubmit = async function() {
   });
   if (anyValid) score += speedBonus;
 
+  // Resolve player name — from G (if in room) or from home input / localStorage
+  const dailyPlayerName = G.playerName
+    || document.getElementById('inp-name')?.value?.trim()
+    || localStorage.getItem('alto_name')
+    || 'Anónimo';
+  const dailyPlayerEmoji = G.playerEmoji
+    || localStorage.getItem('alto_emoji')
+    || '🎲';
+
   // Save to localStorage
-  const saveData = { answers: G_daily.answers, score, aiResults, speedBonus, key: G_daily.key, lang: LANG };
+  const saveData = { answers: G_daily.answers, score, aiResults, speedBonus, key: G_daily.key, lang: LANG, playerName: dailyPlayerName, playerEmoji: dailyPlayerEmoji };
   localStorage.setItem('alto_daily_' + G_daily.key, JSON.stringify(saveData));
 
-  // Submit to Firebase
+  // Submit to Firebase — scoped by language
   try {
-    const playerKey = (G.playerName || 'Anónimo').replace(/[.#$\[\]\/]/g,'_') + '_' + Date.now();
-    const displayName = (G.playerName || 'Anónimo') + ' ' + (G.playerEmoji || '🎲');
-    const dailyRef = ref(db, 'daily/' + G_daily.key + '/scores/' + playerKey);
+    const playerKey = dailyPlayerName.replace(/[.#$\[\]\/]/g,'_') + '_' + Date.now();
+    const displayName = dailyPlayerName + ' ' + dailyPlayerEmoji;
+    const dailyRef = ref(db, 'daily/' + G_daily.key + '/' + LANG + '/scores/' + playerKey);
     await set(dailyRef, { name: displayName, score, timestamp: Date.now(), lang: LANG });
   } catch(e) { console.warn('Daily Firebase write failed:', e); }
 
@@ -2213,7 +2230,7 @@ async function loadDailyLeaderboard(key, myScore) {
   if (!lbEl) return;
   lbEl.innerHTML = `<div style="font-family:'Special Elite',monospace;font-size:11px;color:var(--ink-muted);text-align:center;padding:8px">cargando…</div>`;
   try {
-    const snap = await get(ref(db, 'daily/' + key + '/scores'));
+    const snap = await get(ref(db, 'daily/' + key + '/' + LANG + '/scores'));
     if (!snap.exists()) { lbEl.innerHTML = '<div style="text-align:center;opacity:0.5;font-size:13px">Sin resultados aún</div>'; return; }
     const scores = snap.val();
     const entries = Object.values(scores)
@@ -4028,7 +4045,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260902.5-tmp</div>
+  <div style="font-size:9px;opacity:0.5">v260902.7-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
