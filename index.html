@@ -63,6 +63,7 @@ body {
     0deg, transparent, transparent 31px,
     var(--paper-line) 31px, var(--paper-line) 32px
   );
+  overflow-y: scroll;
 }
 .page { max-width: 560px; margin: 0 auto; padding: 2rem 1.25rem 5rem; overflow: visible; }
 
@@ -192,12 +193,108 @@ button.stop-btn:hover { background: var(--red-dark); }
   font-family: 'Special Elite', monospace;
   font-size: 32px;
   color: var(--ink);
+  min-width: 52px;
+  text-align: left;
+  display: inline-block;
+  vertical-align: middle;
+  line-height: 1;
 }
 .timer.urgent { color: var(--red); }
 
-/* ── Top bar ── */
+/* ── Top bar (in-screen, playing only) ── */
 .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; position: sticky; top: 0; z-index: 100; background: var(--paper); padding: 8px 0; margin-left: -1.25rem; margin-right: -1.25rem; padding-left: 1.25rem; padding-right: 1.25rem; border-bottom: 1px dashed var(--border); backdrop-filter: blur(4px); }
 .rnd-info { font-family: 'Caveat', cursive; font-size: 16px; color: var(--ink-sec); }
+
+/* ── Shell header (always visible) ── */
+#shell-header {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 300;
+  background: var(--paper);
+  border-bottom: 1px dashed var(--border);
+  backdrop-filter: blur(6px);
+  height: 50px;
+}
+#shell-header-inner {
+  max-width: 560px; margin: 0 auto;
+  display: grid; grid-template-columns: 80px 1fr 80px; align-items: center;
+  padding: 0 1.25rem; height: 100%; position: relative;
+}
+#shell-logo {
+  font-family: 'Caveat', cursive; font-size: 26px; font-weight: 700;
+  color: var(--red); line-height: 1; text-decoration: none;
+  cursor: pointer; border: none; background: none; padding: 0;
+}
+#shell-center {
+  display: flex; align-items: center; gap: 8px;
+  font-family: 'Caveat', cursive; font-size: 15px; color: var(--ink-sec);
+  flex: 1; justify-content: center; min-width: 0; overflow: hidden;
+  align-self: stretch;
+}
+#shell-letter-badge {
+  font-family: 'Caveat', cursive; font-size: 22px; font-weight: 700;
+  color: var(--red); background: var(--red-light);
+  border: 1.5px solid var(--red); border-radius: 6px;
+  padding: 0px 8px; line-height: 1.4; display: none;
+}
+#shell-round-info {
+  font-family: 'Caveat', cursive; font-size: 15px; color: var(--ink-sec);
+  display: none;
+}
+#shell-right {
+  display: flex; align-items: center; gap: 6px; justify-content: flex-end;
+}
+#shell-room-pill {
+  font-family: 'Special Elite', monospace; font-size: 11px;
+  color: var(--ink-sec); background: var(--paper-dark);
+  border: 1.5px solid var(--border); border-radius: 20px;
+  padding: 3px 10px; display: none;
+  white-space: nowrap; letter-spacing: 1px;
+}
+#shell-help-btn {
+  font-size: 15px; padding: 3px 9px;
+  border: 1.5px solid var(--border-strong); border-radius: 4px;
+  background: transparent; color: var(--ink-sec); cursor: pointer;
+  font-family: 'Special Elite', monospace; line-height: 1.3; letter-spacing: 0;
+}
+#shell-help-btn:hover { background: var(--paper-dark); color: var(--ink); }
+
+/* ── Help overlay — full screen ── */
+#help-overlay {
+  display: none; position: fixed; inset: 0; z-index: 400;
+  background: var(--paper);
+  flex-direction: column;
+}
+#help-overlay.open { display: flex; }
+#help-panel {
+  flex: 1; overflow-y: auto;
+  padding: 1.25rem 1.25rem 3rem;
+  max-width: 560px; width: 100%; margin: 0 auto;
+}
+#help-panel-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 1.25rem; padding-top: 0.25rem;
+}
+#help-panel-title {
+  font-family: 'Caveat', cursive; font-size: 26px; font-weight: 700; color: var(--ink);
+}
+#help-panel-close {
+  font-family: 'Special Elite', monospace; font-size: 13px;
+  padding: 5px 12px; border: 1.5px solid var(--border-strong);
+  border-radius: 4px; background: transparent; color: var(--ink-sec); cursor: pointer;
+  letter-spacing: 1px;
+}
+
+/* Shell flags — sit at content left edge on home/welcome */
+#shell-flags { display: none; align-items: center; gap: 2px; }
+#shell-flags .lang-btn { font-size: 15px; padding: 2px 3px; border: 1.5px solid transparent; background: transparent; cursor: pointer; border-radius: 4px; opacity: 0.5; }
+#shell-flags .lang-btn.active { opacity: 1; background: var(--paper-dark); border-color: var(--border-strong); }
+
+/* Hide shell logo on home/welcome — space reserved but invisible */
+body.screen-home #shell-logo, body.screen-welcome #shell-logo { visibility: hidden; pointer-events: none; }
+/* Show flags on home/welcome — absolutely positioned over logo slot at content edge */
+body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex !important; position: absolute; left: 1.25rem; }
+
+/* Offset page content so it doesn't hide under shell header */
+.page { max-width: 560px; margin: 0 auto; padding: 2rem 1.25rem 5rem; overflow: visible; padding-top: calc(2rem + 50px); }
 
 /* ── Answer rows ── */
 .ans-grid { display: grid; gap: 4px; }
@@ -316,6 +413,21 @@ button.stop-btn:hover { background: var(--red-dark); }
 .dict-result .dict-loading { color: var(--ink-muted); font-style: italic; }
 .dict-result .dict-error { color: var(--danger); font-style: italic; }
 
+/* ── Urgency pulse overlay ── */
+#urgency-overlay {
+  position: fixed; inset: 0; z-index: 150;
+  background: var(--red);
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.1s;
+}
+@keyframes urgencyPulse {
+  0%, 100% { opacity: 0; }
+  50%       { opacity: 0.08; }
+}
+#urgency-overlay.pulsing {
+  animation: urgencyPulse 0.9s ease-in-out infinite;
+}
+
 /* ── Confetti ── */
 .confetti-stage { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 998; overflow: hidden; }
 .confetti-piece { position: absolute; top: -20px; font-size: 18px; animation: confettiFall linear forwards; }
@@ -429,6 +541,26 @@ button.stop-btn:hover { background: var(--red-dark); }
 /* ── Leave link ── */
 .leave-link { text-align: center; margin-top: 1rem; }
 .leave-link button { font-size: 13px; color: var(--ink-muted); border: none; background: none; padding: 4px; font-family: 'Special Elite', monospace; }
+
+/* ── Config toggle ── */
+.config-toggle {
+  width: 100%; background: transparent; border: 1.5px dashed var(--border-strong);
+  color: var(--ink-sec); font-family: 'Special Elite', monospace; font-size: 13px;
+  padding: 10px; border-radius: var(--radius); cursor: pointer;
+  letter-spacing: 1px; display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.config-toggle:hover { background: var(--paper-dark); }
+.config-body { display: none; margin-top: 8px; }
+.config-body.open { display: block; }
+
+/* ── Styled leave button ── */
+.btn-leave-room {
+  width: 100%; background: transparent; border: 1.5px solid var(--border);
+  color: var(--ink-sec); font-family: 'Caveat', cursive; font-size: 17px;
+  padding: 11px; border-radius: var(--radius); cursor: pointer; margin-top: 8px;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.btn-leave-room:hover { background: var(--paper-dark); border-color: var(--border-strong); }
 </style>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -441,7 +573,7 @@ document.addEventListener('DOMContentLoaded', function() {
     pt: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 30" width="28" height="19"'+S+'><rect width="44" height="30" fill="#009C3B"/><polygon points="22,3 41,15 22,27 3,15" fill="#FEDF00"/><circle cx="22" cy="15" r="7" fill="#002776"/></svg>',
     it: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 30" width="28" height="19"'+S+'><rect width="44" height="30" fill="#CE2B37"/><rect width="29.5" height="30" fill="white"/><rect width="14.5" height="30" fill="#009246"/></svg>',
   };
-  document.querySelectorAll('.lang-btn').forEach(function(btn) {
+  document.querySelectorAll('.lang-btn, #shell-flags .lang-btn').forEach(function(btn) {
     var m = (btn.getAttribute('onclick')||'').match(/setLang\('([a-z]+)'\)/);
     if (m && FLAGS[m[1]]) {
       btn.innerHTML = FLAGS[m[1]];
@@ -456,11 +588,47 @@ document.addEventListener('DOMContentLoaded', function() {
 <body>
 <div class="page">
 <div class="reactions-stage" id="reactions-stage"></div>
-<div id="fixed-topbar" style="display:none;position:fixed;top:0;left:0;right:0;z-index:200;background:#f7f3e8;padding:10px 1.25rem;border-bottom:1px dashed #d4c9b0;max-width:560px;margin:0 auto;display:none;flex-direction:row;justify-content:space-between;align-items:center;">
-  <span class="rnd-info"><span id="ft-rnd-word">ronda</span> <span id="ft-rnd-cur">1</span> <span id="ft-rnd-of">de</span> <span id="ft-rnd-tot">5</span></span>
-  <span class="timer" id="ft-timer">60</span>
+<!-- ══ SHELL HEADER (always visible) ══ -->
+<div id="shell-header">
+  <div id="shell-header-inner">
+    <div style="display:flex;align-items:center">
+      <button id="shell-logo" onclick="shellLogoClick()">¡Alto!</button>
+      <div id="shell-flags">
+        <button class="lang-btn active" onclick="setLang('es')" title="Español">🇪🇸</button>
+        <button class="lang-btn" onclick="setLang('en')" title="English">🇬🇧</button>
+        <button class="lang-btn" onclick="setLang('fr')" title="Français">🇫🇷</button>
+        <button class="lang-btn" onclick="setLang('de')" title="Deutsch">🇩🇪</button>
+        <button class="lang-btn" onclick="setLang('pt')" title="Português">🇧🇷</button>
+        <button class="lang-btn" onclick="setLang('it')" title="Italiano">🇮🇹</button>
+      </div>
+    </div>
+    <div id="shell-center">
+      <span id="shell-letter-badge"></span>
+      <span id="shell-round-info"></span>
+      <span class="timer" id="ft-timer" style="display:none"></span>
+    </div>
+    <div id="shell-right">
+      <span id="shell-room-pill"></span>
+      <button id="shell-help-btn" onclick="shellHelpOpen()">?</button>
+    </div>
+  </div>
 </div>
+
+<!-- ══ HELP OVERLAY ══ -->
+<div id="help-overlay">
+  <div id="help-panel">
+    <div id="help-panel-header">
+      <span id="help-panel-title">❓ Ayuda</span>
+      <button id="help-panel-close" onclick="shellHelpClose()">Cerrar</button>
+    </div>
+    <div id="help-panel-body"></div>
+  </div>
+</div>
+
+<!-- legacy id kept for startTimer compat -->
+<div id="fixed-topbar" style="display:none"></div>
 <div class="confetti-stage" id="confetti-stage"></div>
+<div id="urgency-overlay"></div>
 <div id="toast"></div>
 
 <!-- ══ QUICK JOIN (when arriving via link) ══ -->
@@ -482,40 +650,35 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <!-- ══ HOME ══ -->
 <div id="s-home" class="screen on">
-  <div class="lang-bar">
-    <button class="lang-btn active" onclick="setLang('es')" title="Español">🇪🇸</button>
-    <button class="lang-btn" onclick="setLang('en')" title="English">🇬🇧</button>
-    <button class="lang-btn" onclick="setLang('fr')" title="Français">🇫🇷</button>
-    <button class="lang-btn" onclick="setLang('de')" title="Deutsch">🇩🇪</button>
-    <button class="lang-btn" onclick="setLang('pt')" title="Português">🇧🇷</button>
-    <button class="lang-btn" onclick="setLang('it')" title="Italiano">🇮🇹</button>
-  </div>
   <div class="logo-wrap">
     <span class="logo-main">¡Alto!</span>
     <div class="logo-rule"></div>
     <div class="logo-sub">JUGARENFAMILIA.ES</div>
-    <div class="logo-tag">el juego de siempre, con los de siempre</div>
+    <div class="logo-tag" id="welcome-logo-tag">el juego de siempre, con los de siempre</div>
   </div>
   <div class="card">
     <p class="lbl" id="lbl-your-name">tu nombre</p>
     <input type="text" id="inp-name" placeholder="María..." maxlength="20" autocomplete="nickname" inputmode="text" style="margin-bottom:14px">
     <p class="lbl" id="lbl-choose-emoji">elige tu emoji <span class="emoji-display" id="selected-emoji">🎲</span></p>
     <div class="emoji-grid" id="emoji-grid"></div>
-    <div style="margin-top:14px">
-      <button class="pri" onclick="createRoom()" style="width:100%;font-size:20px;padding:14px;margin-bottom:8px" id="btn-create">Crear sala →</button>
+    <div style="margin-top:14px;display:flex;flex-direction:column;gap:8px">
+      <button class="pri" onclick="createRoom()" style="width:100%;font-size:20px;padding:14px" id="btn-create">Crear sala →</button>
+      <div style="font-family:'Special Elite',monospace;font-size:10px;color:var(--ink-muted);text-align:center;letter-spacing:1px;margin:-2px 0 2px" id="lbl-create-sub">MULTIJUGADOR · CON FAMILIA Y AMIGOS</div>
+      <button onclick="startDailyChallenge()" style="width:100%;font-size:18px;padding:12px;border-color:var(--border-strong)" id="btn-daily">📅 <span id="btn-daily-text">Reto diario · cargando…</span></button>
+      <div style="font-family:'Special Elite',monospace;font-size:10px;color:var(--ink-muted);text-align:center;letter-spacing:1px;margin:-2px 0 2px" id="lbl-daily-sub">TÚ CONTRA EL MUNDO · UN RETO POR DÍA</div>
     </div>
   </div>
-
-  <button class="rules-toggle" id="rules-btn" onclick="toggleRules()">▼ ¿Cómo se juega?</button>
-  <div class="rules-box" id="rules-box"></div>
 
   <div class="brand-footer" id="footer-noreg">SIN REGISTRO · SIN DESCARGAS · GRATIS</div>
 </div>
 
 <!-- ══ WELCOME BACK ══ -->
 <div id="s-welcome" class="screen">
-  <div class="logo-wrap" style="margin-bottom:1rem">
-    <span class="logo-main" style="font-size:48px">¡Alto!</span>
+  <div class="logo-wrap">
+    <span class="logo-main">¡Alto!</span>
+    <div class="logo-rule"></div>
+    <div class="logo-sub">JUGARENFAMILIA.ES</div>
+    <div class="logo-tag" id="welcome-logo-tag">el juego de siempre, con los de siempre</div>
   </div>
   <div class="card">
     <div class="welcome-avatar" id="wb-emoji">🎲</div>
@@ -530,11 +693,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <!-- ══ LOBBY ══ -->
 <div id="s-lobby" class="screen">
-  <div class="logo-wrap" style="margin-bottom:1rem">
-    <span class="logo-main" style="font-size:48px">¡Alto!</span>
-  </div>
-  <p class="sub" id="lob-role" style="text-align:center"></p>
+  <p class="sub" id="lob-role" style="text-align:center;margin-top:0.5rem;margin-bottom:1rem"></p>
 
+  <!-- Host: share code -->
   <div class="card host-only" style="display:none">
     <p class="lbl" id="lbl-share-code">comparte el código con tu familia</p>
     <div class="room-code" id="lob-code">----</div>
@@ -568,11 +729,13 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
   </div>
 
+  <!-- Players -->
   <div class="card">
     <p class="lbl" id="lbl-players">jugadores</p>
     <div class="chips" id="lob-players"></div>
   </div>
 
+  <!-- Host panel -->
   <div id="host-panel" style="display:none">
     <div class="card">
       <p class="lbl" id="lbl-group-name">nombre del grupo</p>
@@ -582,81 +745,83 @@ document.addEventListener('DOMContentLoaded', function() {
         <div class="group-suggestions" id="group-suggestions" style="display:none"></div>
       </div>
     </div>
-    <div class="card">
-      <p class="lbl" id="lbl-theme">tema</p>
-      <div class="themes" id="theme-btns"></div>
-      <div id="cat-custom" style="display:none">
-        <p class="lbl" style="margin-top:6px">categorías</p>
-        <div class="cat-grid" id="cat-grid"></div>
-      </div>
-      <div id="cat-free" style="display:none">
-        <p class="lbl" id="lbl-cat-free" style="margin-top:6px">escribe tus categorías (una por línea)</p>
-        <textarea id="free-cats" rows="5" placeholder="Jugadores del Barça&#10;Películas de terror&#10;Cosas en la cocina"></textarea>
-      </div>
-    </div>
-
-    <div class="card">
-      <p class="lbl">letras fáciles <span style="font-size:11px;opacity:.7" id="lbl-easy-hint">(sin K, Ñ, Q, U, W, X, Y, Z)</span></p>
-      <label class="cat-lbl">
-        <input type="checkbox" id="easy-letters" checked onchange="toggleEasyLetters(this.checked)">
-        <span id="lbl-easy-letters">solo letras fáciles</span>
-      </label>
-      <p class="lbl" style="margin-top:14px" id="lbl-rounds">rondas</p>
-      <div class="range-row">
-        <input type="range" min="3" max="12" value="5" id="sl-rounds" oninput="document.getElementById('v-rounds').textContent=this.value">
-        <span class="range-val" id="v-rounds">5</span>
-      </div>
-      <p class="lbl" style="margin-top:14px" id="lbl-seconds">segundos por ronda</p>
-      <div class="range-row">
-        <input type="range" min="30" max="120" step="10" value="90" id="sl-time" oninput="document.getElementById('v-time').textContent=this.value">
-        <span class="range-val" id="v-time">90</span>
-      </div>
-      <p class="lbl" style="margin-top:14px" id="lbl-penalty">penalización por ¡Alto! inválido</p>
-      <div class="range-row">
-        <input type="range" min="0" max="200" step="50" value="50" id="sl-penalty" oninput="document.getElementById('v-penalty').textContent=this.value">
-        <span class="range-val" id="v-penalty">50</span>
-      </div>
-      
-      <div style="margin-top:16px;border-top:1px dashed var(--border);padding-top:12px">
-        <p class="lbl" id="lbl-ai-validation" style="margin-bottom:6px"><span id="lbl-ai-validation-text">🔍 Validación automática</span></p>
-        <div style="display:flex;gap:6px;margin-bottom:8px">
-          <button id="ai-off" onclick="setAIEnabled(false)" style="font-size:12px;padding:4px 10px;border-radius:20px;border:1.5px solid #c0392b;background:#fdf0ee;cursor:pointer">OFF</button>
-          <button id="ai-on" onclick="setAIEnabled(true)" style="font-size:12px;padding:4px 10px;border-radius:20px;border:1.5px solid var(--border-strong);background:var(--paper-dark);cursor:pointer">ON</button>
-        </div>
-        <div id="ai-strictness-section" style="display:none;margin-bottom:12px">
-          <div style="display:flex;gap:6px;margin-bottom:8px">
-            <button id="ai-relajado" onclick="setAIStrictness('relajado')" style="font-size:12px;padding:4px 10px;border-radius:20px;border:1.5px solid #c0392b;background:#fdf0ee;cursor:pointer">🟢 Relajada</button>
-            <button id="ai-estricto" onclick="setAIStrictness('estricto')" style="font-size:12px;padding:4px 10px;border-radius:20px;border:1.5px solid var(--border-strong);background:var(--paper-dark);cursor:pointer">🔴 Estricta</button>
-          </div>
-          <p class="lbl" style="margin-bottom:4px"><span id="lbl-ai-spelling-text">✏️ Permitir faltas de ortografía</span></p>
-          <div style="display:flex;gap:6px">
-            <button id="ai-spelling-no" onclick="setAISpelling(false)" style="font-size:12px;padding:4px 10px;border-radius:20px;border:1.5px solid #c0392b;background:#fdf0ee;cursor:pointer"><span id="lbl-ai-no">No</span></button>
-            <button id="ai-spelling-si" onclick="setAISpelling(true)" style="font-size:12px;padding:4px 10px;border-radius:20px;border:1.5px solid var(--border-strong);background:var(--paper-dark);cursor:pointer"><span id="lbl-ai-yes">Sí</span></button>
-          </div>
-        </div>
-        <button onclick="promptExperimental()" style="width:100%;background:transparent;border:1px dashed var(--border-strong);color:var(--ink-muted);font-family:'Special Elite',monospace;font-size:11px;padding:7px;border-radius:var(--radius);cursor:pointer;letter-spacing:1px" id="btn-experimental">⚗️ FUNCIONES EXPERIMENTALES</button>
-        <div id="experimental-panel" style="display:none;margin-top:10px">
-          <p class="lbl" style="margin-bottom:6px">🗳️ Modo democrático <span style="font-size:9px;background:var(--paper-dark);padding:1px 5px;border-radius:3px;font-family:'Special Elite',monospace">EN PRUEBAS</span></p>
-          <div style="display:flex;gap:6px">
-            <button id="mode-host" onclick="setValidationMode('host')" style="font-size:12px;padding:4px 10px;border-radius:20px;border:1.5px solid #c0392b;background:#fdf0ee;cursor:pointer">👑 Normal</button>
-            <button id="mode-democratic" onclick="setValidationMode('democratic')" style="font-size:12px;padding:4px 10px;border-radius:20px;border:1.5px solid var(--border-strong);background:var(--paper-dark);cursor:pointer">🗳️ Democrático</button>
-          </div>
-        </div>
-      </div>
-    </div>
     <button class="pri" onclick="startGame()" style="width:100%;font-size:22px;padding:14px" id="btn-start">¡Comenzar! →</button>
+    <button class="btn-leave-room" onclick="leaveGame()" id="btn-leave">← <span id="btn-leave-text">Salir de la sala</span></button>
+    <button class="config-toggle" id="btn-config-toggle" onclick="toggleLobbyConfig()" style="margin-top:12px">
+      <span id="config-toggle-icon">▼</span>&nbsp;<span id="btn-config-label">⚙️ Configuración</span>
+    </button>
+    <div class="config-body" id="config-body">
+      <div class="card">
+        <p class="lbl" id="lbl-theme">tema</p>
+        <div class="themes" id="theme-btns"></div>
+        <div id="cat-custom" style="display:none">
+          <p class="lbl" style="margin-top:6px">categorías</p>
+          <div class="cat-grid" id="cat-grid"></div>
+        </div>
+        <div id="cat-free" style="display:none">
+          <p class="lbl" id="lbl-cat-free" style="margin-top:6px">escribe tus categorías (una por línea)</p>
+          <textarea id="free-cats" rows="5" placeholder="Jugadores del Barça&#10;Películas de terror&#10;Cosas en la cocina"></textarea>
+        </div>
+      </div>
+      <div class="card">
+        <p class="lbl">letras fáciles <span style="font-size:11px;opacity:.7" id="lbl-easy-hint">(sin K, Ñ, Q, U, W, X, Y, Z)</span></p>
+        <label class="cat-lbl">
+          <input type="checkbox" id="easy-letters" checked onchange="toggleEasyLetters(this.checked)">
+          <span id="lbl-easy-letters">solo letras fáciles</span>
+        </label>
+        <p class="lbl" style="margin-top:14px" id="lbl-rounds">rondas</p>
+        <div class="range-row">
+          <input type="range" min="3" max="12" value="5" id="sl-rounds" oninput="document.getElementById('v-rounds').textContent=this.value">
+          <span class="range-val" id="v-rounds">5</span>
+        </div>
+        <p class="lbl" style="margin-top:14px" id="lbl-seconds">segundos por ronda</p>
+        <div class="range-row">
+          <input type="range" min="30" max="120" step="10" value="90" id="sl-time" oninput="document.getElementById('v-time').textContent=this.value">
+          <span class="range-val" id="v-time">90</span>
+        </div>
+        <p class="lbl" style="margin-top:14px" id="lbl-penalty">penalización por ¡Alto! inválido</p>
+        <div class="range-row">
+          <input type="range" min="0" max="200" step="50" value="50" id="sl-penalty" oninput="document.getElementById('v-penalty').textContent=this.value">
+          <span class="range-val" id="v-penalty">50</span>
+        </div>
+        <div style="margin-top:16px;border-top:1px dashed var(--border);padding-top:12px">
+          <p class="lbl" id="lbl-ai-validation" style="margin-bottom:6px"><span id="lbl-ai-validation-text">🔍 Validación automática</span></p>
+          <div style="display:flex;gap:6px;margin-bottom:8px">
+            <button id="ai-off" onclick="setAIEnabled(false)" style="font-size:12px;padding:4px 10px;border-radius:20px;border:1.5px solid #c0392b;background:#fdf0ee;cursor:pointer">OFF</button>
+            <button id="ai-on" onclick="setAIEnabled(true)" style="font-size:12px;padding:4px 10px;border-radius:20px;border:1.5px solid var(--border-strong);background:var(--paper-dark);cursor:pointer">ON</button>
+          </div>
+          <div id="ai-strictness-section" style="display:none;margin-bottom:12px">
+            <div style="display:flex;gap:6px;margin-bottom:8px">
+              <button id="ai-relajado" onclick="setAIStrictness('relajado')" style="font-size:12px;padding:4px 10px;border-radius:20px;border:1.5px solid #c0392b;background:#fdf0ee;cursor:pointer">🟢 Relajada</button>
+              <button id="ai-estricto" onclick="setAIStrictness('estricto')" style="font-size:12px;padding:4px 10px;border-radius:20px;border:1.5px solid var(--border-strong);background:var(--paper-dark);cursor:pointer">🔴 Estricta</button>
+            </div>
+            <p class="lbl" style="margin-bottom:4px"><span id="lbl-ai-spelling-text">✏️ Permitir faltas de ortografía</span></p>
+            <div style="display:flex;gap:6px">
+              <button id="ai-spelling-no" onclick="setAISpelling(false)" style="font-size:12px;padding:4px 10px;border-radius:20px;border:1.5px solid #c0392b;background:#fdf0ee;cursor:pointer"><span id="lbl-ai-no">No</span></button>
+              <button id="ai-spelling-si" onclick="setAISpelling(true)" style="font-size:12px;padding:4px 10px;border-radius:20px;border:1.5px solid var(--border-strong);background:var(--paper-dark);cursor:pointer"><span id="lbl-ai-yes">Sí</span></button>
+            </div>
+          </div>
+          <button onclick="promptExperimental()" style="width:100%;background:transparent;border:1px dashed var(--border-strong);color:var(--ink-muted);font-family:'Special Elite',monospace;font-size:11px;padding:7px;border-radius:var(--radius);cursor:pointer;letter-spacing:1px" id="btn-experimental">⚗️ FUNCIONES EXPERIMENTALES</button>
+          <div id="experimental-panel" style="display:none;margin-top:10px">
+            <p class="lbl" style="margin-bottom:6px">🗳️ Modo democrático <span style="font-size:9px;background:var(--paper-dark);padding:1px 5px;border-radius:3px;font-family:'Special Elite',monospace">EN PRUEBAS</span></p>
+            <div style="display:flex;gap:6px">
+              <button id="mode-host" onclick="setValidationMode('host')" style="font-size:12px;padding:4px 10px;border-radius:20px;border:1.5px solid #c0392b;background:#fdf0ee;cursor:pointer">👑 Normal</button>
+              <button id="mode-democratic" onclick="setValidationMode('democratic')" style="font-size:12px;padding:4px 10px;border-radius:20px;border:1.5px solid var(--border-strong);background:var(--paper-dark);cursor:pointer">🗳️ Democrático</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
+  <!-- Guest panel -->
   <div id="guest-panel" style="display:none">
     <p class="wait" id="lbl-guest-wait">✏️ Esperando al anfitrión…</p>
-  </div>
-  <div class="leave-link">
-    <button onclick="leaveGame()" id="btn-leave">salir de la sala</button>
+    <button class="btn-leave-room" onclick="leaveGame()" id="btn-leave">← <span id="btn-leave-text">Salir de la sala</span></button>
   </div>
 </div>
-
 <!-- ══ PLAYING ══ -->
-<div id="s-playing" class="screen" style="padding-top:60px">
+<div id="s-playing" class="screen">
   <div class="topbar" id="topbar" style="display:none">
     <span class="rnd-info"><span id="lbl-rnd-word">ronda</span> <span id="rnd-cur">1</span> <span id="lbl-rnd-of">de</span> <span id="rnd-tot">5</span></span>
     <span class="timer" id="timer">60</span>
@@ -693,8 +858,8 @@ document.addEventListener('DOMContentLoaded', function() {
 </div>
 
 <!-- ══ SCORES ══ -->
-<div id="s-scores" class="screen">
-  <h1><span id="lbl-scores-title">Puntajes</span> <span id="sc-badge" style="font-size:16px;font-weight:400;color:var(--ink-sec);font-family:'Special Elite',monospace"></span></h1>
+<div id="s-scores" class="screen" style="padding-top:1px">
+  <h1><span id="lbl-scores-title">Puntuación</span> <span id="sc-badge" style="font-size:16px;font-weight:400;color:var(--ink-sec);font-family:'Special Elite',monospace"></span></h1>
   <div class="card" id="sc-list"></div>
   <div class="btn-row" style="margin-top:10px" id="sc-btns"></div>
 </div>
@@ -712,7 +877,7 @@ document.addEventListener('DOMContentLoaded', function() {
 </div>
 
 <!-- ══ FINAL ══ -->
-<div id="s-final" class="screen">
+<div id="s-final" class="screen" style="padding-top:1px">
   <h1 id="lbl-final-title">¡Fin del juego!</h1>
   <div class="winner" id="winner-line"></div>
   <div class="card" id="final-list"></div>
@@ -872,10 +1037,10 @@ const T = {
     stop: '¡ A L T O !',
     review: 'Revisar',
     reviewSub: '✕ para anular · única = 100 · repetida = 50 · anulada = 0',
-    calculate: 'Calcular puntajes →', stopCallerMsg: '{name} llamó al ¡Alto!', timerRanOut: 'se acabó el tiempo',
+    calculate: 'Calcular puntuación →', stopCallerMsg: '{name} llamó al ¡Alto!', timerRanOut: 'se acabó el tiempo',
     submitted: 'Respuestas enviadas',
     hostReviewing: 'el anfitrión está revisando',
-    scores: 'Puntajes', nextRound: 'Siguiente ronda →',
+    scores: 'Puntuación', nextRound: 'Siguiente ronda →',
     endGame: 'Terminar', hostWait: 'Esperando al anfitrión…',
     leaderboard: 'Marcador', myGroup: 'Mi grupo', world: 'Mundial',
     worldSub: 'los mejores jugadores del mundo',
@@ -893,10 +1058,17 @@ const T = {
     toastCats: 'Selecciona al menos una categoría',
     toastFreeCats: 'Escribe al menos 2 categorías',
     toastHostOnly: 'Solo el anfitrión puede reiniciar',
-    continueBtn: 'Continuar →', notMe: 'No soy yo — cambiar', groupHint2: 'familia, amigos, trabajo... como queráis', easyHint: '(sin K, Ñ, Q, U, W, X, Y, Z)', validate: 'Revisar', validateSub1: 'buscar en Wikipedia · ✕ anular', validateSub2: 'única = 100 pts · repetida = 50 pts · anulada = 0 pts', submitted2: 'Respuestas enviadas', hostReviewing2: 'el anfitrión está revisando', leaderboardBack: '← volver', loading: 'Cargando…', final2: '¡Fin del juego!', searching: 'Buscando...', hostSearching: 'El anfitrión está buscando...', rndLabel: 'ronda', of: 'de', freeCatLabel: 'escreve as tuas categorias (uma por linha)', freeCatPlaceholder: 'Jogadores do Barça\nFilmes de terror\nCoisas na cozinha', freeCatLabel: 'escribe tus categorías (una por línea)', freeCatPlaceholder: 'Jugadores del Barça\nPelículas de terror\nCosas en la cocina', of: 'de', freeCatLabel: 'escreve as tuas categorias (uma por linha)', freeCatPlaceholder: 'Jogadores do Barça\nFilmes de terror\nCoisas na cozinha', freeCatLabel: 'escribe tus categorías (una por línea)', freeCatPlaceholder: 'Jugadores del Barça\nPelículas de terror\nCosas en la cocina', letterLabel: 'letra', calculate: 'Calcular puntajes →', stopCallerMsg: '{name} llamó al ¡Alto!', timerRanOut: 'se acabó el tiempo', scoresTitle: 'Puntajes', lbTitle: 'Marcador',
+    continueBtn: 'Continuar →', notMe: 'No soy yo — cambiar', groupHint2: 'familia, amigos, trabajo... como queráis', easyHint: '(sin K, Ñ, Q, U, W, X, Y, Z)', validate: 'Revisar', validateSub1: 'buscar en Wikipedia · ✕ anular', validateSub2: 'única = 100 pts · repetida = 50 pts · anulada = 0 pts', submitted2: 'Respuestas enviadas', hostReviewing2: 'el anfitrión está revisando', leaderboardBack: '← volver', loading: 'Cargando…', final2: '¡Fin del juego!', searching: 'Buscando...', hostSearching: 'El anfitrión está buscando...', rndLabel: 'ronda', of: 'de', freeCatLabel: 'escreve as tuas categorias (uma por linha)', freeCatPlaceholder: 'Jogadores do Barça\nFilmes de terror\nCoisas na cozinha', freeCatLabel: 'escribe tus categorías (una por línea)', freeCatPlaceholder: 'Jugadores del Barça\nPelículas de terror\nCosas en la cocina', of: 'de', freeCatLabel: 'escreve as tuas categorias (uma por linha)', freeCatPlaceholder: 'Jogadores do Barça\nFilmes de terror\nCoisas na cozinha', freeCatLabel: 'escribe tus categorías (una por línea)', freeCatPlaceholder: 'Jugadores del Barça\nPelículas de terror\nCosas en la cocina', letterLabel: 'letra', calculate: 'Calcular puntuación →', stopCallerMsg: '{name} llamó al ¡Alto!', timerRanOut: 'se acabó el tiempo', scoresTitle: 'Puntuación', lbTitle: 'Marcador',
     invited: '¡Te han invitado a jugar!', rulesBtn: '¿Cómo se juega?', expBtn: '⚗️ FUNCIONES EXPERIMENTALES', aiValidation: '🔍 Validación automática', aiRelajado: '🟢 Relajada', aiEstricto: '🔴 Estricta', aiSpelling: '✏️ Permitir faltas de ortografía', aiYes: 'Sí', aiNo: 'No', modeHost: '👑 Normal', modeDemocratic: '🗳️ Democrático', invalidated: 'anulada', winnerLine: '{emoji} {name} gana con {pts} puntos!', wrongPwd: '❌ Contraseña incorrecta', expActivated: '⚗️ Funciones experimentales activadas', qjCodeLabel: 'sala:', gcInside: '✅ ESTÁS DENTRO', inviteMore: '+ ¿Quieres invitar a alguien más?',
     toastBack: 'Volviendo como', notFoundWord: '📭 No se encontró', didYouMean: '¿Quisiste decir', noDefinition: '📭 Sin definición para',
     waMsg: '¡Juega conmigo al ¡Alto! 🎮 Únete aquí:',
+    createSub: 'MULTIJUGADOR · CON FAMILIA Y AMIGOS', configLabel: '⚙️ Configuración', leaveRoom2: 'Salir de la sala',
+    dailySub: 'TÚ CONTRA EL MUNDO · UN RETO POR DÍA',
+    rulesTitle: 'Reglas del juego',
+    shellLeave: '¿Salir de la partida?',
+    shellLeaveConfirm: 'Perderás tu progreso en esta ronda.',
+    shellLeaveYes: 'Salir', shellLeaveNo: 'Seguir jugando',
+    toastRoomCopied: '¡Enlace copiado!',
   },
   en: {
     tagline: 'the classic game, with the people you love',
@@ -947,6 +1119,13 @@ const T = {
     invited: "You've been invited to play!", rulesBtn: 'How to play?', expBtn: '⚗️ EXPERIMENTAL FEATURES', aiValidation: '🔍 Automatic validation', aiRelajado: '🟢 Relaxed', aiEstricto: '🔴 Strict', aiSpelling: '✏️ Allow spelling mistakes', aiYes: 'Yes', aiNo: 'No', modeHost: '👑 Normal', modeDemocratic: '🗳️ Democratic', invalidated: 'invalid', winnerLine: '{emoji} {name} wins with {pts} points!', wrongPwd: '❌ Wrong password', expActivated: '⚗️ Experimental features activated', qjCodeLabel: 'room:', gcInside: "✅ YOU'RE IN", inviteMore: '+ Want to invite someone?',
     toastBack: 'Rejoining as', notFoundWord: '📭 Not found', didYouMean: 'Did you mean', noDefinition: '📭 No definition for',
     waMsg: 'Play Stop! with me 🎮 Join here:',
+    createSub: 'MULTIPLAYER · WITH FAMILY & FRIENDS', configLabel: '⚙️ Settings', leaveRoom2: 'Leave room',
+    dailySub: 'YOU VS THE WORLD · ONE CHALLENGE A DAY',
+    rulesTitle: 'How to play',
+    shellLeave: 'Leave the game?',
+    shellLeaveConfirm: 'You will lose your progress this round.',
+    shellLeaveYes: 'Leave', shellLeaveNo: 'Keep playing',
+    toastRoomCopied: 'Link copied!',
   },
   fr: {
     tagline: "le jeu de toujours, avec ceux qu'on aime",
@@ -997,6 +1176,13 @@ const T = {
     invited: 'Tu as été invité à jouer!', rulesBtn: 'Comment jouer?', expBtn: '⚗️ FONCTIONS EXPÉRIMENTALES', aiValidation: '🔍 Validation automatique', aiRelajado: '🟢 Détendue', aiEstricto: '🔴 Stricte', aiSpelling: '✏️ Autoriser les fautes d\'orthographe', aiYes: 'Oui', aiNo: 'Non', modeHost: '👑 Normal', modeDemocratic: '🗳️ Démocratique', invalidated: 'annulée', winnerLine: '{emoji} {name} gagne avec {pts} points!', wrongPwd: '❌ Mot de passe incorrect', expActivated: '⚗️ Fonctions expérimentales activées', qjCodeLabel: 'salle:', gcInside: '✅ VOUS ÊTES DEDANS', inviteMore: "+ Inviter quelqu'un d'autre?",
     toastBack: 'Reconnexion en tant que', notFoundWord: '📭 Introuvable', didYouMean: 'Vouliez-vous dire', noDefinition: '📭 Aucune définition pour',
     waMsg: 'Joue au Stop! avec moi 🎮 Rejoins ici:',
+    createSub: 'MULTIJOUEUR · EN FAMILLE ET ENTRE AMIS', configLabel: '⚙️ Paramètres', leaveRoom2: 'Quitter la salle',
+    dailySub: 'TOI CONTRE LE MONDE · UN DÉFI PAR JOUR',
+    rulesTitle: 'Règles du jeu',
+    shellLeave: 'Quitter la partie?',
+    shellLeaveConfirm: 'Tu perdras ta progression dans ce tour.',
+    shellLeaveYes: 'Quitter', shellLeaveNo: 'Continuer',
+    toastRoomCopied: 'Lien copié!',
   },
   de: {
     tagline: 'das Spiel von damals, mit den Liebsten',
@@ -1047,6 +1233,13 @@ const T = {
     invited: 'Du wurdest eingeladen zu spielen!', rulesBtn: 'Wie spielt man?', expBtn: '⚗️ EXPERIMENTELLE FUNKTIONEN', aiValidation: '🔍 Automatische Validierung', aiRelajado: '🟢 Locker', aiEstricto: '🔴 Streng', aiSpelling: '✏️ Rechtschreibfehler erlauben', aiYes: 'Ja', aiNo: 'Nein', modeHost: '👑 Normal', modeDemocratic: '🗳️ Demokratisch', invalidated: 'ungültig', winnerLine: '{emoji} {name} gewinnt mit {pts} Punkten!', wrongPwd: '❌ Falsches Passwort', expActivated: '⚗️ Experimentelle Funktionen aktiviert', qjCodeLabel: 'Raum:', gcInside: '✅ DU BIST DRIN', inviteMore: '+ Jemanden einladen?',
     toastBack: 'Wiederbeitritt als', notFoundWord: '📭 Nicht gefunden', didYouMean: 'Meinten Sie', noDefinition: '📭 Keine Definition fuer',
     waMsg: 'Spiel Stop! mit mir 🎮 Tritt hier bei:',
+    createSub: 'MEHRSPIELER · MIT FAMILIE UND FREUNDEN', configLabel: '⚙️ Einstellungen', leaveRoom2: 'Raum verlassen',
+    dailySub: 'DU GEGEN DIE WELT · EINE AUFGABE PRO TAG',
+    rulesTitle: 'Spielregeln',
+    shellLeave: 'Spiel verlassen?',
+    shellLeaveConfirm: 'Du verlierst deinen Fortschritt in dieser Runde.',
+    shellLeaveYes: 'Verlassen', shellLeaveNo: 'Weiterspielen',
+    toastRoomCopied: 'Link kopiert!',
   },
   pt: {
     tagline: 'o jogo de sempre, com quem mais importa',
@@ -1097,6 +1290,13 @@ const T = {
     invited: 'Foste convidado a jogar!', rulesBtn: 'Como se joga?', expBtn: '⚗️ FUNÇÕES EXPERIMENTAIS', aiValidation: '🔍 Validação automática', aiRelajado: '🟢 Relaxada', aiEstricto: '🔴 Estrita', aiSpelling: '✏️ Permitir erros ortográficos', aiYes: 'Sim', aiNo: 'Não', modeHost: '👑 Normal', modeDemocratic: '🗳️ Democrático', invalidated: 'anulada', winnerLine: '{emoji} {name} ganha com {pts} pontos!', wrongPwd: '❌ Palavra-passe incorreta', expActivated: '⚗️ Funções experimentais ativadas', qjCodeLabel: 'sala:', gcInside: '✅ ESTÁS DENTRO', inviteMore: '+ Queres convidar alguém?',
     toastBack: 'A voltar como', notFoundWord: '📭 Nao encontrado', didYouMean: 'Quiseste dizer', noDefinition: '📭 Sem definicao para',
     waMsg: 'Joga Stop! comigo 🎮 Junta-te aqui:',
+    createSub: 'MULTIJOGADOR · COM FAMÍLIA E AMIGOS', configLabel: '⚙️ Configuração', leaveRoom2: 'Sair da sala',
+    dailySub: 'TU CONTRA O MUNDO · UM DESAFIO POR DIA',
+    rulesTitle: 'Regras do jogo',
+    shellLeave: 'Sair do jogo?',
+    shellLeaveConfirm: 'Vais perder o teu progresso nesta ronda.',
+    shellLeaveYes: 'Sair', shellLeaveNo: 'Continuar a jogar',
+    toastRoomCopied: 'Link copiado!',
   },
   it: {
     tagline: 'il gioco di sempre, con chi vuoi bene',
@@ -1147,6 +1347,13 @@ const T = {
     invited: 'Sei stato invitato a giocare!', rulesBtn: 'Come si gioca?', expBtn: '⚗️ FUNZIONI SPERIMENTALI', aiValidation: '🔍 Validazione automatica', aiRelajado: '🟢 Rilassata', aiEstricto: '🔴 Rigorosa', aiSpelling: '✏️ Permettere errori ortografici', aiYes: 'Sì', aiNo: 'No', modeHost: '👑 Normale', modeDemocratic: '🗳️ Democratico', invalidated: 'annullata', winnerLine: '{emoji} {name} vince con {pts} punti!', wrongPwd: '❌ Password errata', expActivated: '⚗️ Funzioni sperimentali attivate', qjCodeLabel: 'stanza:', gcInside: '✅ SEI DENTRO', inviteMore: '+ Vuoi invitare qualcuno?',
     toastBack: 'Riconnessione come', notFoundWord: '📭 Non trovato', didYouMean: 'Intendevi', noDefinition: '📭 Nessuna definizione per',
     waMsg: 'Gioca a Stop! con me 🎮 Unisciti qui:',
+    createSub: 'MULTIGIOCATORE · CON FAMIGLIA E AMICI', configLabel: '⚙️ Impostazioni', leaveRoom2: 'Esci dalla stanza',
+    dailySub: 'TU CONTRO IL MONDO · UNA SFIDA AL GIORNO',
+    rulesTitle: 'Regole del gioco',
+    shellLeave: 'Uscire dal gioco?',
+    shellLeaveConfirm: 'Perderai i progressi in questo round.',
+    shellLeaveYes: 'Esci', shellLeaveNo: 'Continua a giocare',
+    toastRoomCopied: 'Link copiato!',
   },
 };
 
@@ -1159,17 +1366,22 @@ window.setLang = function(lang) {
   localStorage.setItem('alto_lang', lang);
   document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.getAttribute('onclick').includes("'"+lang+"'")));
   applyLang();
+  // SVG flags for shell flags bar
+  document.querySelectorAll('#shell-flags .lang-btn').forEach(function(btn) {
+    var m = (btn.getAttribute('onclick')||'').match(/setLang\('([a-z]+)'\)/);
+    if (m) btn.classList.toggle('active', m[1] === lang);
+  });
 }
 
 
 function rulesHTML() {
   const rules = {
-    es: { h: '¿Cómo se juega?', r1: 'Se elige una letra al azar para cada ronda', r2: 'Rellena todas las categorías con palabras que empiecen por esa letra — ¡lo más rápido posible!', r3: 'El primero en terminar grita ¡Alto! y todos paran', s: 'Puntuación:', u: 'Respuesta única', d: 'Respuesta repetida', e: 'Sin respuesta' },
-    en: { h: 'How to play?', r1: 'A random letter is chosen for each round', r2: 'Fill all categories with words starting with that letter — as fast as you can!', r3: 'The first to finish shouts Stop! and everyone stops', s: 'Scoring:', u: 'Unique answer', d: 'Duplicate answer', e: 'No answer' },
-    fr: { h: 'Comment jouer?', r1: 'Une lettre aléatoire est choisie pour chaque manche', r2: 'Remplis toutes les catégories avec des mots commençant par cette lettre — le plus vite possible!', r3: 'Le premier à finir crie Stop! et tout le monde s\'arrête', s: 'Points:', u: 'Réponse unique', d: 'Réponse en double', e: 'Sans réponse' },
-    de: { h: 'Wie spielt man?', r1: 'Für jede Runde wird ein zufälliger Buchstabe gewählt', r2: 'Fülle alle Kategorien mit Wörtern aus die mit diesem Buchstaben beginnen — so schnell wie möglich!', r3: 'Der Erste der fertig ist ruft Stop! und alle hören auf', s: 'Punkte:', u: 'Einmalige Antwort', d: 'Doppelte Antwort', e: 'Keine Antwort' },
-    pt: { h: 'Como se joga?', r1: 'É escolhida uma letra aleatória para cada ronda', r2: 'Preenche todas as categorias com palavras que comecem por essa letra — o mais rápido possível!', r3: 'O primeiro a terminar grita Para! e todos param', s: 'Pontuação:', u: 'Resposta única', d: 'Resposta repetida', e: 'Sem resposta' },
-    it: { h: 'Come si gioca?', r1: 'Viene scelta una lettera casuale per ogni round', r2: 'Riempi tutte le categorie con parole che iniziano con quella lettera — il più veloce possibile!', r3: 'Il primo a finire grida Stop! e tutti si fermano', s: 'Punteggio:', u: 'Risposta unica', d: 'Risposta ripetuta', e: 'Senza risposta' },
+    es: { h: 'Reglas del juego', r1: 'Se elige una letra al azar para cada ronda', r2: 'Rellena todas las categorías con palabras que empiecen por esa letra — ¡lo más rápido posible!', r3: 'El primero en terminar pulsa ¡Alto! para terminar la ronda', s: 'Puntuación:', u: 'Respuesta única', d: 'Respuesta repetida', e: 'Sin respuesta', penalty: '⚠️ Si pulsas ¡Alto! y todas tus respuestas son inválidas, pierdes puntos como penalización.' },
+    en: { h: 'How to play', r1: 'A random letter is chosen for each round', r2: 'Fill all categories with words starting with that letter — as fast as you can!', r3: 'The first to finish taps Stop! to end the round', s: 'Scoring:', u: 'Unique answer', d: 'Duplicate answer', e: 'No answer', penalty: '⚠️ If you tap Stop! and all your answers are invalid, you lose points as a penalty.' },
+    fr: { h: 'Règles du jeu', r1: 'Une lettre aléatoire est choisie pour chaque manche', r2: 'Remplis toutes les catégories avec des mots commençant par cette lettre — le plus vite possible!', r3: 'Le premier à finir appuie sur Stop! pour terminer la manche', s: 'Points:', u: 'Réponse unique', d: 'Réponse en double', e: 'Sans réponse', penalty: "⚠️ Si tu appuies sur Stop! et que toutes tes réponses sont invalides, tu perds des points en pénalité." },
+    de: { h: 'Spielregeln', r1: 'Für jede Runde wird ein zufälliger Buchstabe gewählt', r2: 'Fülle alle Kategorien mit Wörtern aus die mit diesem Buchstaben beginnen — so schnell wie möglich!', r3: 'Der Erste der fertig ist drückt Stop! um die Runde zu beenden', s: 'Punkte:', u: 'Einmalige Antwort', d: 'Doppelte Antwort', e: 'Keine Antwort', penalty: '⚠️ Wenn du Stop! drückst und alle deine Antworten ungültig sind, verlierst du Punkte als Strafe.' },
+    pt: { h: 'Regras do jogo', r1: 'É escolhida uma letra aleatória para cada ronda', r2: 'Preenche todas as categorias com palavras que comecem por essa letra — o mais rápido possível!', r3: 'O primeiro a terminar prime ¡Alto! para terminar a ronda', s: 'Pontuação:', u: 'Resposta única', d: 'Resposta repetida', e: 'Sem resposta', penalty: '⚠️ Se premires ¡Alto! e todas as tuas respostas forem inválidas, perdes pontos como penalização.' },
+    it: { h: 'Regole del gioco', r1: 'Viene scelta una lettera casuale per ogni round', r2: 'Riempi tutte le categorie con parole che iniziano con quella lettera — il più veloce possibile!', r3: 'Il primo a finire preme Stop! per terminare il round', s: 'Punteggio:', u: 'Risposta unica', d: 'Risposta ripetuta', e: 'Senza risposta', penalty: '⚠️ Se premi Stop! e tutte le tue risposte sono invalide, perdi punti come penalità.' },
   };
   const r = rules[LANG] || rules.es;
   return `
@@ -1182,9 +1394,7 @@ function rulesHTML() {
       <div class="rules-score-row"><span>${r.d}</span><span class="rules-pts">50 pts</span></div>
       <div class="rules-score-row"><span>${r.e}</span><span class="rules-pts">0 pts</span></div>
     </div>
-    <div style="margin-top:14px;padding-top:14px;border-top:1px dashed var(--border-strong)">
-      ${helpHTML()}
-    </div>`;
+    <div style="margin-top:10px;padding:8px 10px;background:var(--paper-dark);border-radius:var(--radius);font-family:'Special Elite',monospace;font-size:12px;color:var(--ink-sec);line-height:1.5">${r.penalty}</div>`;
 }
 
 window.toggleRules = () => {
@@ -1333,11 +1543,11 @@ window.applyLang = function() {
     if (ph) el.placeholder = ph;
   }
   // Home
-  const tagEl = document.querySelector('.logo-tag'); if(tagEl) tagEl.textContent = t('tagline');
+  document.querySelectorAll('.logo-tag').forEach(el => el.textContent = t('tagline'));
   s('inp-name', null, t('namePlaceholder'));
   s('lbl-your-name', t('yourName'));
   s('lbl-choose-emoji', t('chooseEmoji') + ' ');
-  s('btn-create', t('createRoom'));
+  s('btn-create', t('createRoom') + ' →');
   s('rules-btn', '▼ ' + t('rulesBtn'));
   s('btn-enter', t('enter'));
   s('footer-noreg', t('noReg'));
@@ -1361,6 +1571,8 @@ window.applyLang = function() {
   s('lbl-penalty', t('penalty'));
   s('btn-start', t('start'));
   s('btn-leave', t('leaveRoom'));
+  s('btn-leave-text', t('leaveRoom2') || t('leaveRoom'));
+  s('btn-config-label', t('configLabel'));
   s('btn-experimental', t('expBtn'));
   s('gc-status', t('gcInside'));
   s('mode-host', t('modeHost'));
@@ -1425,6 +1637,16 @@ window.applyLang = function() {
   applyQuickJoinLang();
   document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.getAttribute('onclick').includes("'"+LANG+"'")));
   if (typeof applyQuickJoinLang === 'function') applyQuickJoinLang();
+  // Shell header strings
+  s('lbl-create-sub', t('createSub'));
+  s('lbl-daily-sub', t('dailySub'));
+  s('help-panel-title', t('rulesTitle'));
+  // Daily button date
+  updateDailyButtonDate();
+  // Shell round info (if in game)
+  const rndCur = document.getElementById('rnd-cur')?.textContent;
+  const rndTot = document.getElementById('rnd-tot')?.textContent;
+  if (rndCur && rndTot) updateShellRound(rndCur, rndTot);
 }
 
 window.toggleInvite = () => {
@@ -1559,9 +1781,132 @@ window.show = function(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('on'));
   document.getElementById('s-'+id).classList.add('on');
   G.screen = id;
-  // Hide fixed topbar when not on playing screen
-  const ftb = document.getElementById('fixed-topbar');
-  if (ftb) ftb.style.display = id === 'playing' ? 'flex' : 'none';
+  // Set body class for CSS screen-specific rules
+  document.body.className = document.body.className.replace(/\bscreen-\S+/g, '').trim();
+  document.body.classList.add('screen-' + id);
+  updateShellHeader(id);
+  // Sync shell flags active state with current lang
+  document.querySelectorAll('#shell-flags .lang-btn').forEach(b =>
+    b.classList.toggle('active', b.getAttribute('onclick').includes("'"+LANG+"'"))
+  );
+}
+
+function updateShellHeader(screenId) {
+  const letterBadge  = document.getElementById('shell-letter-badge');
+  const roundInfo    = document.getElementById('shell-round-info');
+  const ftTimer      = document.getElementById('ft-timer');
+  const roomPill     = document.getElementById('shell-room-pill');
+
+  // Letter badge + timer: only during playing
+  const isPlaying = screenId === 'playing';
+  if (letterBadge) letterBadge.style.display = isPlaying ? 'inline-block' : 'none';
+  if (ftTimer)     ftTimer.style.display      = isPlaying ? 'inline-block' : 'none';
+
+  // Round info: playing + validate + waiting (useful context)
+  const showRound = ['playing','validate','waiting'].includes(screenId);
+  if (roundInfo) roundInfo.style.display = showRound ? 'inline' : 'none';
+
+  // Room pill: only during playing screens (lobby has code visible)
+  const inGame = ['playing','validate','waiting','scores'].includes(screenId);
+  if (roomPill) {
+    if (inGame && G.roomCode) {
+      roomPill.style.display = 'inline-block';
+      roomPill.textContent = '#' + G.roomCode;
+    } else {
+      roomPill.style.display = 'none';
+    }
+  }
+}
+
+// Called when user taps the ¡Alto! logo in the shell header
+window.shellLogoClick = function() {
+  if (G.screen === 'lobby') {
+    // Same as tapping leave room
+    leaveGame();
+    return;
+  }
+  const inGame = ['playing','validate','waiting','scores'].includes(G.screen);
+  if (!inGame) return;
+  if (confirm(t('shellLeave') + '\n\n' + t('shellLeaveConfirm'))) {
+    leaveGame();
+  }
+}
+
+// Room pill is a non-interactive badge — copy is handled in lobby
+
+// Help overlay
+window.shellHelpOpen = function() {
+  const overlay  = document.getElementById('help-overlay');
+  const body     = document.getElementById('help-panel-body');
+  const title    = document.getElementById('help-panel-title');
+  const closeBtn = document.getElementById('help-panel-close');
+  if (title) title.textContent = t('rulesTitle');
+  const closeLabels = {es:'Cerrar',en:'Close',fr:'Fermer',de:'Schließen',pt:'Fechar',it:'Chiudi'};
+  if (closeBtn) closeBtn.textContent = closeLabels[LANG] || closeLabels.es;
+  if (body) body.innerHTML = rulesHTML() + '<div style="margin-top:1.5rem;border-top:2px dashed var(--border);padding-top:1.25rem">' + helpHTML() + '</div>';
+  if (overlay) overlay.classList.add('open');
+}
+window.shellHelpClose = function() {
+  document.getElementById('help-overlay')?.classList.remove('open');
+}
+
+// Update shell letter badge when playing starts
+function updateShellLetter(letter) {
+  const badge = document.getElementById('shell-letter-badge');
+  if (badge) badge.textContent = letter;
+}
+
+// Update shell round info
+function updateShellRound(cur, tot) {
+  const info = document.getElementById('shell-round-info');
+  if (info) info.textContent = t('rndLabel') + ' ' + cur + ' ' + t('of') + ' ' + tot;
+}
+
+
+window.toggleLobbyConfig = function() {
+  const body = document.getElementById('config-body');
+  const icon = document.getElementById('config-toggle-icon');
+  const isOpen = body.classList.toggle('open');
+  if (icon) icon.textContent = isOpen ? '▲' : '▼';
+};
+
+// ── Daily challenge helpers ────────────────────────────
+function getDailyDateString() {
+  const now = new Date();
+  const localeMap = { es:'es-ES', en:'en-GB', fr:'fr-FR', de:'de-DE', pt:'pt-BR', it:'it-IT' };
+  const locale = localeMap[LANG] || 'es-ES';
+  // Day + month name, no year
+  const day = now.getDate();
+  const month = now.toLocaleDateString(locale, { month: 'long' });
+
+  if (LANG === 'en') {
+    // English: ordinal suffix
+    const s = ['th','st','nd','rd'];
+    const v = day % 100;
+    const suffix = s[(v-20)%10] || s[v] || s[0];
+    // Capitalise month
+    return month.charAt(0).toUpperCase() + month.slice(1) + ' ' + day + suffix;
+  } else if (LANG === 'de') {
+    return day + '. ' + month.charAt(0).toUpperCase() + month.slice(1);
+  } else {
+    // es, fr, pt, it: "2 de septiembre" / "2 septembre" / "2 settembre"
+    const ofWord = { es:' de ', fr:' ', pt:' de ', it:' ', de:'. ' };
+    return day + (ofWord[LANG]||' de ') + month;
+  }
+}
+
+function updateDailyButtonDate() {
+  const span = document.getElementById('btn-daily-text');
+  if (!span) return;
+  const labels = { es:'Reto diario', en:'Daily challenge', fr:'Défi du jour', de:'Tagesrätsel', pt:'Desafio diário', it:'Sfida del giorno' };
+  const label = labels[LANG] || labels.es;
+  span.textContent = label + ' · ' + getDailyDateString();
+}
+
+// Stub — full implementation next session
+window.startDailyChallenge = function() {
+  const msgs = { es:'¡Reto diario próximamente! 🎯', en:'Daily challenge coming soon! 🎯', fr:'Défi du jour bientôt disponible! 🎯', de:'Tagesrätsel kommt bald! 🎯', pt:'Desafio diário em breve! 🎯', it:'Sfida del giorno in arrivo! 🎯' };
+  toast(msgs[LANG] || msgs.es);
 }
 
 function toast(msg) {
@@ -1828,6 +2173,8 @@ function enterPlaying(room) {
   const ftTot = document.getElementById('ft-rnd-tot'); if(ftTot) ftTot.textContent = room.rounds;
   const rndLbl = document.getElementById('lbl-round-of'); if(rndLbl) rndLbl.textContent = t('of');
   document.getElementById('cur-letter').textContent = room.currentLetter;
+  updateShellLetter(room.currentLetter);
+  updateShellRound(room.currentRound, room.rounds);
   const stopBtn = document.querySelector('.stop-btn');
   if (stopBtn) stopBtn.style.display = '';
   document.getElementById('ans-inputs').innerHTML = (room.categories||[]).map(cat =>
@@ -1842,22 +2189,31 @@ function enterPlaying(room) {
   startTimer(remaining);
 }
 
+function setUrgencyPulse(on) {
+  const ov = document.getElementById('urgency-overlay');
+  if (ov) ov.classList.toggle('pulsing', on);
+}
+
 function startTimer(secs) {
   clearInterval(G.timerInterval);
+  setUrgencyPulse(false);
   let t = secs;
   const el = document.getElementById('timer');
-  el.classList.remove('urgent'); el.textContent = t;
+  if (el) { el.classList.remove('urgent'); el.textContent = t; }
   const ftEl = document.getElementById('ft-timer');
+  if (ftEl) { ftEl.classList.remove('urgent'); ftEl.textContent = t; }
   G.timerInterval = setInterval(async () => {
     t--;
     if (el) { el.textContent = t; if (t<=10) el.classList.add('urgent'); }
     if (ftEl) { ftEl.textContent = t; if (t<=10) ftEl.classList.add('urgent'); else ftEl.classList.remove('urgent'); }
-    if (t<=0) { clearInterval(G.timerInterval); await doSubmit(null,true); }
+    if (t<=10) setUrgencyPulse(true);
+    if (t<=0) { clearInterval(G.timerInterval); setUrgencyPulse(false); await doSubmit(null,true); }
   }, 1000);
 }
 
 window.callStop = async () => {
   clearInterval(G.timerInterval);
+  setUrgencyPulse(false);
   const snap = await get(roomRef(G.roomCode));
   const room = snap.val();
   if (!room.calledStop) await update(roomRef(G.roomCode), {calledStop:true, stopCaller:G.playerName});
@@ -1868,6 +2224,7 @@ async function doSubmit(room, timeUp=false) {
   if (G.submitted) return;
   G.submitted = true;
   clearInterval(G.timerInterval);
+  setUrgencyPulse(false);
   if (!room) { const s = await get(roomRef(G.roomCode)); room = s.val(); }
   const answers = {};
   (room.categories||[]).forEach(cat => {
@@ -3244,6 +3601,7 @@ window.dbgRefresh = function() {
 // ══ END DEBUG MODE ═══════════════════════════════════════════════════════════
 
 // Init
+document.body.classList.add('screen-home');
 buildEmojiGrid();
 applyLang();
 document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.getAttribute('onclick').includes("'"+LANG+"'")));
@@ -3274,7 +3632,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260901.1427</div>
+  <div style="font-size:9px;opacity:0.5">v260902.1</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>

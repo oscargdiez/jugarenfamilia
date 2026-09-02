@@ -63,7 +63,14 @@ CNAME     www  oscargdiez.github.io
 
 ## 🚀 Deploy Workflow
 
-Claude ALWAYS provides `jugarenfamilia.html` + `gitinfo.txt` together. Claude ALWAYS states the version number when deploying.
+Claude ALWAYS provides `jugarenfamilia.html` + `gitinfo.txt` together.
+
+### Staging workflow (index_tmp.html)
+- Claude produces `jugarenfamilia_tmp.html` + `gitinfo_tmp.txt`
+- Drop both to Downloads, run `deploy_tmp.bat`
+- Test at `jugarenfamilia.es/index_tmp.html`
+- When happy: Claude produces `jugarenfamilia.html` + `gitinfo.txt`, deploy normally
+- `deploy_tmp.bat` and `deploy2.bat` are in `D:\09_ALTO\` Claude ALWAYS states the version number when deploying.
 
 1. Download both files to `C:\Users\User\Downloads\`
 2. Double-click `D:\09_ALTO\deploy.bat`
@@ -208,7 +215,7 @@ assert len(c) < 250000
 
 ## 🗺 Flagged for Future Discussion
 
-- **Daily Challenge mode — READY TO BUILD** — solo, bypasses room setup entirely. Easy letters only, preset. 6 categories drawn randomly per day from vetted pool. Deterministic from date — same puzzle for everyone worldwide. Scoring: word length + speed bonus + originality vs other submissions. AI validation solves answer-checking — no predefined keys needed. Universal categories, same list for all languages, AI validates in game language.
+- **Daily Challenge mode — READY TO BUILD (Session 7)** — solo, bypasses room setup entirely. Easy letters only, preset. 6 categories drawn randomly per day from vetted pool. Deterministic from date — same puzzle for everyone worldwide. Scoring: word length + speed bonus + originality vs other submissions. AI validation solves answer-checking — no predefined keys needed. Universal categories, same list for all languages, AI validates in game language.
 
   **Approved category pool (26):** Nombre, Apellido, País, Ciudad, Animal, Fruta, Color, Profesión, Objeto, Comida/Plato, Deporte, Instrumento musical, Marca comercial, Película, Canción, Personaje de ficción, Animal marino, Árbol, Flor, Insecto, Pez, Ave/Pájaro, Cantante/Grupo, Actor/Actriz, Escritor/Autor, Elemento químico.
 
@@ -216,9 +223,9 @@ assert len(c) < 250000
 - **AI 3-step validation pipeline** — Step 1: letter check as model health test (if model fails "does X start with letter Y?" skip it). Step 2: category validation. Step 3: optional confidence. Self-healing model selection, much more accurate.
 - **AI model config in Firebase** — store `models[]` array in Firebase so it can be updated without a redeploy. Part of future Cloudflare Workers backend work.
 
-- **Fixed shell layout** — non-scrolling outer frame, scrollable content area. Solves timer visibility, keeps branding visible, helps mobile UX. Needs full design discussion — touches every screen.
-- **Timer visibility on mobile** — related to fixed shell above
-- **Help icon during game** — ❓ during playing/validation, shows quick rules overlay
+- ~~**Fixed shell layout**~~ — BUILT in Session 6. See session log.
+- ~~**Timer visibility on mobile**~~ — resolved by fixed shell
+- **Help/Rules icon during game** — now always accessible via ? button in shell header
 - **Language as lobby setting** — currently global preference, should be per-game decision in lobby alongside rounds/timer/categories
 - **Emoji picker on Windows** — SVG treatment like flags, or Twemoji for everything
 
@@ -250,6 +257,54 @@ Quick join, guest lobby card, per-entry reactions/votes, Wikipedia lookups, flyi
 ### Session 3 (Aug 31)
 Full audit — 15 bugs fixed. Room cleanup, collision-safe codes, stop caller banner, AI fallback chain, timer on rejoin, democratic mode fixes, debug mode (14 screens)
 
+
+### Session 6 (Sep 2)
+**Fixed shell layout — fully built:**
+- Fixed top bar (50px, never changes height) with: ¡Alto! logo (left, locked in 80px grid column), letter badge + round info + timer (center), room pill + ? button (right)
+- Logo tap: lobby → leaveGame() directly; playing/validate/waiting/scores → confirm dialog
+- Room pill: non-interactive badge, only shows on playing/validate/waiting/scores
+- ? button → full-screen Rules panel (rulesHTML + helpHTML, localized close button)
+- Flags moved to shell header on home/welcome screens (left-aligned, absolutely positioned at content edge)
+- Shell logo hidden (visibility:hidden, space reserved) on home/welcome so flags align cleanly
+- CSS grid layout (80px 1fr 80px) for shell — logo can never shift regardless of center content
+- overflow-y: scroll on body — scrollbar always reserved, prevents layout shift between screens
+
+**Home screen refresh:**
+- Crear sala → (clean, no emoji) + MULTIJUGADOR subtitle
+- 📅 Reto diario · [date] + TÚ CONTRA EL MUNDO subtitle
+- Date generated in locale-aware format for all 6 languages (English ordinals: 2nd, 3rd etc.)
+- Reto diario button is a stub (toast "próximamente") — full implementation Session 7
+- How to play dropdown removed from home (Rules panel covers it)
+
+**Lobby redesign:**
+- Reordered: share code → players → group name → ¡Comenzar! → ← Salir de la sala → ⚙️ Configuración ▼
+- Configuration section is a collapsible dropdown (collapsed by default)
+- ← Salir de la sala is now a proper styled button (not tiny muted link)
+- Lobby logo removed (shell handles branding)
+- Room pill hidden on lobby (code already visible in share card)
+
+**Welcome-back screen:**
+- Full ¡Alto! logo + tagline restored (same treatment as home)
+- Flags visible, shell logo hidden
+
+**Rules panel:**
+- Full-screen overlay (not bottom sheet)
+- Title: "Reglas del juego" / "How to play" etc. (not "Help/Ayuda")
+- Contains: basic rules (how to play steps + scoring) + divider + AI/advanced features
+- r3 updated: "pulsa ¡Alto! para terminar la ronda" (not "grita")
+- Stop penalty warning added in all 6 languages
+- Close button: plain "Cerrar" / "Close" etc.
+
+**Other fixes:**
+- Timer min-width + vertical-align so it never shifts the header layout
+- Urgency pulse: subtle red tint animation at ≤10s (0.9s cycle, 8% opacity, clears on submit/stop)
+- "Puntajes" → "Puntuación" everywhere in ES
+- Welcome screen tagline now translates with language switch (was hardcoded ES)
+- btn-create emoji/arrow preserved correctly in applyLang
+- Staging workflow: deploy_tmp.bat + deploy2.bat added to D:\09_ALTO\
+
+**Last version deployed: v260902.1**
+
 ### Session 5 (Sep 1)
 - AI validation fully fixed and tuned across many iterations
 - Model: `models[]` array with 3 verified working free models (ling-3.0-flash-fin, nemotron-3-super, glm-5.2) — max 3 per OpenRouter limit
@@ -273,6 +328,7 @@ Full audit — 15 bugs fixed. Room cleanup, collision-safe codes, stop caller ba
 - enterLobby now calls setAIEnabled/setAIStrictness/setAISpelling to reflect correct UI state on load
 - Daily Challenge design finalised — ready to build next session (see Flagged for Future)
 - Last version deployed: v260901.1427
+- Daily Challenge design finalised — ready to build next session
 
 ### Session 4 (Sep 1)
 - AI button/results hidden when off
