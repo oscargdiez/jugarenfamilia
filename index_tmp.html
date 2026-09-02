@@ -1977,12 +1977,12 @@ function mulberry32(seed) {
 
 // Category pool — 26 universal categories, translated in all 6 languages
 const DAILY_CATS = {
-  es: ['Nombre','Apellido','País','Ciudad','Animal','Fruta','Color','Profesión','Objeto','Comida/Plato','Deporte','Instrumento musical','Marca comercial','Película','Canción','Personaje de ficción','Animal marino','Árbol','Flor','Insecto','Pez','Ave/Pájaro','Cantante/Grupo','Actor/Actriz','Escritor/Autor','Elemento químico'],
-  en: ['First name','Surname','Country','City','Animal','Fruit','Colour','Profession','Object','Food/Dish','Sport','Musical instrument','Brand','Film','Song','Fictional character','Sea animal','Tree','Flower','Insect','Fish','Bird','Singer/Band','Actor/Actress','Writer/Author','Chemical element'],
-  fr: ['Prénom','Nom de famille','Pays','Ville','Animal','Fruit','Couleur','Profession','Objet','Aliment/Plat','Sport','Instrument de musique','Marque','Film','Chanson','Personnage fictif','Animal marin','Arbre','Fleur','Insecte','Poisson','Oiseau','Chanteur/Groupe','Acteur/Actrice','Écrivain/Auteur','Élément chimique'],
-  de: ['Vorname','Nachname','Land','Stadt','Tier','Frucht','Farbe','Beruf','Gegenstand','Essen/Gericht','Sport','Musikinstrument','Marke','Film','Lied','Fiktive Figur','Meerestier','Baum','Blume','Insekt','Fisch','Vogel','Sänger/Band','Schauspieler/in','Schriftsteller/in','Chemisches Element'],
-  pt: ['Nome','Apelido','País','Cidade','Animal','Fruta','Cor','Profissão','Objeto','Comida/Prato','Desporto','Instrumento musical','Marca','Filme','Canção','Personagem fictício','Animal marinho','Árvore','Flor','Inseto','Peixe','Ave/Pássaro','Cantor/Grupo','Ator/Atriz','Escritor/Autor','Elemento químico'],
-  it: ['Nome','Cognome','Paese','Città','Animale','Frutto','Colore','Professione','Oggetto','Cibo/Piatto','Sport','Strumento musicale','Marca','Film','Canzone','Personaggio fittizio','Animale marino','Albero','Fiore','Insetto','Pesce','Uccello','Cantante/Gruppo','Attore/Attrice','Scrittore/Autore','Elemento chimico'],
+  es: ['Nombre','Apellido','País','Ciudad','Animal','Fruta','Color','Profesión','Objeto','Comida/Plato','Deporte','Instrumento musical','Marca comercial','Película','Canción','Animal marino','Árbol','Flor','Insecto','Pez','Ave/Pájaro','Elemento químico'],
+  en: ['First name','Surname','Country','City','Animal','Fruit','Colour','Profession','Object','Food/Dish','Sport','Musical instrument','Brand','Film','Song','Sea animal','Tree','Flower','Insect','Fish','Bird','Chemical element'],
+  fr: ['Prénom','Nom de famille','Pays','Ville','Animal','Fruit','Couleur','Profession','Objet','Aliment/Plat','Sport','Instrument de musique','Marque','Film','Chanson','Animal marin','Arbre','Fleur','Insecte','Poisson','Oiseau','Élément chimique'],
+  de: ['Vorname','Nachname','Land','Stadt','Tier','Frucht','Farbe','Beruf','Gegenstand','Essen/Gericht','Sport','Musikinstrument','Marke','Film','Lied','Meerestier','Baum','Blume','Insekt','Fisch','Vogel','Chemisches Element'],
+  pt: ['Nome','Apelido','País','Cidade','Animal','Fruta','Cor','Profissão','Objeto','Comida/Prato','Desporto','Instrumento musical','Marca','Filme','Canção','Animal marinho','Árvore','Flor','Inseto','Peixe','Ave/Pássaro','Elemento químico'],
+  it: ['Nome','Cognome','Paese','Città','Animale','Frutto','Colore','Professione','Oggetto','Cibo/Piatto','Sport','Strumento musicale','Marca','Film','Canzone','Animale marino','Albero','Fiore','Insetto','Pesce','Uccello','Elemento chimico'],
 };
 
 // Get today's date key YYYY-MM-DD
@@ -2001,7 +2001,7 @@ function getDailySetup() {
   const letter = easyPool[Math.floor(rng() * easyPool.length)];
   // Pick 6 categories from pool (indices, same for all languages)
   const indices = [];
-  const poolSize = 26;
+  const poolSize = 22;
   while (indices.length < 6) {
     const idx = Math.floor(rng() * poolSize);
     if (!indices.includes(idx)) indices.push(idx);
@@ -4097,7 +4097,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260902.17-tmp</div>
+  <div style="font-size:9px;opacity:0.5">v260902.18-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
