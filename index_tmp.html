@@ -208,11 +208,12 @@ button.stop-btn:hover { background: var(--red-dark); }
   background: var(--paper);
   border-bottom: 1px dashed var(--border);
   backdrop-filter: blur(6px);
+  height: 50px;
 }
 #shell-header-inner {
   max-width: 560px; margin: 0 auto;
   display: flex; align-items: center;
-  padding: 8px 1.25rem; position: relative;
+  padding: 0 1.25rem; height: 100%; position: relative;
 }
 #shell-logo {
   font-family: 'Caveat', cursive; font-size: 26px; font-weight: 700;
@@ -290,7 +291,7 @@ body.screen-home #shell-logo, body.screen-welcome #shell-logo { visibility: hidd
 body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex !important; }
 
 /* Offset page content so it doesn't hide under shell header */
-.page { max-width: 560px; margin: 0 auto; padding: 2rem 1.25rem 5rem; overflow: visible; padding-top: calc(2rem + 46px); }
+.page { max-width: 560px; margin: 0 auto; padding: 2rem 1.25rem 5rem; overflow: visible; padding-top: calc(2rem + 50px); }
 
 /* ── Answer rows ── */
 .ans-grid { display: grid; gap: 4px; }
@@ -3624,7 +3625,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260902.10-tmp</div>
+  <div style="font-size:9px;opacity:0.5">v260902.11-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
