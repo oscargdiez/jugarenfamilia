@@ -192,6 +192,9 @@ button.stop-btn:hover { background: var(--red-dark); }
   font-family: 'Special Elite', monospace;
   font-size: 32px;
   color: var(--ink);
+  min-width: 52px;
+  text-align: left;
+  display: inline-block;
 }
 .timer.urgent { color: var(--red); }
 
@@ -405,6 +408,21 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
 .dict-result .dict-loading { color: var(--ink-muted); font-style: italic; }
 .dict-result .dict-error { color: var(--danger); font-style: italic; }
 
+/* ── Urgency pulse overlay ── */
+#urgency-overlay {
+  position: fixed; inset: 0; z-index: 150;
+  background: var(--red);
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.1s;
+}
+@keyframes urgencyPulse {
+  0%, 100% { opacity: 0; }
+  50%       { opacity: 0.08; }
+}
+#urgency-overlay.pulsing {
+  animation: urgencyPulse 0.9s ease-in-out infinite;
+}
+
 /* ── Confetti ── */
 .confetti-stage { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 998; overflow: hidden; }
 .confetti-piece { position: absolute; top: -20px; font-size: 18px; animation: confettiFall linear forwards; }
@@ -605,6 +623,7 @@ document.addEventListener('DOMContentLoaded', function() {
 <!-- legacy id kept for startTimer compat -->
 <div id="fixed-topbar" style="display:none"></div>
 <div class="confetti-stage" id="confetti-stage"></div>
+<div id="urgency-overlay"></div>
 <div id="toast"></div>
 
 <!-- ══ QUICK JOIN (when arriving via link) ══ -->
@@ -2161,8 +2180,14 @@ function enterPlaying(room) {
   startTimer(remaining);
 }
 
+function setUrgencyPulse(on) {
+  const ov = document.getElementById('urgency-overlay');
+  if (ov) ov.classList.toggle('pulsing', on);
+}
+
 function startTimer(secs) {
   clearInterval(G.timerInterval);
+  setUrgencyPulse(false);
   let t = secs;
   const el = document.getElementById('timer');
   if (el) { el.classList.remove('urgent'); el.textContent = t; }
@@ -2172,12 +2197,14 @@ function startTimer(secs) {
     t--;
     if (el) { el.textContent = t; if (t<=10) el.classList.add('urgent'); }
     if (ftEl) { ftEl.textContent = t; if (t<=10) ftEl.classList.add('urgent'); else ftEl.classList.remove('urgent'); }
-    if (t<=0) { clearInterval(G.timerInterval); await doSubmit(null,true); }
+    if (t<=10) setUrgencyPulse(true);
+    if (t<=0) { clearInterval(G.timerInterval); setUrgencyPulse(false); await doSubmit(null,true); }
   }, 1000);
 }
 
 window.callStop = async () => {
   clearInterval(G.timerInterval);
+  setUrgencyPulse(false);
   const snap = await get(roomRef(G.roomCode));
   const room = snap.val();
   if (!room.calledStop) await update(roomRef(G.roomCode), {calledStop:true, stopCaller:G.playerName});
@@ -2188,6 +2215,7 @@ async function doSubmit(room, timeUp=false) {
   if (G.submitted) return;
   G.submitted = true;
   clearInterval(G.timerInterval);
+  setUrgencyPulse(false);
   if (!room) { const s = await get(roomRef(G.roomCode)); room = s.val(); }
   const answers = {};
   (room.categories||[]).forEach(cat => {
@@ -3595,7 +3623,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260902.7-tmp</div>
+  <div style="font-size:9px;opacity:0.5">v260902.8-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
