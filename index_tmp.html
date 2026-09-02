@@ -460,9 +460,12 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
   background: var(--paper-dark);
 }
 .daily-lb-rank { font-family: 'Special Elite', monospace; font-size: 13px; color: var(--ink-muted); width: 24px; flex-shrink: 0; }
-.daily-lb-name { font-family: 'Caveat', cursive; font-size: 17px; flex: 1; }
-.daily-lb-score { font-family: 'Special Elite', monospace; font-size: 13px; color: var(--red); }
+.daily-lb-name { font-family: 'Caveat', cursive; font-size: 17px; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.daily-lb-score { font-family: 'Special Elite', monospace; font-size: 13px; color: var(--red); flex-shrink: 0; }
+.daily-lb-orig { font-family: 'Special Elite', monospace; font-size: 11px; color: var(--ink-muted); flex-shrink: 0; margin-left: 2px; }
+.daily-lb-sep { text-align: center; font-family: 'Special Elite', monospace; font-size: 11px; color: var(--ink-muted); padding: 4px 0; letter-spacing: 2px; }
 .daily-lb-row.daily-lb-me { background: var(--red-light); border: 1.5px solid var(--red); }
+.daily-result-orig { font-family: 'Special Elite', monospace; font-size: 11px; color: var(--ink-muted); flex-shrink: 0; }
 .daily-already-played { text-align: center; padding: 1.5rem 0; }
 .daily-already-score { font-family: 'Caveat', cursive; font-size: 48px; font-weight: 700; color: var(--red); }
 
@@ -907,7 +910,10 @@ document.addEventListener('DOMContentLoaded', function() {
   <div class="card">
     <p class="lbl" id="lbl-daily-leaderboard" style="margin-bottom:8px">clasificación del día</p>
     <div id="daily-lb-list"></div>
-    <p style="font-family:'Special Elite',monospace;font-size:10px;color:var(--ink-muted);text-align:center;margin-top:8px" id="daily-lb-note">los scores se actualizan en tiempo real</p>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+      <p style="font-family:'Special Elite',monospace;font-size:10px;color:var(--ink-muted)" id="daily-lb-note">clasificación en tiempo real</p>
+      <button onclick="refreshDailyOriginality()" style="font-family:'Special Elite',monospace;font-size:10px;padding:3px 8px;border:1px solid var(--border);border-radius:4px;background:transparent;cursor:pointer;color:var(--ink-sec)" id="btn-daily-refresh">↻ actualizar</button>
+    </div>
   </div>
 
   <button onclick="show('home')" style="width:100%;font-size:18px;padding:12px;margin-top:12px;border:1.5px solid var(--border);border-radius:var(--radius);background:transparent;font-family:'Caveat',cursive;cursor:pointer" id="btn-daily-home">← Volver al inicio</button>
@@ -2038,7 +2044,8 @@ window.startDailyChallenge = function() {
     // Already played today — show result directly
     try {
       const data = JSON.parse(stored);
-      showDailyResult(data.answers, data.score, data.aiResults || {}, data.speedBonus || 0);
+      G_daily.displayName = (data.playerName || 'Anónimo') + ' ' + (data.playerEmoji || '🎲');
+      showDailyResult(data.answers, data.baseScore || data.score || 0, data.totalScore || data.score || 0, data.aiResults || {}, data.secsLeft || 0, data.speedMultiplier || 1);
       return;
     } catch(e) {}
   }
@@ -2108,8 +2115,6 @@ window.dailySubmit = async function() {
   // Disable all answer inputs so player can't edit during validation
   document.querySelectorAll('.daily-cat-input').forEach(inp => { inp.disabled = true; inp.style.opacity = '0.5'; });
 
-  const speedBonus = calcSpeedBonus(G_daily.secsRemaining, G_daily.totalSecs);
-
   // Read final answer values from inputs
   G_daily.categories.forEach((cat, i) => {
     const inp = document.getElementById('daily-inp-' + i);
@@ -2127,20 +2132,20 @@ window.dailySubmit = async function() {
   }
   G_daily.aiResults = aiResults;
 
-  // Score: word length for valid answers + speed bonus if any valid
-  let score = 0;
-  let anyValid = false;
+  // ── Scoring: base × speed multiplier ─────────────────────────────────────
+  // Base: 10 pts per valid answer
+  // Speed multiplier: 1.0 (finish at 0s) to 2.0 (finish at 90s), linear
+  const secsLeft = G_daily.secsRemaining;
+  const totalSecs = G_daily.totalSecs;
+  const speedMultiplier = 1.0 + (secsLeft / totalSecs); // 1.0–2.0
+  let validCount = 0;
   G_daily.categories.forEach((cat, i) => {
-    const word = G_daily.answers[i] || '';
-    const res = aiResults[i];
-    if (word && res === 'valid') {
-      score += Math.min(word.length, 15);
-      anyValid = true;
-    }
+    if (G_daily.answers[i] && aiResults[i] === 'valid') validCount++;
   });
-  if (anyValid) score += speedBonus;
+  const baseScore = validCount * 10;
+  const totalScore = Math.round(baseScore * speedMultiplier);
 
-  // Resolve player name — from G (if in room) or from home input / localStorage
+  // Resolve player name
   const dailyPlayerName = G.playerName
     || document.getElementById('inp-name')?.value?.trim()
     || localStorage.getItem('alto_name')
@@ -2148,20 +2153,37 @@ window.dailySubmit = async function() {
   const dailyPlayerEmoji = G.playerEmoji
     || localStorage.getItem('alto_emoji')
     || '🎲';
+  const displayName = dailyPlayerName + ' ' + dailyPlayerEmoji;
 
   // Save to localStorage
-  const saveData = { answers: G_daily.answers, score, aiResults, speedBonus, key: G_daily.key, lang: LANG, playerName: dailyPlayerName, playerEmoji: dailyPlayerEmoji };
+  const saveData = {
+    answers: G_daily.answers, aiResults,
+    baseScore, totalScore, originality: 0,
+    secsLeft, speedMultiplier,
+    key: G_daily.key, lang: LANG,
+    playerName: dailyPlayerName, playerEmoji: dailyPlayerEmoji
+  };
   localStorage.setItem('alto_daily_' + G_daily.key, JSON.stringify(saveData));
 
   // Submit to Firebase — scoped by language
+  // Store answers as object for originality computation
+  const answersObj = {};
+  G_daily.categories.forEach((cat, i) => { answersObj[i] = G_daily.answers[i] || ''; });
   try {
     const playerKey = dailyPlayerName.replace(/[.#$\[\]\/]/g,'_') + '_' + Date.now();
-    const displayName = dailyPlayerName + ' ' + dailyPlayerEmoji;
+    G_daily.playerKey = playerKey;
+    G_daily.displayName = displayName;
     const dailyRef = ref(db, 'daily/' + G_daily.key + '/' + LANG + '/scores/' + playerKey);
-    await set(dailyRef, { name: displayName, score, timestamp: Date.now(), lang: LANG });
+    await set(dailyRef, {
+      name: displayName,
+      baseScore, totalScore, originality: 0,
+      answers: answersObj,
+      timestamp: Date.now()
+    });
+    G_daily.playerKey = playerKey;
   } catch(e) { console.warn('Daily Firebase write failed:', e); }
 
-  showDailyResult(G_daily.answers, score, aiResults, speedBonus);
+  showDailyResult(G_daily.answers, baseScore, totalScore, aiResults, secsLeft, speedMultiplier);
 };
 
 // Build system + user prompts for daily validation
@@ -2254,85 +2276,166 @@ async function dailyAIValidate(word, category, letter) {
   if (invalidCount >= 2) return 'invalid';
   return 'unsure';
 }
-async function showDailyResult(answers, score, aiResults, speedBonus) {
-  // Populate answers list
+async function showDailyResult(answers, baseScore, totalScore, aiResults, secsLeft, speedMultiplier) {
   const list = document.getElementById('daily-answers-list');
   const setup = getDailySetup();
   const cats = getDailyCatNames(setup.indices);
   const aiIcon = { valid:'✅', invalid:'❌', unsure:'🤔', empty:'—' };
 
+  // Store for originality recompute
+  G_daily.answers = answers;
+  G_daily.aiResults = aiResults;
+  G_daily.baseScore = baseScore;
+  G_daily.totalScore = totalScore;
+
   list.innerHTML = cats.map((cat, i) => {
     const word = answers[i] || '';
     const res = aiResults[i] || (word ? 'unsure' : 'empty');
-    const pts = (word && res === 'valid') ? Math.min(word.length, 15) : 0;
-    return `<div class="daily-result-row">
+    const base = (word && res === 'valid') ? 10 : 0;
+    return `<div class="daily-result-row" id="daily-row-${i}">
       <span class="daily-result-cat">${cat}</span>
       <span class="daily-result-word">${word || '<span style="opacity:0.4">—</span>'}</span>
       <span class="daily-result-ai">${aiIcon[res] || '🤔'}</span>
-      ${pts ? `<span class="daily-result-pts">+${pts}</span>` : ''}
+      ${base ? `<span class="daily-result-pts" id="daily-pts-${i}">+${base}</span>` : ''}
+      <span class="daily-result-orig" id="daily-orig-${i}"></span>
     </div>`;
   }).join('');
 
-  // Speed bonus line
-  if (speedBonus > 0) {
-    list.innerHTML += `<div style="text-align:right;font-family:'Special Elite',monospace;font-size:11px;color:var(--ink-muted);padding-top:6px">⚡ ${speedBonus > 0 ? '+'+speedBonus : ''} velocidad</div>`;
-  }
+  // Speed summary
+  const mult = speedMultiplier ? speedMultiplier.toFixed(2) : '1.00';
+  list.innerHTML += `<div style="text-align:right;font-family:'Special Elite',monospace;font-size:11px;color:var(--ink-muted);padding-top:6px">
+    ⚡ ×${mult} velocidad &nbsp;|&nbsp; base ${baseScore} pts → <strong>${totalScore} pts</strong>
+  </div>`;
 
   // Total score
   const totalEl = document.getElementById('daily-total-score');
-  if (totalEl) totalEl.textContent = score + ' pts';
+  if (totalEl) totalEl.textContent = totalScore + ' pts';
 
   // Date header
   const dateStr = getDailyDateString();
-  const key = getDailyKey();
-  ['daily-result-date','daily-result-title'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el && id === 'daily-result-date') el.textContent = dateStr;
-  });
+  const dateEl = document.getElementById('daily-result-date');
+  if (dateEl) dateEl.textContent = dateStr;
 
   show('daily-result');
-
-  // Load leaderboard
-  loadDailyLeaderboard(key, score);
+  loadDailyLeaderboard(getDailyKey());
 }
 
-async function loadDailyLeaderboard(key, myScore) {
+async function loadDailyLeaderboard(key) {
   const lbEl = document.getElementById('daily-lb-list');
   if (!lbEl) return;
   lbEl.innerHTML = `<div style="font-family:'Special Elite',monospace;font-size:11px;color:var(--ink-muted);text-align:center;padding:8px">cargando…</div>`;
   try {
     const snap = await get(ref(db, 'daily/' + key + '/' + LANG + '/scores'));
     if (!snap.exists()) { lbEl.innerHTML = '<div style="text-align:center;opacity:0.5;font-size:13px">Sin resultados aún</div>'; return; }
-    const scores = snap.val();
-    const entries = Object.values(scores)
-      .sort((a,b) => b.score - a.score)
-      .slice(0, 20);
-    const myName = (G.playerName || '') + ' ' + (G.playerEmoji || '');
-    const medals = ['🥇','🥈','🥉'];
-    lbEl.innerHTML = entries.map((e, i) => {
-      const isMe = e.name.trim() === myName.trim();
-      return `<div class="daily-lb-row${isMe ? ' daily-lb-me' : ''}">
-        <span class="daily-lb-rank">${medals[i] || (i+1)}</span>
-        <span class="daily-lb-name">${e.name}</span>
-        <span class="daily-lb-score">${e.score} pts</span>
-      </div>`;
-    }).join('');
-    // Originality bonus — if my answers are unique, add a note
-    computeOriginalityNote(scores, myScore);
+    const allScores = snap.val();
+    renderLeaderboard(allScores);
+    computeAndUpdateOriginality(allScores, key);
   } catch(e) {
     lbEl.innerHTML = '<div style="text-align:center;opacity:0.5;font-size:13px">Error cargando clasificación</div>';
   }
 }
 
-function computeOriginalityNote(scores, myScore) {
-  // Count how many other players gave the same answers — purely informational for now
-  // Full originality scoring deferred to future session
+function renderLeaderboard(allScores) {
+  const lbEl = document.getElementById('daily-lb-list');
+  if (!lbEl) return;
+  const myName = G_daily.displayName || ((G.playerName || '') + ' ' + (G.playerEmoji || ''));
+  const entries = Object.values(allScores).sort((a,b) => b.totalScore - a.totalScore);
+  const medals = ['🥇','🥈','🥉'];
+  const top10 = entries.slice(0, 10);
+  const myIdx = entries.findIndex(e => e.name.trim() === myName.trim());
+  const isInTop10 = myIdx >= 0 && myIdx < 10;
+
+  let html = top10.map((e, i) => {
+    const isMe = e.name.trim() === myName.trim();
+    const orig = e.originality > 0 ? `<span class="daily-lb-orig">+${e.originality}✨</span>` : '';
+    return `<div class="daily-lb-row${isMe ? ' daily-lb-me' : ''}">
+      <span class="daily-lb-rank">${medals[i] || (i+1)}</span>
+      <span class="daily-lb-name">${e.name}</span>
+      <span class="daily-lb-score">${e.totalScore} pts</span>
+      ${orig}
+    </div>`;
+  }).join('');
+
+  // Show my row if outside top 10
+  if (!isInTop10 && myIdx >= 0) {
+    const me = entries[myIdx];
+    const orig = me.originality > 0 ? `<span class="daily-lb-orig">+${me.originality}✨</span>` : '';
+    html += `<div class="daily-lb-sep">· · ·</div>`;
+    html += `<div class="daily-lb-row daily-lb-me">
+      <span class="daily-lb-rank">${myIdx+1}</span>
+      <span class="daily-lb-name">${me.name}</span>
+      <span class="daily-lb-score">${me.totalScore} pts</span>
+      ${orig}
+    </div>`;
+  }
+
+  lbEl.innerHTML = html;
 }
+
+async function computeAndUpdateOriginality(allScores, key) {
+  // For each of my valid answers, check if it's unique among all players
+  const myName = G_daily.displayName || ((G.playerName || '') + ' ' + (G.playerEmoji || ''));
+  const myEntry = Object.entries(allScores).find(([k,v]) => v.name.trim() === myName.trim());
+  if (!myEntry) return;
+  const [myKey, myData] = myEntry;
+  if (!myData.answers) return;
+
+  const otherEntries = Object.values(allScores).filter(e => e.name.trim() !== myName.trim());
+  let originality = 0;
+
+  G_daily.categories.forEach((cat, i) => {
+    const myAnswer = (myData.answers[i] || '').trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+    if (!myAnswer || G_daily.aiResults[i] !== 'valid') return;
+    // Check if any other player gave the same answer for this category
+    const isUnique = !otherEntries.some(e => {
+      const theirAnswer = (e.answers?.[i] || '').trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+      return theirAnswer === myAnswer;
+    });
+    if (isUnique) {
+      originality += 5;
+      // Update UI badge on answer row
+      const origEl = document.getElementById('daily-orig-' + i);
+      if (origEl) origEl.textContent = '+5✨';
+    }
+  });
+
+  // Update total score display
+  const newTotal = G_daily.totalScore + originality;
+  const totalEl = document.getElementById('daily-total-score');
+  if (totalEl) totalEl.textContent = newTotal + ' pts' + (originality > 0 ? ' +' + originality + '✨' : '');
+
+  // Update Firebase if originality changed
+  if (originality !== (myData.originality || 0)) {
+    try {
+      await update(ref(db, 'daily/' + key + '/' + LANG + '/scores/' + myKey), {
+        originality, totalScore: newTotal
+      });
+      // Re-render leaderboard with updated scores
+      const snap2 = await get(ref(db, 'daily/' + key + '/' + LANG + '/scores'));
+      if (snap2.exists()) renderLeaderboard(snap2.val());
+    } catch(e) { console.warn('Originality update failed:', e); }
+  }
+}
+
+// Manual refresh button
+window.refreshDailyOriginality = async function() {
+  const btn = document.getElementById('btn-daily-refresh');
+  if (btn) { btn.textContent = '↻ …'; btn.disabled = true; }
+  try {
+    const key = getDailyKey();
+    const snap = await get(ref(db, 'daily/' + key + '/' + LANG + '/scores'));
+    if (snap.exists()) {
+      renderLeaderboard(snap.val());
+      await computeAndUpdateOriginality(snap.val(), key);
+    }
+  } catch(e) { console.warn('Refresh failed:', e); }
+  if (btn) { btn.textContent = '↻ actualizar'; btn.disabled = false; }
+};
 
 // Update applyLang for daily result screen
 function applyDailyLang() {
   const labels = {
-    es: { yourAnswers: 'tus respuestas', leaderboard: 'clasificación del día', lbNote: 'los scores se actualizan en tiempo real', backHome: '← Volver al inicio', dailySubmitBtn: '¡Alto! →', dailyPlayLabel: 'Reto diario' },
+    es: { yourAnswers: 'tus respuestas', leaderboard: 'clasificación del día', lbNote: 'clasificación en tiempo real', backHome: '← Volver al inicio', dailySubmitBtn: '¡Alto! →', dailyPlayLabel: 'Reto diario', refreshBtn: '↻ actualizar' },
     en: { yourAnswers: 'your answers', leaderboard: "today's leaderboard", lbNote: 'scores update in real time', backHome: '← Back to home', dailySubmitBtn: 'Stop! →', dailyPlayLabel: 'Daily challenge' },
     fr: { yourAnswers: 'tes réponses', leaderboard: 'classement du jour', lbNote: 'les scores se mettent à jour en temps réel', backHome: '← Retour', dailySubmitBtn: 'Stop! →', dailyPlayLabel: 'Défi du jour' },
     de: { yourAnswers: 'deine Antworten', leaderboard: 'Tagesrangliste', lbNote: 'Punkte werden in Echtzeit aktualisiert', backHome: '← Zurück', dailySubmitBtn: 'Stop! →', dailyPlayLabel: 'Tagesrätsel' },
@@ -2347,6 +2450,7 @@ function applyDailyLang() {
   s2('btn-daily-home', l.backHome);
   s2('btn-daily-submit', l.dailySubmitBtn);
   s2('daily-play-label', l.dailyPlayLabel);
+  s2('btn-daily-refresh', l.refreshBtn || '↻ actualizar');
 }
 
 // ══ END DAILY CHALLENGE ═════════════════════════════════════════════════════
@@ -4116,7 +4220,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260902.19-tmp</div>
+  <div style="font-size:9px;opacity:0.5">v260902.20-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
