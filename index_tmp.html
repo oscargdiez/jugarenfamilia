@@ -2172,15 +2172,16 @@ async function dailyAIValidate(word, category, letter) {
         max_tokens: 10, temperature: 0
       })
     });
-    if (!response.ok) return 'unsure';
+    if (!response.ok) { console.warn('[Daily AI] HTTP error', response.status); return 'unsure'; }
     const data = await response.json();
+    console.log('[Daily AI raw]', word, '/', category, JSON.stringify(data?.choices?.[0]?.message));
     const msg = data.choices?.[0]?.message || {};
     const text = (msg.content || msg.reasoning || '').replace(/<think>[\s\S]*?<\/think>/gi,'').trim();
     const norm = text.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z]/g,' ').trim();
     if (/invalid(o)?/.test(norm)) return 'invalid';
     if (/valid(o)?/.test(norm)) return 'valid';
     return 'unsure';
-  } catch(e) { return 'unsure'; }
+  } catch(e) { console.error('[Daily AI catch]', e.message); return 'unsure'; }
 }
 
 async function showDailyResult(answers, score, aiResults, speedBonus) {
@@ -3106,6 +3107,7 @@ window.askAI = async (word, category, letter, key) => {
       throw new Error(errData?.error?.message || 'API error ' + response.status);
     }
     const data = await response.json();
+    console.log('[Daily AI raw]', word, '/', category, JSON.stringify(data?.choices?.[0]?.message));
     // Strip <think>...</think> blocks emitted by reasoning models before parsing
     const msg = data.choices?.[0]?.message || {};
     // Some reasoning models put the answer in reasoning_details, not content
@@ -4045,7 +4047,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260902.7-tmp</div>
+  <div style="font-size:9px;opacity:0.5">v260902.8-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
