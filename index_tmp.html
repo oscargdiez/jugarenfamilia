@@ -243,10 +243,10 @@ button.stop-btn:hover { background: var(--red-dark); }
 }
 #shell-room-pill:hover { background: var(--paper-dark); }
 #shell-help-btn {
-  font-size: 13px; padding: 4px 8px;
+  font-size: 15px; padding: 3px 9px;
   border: 1.5px solid var(--border-strong); border-radius: 4px;
   background: transparent; color: var(--ink-sec); cursor: pointer;
-  font-family: 'Special Elite', monospace; line-height: 1; letter-spacing: 0.5px;
+  font-family: 'Special Elite', monospace; line-height: 1.3; letter-spacing: 0;
 }
 #shell-help-btn:hover { background: var(--paper-dark); color: var(--ink); }
 
@@ -283,10 +283,8 @@ button.stop-btn:hover { background: var(--red-dark); }
 
 /* Hide shell logo on home screen */
 body.screen-home #shell-logo { visibility: hidden; pointer-events: none; }
-/* Show flags only on home */
-body.screen-home #shell-flags { display: flex; }
-/* Hide flags on all other screens */
-#shell-flags { display: none; }
+/* Show flags only on home — must come after the display:none above */
+body.screen-home #shell-flags { display: flex !important; }
 
 /* Offset page content so it doesn't hide under shell header */
 .page { max-width: 560px; margin: 0 auto; padding: 2rem 1.25rem 5rem; overflow: visible; padding-top: calc(2rem + 46px); }
@@ -533,7 +531,7 @@ document.addEventListener('DOMContentLoaded', function() {
     pt: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 30" width="28" height="19"'+S+'><rect width="44" height="30" fill="#009C3B"/><polygon points="22,3 41,15 22,27 3,15" fill="#FEDF00"/><circle cx="22" cy="15" r="7" fill="#002776"/></svg>',
     it: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 30" width="28" height="19"'+S+'><rect width="44" height="30" fill="#CE2B37"/><rect width="29.5" height="30" fill="white"/><rect width="14.5" height="30" fill="#009246"/></svg>',
   };
-  document.querySelectorAll('.lang-btn').forEach(function(btn) {
+  document.querySelectorAll('.lang-btn, #shell-flags .lang-btn').forEach(function(btn) {
     var m = (btn.getAttribute('onclick')||'').match(/setLang\('([a-z]+)'\)/);
     if (m && FLAGS[m[1]]) {
       btn.innerHTML = FLAGS[m[1]];
@@ -567,7 +565,7 @@ document.addEventListener('DOMContentLoaded', function() {
         <button class="lang-btn" onclick="setLang('it')" title="Italiano">🇮🇹</button>
       </div>
       <span id="shell-room-pill" onclick="shellRoomPillClick()"></span>
-      <button id="shell-help-btn" onclick="shellHelpOpen()">[?]</button>
+      <button id="shell-help-btn" onclick="shellHelpOpen()">?</button>
     </div>
   </div>
 </div>
@@ -577,7 +575,7 @@ document.addEventListener('DOMContentLoaded', function() {
   <div id="help-panel">
     <div id="help-panel-header">
       <span id="help-panel-title">❓ Ayuda</span>
-      <button id="help-panel-close" onclick="shellHelpClose()">[✕ CERRAR]</button>
+      <button id="help-panel-close" onclick="shellHelpClose()">Cerrar</button>
     </div>
     <div id="help-panel-body"></div>
   </div>
@@ -1016,7 +1014,7 @@ const T = {
     waMsg: '¡Juega conmigo al ¡Alto! 🎮 Únete aquí:',
     createSub: 'MULTIJUGADOR · CON FAMILIA Y AMIGOS',
     dailySub: 'TÚ CONTRA EL MUNDO · UN RETO POR DÍA',
-    helpTitle: '❓ Ayuda',
+    helpTitle: 'Ayuda',
     shellLeave: '¿Salir de la partida?',
     shellLeaveConfirm: 'Perderás tu progreso en esta ronda.',
     shellLeaveYes: 'Salir', shellLeaveNo: 'Seguir jugando',
@@ -1073,7 +1071,7 @@ const T = {
     waMsg: 'Play Stop! with me 🎮 Join here:',
     createSub: 'MULTIPLAYER · WITH FAMILY & FRIENDS',
     dailySub: 'YOU VS THE WORLD · ONE CHALLENGE A DAY',
-    helpTitle: '❓ Help',
+    helpTitle: 'Help',
     shellLeave: 'Leave the game?',
     shellLeaveConfirm: 'You will lose your progress this round.',
     shellLeaveYes: 'Leave', shellLeaveNo: 'Keep playing',
@@ -1130,7 +1128,7 @@ const T = {
     waMsg: 'Joue au Stop! avec moi 🎮 Rejoins ici:',
     createSub: 'MULTIJOUEUR · EN FAMILLE ET ENTRE AMIS',
     dailySub: 'TOI CONTRE LE MONDE · UN DÉFI PAR JOUR',
-    helpTitle: '❓ Aide',
+    helpTitle: 'Aide',
     shellLeave: 'Quitter la partie?',
     shellLeaveConfirm: 'Tu perdras ta progression dans ce tour.',
     shellLeaveYes: 'Quitter', shellLeaveNo: 'Continuer',
@@ -1187,7 +1185,7 @@ const T = {
     waMsg: 'Spiel Stop! mit mir 🎮 Tritt hier bei:',
     createSub: 'MEHRSPIELER · MIT FAMILIE UND FREUNDEN',
     dailySub: 'DU GEGEN DIE WELT · EINE AUFGABE PRO TAG',
-    helpTitle: '❓ Hilfe',
+    helpTitle: 'Hilfe',
     shellLeave: 'Spiel verlassen?',
     shellLeaveConfirm: 'Du verlierst deinen Fortschritt in dieser Runde.',
     shellLeaveYes: 'Verlassen', shellLeaveNo: 'Weiterspielen',
@@ -1244,7 +1242,7 @@ const T = {
     waMsg: 'Joga Stop! comigo 🎮 Junta-te aqui:',
     createSub: 'MULTIJOGADOR · COM FAMÍLIA E AMIGOS',
     dailySub: 'TU CONTRA O MUNDO · UM DESAFIO POR DIA',
-    helpTitle: '❓ Ajuda',
+    helpTitle: 'Ajuda',
     shellLeave: 'Sair do jogo?',
     shellLeaveConfirm: 'Vais perder o teu progresso nesta ronda.',
     shellLeaveYes: 'Sair', shellLeaveNo: 'Continuar a jogar',
@@ -1301,7 +1299,7 @@ const T = {
     waMsg: 'Gioca a Stop! con me 🎮 Unisciti qui:',
     createSub: 'MULTIGIOCATORE · CON FAMIGLIA E AMICI',
     dailySub: 'TU CONTRO IL MONDO · UNA SFIDA AL GIORNO',
-    helpTitle: '❓ Aiuto',
+    helpTitle: 'Aiuto',
     shellLeave: 'Uscire dal gioco?',
     shellLeaveConfirm: 'Perderai i progressi in questo round.',
     shellLeaveYes: 'Esci', shellLeaveNo: 'Continua a giocare',
@@ -1345,9 +1343,6 @@ function rulesHTML() {
       <div class="rules-score-row"><span>${r.u}</span><span class="rules-pts">100 pts</span></div>
       <div class="rules-score-row"><span>${r.d}</span><span class="rules-pts">50 pts</span></div>
       <div class="rules-score-row"><span>${r.e}</span><span class="rules-pts">0 pts</span></div>
-    </div>
-    <div style="margin-top:14px;padding-top:14px;border-top:1px dashed var(--border-strong)">
-      ${helpHTML()}
     </div>`;
 }
 
@@ -1790,14 +1785,14 @@ window.shellRoomPillClick = function() {
 
 // Help overlay
 window.shellHelpOpen = function() {
-  const overlay = document.getElementById('help-overlay');
-  const body    = document.getElementById('help-panel-body');
-  const title   = document.getElementById('help-panel-title');
+  const overlay  = document.getElementById('help-overlay');
+  const body     = document.getElementById('help-panel-body');
+  const title    = document.getElementById('help-panel-title');
   const closeBtn = document.getElementById('help-panel-close');
   if (title) title.textContent = t('helpTitle');
-  if (body)  body.innerHTML = helpHTML();
-  const closeLabels = {es:'[✕ CERRAR]',en:'[✕ CLOSE]',fr:'[✕ FERMER]',de:'[✕ SCHLIESSEN]',pt:'[✕ FECHAR]',it:'[✕ CHIUDI]'};
+  const closeLabels = {es:'Cerrar',en:'Close',fr:'Fermer',de:'Schließen',pt:'Fechar',it:'Chiudi'};
   if (closeBtn) closeBtn.textContent = closeLabels[LANG] || closeLabels.es;
+  if (body) body.innerHTML = rulesHTML() + '<div style="margin-top:1.5rem;border-top:2px dashed var(--border);padding-top:1.25rem">' + helpHTML() + '</div>';
   if (overlay) overlay.classList.add('open');
 }
 window.shellHelpClose = function() {
@@ -3538,6 +3533,7 @@ window.dbgRefresh = function() {
 // ══ END DEBUG MODE ═══════════════════════════════════════════════════════════
 
 // Init
+document.body.classList.add('screen-home');
 buildEmojiGrid();
 applyLang();
 document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.getAttribute('onclick').includes("'"+LANG+"'")));
@@ -3568,7 +3564,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260902.2-tmp</div>
+  <div style="font-size:9px;opacity:0.5">v260902.3-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
