@@ -243,37 +243,50 @@ button.stop-btn:hover { background: var(--red-dark); }
 }
 #shell-room-pill:hover { background: var(--paper-dark); }
 #shell-help-btn {
-  font-size: 16px; padding: 4px 7px;
-  border: 1.5px solid var(--border-strong); border-radius: 20px;
+  font-size: 13px; padding: 4px 8px;
+  border: 1.5px solid var(--border-strong); border-radius: 4px;
   background: transparent; color: var(--ink-sec); cursor: pointer;
-  font-family: 'Special Elite', monospace; line-height: 1;
+  font-family: 'Special Elite', monospace; line-height: 1; letter-spacing: 0.5px;
 }
-#shell-help-btn:hover { background: var(--paper-dark); }
+#shell-help-btn:hover { background: var(--paper-dark); color: var(--ink); }
 
-/* ── Help overlay ── */
+/* ── Help overlay — full screen ── */
 #help-overlay {
   display: none; position: fixed; inset: 0; z-index: 400;
-  background: rgba(44,36,22,0.45); backdrop-filter: blur(2px);
-  align-items: flex-end; justify-content: center;
+  background: var(--paper);
+  flex-direction: column;
 }
 #help-overlay.open { display: flex; }
 #help-panel {
-  background: var(--paper); max-width: 560px; width: 100%;
-  border-radius: 12px 12px 0 0; border-top: 2px solid var(--border);
-  padding: 1.25rem 1.25rem 2rem; max-height: 80vh; overflow-y: auto;
+  flex: 1; overflow-y: auto;
+  padding: 1.25rem 1.25rem 3rem;
+  max-width: 560px; width: 100%; margin: 0 auto;
 }
 #help-panel-header {
   display: flex; justify-content: space-between; align-items: center;
-  margin-bottom: 1rem;
+  margin-bottom: 1.25rem; padding-top: 0.25rem;
 }
 #help-panel-title {
-  font-family: 'Caveat', cursive; font-size: 22px; font-weight: 700; color: var(--ink);
+  font-family: 'Caveat', cursive; font-size: 26px; font-weight: 700; color: var(--ink);
 }
 #help-panel-close {
-  font-size: 18px; padding: 2px 8px; border: 1.5px solid var(--border-strong);
-  border-radius: 20px; background: transparent; color: var(--ink-sec); cursor: pointer;
-  font-family: 'Special Elite', monospace;
+  font-family: 'Special Elite', monospace; font-size: 13px;
+  padding: 5px 12px; border: 1.5px solid var(--border-strong);
+  border-radius: 4px; background: transparent; color: var(--ink-sec); cursor: pointer;
+  letter-spacing: 1px;
 }
+
+/* Shell flags (shown on home only) */
+#shell-flags { display: none; align-items: center; gap: 3px; }
+#shell-flags .lang-btn { font-size: 16px; padding: 2px 4px; border: 1.5px solid transparent; background: transparent; cursor: pointer; border-radius: 4px; opacity: 0.5; }
+#shell-flags .lang-btn.active { opacity: 1; background: var(--paper-dark); border-color: var(--border-strong); }
+
+/* Hide shell logo on home screen */
+body.screen-home #shell-logo { visibility: hidden; pointer-events: none; }
+/* Show flags only on home */
+body.screen-home #shell-flags { display: flex; }
+/* Hide flags on all other screens */
+#shell-flags { display: none; }
 
 /* Offset page content so it doesn't hide under shell header */
 .page { max-width: 560px; margin: 0 auto; padding: 2rem 1.25rem 5rem; overflow: visible; padding-top: calc(2rem + 46px); }
@@ -545,18 +558,26 @@ document.addEventListener('DOMContentLoaded', function() {
       <span class="timer" id="ft-timer" style="display:none"></span>
     </div>
     <div id="shell-right">
+      <div id="shell-flags">
+        <button class="lang-btn active" onclick="setLang('es')" title="Español">🇪🇸</button>
+        <button class="lang-btn" onclick="setLang('en')" title="English">🇬🇧</button>
+        <button class="lang-btn" onclick="setLang('fr')" title="Français">🇫🇷</button>
+        <button class="lang-btn" onclick="setLang('de')" title="Deutsch">🇩🇪</button>
+        <button class="lang-btn" onclick="setLang('pt')" title="Português">🇧🇷</button>
+        <button class="lang-btn" onclick="setLang('it')" title="Italiano">🇮🇹</button>
+      </div>
       <span id="shell-room-pill" onclick="shellRoomPillClick()"></span>
-      <button id="shell-help-btn" onclick="shellHelpOpen()">❓</button>
+      <button id="shell-help-btn" onclick="shellHelpOpen()">[?]</button>
     </div>
   </div>
 </div>
 
 <!-- ══ HELP OVERLAY ══ -->
-<div id="help-overlay" onclick="shellHelpClose(event)">
+<div id="help-overlay">
   <div id="help-panel">
     <div id="help-panel-header">
       <span id="help-panel-title">❓ Ayuda</span>
-      <button id="help-panel-close" onclick="shellHelpClose()">✕</button>
+      <button id="help-panel-close" onclick="shellHelpClose()">[✕ CERRAR]</button>
     </div>
     <div id="help-panel-body"></div>
   </div>
@@ -586,14 +607,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <!-- ══ HOME ══ -->
 <div id="s-home" class="screen on">
-  <div class="lang-bar">
-    <button class="lang-btn active" onclick="setLang('es')" title="Español">🇪🇸</button>
-    <button class="lang-btn" onclick="setLang('en')" title="English">🇬🇧</button>
-    <button class="lang-btn" onclick="setLang('fr')" title="Français">🇫🇷</button>
-    <button class="lang-btn" onclick="setLang('de')" title="Deutsch">🇩🇪</button>
-    <button class="lang-btn" onclick="setLang('pt')" title="Português">🇧🇷</button>
-    <button class="lang-btn" onclick="setLang('it')" title="Italiano">🇮🇹</button>
-  </div>
   <div class="logo-wrap">
     <span class="logo-main">¡Alto!</span>
     <div class="logo-rule"></div>
@@ -612,9 +625,6 @@ document.addEventListener('DOMContentLoaded', function() {
       <div style="font-family:'Special Elite',monospace;font-size:10px;color:var(--ink-muted);text-align:center;letter-spacing:1px;margin:-2px 0 2px" id="lbl-daily-sub">TÚ CONTRA EL MUNDO · UN RETO POR DÍA</div>
     </div>
   </div>
-
-  <button class="rules-toggle" id="rules-btn" onclick="toggleRules()">▼ ¿Cómo se juega?</button>
-  <div class="rules-box" id="rules-box"></div>
 
   <div class="brand-footer" id="footer-noreg">SIN REGISTRO · SIN DESCARGAS · GRATIS</div>
 </div>
@@ -1308,6 +1318,11 @@ window.setLang = function(lang) {
   localStorage.setItem('alto_lang', lang);
   document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.getAttribute('onclick').includes("'"+lang+"'")));
   applyLang();
+  // SVG flags for shell flags bar
+  document.querySelectorAll('#shell-flags .lang-btn').forEach(function(btn) {
+    var m = (btn.getAttribute('onclick')||'').match(/setLang\('([a-z]+)'\)/);
+    if (m) btn.classList.toggle('active', m[1] === lang);
+  });
 }
 
 
@@ -1718,7 +1733,14 @@ window.show = function(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('on'));
   document.getElementById('s-'+id).classList.add('on');
   G.screen = id;
+  // Set body class for CSS screen-specific rules
+  document.body.className = document.body.className.replace(/\bscreen-\S+/g, '').trim();
+  document.body.classList.add('screen-' + id);
   updateShellHeader(id);
+  // Sync shell flags active state with current lang
+  document.querySelectorAll('#shell-flags .lang-btn').forEach(b =>
+    b.classList.toggle('active', b.getAttribute('onclick').includes("'"+LANG+"'"))
+  );
 }
 
 function updateShellHeader(screenId) {
@@ -1771,12 +1793,14 @@ window.shellHelpOpen = function() {
   const overlay = document.getElementById('help-overlay');
   const body    = document.getElementById('help-panel-body');
   const title   = document.getElementById('help-panel-title');
+  const closeBtn = document.getElementById('help-panel-close');
   if (title) title.textContent = t('helpTitle');
   if (body)  body.innerHTML = helpHTML();
+  const closeLabels = {es:'[✕ CERRAR]',en:'[✕ CLOSE]',fr:'[✕ FERMER]',de:'[✕ SCHLIESSEN]',pt:'[✕ FECHAR]',it:'[✕ CHIUDI]'};
+  if (closeBtn) closeBtn.textContent = closeLabels[LANG] || closeLabels.es;
   if (overlay) overlay.classList.add('open');
 }
-window.shellHelpClose = function(e) {
-  if (e && e.target !== document.getElementById('help-overlay') && e.target !== document.getElementById('help-panel-close')) return;
+window.shellHelpClose = function() {
   document.getElementById('help-overlay')?.classList.remove('open');
 }
 
@@ -3544,7 +3568,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260902.1-tmp</div>
+  <div style="font-size:9px;opacity:0.5">v260902.2-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
