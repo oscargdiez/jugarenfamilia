@@ -2153,13 +2153,8 @@ window.dailySubmit = async function() {
   showDailyResult(G_daily.answers, score, aiResults, speedBonus);
 };
 
-async function dailyAIValidate(word, category, letter) {
-  const langNames = {es:'Spanish',en:'English',fr:'French',de:'German',pt:'Portuguese',it:'Italian'};
-  const gameLang = langNames[LANG] || 'Spanish';
-  const spellingRule = '(6) Minor spelling mistakes and phonetic spellings are acceptable as long as the intended word is clear.';
-  const langRule = `(7) The answer must be in ${gameLang} — answers in any other language are INVALIDO.`;
-  const systemPrompt = `You are a generous and fair judge of a ${gameLang}-language word game. Rules: (1) Ignore accents and tildes. (2) The answer must belong to the category — be generous with borderline cases. (3) Abbreviated or informal names accepted if reference is clear. (4) Real things and well-known fictional things accepted. ${spellingRule} ${langRule} Use DUDOSO only when truly uncertain — prefer VALIDO on close calls.`;
-  const prompt = `${gameLang}-language game. Letter: "${letter}". Category: "${category}". Answer: "${word}". Does this answer fit the category? Reply with ONE word only, no punctuation, no explanation: VALIDO, INVALIDO, or DUDOSO.`;
+// Call a single specific model and return 'valid'|'invalid'|'unsure'
+async function dailyAICallModel(word, category, letter, model, systemPrompt, prompt) {
   try {
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
@@ -2171,34 +2166,68 @@ async function dailyAIValidate(word, category, letter) {
       },
       signal: AbortSignal.timeout(20000),
       body: JSON.stringify({
-        models: [
-          'inclusionai/ling-3.0-flash-fin:free',
-          'nvidia/nemotron-3-super-120b-a12b:free',
-          'z-ai/glm-5.2:free'
-        ],
+        model,
         messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: prompt }],
         max_tokens: 800,
         temperature: 0
       })
     });
-    if (!response.ok) {
-      console.warn('[Daily AI] HTTP error', response.status);
-      return 'unsure';
-    }
+    if (!response.ok) return 'unsure';
     const data = await response.json();
     const msg = data.choices?.[0]?.message || {};
-    const rawContent = msg.content?.trim() || '';
-    const rawReasoning = msg.reasoning?.trim() || '';
-    const combined = rawContent || rawReasoning;
+    const combined = (msg.content?.trim() || msg.reasoning?.trim() || '');
     const text = combined.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
     const norm = text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z]/g, ' ').trim();
-    console.log('[Daily AI]', word, '/', category, '→', norm);
+    console.log('[Daily AI]', model.split('/')[1], word, '→', norm.slice(0,20));
     if (/\binvalid(o)?\b/.test(norm)) return 'invalid';
     if (/\bvalid(o)?\b/.test(norm)) return 'valid';
     if (/\byes\b|\bcorrect\b|\bsi\b|\bcorrecto\b/.test(norm)) return 'valid';
     if (/\bno\b|\bincorrect\b|\bwrong\b|\bincorrecto\b/.test(norm)) return 'invalid';
     return 'unsure';
   } catch(e) { console.error('[Daily AI] error:', e.message); return 'unsure'; }
+}
+
+// Consensus: 2 models in parallel, tiebreaker only if split
+async function dailyAIValidate(word, category, letter) {
+  const langNames = {es:'Spanish',en:'English',fr:'French',de:'German',pt:'Portuguese',it:'Italian'};
+  const gameLang = langNames[LANG] || 'Spanish';
+  const spellingRule = 'Minor spelling mistakes are acceptable as long as the intended word is clear.';
+  const systemPrompt = `You are a very generous judge of a ${gameLang}-language word game. Rules: (1) Ignore accents and tildes. (2) Be very generous — accept borderline, regional, informal, and less common but real answers. (3) IMPORTANT: Song titles, film titles, TV series, brand names, singers, bands, actors, writers, fictional characters, and chemical elements are international — accept them in ANY language, do NOT reject for being non-${gameLang}. Only common nouns (animal, fruit, colour, food, object, profession, sport, tree, flower, fish, bird, insect) must be in ${gameLang}. (4) ${spellingRule} (5) When in doubt, always choose VALIDO. Only use INVALIDO when the answer is clearly and obviously wrong.`;
+  const prompt = `${gameLang} word game. Letter: "${letter}". Category: "${category}". Answer: "${word}". Does the answer start with "${letter}" and belong to the category? Be generous. Reply ONE word only: VALIDO, INVALIDO, or DUDOSO.`;
+
+  const MODELS = [
+    'inclusionai/ling-3.0-flash-fin:free',
+    'nvidia/nemotron-3-super-120b-a12b:free',
+    'z-ai/glm-5.2:free'
+  ];
+
+  // Call first 2 in parallel
+  const [r1, r2] = await Promise.all([
+    dailyAICallModel(word, category, letter, MODELS[0], systemPrompt, prompt),
+    dailyAICallModel(word, category, letter, MODELS[1], systemPrompt, prompt),
+  ]);
+
+  console.log('[Daily consensus]', word, '→', r1, r2);
+
+  // If they agree — done
+  if (r1 === r2) return r1;
+
+  // If one is unsure and other has a verdict — take the verdict
+  if (r1 === 'unsure') return r2;
+  if (r2 === 'unsure') return r1;
+
+  // Split (valid vs invalid) — call tiebreaker
+  console.log('[Daily tiebreaker]', word, '→ calling model 3');
+  const r3 = await dailyAICallModel(word, category, letter, MODELS[2], systemPrompt, prompt);
+  console.log('[Daily tiebreaker]', word, '→', r3);
+
+  // Majority vote
+  const votes = [r1, r2, r3];
+  const validCount = votes.filter(v => v === 'valid').length;
+  const invalidCount = votes.filter(v => v === 'invalid').length;
+  if (validCount >= 2) return 'valid';
+  if (invalidCount >= 2) return 'invalid';
+  return 'unsure';
 }
 async function showDailyResult(answers, score, aiResults, speedBonus) {
   // Populate answers list
@@ -3088,8 +3117,8 @@ window.askAI = async (word, category, letter, key) => {
     ? '(6) Minor spelling mistakes and phonetic spellings are acceptable as long as the intended word is clear.'
     : '(6) The answer must be spelled correctly (accents/tildes excepted) — significant spelling mistakes or wrong letters make it INVALIDO.';
   const langRule = `(7) The answer must be in ${gameLang} — answers in any other language are INVALIDO.`;
-  const systemPromptRelajado = `You are a generous and fair judge of a ${gameLang}-language word game. Rules: (1) Ignore accents and tildes — Ramon=Ramón, areas=áreas. (2) The answer must belong to the category — be generous with borderline cases like colour names, informal terms, or less common but real examples. (3) Abbreviated or informal names accepted if reference is clear (Nueva Guinea = Papua Nueva Guinea). (4) Real things and well-known fictional things accepted. (5) Common nouns don't qualify for proper-noun categories (names, surnames, cities, countries) but are fine for open categories like colours, objects, foods. ${spellingRule} ${langRule} Use DUDOSO only when truly uncertain — prefer VALIDO on close calls.`;
-  const systemPromptEstricto = `You are a strict and precise judge of a ${gameLang}-language word game. Rules: (1) Ignore accents and tildes — Ramon=Ramón, areas=áreas. (2) The answer must clearly and unambiguously belong to the category — reject borderline or creative interpretations. (3) Only well-known, widely recognised examples accepted. (4) Common nouns, adjectives, months, and job titles do not qualify for proper-noun categories (names, surnames, cities, countries). (5) Use INVALIDO on any doubt — DUDOSO only for genuinely ambiguous cases. ${spellingRule} ${langRule}`;
+  const systemPromptRelajado = `You are a generous and fair judge of a ${gameLang}-language word game. Rules: (1) Ignore accents and tildes — Ramon=Ramón, areas=áreas. (2) Be generous with borderline cases, informal terms, regional names, and less common but real examples. (3) Abbreviated or informal names accepted if reference is clear. (4) Real things and well-known fictional things accepted. (5) Common nouns don't qualify for proper-noun categories (names, surnames, cities, countries). (6) IMPORTANT: Song titles, film titles, TV series, brand names, singers, bands, actors, writers, fictional characters, and chemical elements are international — accept them in ANY language, do NOT reject for being non-${gameLang}. Only common nouns must be in ${gameLang}. ${spellingRule} Always prefer VALIDO on any close call. INVALIDO only when clearly wrong.`;
+  const systemPromptEstricto = `You are a strict and precise judge of a ${gameLang}-language word game. Rules: (1) Ignore accents and tildes — Ramon=Ramón, areas=áreas. (2) The answer must clearly and unambiguously belong to the category — reject borderline or creative interpretations. (3) Only well-known, widely recognised examples accepted. (4) Common nouns, adjectives, months, and job titles do not qualify for proper-noun categories (names, surnames, cities, countries). (5) IMPORTANT: Song titles, film titles, TV series, brand names, singers, bands, actors, writers, fictional characters, and chemical elements are international — accept them in ANY language, do NOT reject for being non-${gameLang}. Only common nouns must be in ${gameLang}. (6) Use INVALIDO on any doubt — DUDOSO only for genuinely ambiguous cases. ${spellingRule}`;
   const systemPrompt = G_aiStrictness === 'estricto' ? systemPromptEstricto : systemPromptRelajado;
   const prompt = `${gameLang}-language game. Letter: "${letter}". Category: "${category}". Answer: "${word}". Does this answer fit the category? Reply with ONE word only, no punctuation, no explanation: VALIDO, INVALIDO, or DUDOSO.`;
 
@@ -4062,7 +4091,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260902.12-tmp</div>
+  <div style="font-size:9px;opacity:0.5">v260902.15-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
