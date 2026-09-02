@@ -2298,11 +2298,7 @@ function updateDailyButtonDate() {
   span.textContent = label + ' · ' + getDailyDateString();
 }
 
-// Stub — full implementation next session
-window.startDailyChallenge = function() {
-  const msgs = { es:'¡Reto diario próximamente! 🎯', en:'Daily challenge coming soon! 🎯', fr:'Défi du jour bientôt disponible! 🎯', de:'Tagesrätsel kommt bald! 🎯', pt:'Desafio diário em breve! 🎯', it:'Sfida del giorno in arrivo! 🎯' };
-  toast(msgs[LANG] || msgs.es);
-}
+// startDailyChallenge — implemented in Daily Challenge section above
 
 function toast(msg) {
   const el = document.getElementById('toast');
@@ -4027,7 +4023,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260902.2-tmp</div>
+  <div style="font-size:9px;opacity:0.5">v260902.3-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
