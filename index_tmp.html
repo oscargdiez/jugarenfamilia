@@ -214,19 +214,19 @@ button.stop-btn:hover { background: var(--red-dark); }
 }
 #shell-header-inner {
   max-width: 560px; margin: 0 auto;
-  display: flex; align-items: center;
+  display: grid; grid-template-columns: 80px 1fr 80px; align-items: center;
   padding: 0 1.25rem; height: 100%; position: relative;
 }
 #shell-logo {
   font-family: 'Caveat', cursive; font-size: 26px; font-weight: 700;
   color: var(--red); line-height: 1; text-decoration: none;
   cursor: pointer; border: none; background: none; padding: 0;
-  flex: 0 0 auto; width: 80px;
 }
 #shell-center {
   display: flex; align-items: center; gap: 8px;
   font-family: 'Caveat', cursive; font-size: 15px; color: var(--ink-sec);
   flex: 1; justify-content: center; min-width: 0; overflow: hidden;
+  align-self: stretch;
 }
 #shell-letter-badge {
   font-family: 'Caveat', cursive; font-size: 22px; font-weight: 700;
@@ -239,7 +239,7 @@ button.stop-btn:hover { background: var(--red-dark); }
   display: none;
 }
 #shell-right {
-  display: flex; align-items: center; gap: 6px; flex-shrink: 0; justify-content: flex-end; width: 80px;
+  display: flex; align-items: center; gap: 6px; justify-content: flex-end;
 }
 #shell-room-pill {
   font-family: 'Special Elite', monospace; font-size: 11px;
@@ -590,7 +590,7 @@ document.addEventListener('DOMContentLoaded', function() {
 <!-- ══ SHELL HEADER (always visible) ══ -->
 <div id="shell-header">
   <div id="shell-header-inner">
-    <div style="display:flex;align-items:center;flex:0 0 80px;width:80px;overflow:visible">
+    <div style="display:flex;align-items:center">
       <button id="shell-logo" onclick="shellLogoClick()">¡Alto!</button>
       <div id="shell-flags">
         <button class="lang-btn active" onclick="setLang('es')" title="Español">🇪🇸</button>
@@ -858,7 +858,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <!-- ══ SCORES ══ -->
 <div id="s-scores" class="screen">
-  <h1><span id="lbl-scores-title">Puntajes</span> <span id="sc-badge" style="font-size:16px;font-weight:400;color:var(--ink-sec);font-family:'Special Elite',monospace"></span></h1>
+  <h1><span id="lbl-scores-title">Puntuación</span> <span id="sc-badge" style="font-size:16px;font-weight:400;color:var(--ink-sec);font-family:'Special Elite',monospace"></span></h1>
   <div class="card" id="sc-list"></div>
   <div class="btn-row" style="margin-top:10px" id="sc-btns"></div>
 </div>
@@ -1036,10 +1036,10 @@ const T = {
     stop: '¡ A L T O !',
     review: 'Revisar',
     reviewSub: '✕ para anular · única = 100 · repetida = 50 · anulada = 0',
-    calculate: 'Calcular puntajes →', stopCallerMsg: '{name} llamó al ¡Alto!', timerRanOut: 'se acabó el tiempo',
+    calculate: 'Calcular puntuación →', stopCallerMsg: '{name} llamó al ¡Alto!', timerRanOut: 'se acabó el tiempo',
     submitted: 'Respuestas enviadas',
     hostReviewing: 'el anfitrión está revisando',
-    scores: 'Puntajes', nextRound: 'Siguiente ronda →',
+    scores: 'Puntuación', nextRound: 'Siguiente ronda →',
     endGame: 'Terminar', hostWait: 'Esperando al anfitrión…',
     leaderboard: 'Marcador', myGroup: 'Mi grupo', world: 'Mundial',
     worldSub: 'los mejores jugadores del mundo',
@@ -1057,7 +1057,7 @@ const T = {
     toastCats: 'Selecciona al menos una categoría',
     toastFreeCats: 'Escribe al menos 2 categorías',
     toastHostOnly: 'Solo el anfitrión puede reiniciar',
-    continueBtn: 'Continuar →', notMe: 'No soy yo — cambiar', groupHint2: 'familia, amigos, trabajo... como queráis', easyHint: '(sin K, Ñ, Q, U, W, X, Y, Z)', validate: 'Revisar', validateSub1: 'buscar en Wikipedia · ✕ anular', validateSub2: 'única = 100 pts · repetida = 50 pts · anulada = 0 pts', submitted2: 'Respuestas enviadas', hostReviewing2: 'el anfitrión está revisando', leaderboardBack: '← volver', loading: 'Cargando…', final2: '¡Fin del juego!', searching: 'Buscando...', hostSearching: 'El anfitrión está buscando...', rndLabel: 'ronda', of: 'de', freeCatLabel: 'escreve as tuas categorias (uma por linha)', freeCatPlaceholder: 'Jogadores do Barça\nFilmes de terror\nCoisas na cozinha', freeCatLabel: 'escribe tus categorías (una por línea)', freeCatPlaceholder: 'Jugadores del Barça\nPelículas de terror\nCosas en la cocina', of: 'de', freeCatLabel: 'escreve as tuas categorias (uma por linha)', freeCatPlaceholder: 'Jogadores do Barça\nFilmes de terror\nCoisas na cozinha', freeCatLabel: 'escribe tus categorías (una por línea)', freeCatPlaceholder: 'Jugadores del Barça\nPelículas de terror\nCosas en la cocina', letterLabel: 'letra', calculate: 'Calcular puntajes →', stopCallerMsg: '{name} llamó al ¡Alto!', timerRanOut: 'se acabó el tiempo', scoresTitle: 'Puntajes', lbTitle: 'Marcador',
+    continueBtn: 'Continuar →', notMe: 'No soy yo — cambiar', groupHint2: 'familia, amigos, trabajo... como queráis', easyHint: '(sin K, Ñ, Q, U, W, X, Y, Z)', validate: 'Revisar', validateSub1: 'buscar en Wikipedia · ✕ anular', validateSub2: 'única = 100 pts · repetida = 50 pts · anulada = 0 pts', submitted2: 'Respuestas enviadas', hostReviewing2: 'el anfitrión está revisando', leaderboardBack: '← volver', loading: 'Cargando…', final2: '¡Fin del juego!', searching: 'Buscando...', hostSearching: 'El anfitrión está buscando...', rndLabel: 'ronda', of: 'de', freeCatLabel: 'escreve as tuas categorias (uma por linha)', freeCatPlaceholder: 'Jogadores do Barça\nFilmes de terror\nCoisas na cozinha', freeCatLabel: 'escribe tus categorías (una por línea)', freeCatPlaceholder: 'Jugadores del Barça\nPelículas de terror\nCosas en la cocina', of: 'de', freeCatLabel: 'escreve as tuas categorias (uma por linha)', freeCatPlaceholder: 'Jogadores do Barça\nFilmes de terror\nCoisas na cozinha', freeCatLabel: 'escribe tus categorías (una por línea)', freeCatPlaceholder: 'Jugadores del Barça\nPelículas de terror\nCosas en la cocina', letterLabel: 'letra', calculate: 'Calcular puntuación →', stopCallerMsg: '{name} llamó al ¡Alto!', timerRanOut: 'se acabó el tiempo', scoresTitle: 'Puntuación', lbTitle: 'Marcador',
     invited: '¡Te han invitado a jugar!', rulesBtn: '¿Cómo se juega?', expBtn: '⚗️ FUNCIONES EXPERIMENTALES', aiValidation: '🔍 Validación automática', aiRelajado: '🟢 Relajada', aiEstricto: '🔴 Estricta', aiSpelling: '✏️ Permitir faltas de ortografía', aiYes: 'Sí', aiNo: 'No', modeHost: '👑 Normal', modeDemocratic: '🗳️ Democrático', invalidated: 'anulada', winnerLine: '{emoji} {name} gana con {pts} puntos!', wrongPwd: '❌ Contraseña incorrecta', expActivated: '⚗️ Funciones experimentales activadas', qjCodeLabel: 'sala:', gcInside: '✅ ESTÁS DENTRO', inviteMore: '+ ¿Quieres invitar a alguien más?',
     toastBack: 'Volviendo como', notFoundWord: '📭 No se encontró', didYouMean: '¿Quisiste decir', noDefinition: '📭 Sin definición para',
     waMsg: '¡Juega conmigo al ¡Alto! 🎮 Únete aquí:',
@@ -3627,7 +3627,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260902.13-tmp</div>
+  <div style="font-size:9px;opacity:0.5">v260902.14-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
