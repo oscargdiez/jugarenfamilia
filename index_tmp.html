@@ -2490,10 +2490,33 @@ function getDailyDateString() {
 
 function updateDailyButtonDate() {
   const span = document.getElementById('btn-daily-text');
+  const sub  = document.getElementById('lbl-daily-sub');
+  const btn  = document.getElementById('btn-daily');
   if (!span) return;
+
+  const key = getDailyKey();
+  const played = !!localStorage.getItem('alto_daily_' + key);
+
   const labels = { es:'Reto diario', en:'Daily challenge', fr:'Défi du jour', de:'Tagesrätsel', pt:'Desafio diário', it:'Sfida del giorno' };
+  const doneLabels = {
+    es:'✅ Ya jugaste hoy · Ver puntuación',
+    en:'✅ Already played · See score',
+    fr:'✅ Déjà joué · Voir le score',
+    de:'✅ Bereits gespielt · Ergebnis sehen',
+    pt:'✅ Já jogaste hoje · Ver pontuação',
+    it:'✅ Già giocato · Vedi punteggio'
+  };
+
   const label = labels[LANG] || labels.es;
   span.textContent = label + ' · ' + getDailyDateString();
+
+  if (played) {
+    if (sub) sub.textContent = doneLabels[LANG] || doneLabels.es;
+    if (btn) btn.style.opacity = '0.75';
+  } else {
+    if (sub) sub.textContent = ''; // restored by applyLang via t('dailySub')
+    if (btn) btn.style.opacity = '1';
+  }
 }
 
 // startDailyChallenge — implemented in Daily Challenge section above
@@ -4221,7 +4244,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260902.21-tmp</div>
+  <div style="font-size:9px;opacity:0.5">v260902.22-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
