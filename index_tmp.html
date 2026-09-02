@@ -236,12 +236,11 @@ button.stop-btn:hover { background: var(--red-dark); }
 }
 #shell-room-pill {
   font-family: 'Special Elite', monospace; font-size: 11px;
-  color: var(--red); background: var(--red-light);
-  border: 1.5px solid var(--red); border-radius: 20px;
-  padding: 3px 10px; cursor: pointer; display: none;
+  color: var(--ink-sec); background: var(--paper-dark);
+  border: 1.5px solid var(--border); border-radius: 20px;
+  padding: 3px 10px; display: none;
   white-space: nowrap; letter-spacing: 1px;
 }
-#shell-room-pill:hover { background: var(--paper-dark); }
 #shell-help-btn {
   font-size: 15px; padding: 3px 9px;
   border: 1.5px solid var(--border-strong); border-radius: 4px;
@@ -277,12 +276,12 @@ button.stop-btn:hover { background: var(--red-dark); }
 }
 
 /* Shell flags (shown on home only, left side) */
-#shell-flags { display: none; align-items: center; gap: 2px; margin-left: 8px; }
+#shell-flags { display: none; align-items: center; gap: 2px; margin-left: 6px; padding-left: 0; }
 #shell-flags .lang-btn { font-size: 15px; padding: 2px 3px; border: 1.5px solid transparent; background: transparent; cursor: pointer; border-radius: 4px; opacity: 0.5; }
 #shell-flags .lang-btn.active { opacity: 1; background: var(--paper-dark); border-color: var(--border-strong); }
 
 /* Hide shell logo on home screen */
-body.screen-home #shell-logo { visibility: hidden; pointer-events: none; }
+body.screen-home #shell-logo { visibility: hidden; pointer-events: none; width: 0; overflow: hidden; padding: 0; margin: 0; }
 /* Show flags only on home — left of center */
 body.screen-home #shell-flags { display: flex !important; }
 
@@ -566,7 +565,7 @@ document.addEventListener('DOMContentLoaded', function() {
       <span class="timer" id="ft-timer" style="display:none"></span>
     </div>
     <div id="shell-right">
-      <span id="shell-room-pill" onclick="shellRoomPillClick()"></span>
+      <span id="shell-room-pill"></span>
       <button id="shell-help-btn" onclick="shellHelpOpen()">?</button>
     </div>
   </div>
@@ -647,10 +646,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <!-- ══ LOBBY ══ -->
 <div id="s-lobby" class="screen">
-  <div class="logo-wrap" style="margin-bottom:1rem">
-    <span class="logo-main" style="font-size:48px">¡Alto!</span>
-  </div>
-  <p class="sub" id="lob-role" style="text-align:center"></p>
+  <p class="sub" id="lob-role" style="text-align:center;margin-top:0.5rem;margin-bottom:1rem"></p>
 
   <div class="card host-only" style="display:none">
     <p class="lbl" id="lbl-share-code">comparte el código con tu familia</p>
@@ -1778,13 +1774,7 @@ window.shellLogoClick = function() {
   }
 }
 
-// Called when user taps the room code pill
-window.shellRoomPillClick = function() {
-  const url = document.getElementById('share-url')?.textContent;
-  if (url) {
-    navigator.clipboard.writeText(url).then(() => toast(t('toastRoomCopied'))).catch(() => toast(url));
-  }
-}
+// Room pill is a non-interactive badge — copy is handled in lobby
 
 // Help overlay
 window.shellHelpOpen = function() {
@@ -3567,7 +3557,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260902.4-tmp</div>
+  <div style="font-size:9px;opacity:0.5">v260902.5-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
