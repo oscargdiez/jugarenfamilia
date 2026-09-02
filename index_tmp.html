@@ -466,6 +466,10 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
 .daily-already-played { text-align: center; padding: 1.5rem 0; }
 .daily-already-score { font-family: 'Caveat', cursive; font-size: 48px; font-weight: 700; color: var(--red); }
 
+/* ── Spin animation for validating button ── */
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.spin-icon { display: inline-block; animation: spin 1s linear infinite; }
+
 /* ── Urgency pulse overlay ── */
 #urgency-overlay {
   position: fixed; inset: 0; z-index: 150;
@@ -2097,7 +2101,9 @@ window.dailySubmit = async function() {
   clearInterval(G_daily.timerInterval);
   setUrgencyPulse(false);
   const submitBtn = document.getElementById('btn-daily-submit');
-  if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = '⏳ Validando…'; }
+  if (submitBtn) { submitBtn.disabled = true; submitBtn.innerHTML = '<span class="spin-icon">↻</span> Validando…'; }
+  // Disable all answer inputs so player can't edit during validation
+  document.querySelectorAll('.daily-cat-input').forEach(inp => { inp.disabled = true; inp.style.opacity = '0.5'; });
 
   const speedBonus = calcSpeedBonus(G_daily.secsRemaining, G_daily.totalSecs);
 
@@ -4091,7 +4097,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260902.15-tmp</div>
+  <div style="font-size:9px;opacity:0.5">v260902.16-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
