@@ -1820,9 +1820,13 @@ function updateShellHeader(screenId) {
 
 // Called when user taps the ¡Alto! logo in the shell header
 window.shellLogoClick = function() {
+  if (G.screen === 'lobby') {
+    // Same as tapping leave room
+    leaveGame();
+    return;
+  }
   const inGame = ['playing','validate','waiting','scores'].includes(G.screen);
-  if (!inGame) return; // on home/lobby/etc, do nothing
-  // Show confirm dialog
+  if (!inGame) return;
   if (confirm(t('shellLeave') + '\n\n' + t('shellLeaveConfirm'))) {
     leaveGame();
   }
@@ -3628,7 +3632,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260902.17-tmp</div>
+  <div style="font-size:9px;opacity:0.5">v260902.18-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
