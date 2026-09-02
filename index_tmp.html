@@ -209,7 +209,7 @@ button.stop-btn:hover { background: var(--red-dark); }
 #shell-header-inner {
   max-width: 560px; margin: 0 auto;
   display: flex; align-items: center; justify-content: space-between;
-  padding: 8px 1.25rem; gap: 8px;
+  padding: 8px 1.25rem; gap: 8px; position: relative;
 }
 #shell-logo {
   font-family: 'Caveat', cursive; font-size: 26px; font-weight: 700;
@@ -276,14 +276,14 @@ button.stop-btn:hover { background: var(--red-dark); }
   letter-spacing: 1px;
 }
 
-/* Shell flags (shown on home only) */
-#shell-flags { display: none; align-items: center; gap: 3px; }
-#shell-flags .lang-btn { font-size: 16px; padding: 2px 4px; border: 1.5px solid transparent; background: transparent; cursor: pointer; border-radius: 4px; opacity: 0.5; }
+/* Shell flags (shown on home only, left side) */
+#shell-flags { display: none; align-items: center; gap: 2px; margin-left: 8px; }
+#shell-flags .lang-btn { font-size: 15px; padding: 2px 3px; border: 1.5px solid transparent; background: transparent; cursor: pointer; border-radius: 4px; opacity: 0.5; }
 #shell-flags .lang-btn.active { opacity: 1; background: var(--paper-dark); border-color: var(--border-strong); }
 
 /* Hide shell logo on home screen */
 body.screen-home #shell-logo { visibility: hidden; pointer-events: none; }
-/* Show flags only on home — must come after the display:none above */
+/* Show flags only on home — left of center */
 body.screen-home #shell-flags { display: flex !important; }
 
 /* Offset page content so it doesn't hide under shell header */
@@ -549,13 +549,8 @@ document.addEventListener('DOMContentLoaded', function() {
 <!-- ══ SHELL HEADER (always visible) ══ -->
 <div id="shell-header">
   <div id="shell-header-inner">
-    <button id="shell-logo" onclick="shellLogoClick()">¡Alto!</button>
-    <div id="shell-center">
-      <span id="shell-letter-badge"></span>
-      <span id="shell-round-info"></span>
-      <span class="timer" id="ft-timer" style="display:none"></span>
-    </div>
-    <div id="shell-right">
+    <div style="display:flex;align-items:center">
+      <button id="shell-logo" onclick="shellLogoClick()">¡Alto!</button>
       <div id="shell-flags">
         <button class="lang-btn active" onclick="setLang('es')" title="Español">🇪🇸</button>
         <button class="lang-btn" onclick="setLang('en')" title="English">🇬🇧</button>
@@ -564,6 +559,13 @@ document.addEventListener('DOMContentLoaded', function() {
         <button class="lang-btn" onclick="setLang('pt')" title="Português">🇧🇷</button>
         <button class="lang-btn" onclick="setLang('it')" title="Italiano">🇮🇹</button>
       </div>
+    </div>
+    <div id="shell-center">
+      <span id="shell-letter-badge"></span>
+      <span id="shell-round-info"></span>
+      <span class="timer" id="ft-timer" style="display:none"></span>
+    </div>
+    <div id="shell-right">
       <span id="shell-room-pill" onclick="shellRoomPillClick()"></span>
       <button id="shell-help-btn" onclick="shellHelpOpen()">?</button>
     </div>
@@ -1014,7 +1016,7 @@ const T = {
     waMsg: '¡Juega conmigo al ¡Alto! 🎮 Únete aquí:',
     createSub: 'MULTIJUGADOR · CON FAMILIA Y AMIGOS',
     dailySub: 'TÚ CONTRA EL MUNDO · UN RETO POR DÍA',
-    helpTitle: 'Ayuda',
+    rulesTitle: 'Reglas del juego',
     shellLeave: '¿Salir de la partida?',
     shellLeaveConfirm: 'Perderás tu progreso en esta ronda.',
     shellLeaveYes: 'Salir', shellLeaveNo: 'Seguir jugando',
@@ -1071,7 +1073,7 @@ const T = {
     waMsg: 'Play Stop! with me 🎮 Join here:',
     createSub: 'MULTIPLAYER · WITH FAMILY & FRIENDS',
     dailySub: 'YOU VS THE WORLD · ONE CHALLENGE A DAY',
-    helpTitle: 'Help',
+    rulesTitle: 'How to play',
     shellLeave: 'Leave the game?',
     shellLeaveConfirm: 'You will lose your progress this round.',
     shellLeaveYes: 'Leave', shellLeaveNo: 'Keep playing',
@@ -1128,7 +1130,7 @@ const T = {
     waMsg: 'Joue au Stop! avec moi 🎮 Rejoins ici:',
     createSub: 'MULTIJOUEUR · EN FAMILLE ET ENTRE AMIS',
     dailySub: 'TOI CONTRE LE MONDE · UN DÉFI PAR JOUR',
-    helpTitle: 'Aide',
+    rulesTitle: 'Règles du jeu',
     shellLeave: 'Quitter la partie?',
     shellLeaveConfirm: 'Tu perdras ta progression dans ce tour.',
     shellLeaveYes: 'Quitter', shellLeaveNo: 'Continuer',
@@ -1185,7 +1187,7 @@ const T = {
     waMsg: 'Spiel Stop! mit mir 🎮 Tritt hier bei:',
     createSub: 'MEHRSPIELER · MIT FAMILIE UND FREUNDEN',
     dailySub: 'DU GEGEN DIE WELT · EINE AUFGABE PRO TAG',
-    helpTitle: 'Hilfe',
+    rulesTitle: 'Spielregeln',
     shellLeave: 'Spiel verlassen?',
     shellLeaveConfirm: 'Du verlierst deinen Fortschritt in dieser Runde.',
     shellLeaveYes: 'Verlassen', shellLeaveNo: 'Weiterspielen',
@@ -1242,7 +1244,7 @@ const T = {
     waMsg: 'Joga Stop! comigo 🎮 Junta-te aqui:',
     createSub: 'MULTIJOGADOR · COM FAMÍLIA E AMIGOS',
     dailySub: 'TU CONTRA O MUNDO · UM DESAFIO POR DIA',
-    helpTitle: 'Ajuda',
+    rulesTitle: 'Regras do jogo',
     shellLeave: 'Sair do jogo?',
     shellLeaveConfirm: 'Vais perder o teu progresso nesta ronda.',
     shellLeaveYes: 'Sair', shellLeaveNo: 'Continuar a jogar',
@@ -1299,7 +1301,7 @@ const T = {
     waMsg: 'Gioca a Stop! con me 🎮 Unisciti qui:',
     createSub: 'MULTIGIOCATORE · CON FAMIGLIA E AMICI',
     dailySub: 'TU CONTRO IL MONDO · UNA SFIDA AL GIORNO',
-    helpTitle: 'Aiuto',
+    rulesTitle: 'Regole del gioco',
     shellLeave: 'Uscire dal gioco?',
     shellLeaveConfirm: 'Perderai i progressi in questo round.',
     shellLeaveYes: 'Esci', shellLeaveNo: 'Continua a giocare',
@@ -1326,12 +1328,12 @@ window.setLang = function(lang) {
 
 function rulesHTML() {
   const rules = {
-    es: { h: '¿Cómo se juega?', r1: 'Se elige una letra al azar para cada ronda', r2: 'Rellena todas las categorías con palabras que empiecen por esa letra — ¡lo más rápido posible!', r3: 'El primero en terminar grita ¡Alto! y todos paran', s: 'Puntuación:', u: 'Respuesta única', d: 'Respuesta repetida', e: 'Sin respuesta' },
-    en: { h: 'How to play?', r1: 'A random letter is chosen for each round', r2: 'Fill all categories with words starting with that letter — as fast as you can!', r3: 'The first to finish shouts Stop! and everyone stops', s: 'Scoring:', u: 'Unique answer', d: 'Duplicate answer', e: 'No answer' },
-    fr: { h: 'Comment jouer?', r1: 'Une lettre aléatoire est choisie pour chaque manche', r2: 'Remplis toutes les catégories avec des mots commençant par cette lettre — le plus vite possible!', r3: 'Le premier à finir crie Stop! et tout le monde s\'arrête', s: 'Points:', u: 'Réponse unique', d: 'Réponse en double', e: 'Sans réponse' },
-    de: { h: 'Wie spielt man?', r1: 'Für jede Runde wird ein zufälliger Buchstabe gewählt', r2: 'Fülle alle Kategorien mit Wörtern aus die mit diesem Buchstaben beginnen — so schnell wie möglich!', r3: 'Der Erste der fertig ist ruft Stop! und alle hören auf', s: 'Punkte:', u: 'Einmalige Antwort', d: 'Doppelte Antwort', e: 'Keine Antwort' },
-    pt: { h: 'Como se joga?', r1: 'É escolhida uma letra aleatória para cada ronda', r2: 'Preenche todas as categorias com palavras que comecem por essa letra — o mais rápido possível!', r3: 'O primeiro a terminar grita Para! e todos param', s: 'Pontuação:', u: 'Resposta única', d: 'Resposta repetida', e: 'Sem resposta' },
-    it: { h: 'Come si gioca?', r1: 'Viene scelta una lettera casuale per ogni round', r2: 'Riempi tutte le categorie con parole che iniziano con quella lettera — il più veloce possibile!', r3: 'Il primo a finire grida Stop! e tutti si fermano', s: 'Punteggio:', u: 'Risposta unica', d: 'Risposta ripetuta', e: 'Senza risposta' },
+    es: { h: 'Reglas del juego', r1: 'Se elige una letra al azar para cada ronda', r2: 'Rellena todas las categorías con palabras que empiecen por esa letra — ¡lo más rápido posible!', r3: 'El primero en terminar pulsa ¡Alto! para terminar la ronda', s: 'Puntuación:', u: 'Respuesta única', d: 'Respuesta repetida', e: 'Sin respuesta', penalty: '⚠️ Si pulsas ¡Alto! y todas tus respuestas son inválidas, pierdes puntos como penalización.' },
+    en: { h: 'How to play', r1: 'A random letter is chosen for each round', r2: 'Fill all categories with words starting with that letter — as fast as you can!', r3: 'The first to finish taps Stop! to end the round', s: 'Scoring:', u: 'Unique answer', d: 'Duplicate answer', e: 'No answer', penalty: '⚠️ If you tap Stop! and all your answers are invalid, you lose points as a penalty.' },
+    fr: { h: 'Règles du jeu', r1: 'Une lettre aléatoire est choisie pour chaque manche', r2: 'Remplis toutes les catégories avec des mots commençant par cette lettre — le plus vite possible!', r3: 'Le premier à finir appuie sur Stop! pour terminer la manche', s: 'Points:', u: 'Réponse unique', d: 'Réponse en double', e: 'Sans réponse', penalty: "⚠️ Si tu appuies sur Stop! et que toutes tes réponses sont invalides, tu perds des points en pénalité." },
+    de: { h: 'Spielregeln', r1: 'Für jede Runde wird ein zufälliger Buchstabe gewählt', r2: 'Fülle alle Kategorien mit Wörtern aus die mit diesem Buchstaben beginnen — so schnell wie möglich!', r3: 'Der Erste der fertig ist drückt Stop! um die Runde zu beenden', s: 'Punkte:', u: 'Einmalige Antwort', d: 'Doppelte Antwort', e: 'Keine Antwort', penalty: '⚠️ Wenn du Stop! drückst und alle deine Antworten ungültig sind, verlierst du Punkte als Strafe.' },
+    pt: { h: 'Regras do jogo', r1: 'É escolhida uma letra aleatória para cada ronda', r2: 'Preenche todas as categorias com palavras que comecem por essa letra — o mais rápido possível!', r3: 'O primeiro a terminar prime ¡Alto! para terminar a ronda', s: 'Pontuação:', u: 'Resposta única', d: 'Resposta repetida', e: 'Sem resposta', penalty: '⚠️ Se premires ¡Alto! e todas as tuas respostas forem inválidas, perdes pontos como penalização.' },
+    it: { h: 'Regole del gioco', r1: 'Viene scelta una lettera casuale per ogni round', r2: 'Riempi tutte le categorie con parole che iniziano con quella lettera — il più veloce possibile!', r3: 'Il primo a finire preme Stop! per terminare il round', s: 'Punteggio:', u: 'Risposta unica', d: 'Risposta ripetuta', e: 'Senza risposta', penalty: '⚠️ Se premi Stop! e tutte le tue risposte sono invalide, perdi punti come penalità.' },
   };
   const r = rules[LANG] || rules.es;
   return `
@@ -1343,7 +1345,8 @@ function rulesHTML() {
       <div class="rules-score-row"><span>${r.u}</span><span class="rules-pts">100 pts</span></div>
       <div class="rules-score-row"><span>${r.d}</span><span class="rules-pts">50 pts</span></div>
       <div class="rules-score-row"><span>${r.e}</span><span class="rules-pts">0 pts</span></div>
-    </div>`;
+    </div>
+    <div style="margin-top:10px;padding:8px 10px;background:var(--paper-dark);border-radius:var(--radius);font-family:'Special Elite',monospace;font-size:12px;color:var(--ink-sec);line-height:1.5">${r.penalty}</div>`;
 }
 
 window.toggleRules = () => {
@@ -1587,7 +1590,7 @@ window.applyLang = function() {
   // Shell header strings
   s('lbl-create-sub', t('createSub'));
   s('lbl-daily-sub', t('dailySub'));
-  s('help-panel-title', t('helpTitle'));
+  s('help-panel-title', t('rulesTitle'));
   // Daily button date
   updateDailyButtonDate();
   // Shell round info (if in game)
@@ -1789,7 +1792,7 @@ window.shellHelpOpen = function() {
   const body     = document.getElementById('help-panel-body');
   const title    = document.getElementById('help-panel-title');
   const closeBtn = document.getElementById('help-panel-close');
-  if (title) title.textContent = t('helpTitle');
+  if (title) title.textContent = t('rulesTitle');
   const closeLabels = {es:'Cerrar',en:'Close',fr:'Fermer',de:'Schließen',pt:'Fechar',it:'Chiudi'};
   if (closeBtn) closeBtn.textContent = closeLabels[LANG] || closeLabels.es;
   if (body) body.innerHTML = rulesHTML() + '<div style="margin-top:1.5rem;border-top:2px dashed var(--border);padding-top:1.25rem">' + helpHTML() + '</div>';
@@ -3564,7 +3567,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260902.3-tmp</div>
+  <div style="font-size:9px;opacity:0.5">v260902.4-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
