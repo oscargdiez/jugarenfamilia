@@ -281,9 +281,9 @@ button.stop-btn:hover { background: var(--red-dark); }
 #shell-flags .lang-btn.active { opacity: 1; background: var(--paper-dark); border-color: var(--border-strong); }
 
 /* Hide shell logo on home screen */
-body.screen-home #shell-logo { visibility: hidden; pointer-events: none; width: 0; overflow: hidden; padding: 0; margin: 0; }
+body.screen-home #shell-logo, body.screen-welcome #shell-logo { visibility: hidden; pointer-events: none; width: 0; overflow: hidden; padding: 0; margin: 0; }
 /* Show flags only on home — left of center */
-body.screen-home #shell-flags { display: flex !important; }
+body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex !important; }
 
 /* Offset page content so it doesn't hide under shell header */
 .page { max-width: 560px; margin: 0 auto; padding: 2rem 1.25rem 5rem; overflow: visible; padding-top: calc(2rem + 46px); }
@@ -518,6 +518,26 @@ body.screen-home #shell-flags { display: flex !important; }
 /* ── Leave link ── */
 .leave-link { text-align: center; margin-top: 1rem; }
 .leave-link button { font-size: 13px; color: var(--ink-muted); border: none; background: none; padding: 4px; font-family: 'Special Elite', monospace; }
+
+/* ── Config toggle ── */
+.config-toggle {
+  width: 100%; background: transparent; border: 1.5px dashed var(--border-strong);
+  color: var(--ink-sec); font-family: 'Special Elite', monospace; font-size: 13px;
+  padding: 10px; border-radius: var(--radius); cursor: pointer;
+  letter-spacing: 1px; display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.config-toggle:hover { background: var(--paper-dark); }
+.config-body { display: none; margin-top: 8px; }
+.config-body.open { display: block; }
+
+/* ── Styled leave button ── */
+.btn-leave-room {
+  width: 100%; background: transparent; border: 1.5px solid var(--border);
+  color: var(--ink-sec); font-family: 'Caveat', cursive; font-size: 17px;
+  padding: 11px; border-radius: var(--radius); cursor: pointer; margin-top: 8px;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.btn-leave-room:hover { background: var(--paper-dark); border-color: var(--border-strong); }
 </style>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -630,8 +650,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <!-- ══ WELCOME BACK ══ -->
 <div id="s-welcome" class="screen">
-  <div class="logo-wrap" style="margin-bottom:1rem">
-    <span class="logo-main" style="font-size:48px">¡Alto!</span>
+  <div class="logo-wrap">
+    <span class="logo-main">¡Alto!</span>
+    <div class="logo-rule"></div>
+    <div class="logo-sub">JUGARENFAMILIA.ES</div>
+    <div class="logo-tag">el juego de siempre, con los de siempre</div>
   </div>
   <div class="card">
     <div class="welcome-avatar" id="wb-emoji">🎲</div>
@@ -648,6 +671,7 @@ document.addEventListener('DOMContentLoaded', function() {
 <div id="s-lobby" class="screen">
   <p class="sub" id="lob-role" style="text-align:center;margin-top:0.5rem;margin-bottom:1rem"></p>
 
+  <!-- Host: share code -->
   <div class="card host-only" style="display:none">
     <p class="lbl" id="lbl-share-code">comparte el código con tu familia</p>
     <div class="room-code" id="lob-code">----</div>
@@ -681,11 +705,13 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
   </div>
 
+  <!-- Players -->
   <div class="card">
     <p class="lbl" id="lbl-players">jugadores</p>
     <div class="chips" id="lob-players"></div>
   </div>
 
+  <!-- Host panel -->
   <div id="host-panel" style="display:none">
     <div class="card">
       <p class="lbl" id="lbl-group-name">nombre del grupo</p>
@@ -695,79 +721,81 @@ document.addEventListener('DOMContentLoaded', function() {
         <div class="group-suggestions" id="group-suggestions" style="display:none"></div>
       </div>
     </div>
-    <div class="card">
-      <p class="lbl" id="lbl-theme">tema</p>
-      <div class="themes" id="theme-btns"></div>
-      <div id="cat-custom" style="display:none">
-        <p class="lbl" style="margin-top:6px">categorías</p>
-        <div class="cat-grid" id="cat-grid"></div>
-      </div>
-      <div id="cat-free" style="display:none">
-        <p class="lbl" id="lbl-cat-free" style="margin-top:6px">escribe tus categorías (una por línea)</p>
-        <textarea id="free-cats" rows="5" placeholder="Jugadores del Barça&#10;Películas de terror&#10;Cosas en la cocina"></textarea>
-      </div>
-    </div>
-
-    <div class="card">
-      <p class="lbl">letras fáciles <span style="font-size:11px;opacity:.7" id="lbl-easy-hint">(sin K, Ñ, Q, U, W, X, Y, Z)</span></p>
-      <label class="cat-lbl">
-        <input type="checkbox" id="easy-letters" checked onchange="toggleEasyLetters(this.checked)">
-        <span id="lbl-easy-letters">solo letras fáciles</span>
-      </label>
-      <p class="lbl" style="margin-top:14px" id="lbl-rounds">rondas</p>
-      <div class="range-row">
-        <input type="range" min="3" max="12" value="5" id="sl-rounds" oninput="document.getElementById('v-rounds').textContent=this.value">
-        <span class="range-val" id="v-rounds">5</span>
-      </div>
-      <p class="lbl" style="margin-top:14px" id="lbl-seconds">segundos por ronda</p>
-      <div class="range-row">
-        <input type="range" min="30" max="120" step="10" value="90" id="sl-time" oninput="document.getElementById('v-time').textContent=this.value">
-        <span class="range-val" id="v-time">90</span>
-      </div>
-      <p class="lbl" style="margin-top:14px" id="lbl-penalty">penalización por ¡Alto! inválido</p>
-      <div class="range-row">
-        <input type="range" min="0" max="200" step="50" value="50" id="sl-penalty" oninput="document.getElementById('v-penalty').textContent=this.value">
-        <span class="range-val" id="v-penalty">50</span>
-      </div>
-      
-      <div style="margin-top:16px;border-top:1px dashed var(--border);padding-top:12px">
-        <p class="lbl" id="lbl-ai-validation" style="margin-bottom:6px"><span id="lbl-ai-validation-text">🔍 Validación automática</span></p>
-        <div style="display:flex;gap:6px;margin-bottom:8px">
-          <button id="ai-off" onclick="setAIEnabled(false)" style="font-size:12px;padding:4px 10px;border-radius:20px;border:1.5px solid #c0392b;background:#fdf0ee;cursor:pointer">OFF</button>
-          <button id="ai-on" onclick="setAIEnabled(true)" style="font-size:12px;padding:4px 10px;border-radius:20px;border:1.5px solid var(--border-strong);background:var(--paper-dark);cursor:pointer">ON</button>
-        </div>
-        <div id="ai-strictness-section" style="display:none;margin-bottom:12px">
-          <div style="display:flex;gap:6px;margin-bottom:8px">
-            <button id="ai-relajado" onclick="setAIStrictness('relajado')" style="font-size:12px;padding:4px 10px;border-radius:20px;border:1.5px solid #c0392b;background:#fdf0ee;cursor:pointer">🟢 Relajada</button>
-            <button id="ai-estricto" onclick="setAIStrictness('estricto')" style="font-size:12px;padding:4px 10px;border-radius:20px;border:1.5px solid var(--border-strong);background:var(--paper-dark);cursor:pointer">🔴 Estricta</button>
-          </div>
-          <p class="lbl" style="margin-bottom:4px"><span id="lbl-ai-spelling-text">✏️ Permitir faltas de ortografía</span></p>
-          <div style="display:flex;gap:6px">
-            <button id="ai-spelling-no" onclick="setAISpelling(false)" style="font-size:12px;padding:4px 10px;border-radius:20px;border:1.5px solid #c0392b;background:#fdf0ee;cursor:pointer"><span id="lbl-ai-no">No</span></button>
-            <button id="ai-spelling-si" onclick="setAISpelling(true)" style="font-size:12px;padding:4px 10px;border-radius:20px;border:1.5px solid var(--border-strong);background:var(--paper-dark);cursor:pointer"><span id="lbl-ai-yes">Sí</span></button>
-          </div>
-        </div>
-        <button onclick="promptExperimental()" style="width:100%;background:transparent;border:1px dashed var(--border-strong);color:var(--ink-muted);font-family:'Special Elite',monospace;font-size:11px;padding:7px;border-radius:var(--radius);cursor:pointer;letter-spacing:1px" id="btn-experimental">⚗️ FUNCIONES EXPERIMENTALES</button>
-        <div id="experimental-panel" style="display:none;margin-top:10px">
-          <p class="lbl" style="margin-bottom:6px">🗳️ Modo democrático <span style="font-size:9px;background:var(--paper-dark);padding:1px 5px;border-radius:3px;font-family:'Special Elite',monospace">EN PRUEBAS</span></p>
-          <div style="display:flex;gap:6px">
-            <button id="mode-host" onclick="setValidationMode('host')" style="font-size:12px;padding:4px 10px;border-radius:20px;border:1.5px solid #c0392b;background:#fdf0ee;cursor:pointer">👑 Normal</button>
-            <button id="mode-democratic" onclick="setValidationMode('democratic')" style="font-size:12px;padding:4px 10px;border-radius:20px;border:1.5px solid var(--border-strong);background:var(--paper-dark);cursor:pointer">🗳️ Democrático</button>
-          </div>
-        </div>
-      </div>
-    </div>
     <button class="pri" onclick="startGame()" style="width:100%;font-size:22px;padding:14px" id="btn-start">¡Comenzar! →</button>
+    <button class="btn-leave-room" onclick="leaveGame()" id="btn-leave">← <span id="btn-leave-text">Salir de la sala</span></button>
+    <button class="config-toggle" id="btn-config-toggle" onclick="toggleLobbyConfig()" style="margin-top:12px">
+      <span id="config-toggle-icon">▼</span>&nbsp;<span id="btn-config-label">⚙️ Configuración</span>
+    </button>
+    <div class="config-body" id="config-body">
+      <div class="card">
+        <p class="lbl" id="lbl-theme">tema</p>
+        <div class="themes" id="theme-btns"></div>
+        <div id="cat-custom" style="display:none">
+          <p class="lbl" style="margin-top:6px">categorías</p>
+          <div class="cat-grid" id="cat-grid"></div>
+        </div>
+        <div id="cat-free" style="display:none">
+          <p class="lbl" id="lbl-cat-free" style="margin-top:6px">escribe tus categorías (una por línea)</p>
+          <textarea id="free-cats" rows="5" placeholder="Jugadores del Barça&#10;Películas de terror&#10;Cosas en la cocina"></textarea>
+        </div>
+      </div>
+      <div class="card">
+        <p class="lbl">letras fáciles <span style="font-size:11px;opacity:.7" id="lbl-easy-hint">(sin K, Ñ, Q, U, W, X, Y, Z)</span></p>
+        <label class="cat-lbl">
+          <input type="checkbox" id="easy-letters" checked onchange="toggleEasyLetters(this.checked)">
+          <span id="lbl-easy-letters">solo letras fáciles</span>
+        </label>
+        <p class="lbl" style="margin-top:14px" id="lbl-rounds">rondas</p>
+        <div class="range-row">
+          <input type="range" min="3" max="12" value="5" id="sl-rounds" oninput="document.getElementById('v-rounds').textContent=this.value">
+          <span class="range-val" id="v-rounds">5</span>
+        </div>
+        <p class="lbl" style="margin-top:14px" id="lbl-seconds">segundos por ronda</p>
+        <div class="range-row">
+          <input type="range" min="30" max="120" step="10" value="90" id="sl-time" oninput="document.getElementById('v-time').textContent=this.value">
+          <span class="range-val" id="v-time">90</span>
+        </div>
+        <p class="lbl" style="margin-top:14px" id="lbl-penalty">penalización por ¡Alto! inválido</p>
+        <div class="range-row">
+          <input type="range" min="0" max="200" step="50" value="50" id="sl-penalty" oninput="document.getElementById('v-penalty').textContent=this.value">
+          <span class="range-val" id="v-penalty">50</span>
+        </div>
+        <div style="margin-top:16px;border-top:1px dashed var(--border);padding-top:12px">
+          <p class="lbl" id="lbl-ai-validation" style="margin-bottom:6px"><span id="lbl-ai-validation-text">🔍 Validación automática</span></p>
+          <div style="display:flex;gap:6px;margin-bottom:8px">
+            <button id="ai-off" onclick="setAIEnabled(false)" style="font-size:12px;padding:4px 10px;border-radius:20px;border:1.5px solid #c0392b;background:#fdf0ee;cursor:pointer">OFF</button>
+            <button id="ai-on" onclick="setAIEnabled(true)" style="font-size:12px;padding:4px 10px;border-radius:20px;border:1.5px solid var(--border-strong);background:var(--paper-dark);cursor:pointer">ON</button>
+          </div>
+          <div id="ai-strictness-section" style="display:none;margin-bottom:12px">
+            <div style="display:flex;gap:6px;margin-bottom:8px">
+              <button id="ai-relajado" onclick="setAIStrictness('relajado')" style="font-size:12px;padding:4px 10px;border-radius:20px;border:1.5px solid #c0392b;background:#fdf0ee;cursor:pointer">🟢 Relajada</button>
+              <button id="ai-estricto" onclick="setAIStrictness('estricto')" style="font-size:12px;padding:4px 10px;border-radius:20px;border:1.5px solid var(--border-strong);background:var(--paper-dark);cursor:pointer">🔴 Estricta</button>
+            </div>
+            <p class="lbl" style="margin-bottom:4px"><span id="lbl-ai-spelling-text">✏️ Permitir faltas de ortografía</span></p>
+            <div style="display:flex;gap:6px">
+              <button id="ai-spelling-no" onclick="setAISpelling(false)" style="font-size:12px;padding:4px 10px;border-radius:20px;border:1.5px solid #c0392b;background:#fdf0ee;cursor:pointer"><span id="lbl-ai-no">No</span></button>
+              <button id="ai-spelling-si" onclick="setAISpelling(true)" style="font-size:12px;padding:4px 10px;border-radius:20px;border:1.5px solid var(--border-strong);background:var(--paper-dark);cursor:pointer"><span id="lbl-ai-yes">Sí</span></button>
+            </div>
+          </div>
+          <button onclick="promptExperimental()" style="width:100%;background:transparent;border:1px dashed var(--border-strong);color:var(--ink-muted);font-family:'Special Elite',monospace;font-size:11px;padding:7px;border-radius:var(--radius);cursor:pointer;letter-spacing:1px" id="btn-experimental">⚗️ FUNCIONES EXPERIMENTALES</button>
+          <div id="experimental-panel" style="display:none;margin-top:10px">
+            <p class="lbl" style="margin-bottom:6px">🗳️ Modo democrático <span style="font-size:9px;background:var(--paper-dark);padding:1px 5px;border-radius:3px;font-family:'Special Elite',monospace">EN PRUEBAS</span></p>
+            <div style="display:flex;gap:6px">
+              <button id="mode-host" onclick="setValidationMode('host')" style="font-size:12px;padding:4px 10px;border-radius:20px;border:1.5px solid #c0392b;background:#fdf0ee;cursor:pointer">👑 Normal</button>
+              <button id="mode-democratic" onclick="setValidationMode('democratic')" style="font-size:12px;padding:4px 10px;border-radius:20px;border:1.5px solid var(--border-strong);background:var(--paper-dark);cursor:pointer">🗳️ Democrático</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
+  <!-- Guest panel -->
   <div id="guest-panel" style="display:none">
     <p class="wait" id="lbl-guest-wait">✏️ Esperando al anfitrión…</p>
-  </div>
-  <div class="leave-link">
-    <button onclick="leaveGame()" id="btn-leave">salir de la sala</button>
+    <button class="btn-leave-room" onclick="leaveGame()" id="btn-leave">← <span id="btn-leave-text">Salir de la sala</span></button>
   </div>
 </div>
-
 <!-- ══ PLAYING ══ -->
 <div id="s-playing" class="screen">
   <div class="topbar" id="topbar" style="display:none">
@@ -1010,7 +1038,7 @@ const T = {
     invited: '¡Te han invitado a jugar!', rulesBtn: '¿Cómo se juega?', expBtn: '⚗️ FUNCIONES EXPERIMENTALES', aiValidation: '🔍 Validación automática', aiRelajado: '🟢 Relajada', aiEstricto: '🔴 Estricta', aiSpelling: '✏️ Permitir faltas de ortografía', aiYes: 'Sí', aiNo: 'No', modeHost: '👑 Normal', modeDemocratic: '🗳️ Democrático', invalidated: 'anulada', winnerLine: '{emoji} {name} gana con {pts} puntos!', wrongPwd: '❌ Contraseña incorrecta', expActivated: '⚗️ Funciones experimentales activadas', qjCodeLabel: 'sala:', gcInside: '✅ ESTÁS DENTRO', inviteMore: '+ ¿Quieres invitar a alguien más?',
     toastBack: 'Volviendo como', notFoundWord: '📭 No se encontró', didYouMean: '¿Quisiste decir', noDefinition: '📭 Sin definición para',
     waMsg: '¡Juega conmigo al ¡Alto! 🎮 Únete aquí:',
-    createSub: 'MULTIJUGADOR · CON FAMILIA Y AMIGOS',
+    createSub: 'MULTIJUGADOR · CON FAMILIA Y AMIGOS', configLabel: '⚙️ Configuración', leaveRoom2: 'Salir de la sala',
     dailySub: 'TÚ CONTRA EL MUNDO · UN RETO POR DÍA',
     rulesTitle: 'Reglas del juego',
     shellLeave: '¿Salir de la partida?',
@@ -1067,7 +1095,7 @@ const T = {
     invited: "You've been invited to play!", rulesBtn: 'How to play?', expBtn: '⚗️ EXPERIMENTAL FEATURES', aiValidation: '🔍 Automatic validation', aiRelajado: '🟢 Relaxed', aiEstricto: '🔴 Strict', aiSpelling: '✏️ Allow spelling mistakes', aiYes: 'Yes', aiNo: 'No', modeHost: '👑 Normal', modeDemocratic: '🗳️ Democratic', invalidated: 'invalid', winnerLine: '{emoji} {name} wins with {pts} points!', wrongPwd: '❌ Wrong password', expActivated: '⚗️ Experimental features activated', qjCodeLabel: 'room:', gcInside: "✅ YOU'RE IN", inviteMore: '+ Want to invite someone?',
     toastBack: 'Rejoining as', notFoundWord: '📭 Not found', didYouMean: 'Did you mean', noDefinition: '📭 No definition for',
     waMsg: 'Play Stop! with me 🎮 Join here:',
-    createSub: 'MULTIPLAYER · WITH FAMILY & FRIENDS',
+    createSub: 'MULTIPLAYER · WITH FAMILY & FRIENDS', configLabel: '⚙️ Settings', leaveRoom2: 'Leave room',
     dailySub: 'YOU VS THE WORLD · ONE CHALLENGE A DAY',
     rulesTitle: 'How to play',
     shellLeave: 'Leave the game?',
@@ -1124,7 +1152,7 @@ const T = {
     invited: 'Tu as été invité à jouer!', rulesBtn: 'Comment jouer?', expBtn: '⚗️ FONCTIONS EXPÉRIMENTALES', aiValidation: '🔍 Validation automatique', aiRelajado: '🟢 Détendue', aiEstricto: '🔴 Stricte', aiSpelling: '✏️ Autoriser les fautes d\'orthographe', aiYes: 'Oui', aiNo: 'Non', modeHost: '👑 Normal', modeDemocratic: '🗳️ Démocratique', invalidated: 'annulée', winnerLine: '{emoji} {name} gagne avec {pts} points!', wrongPwd: '❌ Mot de passe incorrect', expActivated: '⚗️ Fonctions expérimentales activées', qjCodeLabel: 'salle:', gcInside: '✅ VOUS ÊTES DEDANS', inviteMore: "+ Inviter quelqu'un d'autre?",
     toastBack: 'Reconnexion en tant que', notFoundWord: '📭 Introuvable', didYouMean: 'Vouliez-vous dire', noDefinition: '📭 Aucune définition pour',
     waMsg: 'Joue au Stop! avec moi 🎮 Rejoins ici:',
-    createSub: 'MULTIJOUEUR · EN FAMILLE ET ENTRE AMIS',
+    createSub: 'MULTIJOUEUR · EN FAMILLE ET ENTRE AMIS', configLabel: '⚙️ Paramètres', leaveRoom2: 'Quitter la salle',
     dailySub: 'TOI CONTRE LE MONDE · UN DÉFI PAR JOUR',
     rulesTitle: 'Règles du jeu',
     shellLeave: 'Quitter la partie?',
@@ -1181,7 +1209,7 @@ const T = {
     invited: 'Du wurdest eingeladen zu spielen!', rulesBtn: 'Wie spielt man?', expBtn: '⚗️ EXPERIMENTELLE FUNKTIONEN', aiValidation: '🔍 Automatische Validierung', aiRelajado: '🟢 Locker', aiEstricto: '🔴 Streng', aiSpelling: '✏️ Rechtschreibfehler erlauben', aiYes: 'Ja', aiNo: 'Nein', modeHost: '👑 Normal', modeDemocratic: '🗳️ Demokratisch', invalidated: 'ungültig', winnerLine: '{emoji} {name} gewinnt mit {pts} Punkten!', wrongPwd: '❌ Falsches Passwort', expActivated: '⚗️ Experimentelle Funktionen aktiviert', qjCodeLabel: 'Raum:', gcInside: '✅ DU BIST DRIN', inviteMore: '+ Jemanden einladen?',
     toastBack: 'Wiederbeitritt als', notFoundWord: '📭 Nicht gefunden', didYouMean: 'Meinten Sie', noDefinition: '📭 Keine Definition fuer',
     waMsg: 'Spiel Stop! mit mir 🎮 Tritt hier bei:',
-    createSub: 'MEHRSPIELER · MIT FAMILIE UND FREUNDEN',
+    createSub: 'MEHRSPIELER · MIT FAMILIE UND FREUNDEN', configLabel: '⚙️ Einstellungen', leaveRoom2: 'Raum verlassen',
     dailySub: 'DU GEGEN DIE WELT · EINE AUFGABE PRO TAG',
     rulesTitle: 'Spielregeln',
     shellLeave: 'Spiel verlassen?',
@@ -1238,7 +1266,7 @@ const T = {
     invited: 'Foste convidado a jogar!', rulesBtn: 'Como se joga?', expBtn: '⚗️ FUNÇÕES EXPERIMENTAIS', aiValidation: '🔍 Validação automática', aiRelajado: '🟢 Relaxada', aiEstricto: '🔴 Estrita', aiSpelling: '✏️ Permitir erros ortográficos', aiYes: 'Sim', aiNo: 'Não', modeHost: '👑 Normal', modeDemocratic: '🗳️ Democrático', invalidated: 'anulada', winnerLine: '{emoji} {name} ganha com {pts} pontos!', wrongPwd: '❌ Palavra-passe incorreta', expActivated: '⚗️ Funções experimentais ativadas', qjCodeLabel: 'sala:', gcInside: '✅ ESTÁS DENTRO', inviteMore: '+ Queres convidar alguém?',
     toastBack: 'A voltar como', notFoundWord: '📭 Nao encontrado', didYouMean: 'Quiseste dizer', noDefinition: '📭 Sem definicao para',
     waMsg: 'Joga Stop! comigo 🎮 Junta-te aqui:',
-    createSub: 'MULTIJOGADOR · COM FAMÍLIA E AMIGOS',
+    createSub: 'MULTIJOGADOR · COM FAMÍLIA E AMIGOS', configLabel: '⚙️ Configuração', leaveRoom2: 'Sair da sala',
     dailySub: 'TU CONTRA O MUNDO · UM DESAFIO POR DIA',
     rulesTitle: 'Regras do jogo',
     shellLeave: 'Sair do jogo?',
@@ -1295,7 +1323,7 @@ const T = {
     invited: 'Sei stato invitato a giocare!', rulesBtn: 'Come si gioca?', expBtn: '⚗️ FUNZIONI SPERIMENTALI', aiValidation: '🔍 Validazione automatica', aiRelajado: '🟢 Rilassata', aiEstricto: '🔴 Rigorosa', aiSpelling: '✏️ Permettere errori ortografici', aiYes: 'Sì', aiNo: 'No', modeHost: '👑 Normale', modeDemocratic: '🗳️ Democratico', invalidated: 'annullata', winnerLine: '{emoji} {name} vince con {pts} punti!', wrongPwd: '❌ Password errata', expActivated: '⚗️ Funzioni sperimentali attivate', qjCodeLabel: 'stanza:', gcInside: '✅ SEI DENTRO', inviteMore: '+ Vuoi invitare qualcuno?',
     toastBack: 'Riconnessione come', notFoundWord: '📭 Non trovato', didYouMean: 'Intendevi', noDefinition: '📭 Nessuna definizione per',
     waMsg: 'Gioca a Stop! con me 🎮 Unisciti qui:',
-    createSub: 'MULTIGIOCATORE · CON FAMIGLIA E AMICI',
+    createSub: 'MULTIGIOCATORE · CON FAMIGLIA E AMICI', configLabel: '⚙️ Impostazioni', leaveRoom2: 'Esci dalla stanza',
     dailySub: 'TU CONTRO IL MONDO · UNA SFIDA AL GIORNO',
     rulesTitle: 'Regole del gioco',
     shellLeave: 'Uscire dal gioco?',
@@ -1519,6 +1547,8 @@ window.applyLang = function() {
   s('lbl-penalty', t('penalty'));
   s('btn-start', t('start'));
   s('btn-leave', t('leaveRoom'));
+  s('btn-leave-text', t('leaveRoom2') || t('leaveRoom'));
+  s('btn-config-label', t('configLabel'));
   s('btn-experimental', t('expBtn'));
   s('gc-status', t('gcInside'));
   s('mode-host', t('modeHost'));
@@ -1752,8 +1782,8 @@ function updateShellHeader(screenId) {
   const showRound = ['playing','validate','waiting'].includes(screenId);
   if (roundInfo) roundInfo.style.display = showRound ? 'inline' : 'none';
 
-  // Room pill: during active game screens (not home/welcome)
-  const inGame = ['lobby','playing','validate','waiting','scores'].includes(screenId);
+  // Room pill: only during playing screens (lobby has code visible)
+  const inGame = ['playing','validate','waiting','scores'].includes(screenId);
   if (roomPill) {
     if (inGame && G.roomCode) {
       roomPill.style.display = 'inline-block';
@@ -1803,6 +1833,14 @@ function updateShellRound(cur, tot) {
   const info = document.getElementById('shell-round-info');
   if (info) info.textContent = t('rndLabel') + ' ' + cur + ' ' + t('of') + ' ' + tot;
 }
+
+
+window.toggleLobbyConfig = function() {
+  const body = document.getElementById('config-body');
+  const icon = document.getElementById('config-toggle-icon');
+  const isOpen = body.classList.toggle('open');
+  if (icon) icon.textContent = isOpen ? '▲' : '▼';
+};
 
 // ── Daily challenge helpers ────────────────────────────
 function getDailyDateString() {
@@ -3557,7 +3595,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260902.5-tmp</div>
+  <div style="font-size:9px;opacity:0.5">v260902.7-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
