@@ -2087,20 +2087,23 @@ window.dailySubmit = async function() {
 
   const speedBonus = calcSpeedBonus(G_daily.secsRemaining, G_daily.totalSecs);
 
+  // Show loading state
+  const submitBtn = document.getElementById('btn-daily-submit');
+  if (submitBtn) { submitBtn.textContent = '⏳ Validando…'; submitBtn.disabled = true; }
+
   // Read final answer values from inputs
   G_daily.categories.forEach((cat, i) => {
     const inp = document.getElementById('daily-inp-' + i);
     if (inp) G_daily.answers[i] = inp.value.trim();
   });
 
-  // AI validate all non-empty answers
+  // AI validate all non-empty answers — sequential to avoid rate limits
   const aiResults = {};
-  const validations = G_daily.categories.map(async (cat, i) => {
+  for (let i = 0; i < G_daily.categories.length; i++) {
     const word = G_daily.answers[i] || '';
-    if (!word) { aiResults[i] = 'empty'; return; }
-    aiResults[i] = await dailyAIValidate(word, cat, G_daily.letter);
-  });
-  await Promise.all(validations);
+    if (!word) { aiResults[i] = 'empty'; continue; }
+    aiResults[i] = await dailyAIValidate(word, G_daily.categories[i], G_daily.letter);
+  }
   G_daily.aiResults = aiResults;
 
   // Score: word length for valid answers + speed bonus if any valid
@@ -2145,7 +2148,7 @@ async function dailyAIValidate(word, category, letter) {
         'HTTP-Referer': 'https://jugarenfamilia.es',
         'X-Title': 'JugarEnFamilia-Daily'
       },
-      signal: AbortSignal.timeout(15000),
+      signal: AbortSignal.timeout(20000),
       body: JSON.stringify({
         models: ['inclusionai/ling-3.0-flash-fin:free','nvidia/nemotron-3-super-120b-a12b:free','z-ai/glm-5.2:free'],
         messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: prompt }],
@@ -4025,7 +4028,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260902.4-tmp</div>
+  <div style="font-size:9px;opacity:0.5">v260902.5-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
