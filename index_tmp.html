@@ -653,7 +653,7 @@ document.addEventListener('DOMContentLoaded', function() {
     <span class="logo-main">¡Alto!</span>
     <div class="logo-rule"></div>
     <div class="logo-sub">JUGARENFAMILIA.ES</div>
-    <div class="logo-tag">el juego de siempre, con los de siempre</div>
+    <div class="logo-tag" id="welcome-logo-tag">el juego de siempre, con los de siempre</div>
   </div>
   <div class="card">
     <p class="lbl" id="lbl-your-name">tu nombre</p>
@@ -677,7 +677,7 @@ document.addEventListener('DOMContentLoaded', function() {
     <span class="logo-main">¡Alto!</span>
     <div class="logo-rule"></div>
     <div class="logo-sub">JUGARENFAMILIA.ES</div>
-    <div class="logo-tag">el juego de siempre, con los de siempre</div>
+    <div class="logo-tag" id="welcome-logo-tag">el juego de siempre, con los de siempre</div>
   </div>
   <div class="card">
     <div class="welcome-avatar" id="wb-emoji">🎲</div>
@@ -857,7 +857,7 @@ document.addEventListener('DOMContentLoaded', function() {
 </div>
 
 <!-- ══ SCORES ══ -->
-<div id="s-scores" class="screen">
+<div id="s-scores" class="screen" style="padding-top:1px">
   <h1><span id="lbl-scores-title">Puntuación</span> <span id="sc-badge" style="font-size:16px;font-weight:400;color:var(--ink-sec);font-family:'Special Elite',monospace"></span></h1>
   <div class="card" id="sc-list"></div>
   <div class="btn-row" style="margin-top:10px" id="sc-btns"></div>
@@ -876,7 +876,7 @@ document.addEventListener('DOMContentLoaded', function() {
 </div>
 
 <!-- ══ FINAL ══ -->
-<div id="s-final" class="screen">
+<div id="s-final" class="screen" style="padding-top:1px">
   <h1 id="lbl-final-title">¡Fin del juego!</h1>
   <div class="winner" id="winner-line"></div>
   <div class="card" id="final-list"></div>
@@ -1542,11 +1542,11 @@ window.applyLang = function() {
     if (ph) el.placeholder = ph;
   }
   // Home
-  const tagEl = document.querySelector('.logo-tag'); if(tagEl) tagEl.textContent = t('tagline');
+  document.querySelectorAll('.logo-tag').forEach(el => el.textContent = t('tagline'));
   s('inp-name', null, t('namePlaceholder'));
   s('lbl-your-name', t('yourName'));
   s('lbl-choose-emoji', t('chooseEmoji') + ' ');
-  s('btn-create', t('createRoom'));
+  s('btn-create', '👥 ' + t('createRoom') + ' →');
   s('rules-btn', '▼ ' + t('rulesBtn'));
   s('btn-enter', t('enter'));
   s('footer-noreg', t('noReg'));
@@ -3627,7 +3627,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260902.14-tmp</div>
+  <div style="font-size:9px;opacity:0.5">v260902.15-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
