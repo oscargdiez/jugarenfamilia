@@ -208,7 +208,11 @@ assert len(c) < 250000
 
 ## 🗺 Flagged for Future Discussion
 
-- **Daily Challenge mode** — solo, same puzzle for everyone per day, deterministic letter from date. Scoring: word length + speed bonus + originality vs other submissions. Validation: predefined answer keys (finite/knowable categories). Spanish only for v1. Parked until answer key designed.
+- **Daily Challenge mode — READY TO BUILD** — solo, bypasses room setup entirely. Easy letters only, preset. 6 categories drawn randomly per day from vetted pool. Deterministic from date — same puzzle for everyone worldwide. Scoring: word length + speed bonus + originality vs other submissions. AI validation solves answer-checking — no predefined keys needed. Universal categories, same list for all languages, AI validates in game language.
+
+  **Approved category pool (26):** Nombre, Apellido, País, Ciudad, Animal, Fruta, Color, Profesión, Objeto, Comida/Plato, Deporte, Instrumento musical, Marca comercial, Película, Canción, Personaje de ficción, Animal marino, Árbol, Flor, Insecto, Pez, Ave/Pájaro, Cantante/Grupo, Actor/Actriz, Escritor/Autor, Elemento químico.
+
+  **Excluded (pool too small even with easy letters):** Superhéroe, Hueso del cuerpo, Planeta/Luna, País de Europa.
 - **AI 3-step validation pipeline** — Step 1: letter check as model health test (if model fails "does X start with letter Y?" skip it). Step 2: category validation. Step 3: optional confidence. Self-healing model selection, much more accurate.
 - **AI model config in Firebase** — store `models[]` array in Firebase so it can be updated without a redeploy. Part of future Cloudflare Workers backend work.
 
@@ -264,7 +268,11 @@ Full audit — 15 bugs fixed. Room cleanup, collision-safe codes, stop caller ba
 - How to play updated in all 6 languages: new Relajada/Estricta/spelling descriptions, old Libre/Normal/Estricto removed
 - Automatic validation ON by default, Estricta by default
 - Yes/No spelling toggle translated in all 6 languages
-- Last version deployed: v260901.1424
+- Renamed 🤖 to 🔍 everywhere (26 occurrences)
+- Confetti bug fixed: not stopping on guests' screens when host clicked Play Again (stopConfetti added to enterLobby)
+- enterLobby now calls setAIEnabled/setAIStrictness/setAISpelling to reflect correct UI state on load
+- Daily Challenge design finalised — ready to build next session (see Flagged for Future)
+- Last version deployed: v260901.1427
 
 ### Session 4 (Sep 1)
 - AI button/results hidden when off
