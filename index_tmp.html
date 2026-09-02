@@ -883,7 +883,7 @@ document.addEventListener('DOMContentLoaded', function() {
     <div class="daily-letter-badge" id="daily-letter-display">A</div>
   </div>
   <div class="card" id="daily-inputs-card"></div>
-  <button class="pri" onclick="dailySubmit()" style="width:100%;font-size:20px;padding:14px;margin-top:12px" id="btn-daily-submit">¡Alto! →</button>
+  <button class="pri" onclick="this.disabled=true;dailySubmit()" style="width:100%;font-size:20px;padding:14px;margin-top:12px" id="btn-daily-submit">¡Alto! →</button>
 </div>
 
 <!-- ══ DAILY RESULT ══ -->
@@ -2088,16 +2088,17 @@ window.dailyCheckInput = function(i, val) {
 };
 
 window.dailySubmit = async function() {
-  if (G_daily.submitted) return;
+  if (G_daily.submitted) {
+    const b = document.getElementById('btn-daily-submit'); if (b) b.disabled = true;
+    return;
+  }
   G_daily.submitted = true;
   clearInterval(G_daily.timerInterval);
   setUrgencyPulse(false);
+  const submitBtn = document.getElementById('btn-daily-submit');
+  if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = '⏳ Validando…'; }
 
   const speedBonus = calcSpeedBonus(G_daily.secsRemaining, G_daily.totalSecs);
-
-  // Show loading state
-  const submitBtn = document.getElementById('btn-daily-submit');
-  if (submitBtn) { submitBtn.textContent = '⏳ Validando…'; submitBtn.disabled = true; }
 
   // Read final answer values from inputs
   G_daily.categories.forEach((cat, i) => {
@@ -4060,7 +4061,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260902.10-tmp</div>
+  <div style="font-size:9px;opacity:0.5">v260902.11-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
