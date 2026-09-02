@@ -211,18 +211,19 @@ button.stop-btn:hover { background: var(--red-dark); }
 }
 #shell-header-inner {
   max-width: 560px; margin: 0 auto;
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 8px 1.25rem; gap: 8px; position: relative;
+  display: flex; align-items: center;
+  padding: 8px 1.25rem; position: relative;
 }
 #shell-logo {
   font-family: 'Caveat', cursive; font-size: 26px; font-weight: 700;
-  color: var(--red); line-height: 1; text-decoration: none; flex-shrink: 0;
+  color: var(--red); line-height: 1; text-decoration: none;
   cursor: pointer; border: none; background: none; padding: 0;
+  flex: 0 0 auto; width: 80px;
 }
 #shell-center {
   display: flex; align-items: center; gap: 8px;
   font-family: 'Caveat', cursive; font-size: 15px; color: var(--ink-sec);
-  flex: 1; justify-content: center; min-width: 0;
+  flex: 1; justify-content: center; min-width: 0; overflow: hidden;
 }
 #shell-letter-badge {
   font-family: 'Caveat', cursive; font-size: 22px; font-weight: 700;
@@ -235,7 +236,7 @@ button.stop-btn:hover { background: var(--red-dark); }
   display: none;
 }
 #shell-right {
-  display: flex; align-items: center; gap: 6px; flex-shrink: 0;
+  display: flex; align-items: center; gap: 6px; flex-shrink: 0; justify-content: flex-end; width: 80px;
 }
 #shell-room-pill {
   font-family: 'Special Elite', monospace; font-size: 11px;
@@ -279,12 +280,12 @@ button.stop-btn:hover { background: var(--red-dark); }
 }
 
 /* Shell flags (shown on home only, left side) */
-#shell-flags { display: none; align-items: center; gap: 2px; margin-left: 6px; padding-left: 0; }
+#shell-flags { display: none; align-items: center; gap: 2px; margin-left: 4px; padding-left: 0; }
 #shell-flags .lang-btn { font-size: 15px; padding: 2px 3px; border: 1.5px solid transparent; background: transparent; cursor: pointer; border-radius: 4px; opacity: 0.5; }
 #shell-flags .lang-btn.active { opacity: 1; background: var(--paper-dark); border-color: var(--border-strong); }
 
 /* Hide shell logo on home screen */
-body.screen-home #shell-logo, body.screen-welcome #shell-logo { visibility: hidden; pointer-events: none; width: 0; overflow: hidden; padding: 0; margin: 0; }
+body.screen-home #shell-logo, body.screen-welcome #shell-logo { visibility: hidden; pointer-events: none; }
 /* Show flags only on home — left of center */
 body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex !important; }
 
@@ -586,7 +587,7 @@ document.addEventListener('DOMContentLoaded', function() {
 <!-- ══ SHELL HEADER (always visible) ══ -->
 <div id="shell-header">
   <div id="shell-header-inner">
-    <div style="display:flex;align-items:center">
+    <div style="display:flex;align-items:center;flex:0 0 auto;min-width:80px">
       <button id="shell-logo" onclick="shellLogoClick()">¡Alto!</button>
       <div id="shell-flags">
         <button class="lang-btn active" onclick="setLang('es')" title="Español">🇪🇸</button>
@@ -3623,7 +3624,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260902.8-tmp</div>
+  <div style="font-size:9px;opacity:0.5">v260902.10-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
