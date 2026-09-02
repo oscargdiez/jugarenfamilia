@@ -1976,13 +1976,16 @@ function mulberry32(seed) {
 }
 
 // Category pool — 26 universal categories, translated in all 6 languages
+// DAILY_CONSENSUS: set true to use 2-model consensus + tiebreaker, false for single model
+const DAILY_CONSENSUS = false;
+
 const DAILY_CATS = {
-  es: ['Nombre','Apellido','País','Ciudad','Animal','Fruta','Color','Profesión','Objeto','Comida/Plato','Deporte','Instrumento musical','Marca comercial','Película','Canción','Animal marino','Árbol','Flor','Insecto','Pez','Ave/Pájaro','Elemento químico'],
-  en: ['First name','Surname','Country','City','Animal','Fruit','Colour','Profession','Object','Food/Dish','Sport','Musical instrument','Brand','Film','Song','Sea animal','Tree','Flower','Insect','Fish','Bird','Chemical element'],
-  fr: ['Prénom','Nom de famille','Pays','Ville','Animal','Fruit','Couleur','Profession','Objet','Aliment/Plat','Sport','Instrument de musique','Marque','Film','Chanson','Animal marin','Arbre','Fleur','Insecte','Poisson','Oiseau','Élément chimique'],
-  de: ['Vorname','Nachname','Land','Stadt','Tier','Frucht','Farbe','Beruf','Gegenstand','Essen/Gericht','Sport','Musikinstrument','Marke','Film','Lied','Meerestier','Baum','Blume','Insekt','Fisch','Vogel','Chemisches Element'],
-  pt: ['Nome','Apelido','País','Cidade','Animal','Fruta','Cor','Profissão','Objeto','Comida/Prato','Desporto','Instrumento musical','Marca','Filme','Canção','Animal marinho','Árvore','Flor','Inseto','Peixe','Ave/Pássaro','Elemento químico'],
-  it: ['Nome','Cognome','Paese','Città','Animale','Frutto','Colore','Professione','Oggetto','Cibo/Piatto','Sport','Strumento musicale','Marca','Film','Canzone','Animale marino','Albero','Fiore','Insetto','Pesce','Uccello','Elemento chimico'],
+  es: ['País','Ciudad','Animal','Fruta','Color','Profesión','Objeto','Comida/Plato','Deporte','Instrumento musical','Marca comercial','Animal marino','Árbol','Flor','Insecto','Pez','Ave/Pájaro'],
+  en: ['Country','City','Animal','Fruit','Colour','Profession','Object','Food/Dish','Sport','Musical instrument','Brand','Sea animal','Tree','Flower','Insect','Fish','Bird'],
+  fr: ['Pays','Ville','Animal','Fruit','Couleur','Profession','Objet','Aliment/Plat','Sport','Instrument de musique','Marque','Animal marin','Arbre','Fleur','Insecte','Poisson','Oiseau'],
+  de: ['Land','Stadt','Tier','Frucht','Farbe','Beruf','Gegenstand','Essen/Gericht','Sport','Musikinstrument','Marke','Meerestier','Baum','Blume','Insekt','Fisch','Vogel'],
+  pt: ['País','Cidade','Animal','Fruta','Cor','Profissão','Objeto','Comida/Prato','Desporto','Instrumento musical','Marca','Animal marinho','Árvore','Flor','Inseto','Peixe','Ave/Pássaro'],
+  it: ['Paese','Città','Animale','Frutto','Colore','Professione','Oggetto','Cibo/Piatto','Sport','Strumento musicale','Marca','Animale marino','Albero','Fiore','Insetto','Pesce','Uccello'],
 };
 
 // Get today's date key YYYY-MM-DD
@@ -2001,7 +2004,7 @@ function getDailySetup() {
   const letter = easyPool[Math.floor(rng() * easyPool.length)];
   // Pick 6 categories from pool (indices, same for all languages)
   const indices = [];
-  const poolSize = 22;
+  const poolSize = 17;
   while (indices.length < 6) {
     const idx = Math.floor(rng() * poolSize);
     if (!indices.includes(idx)) indices.push(idx);
@@ -2118,7 +2121,9 @@ window.dailySubmit = async function() {
   for (let i = 0; i < G_daily.categories.length; i++) {
     const word = G_daily.answers[i] || '';
     if (!word) { aiResults[i] = 'empty'; continue; }
-    aiResults[i] = await dailyAIValidate(word, G_daily.categories[i], G_daily.letter);
+    aiResults[i] = DAILY_CONSENSUS
+      ? await dailyAIValidate(word, G_daily.categories[i], G_daily.letter)
+      : await dailyAICallModel(word, G_daily.categories[i], G_daily.letter, 'inclusionai/ling-3.0-flash-fin:free', ...dailyBuildPromptWithWord(word, G_daily.categories[i], G_daily.letter));
   }
   G_daily.aiResults = aiResults;
 
@@ -2159,6 +2164,24 @@ window.dailySubmit = async function() {
   showDailyResult(G_daily.answers, score, aiResults, speedBonus);
 };
 
+// Build system + user prompts for daily validation
+function dailyBuildPromptWithWord(word, category, letter) {
+  const [sys, _] = dailyBuildPrompt(category, letter);
+  const langNames = {es:'Spanish',en:'English',fr:'French',de:'German',pt:'Portuguese',it:'Italian'};
+  const gameLang = langNames[LANG] || 'Spanish';
+  const userPrompt = `${gameLang} word game. Letter: "${letter}". Category: "${category}". Answer: "${word}". Does the answer start with "${letter}" and genuinely belong to the category? Reply ONE word only: VALIDO, INVALIDO, or DUDOSO.`;
+  return [sys, userPrompt];
+}
+
+function dailyBuildPrompt(category, letter) {
+  const langNames = {es:'Spanish',en:'English',fr:'French',de:'German',pt:'Portuguese',it:'Italian'};
+  const gameLang = langNames[LANG] || 'Spanish';
+  const spellingRule = 'Minor spelling mistakes are acceptable as long as the intended word is clear.';
+  const systemPrompt = `You are a fair and balanced judge of a ${gameLang}-language word game. Rules: (1) Ignore accents and tildes. (2) Accept borderline, regional, informal, and less common but genuinely real answers. Reject made-up or unverifiable answers. (3) Brands are international — accept in any language if well-known. All other answers must be in ${gameLang}. (4) ${spellingRule} (5) VALIDO for real answers even if uncommon. INVALIDO for clearly wrong or made-up answers. DUDOSO when genuinely uncertain.`;
+  const userPrompt = gameLang + ' word game. Letter: "' + letter + '". Category: "' + category + '". Does the answer start with "' + letter + '" and genuinely belong to the category? Reply ONE word only: VALIDO, INVALIDO, or DUDOSO.';
+  return [systemPrompt, userPrompt];
+}
+
 // Call a single specific model and return 'valid'|'invalid'|'unsure'
 async function dailyAICallModel(word, category, letter, model, systemPrompt, prompt) {
   try {
@@ -2195,11 +2218,7 @@ async function dailyAICallModel(word, category, letter, model, systemPrompt, pro
 
 // Consensus: 2 models in parallel, tiebreaker only if split
 async function dailyAIValidate(word, category, letter) {
-  const langNames = {es:'Spanish',en:'English',fr:'French',de:'German',pt:'Portuguese',it:'Italian'};
-  const gameLang = langNames[LANG] || 'Spanish';
-  const spellingRule = 'Minor spelling mistakes are acceptable as long as the intended word is clear.';
-  const systemPrompt = `You are a fair and balanced judge of a ${gameLang}-language word game. Rules: (1) Ignore accents and tildes. (2) Accept borderline, regional, informal, and less common but genuinely real answers. Reject made-up or unverifiable answers. (3) IMPORTANT: Song titles, film titles, TV series, brand names, singers, bands, actors, writers, fictional characters, and chemical elements are international — accept them in ANY language if they are real and recognisable, do NOT reject for being non-${gameLang}. Only common nouns (animal, fruit, colour, food, object, profession, sport, tree, flower, fish, bird, insect) must be in ${gameLang}. (4) ${spellingRule} (5) Use VALIDO for real answers even if uncommon. Use INVALIDO for clearly wrong answers or made-up proper nouns. Use DUDOSO when genuinely uncertain whether something exists.`;
-  const prompt = `${gameLang} word game. Letter: "${letter}". Category: "${category}". Answer: "${word}". Does the answer start with "${letter}" and belong to the category? Be generous. Reply ONE word only: VALIDO, INVALIDO, or DUDOSO.`;
+  const [systemPrompt, userPrompt] = dailyBuildPromptWithWord(word, category, letter);
 
   const MODELS = [
     'inclusionai/ling-3.0-flash-fin:free',
@@ -2209,8 +2228,8 @@ async function dailyAIValidate(word, category, letter) {
 
   // Call first 2 in parallel
   const [r1, r2] = await Promise.all([
-    dailyAICallModel(word, category, letter, MODELS[0], systemPrompt, prompt),
-    dailyAICallModel(word, category, letter, MODELS[1], systemPrompt, prompt),
+    dailyAICallModel(word, category, letter, MODELS[0], systemPrompt, userPrompt),
+    dailyAICallModel(word, category, letter, MODELS[1], systemPrompt, userPrompt),
   ]);
 
   console.log('[Daily consensus]', word, '→', r1, r2);
@@ -2224,7 +2243,7 @@ async function dailyAIValidate(word, category, letter) {
 
   // Split (valid vs invalid) — call tiebreaker
   console.log('[Daily tiebreaker]', word, '→ calling model 3');
-  const r3 = await dailyAICallModel(word, category, letter, MODELS[2], systemPrompt, prompt);
+  const r3 = await dailyAICallModel(word, category, letter, MODELS[2], systemPrompt, userPrompt);
   console.log('[Daily tiebreaker]', word, '→', r3);
 
   // Majority vote
@@ -4097,7 +4116,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260902.18-tmp</div>
+  <div style="font-size:9px;opacity:0.5">v260902.19-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
