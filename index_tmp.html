@@ -280,15 +280,15 @@ button.stop-btn:hover { background: var(--red-dark); }
   letter-spacing: 1px;
 }
 
-/* Shell flags (shown on home only, left side) */
-#shell-flags { display: none; align-items: center; gap: 2px; margin-left: 4px; padding-left: 0; }
+/* Shell flags — sit at content left edge on home/welcome */
+#shell-flags { display: none; align-items: center; gap: 2px; }
 #shell-flags .lang-btn { font-size: 15px; padding: 2px 3px; border: 1.5px solid transparent; background: transparent; cursor: pointer; border-radius: 4px; opacity: 0.5; }
 #shell-flags .lang-btn.active { opacity: 1; background: var(--paper-dark); border-color: var(--border-strong); }
 
-/* Hide shell logo on home screen */
+/* Hide shell logo on home/welcome — space reserved but invisible */
 body.screen-home #shell-logo, body.screen-welcome #shell-logo { visibility: hidden; pointer-events: none; }
-/* Show flags only on home — left of center */
-body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex !important; }
+/* Show flags on home/welcome — absolutely positioned over logo slot at content edge */
+body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex !important; position: absolute; left: 1.25rem; }
 
 /* Offset page content so it doesn't hide under shell header */
 .page { max-width: 560px; margin: 0 auto; padding: 2rem 1.25rem 5rem; overflow: visible; padding-top: calc(2rem + 50px); }
@@ -3625,7 +3625,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260902.11-tmp</div>
+  <div style="font-size:9px;opacity:0.5">v260902.12-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
