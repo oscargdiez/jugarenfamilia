@@ -390,6 +390,26 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
 }
 #toast.show { opacity: 1; }
 
+/* ── Floating timer bubble — bottom-left, always above iOS keyboard ── */
+/* ── Floating timer numbers ── */
+.timer-float {
+  position: fixed;
+  bottom: 80px;
+  pointer-events: none;
+  font-family: 'Special Elite', monospace;
+  font-size: 36px;
+  line-height: 1;
+  color: var(--red);
+  animation: timerFloat 1.8s linear forwards;
+  z-index: 996;
+}
+.timer-float.urgent { font-size: 42px; }
+@keyframes timerFloat {
+  0%   { transform: translateY(0);      opacity: 0.6; }
+  70%  { transform: translateY(-154px); opacity: 0.6; }
+  100% { transform: translateY(-220px); opacity: 0; }
+}
+
 /* ── Stamp ── */
 .stamp {
   display: inline-block;
@@ -1937,6 +1957,8 @@ window.show = function(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('on'));
   document.getElementById('s-'+id).classList.add('on');
   G.screen = id;
+  // Show timer bubble only on playing/daily-play screens
+  if (!['playing','daily-play'].includes(id)) setTimerBubble(0, false);
   // Set body class for CSS screen-specific rules
   document.body.className = document.body.className.replace(/\bscreen-\S+/g, '').trim();
   document.body.classList.add('screen-' + id);
@@ -2155,6 +2177,7 @@ window.startDailyChallenge = function() {
           if (fill2) { fill2.style.transition = 'none'; fill2.style.width = (remaining / G_daily.totalSecs * 100) + '%'; setTimeout(() => { fill2.style.transition = 'width 1s linear, background 0.3s'; }, 50); }
           const ft2 = document.getElementById('ft-timer');
           if (ft2) { ft2.textContent = remaining; ft2.classList.toggle('urgent', remaining <= 10); }
+          setTimerBubble(remaining, true);
           G_daily.timerInterval = setInterval(() => {
             G_daily.secsRemaining--;
             const pct2 = (G_daily.secsRemaining / G_daily.totalSecs) * 100;
@@ -2199,6 +2222,7 @@ window.startDailyChallenge = function() {
     setTimeout(() => { if (fill) fill.style.transition = 'width 1s linear, background 0.3s'; }, 50);
     const ftTimer = document.getElementById('ft-timer');
     if (ftTimer) { ftTimer.textContent = G_daily.secsRemaining; ftTimer.classList.toggle('urgent', G_daily.secsRemaining <= 10); }
+    setTimerBubble(G_daily.secsRemaining, true);
     G_daily.timerInterval = setInterval(() => {
       G_daily.secsRemaining--;
       const pct = (G_daily.secsRemaining / G_daily.totalSecs) * 100;
@@ -2378,11 +2402,10 @@ window.dailySubmit = async function() {
   const totalScore = Math.round(baseScore * speedMultiplier);
 
   // Resolve player name
-  const _rawDailyName = G.playerName
+  const dailyPlayerName = G.playerName
     || document.getElementById('inp-name')?.value?.trim()
     || localStorage.getItem('alto_name')
     || 'Anónimo';
-  const dailyPlayerName = _rawDailyName.replace(/__debug__/g, 'Jugador');
   const dailyPlayerEmoji = G.playerEmoji
     || localStorage.getItem('alto_emoji')
     || '🎲';
@@ -2461,6 +2484,7 @@ async function dailyAICallModel(word, category, letter, model, systemPrompt, pro
     const combined = (msg.content?.trim() || msg.reasoning?.trim() || '');
     const text = combined.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
     const norm = text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z]/g, ' ').trim();
+    console.log('[Daily AI]', model.split('/')[1], word, '→', norm.slice(0,20));
     if (/\binvalid(o)?\b/.test(norm)) return 'invalid';
     if (/\bvalid(o)?\b/.test(norm)) return 'valid';
     if (/\byes\b|\bcorrect\b|\bsi\b|\bcorrecto\b/.test(norm)) return 'valid';
@@ -2485,6 +2509,7 @@ async function dailyAIValidate(word, category, letter) {
     dailyAICallModel(word, category, letter, MODELS[1], systemPrompt, userPrompt),
   ]);
 
+  console.log('[Daily consensus]', word, '→', r1, r2);
 
   // If they agree — done
   if (r1 === r2) return r1;
@@ -2494,7 +2519,9 @@ async function dailyAIValidate(word, category, letter) {
   if (r2 === 'unsure') return r1;
 
   // Split (valid vs invalid) — call tiebreaker
+  console.log('[Daily tiebreaker]', word, '→ calling model 3');
   const r3 = await dailyAICallModel(word, category, letter, MODELS[2], systemPrompt, userPrompt);
+  console.log('[Daily tiebreaker]', word, '→', r3);
 
   // Majority vote
   const votes = [r1, r2, r3];
@@ -3047,7 +3074,7 @@ window.startGame = async () => {
     categories:cats, rounds, timePerRound:time,
     currentRound:1, phase:'countdown', countdownStart:Date.now(),
     currentLetter:letter, usedLetters:[letter],
-    allAnswers:{}, calledStop:false, stopCaller:'',
+    roundStartTime:null, allAnswers:{}, calledStop:false, stopCaller:'',
     scores, easyLetters:easy, stopPenalty:penalty, groupName:groupName, aiEnabled:G_aiEnabled, aiStrictness:G_aiStrictness, aiSpelling:G_aiSpelling, validationMode:G_validationMode, gameLang:LANG,
   });
 };
@@ -3138,14 +3165,53 @@ function enterPlaying(room) {
     </div>`
   ).join('');
   document.querySelector('.ans-inp')?.focus();
+  const maxSecs = room.timePerRound || 60;
   const elapsed = room.roundStartTime ? Math.floor((Date.now() - room.roundStartTime) / 1000) : 0;
-  const remaining = Math.max(5, (room.timePerRound || 60) - elapsed);
+  // Guard: if elapsed >= maxSecs the roundStartTime is stale (from previous round)
+  const remaining = (elapsed < 0 || elapsed >= maxSecs) ? maxSecs : Math.max(5, maxSecs - elapsed);
   startTimer(remaining);
 }
 
 function setUrgencyPulse(on) {
   const ov = document.getElementById('urgency-overlay');
   if (ov) ov.classList.toggle('pulsing', on);
+}
+
+// ── Floating timer numbers ──
+let _timerFloatInterval = null;
+function spawnTimerFloat(t, urgent) {
+  const stage = document.getElementById('reactions-stage');
+  if (!stage) return;
+  const el = document.createElement('div');
+  el.className = 'timer-float' + (urgent ? ' urgent' : '');
+  el.textContent = t;
+  // Random X: favour left and right edges, avoid center
+  const x = Math.random() < 0.5 ? 5 + Math.random() * 25 : 70 + Math.random() * 25;
+  el.style.left = x + 'vw';
+  stage.appendChild(el);
+  setTimeout(() => el.remove(), 3100);
+}
+function setTimerBubble(t, visible) {
+  if (!visible) {
+    clearInterval(_timerFloatInterval);
+    _timerFloatInterval = null;
+    return;
+  }
+  // Spawn one immediately, then every 2.5s
+  clearInterval(_timerFloatInterval);
+  // Spawn rate increases as timer counts down: 7s at full time → 2s at zero
+  const _floatTotal = t; // capture full duration at round start
+  function scheduleNextFloat() {
+    const b = document.getElementById('ft-timer');
+    const cur = b ? parseInt(b.textContent) : 0;
+    if (isNaN(cur) || cur <= 0) return;
+    const ratio = Math.max(0, Math.min(1, 1 - (cur / _floatTotal))); // 0 at start, 1 at end
+    const interval = Math.round(7000 - ratio * 6000); // 7000ms → 1000ms
+    spawnTimerFloat(cur, cur <= 10);
+    _timerFloatInterval = setTimeout(scheduleNextFloat, interval);
+  }
+  spawnTimerFloat(t, t <= 10); // immediate spawn at round start
+  _timerFloatInterval = setTimeout(scheduleNextFloat, 7000);
 }
 
 function startTimer(secs) {
@@ -3156,12 +3222,13 @@ function startTimer(secs) {
   if (el) { el.classList.remove('urgent'); el.textContent = t; }
   const ftEl = document.getElementById('ft-timer');
   if (ftEl) { ftEl.classList.remove('urgent'); ftEl.textContent = t; }
+  setTimerBubble(t, true);
   G.timerInterval = setInterval(async () => {
     t--;
     if (el) { el.textContent = t; if (t<=10) el.classList.add('urgent'); }
     if (ftEl) { ftEl.textContent = t; if (t<=10) ftEl.classList.add('urgent'); else ftEl.classList.remove('urgent'); }
     if (t<=10) setUrgencyPulse(true);
-    if (t<=0) { clearInterval(G.timerInterval); setUrgencyPulse(false); await doSubmit(null,true); }
+    if (t<=0) { clearInterval(G.timerInterval); setUrgencyPulse(false); setTimerBubble(0, false); await doSubmit(null,true); }
   }, 1000);
 }
 
@@ -4062,7 +4129,7 @@ window.nextRound = async () => {
   used.push(letter);
   await update(roomRef(G.roomCode), {
     currentRound:room.currentRound+1, currentLetter:letter, usedLetters:used,
-    phase:'countdown', countdownStart:Date.now(), allAnswers:{}, calledStop:false, stopCaller:'', aiResults:{}, votes:{}, entryReactions:{},
+    phase:'countdown', countdownStart:Date.now(), roundStartTime:null, allAnswers:{}, calledStop:false, stopCaller:'', aiResults:{}, votes:{}, entryReactions:{},
   });
 };
 
@@ -4201,7 +4268,7 @@ window.playAgain = async () => {
   Object.keys(room.players||{}).forEach(p => scores[p]=0);
   await update(roomRef(G.roomCode), {
     phase:'lobby', currentRound:0, scores, allAnswers:{}, usedLetters:[],
-    calledStop:false, stopCaller:'', aiResults:{}, votes:{}, entryReactions:{},
+    roundStartTime:null, calledStop:false, stopCaller:'', aiResults:{}, votes:{}, entryReactions:{},
   });
 };
 
@@ -4594,7 +4661,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260903.1</div>
+  <div style="font-size:9px;opacity:0.5">v260908.1</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
