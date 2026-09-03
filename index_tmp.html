@@ -3185,8 +3185,8 @@ function spawnTimerFloat(t, urgent) {
   const el = document.createElement('div');
   el.className = 'timer-float' + (urgent ? ' urgent' : '');
   el.textContent = t;
-  // Random X: 20-80% of viewport width
-  const x = 20 + Math.random() * 60;
+  // Random X: favour left and right edges, avoid center
+  const x = Math.random() < 0.5 ? 5 + Math.random() * 25 : 70 + Math.random() * 25;
   el.style.left = x + 'vw';
   stage.appendChild(el);
   setTimeout(() => el.remove(), 3100);
@@ -3199,12 +3199,18 @@ function setTimerBubble(t, visible) {
   }
   // Spawn one immediately, then every 2.5s
   clearInterval(_timerFloatInterval);
-  // Delay first spawn slightly so it doesn't double-fire with any other init call
-  _timerFloatInterval = setInterval(() => {
+  // Spawn rate increases as timer counts down: 7s at full time → 2s at zero
+  const _floatTotal = t; // capture full duration at round start
+  function scheduleNextFloat() {
     const b = document.getElementById('ft-timer');
-    const cur = b ? parseInt(b.textContent) : t;
-    if (!isNaN(cur) && cur > 0) spawnTimerFloat(cur, cur <= 10);
-  }, 4000);
+    const cur = b ? parseInt(b.textContent) : 0;
+    if (isNaN(cur) || cur <= 0) return;
+    const ratio = Math.max(0, Math.min(1, 1 - (cur / _floatTotal))); // 0 at start, 1 at end
+    const interval = Math.round(7000 - ratio * 5000); // 7000ms → 2000ms
+    spawnTimerFloat(cur, cur <= 10);
+    _timerFloatInterval = setTimeout(scheduleNextFloat, interval);
+  }
+  _timerFloatInterval = setTimeout(scheduleNextFloat, 7000);
 }
 
 function startTimer(secs) {
@@ -4654,7 +4660,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260908.12-tmp</div>
+  <div style="font-size:9px;opacity:0.5">v260908.14-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
