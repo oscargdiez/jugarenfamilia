@@ -3244,7 +3244,7 @@ function buildValidationHTML(room, invalidMap) {
         </div>` : ''}
       </div>
       ${ans?`<div class="dict-result" id="gdict_${key}"></div>`:''}
-      ${ans?`<div class="${existingGAI?('ai-result show '+(existingGAI.html.includes('✅')?'valid':existingGAI.html.includes('❌')?'invalid':'unsure')):('ai-result')}" id="ai_res_${key}">${existingGAI?existingGAI.html:''}</div>`:''}`;
+      ${ans?`<div class="${existingGAI?('ai-result show '+(existingGAI.cls||(existingGAI.html.includes('✅')?'valid':existingGAI.html.includes('❌')?'invalid':'unsure'))):('ai-result')}" id="ai_res_${key}">${existingGAI?existingGAI.html:''}</div>`:''}`;
     });
     html += '</div>';
   });
@@ -3278,7 +3278,7 @@ function showValidation(room) {
       const dictDiv = ans ? `<div class="dict-result" id="dict_${key}"></div>` : '';
       const existingAI = ans && room.aiResults && room.aiResults[key];
       const aiBtn = (ans && G_aiEnabled && !existingAI) ? `<button class="ai-btn" id="ai_btn_${key}" onclick="askAI('${ans.replace(/'/g,"\'")}','${cat}','${room.currentLetter}','${key}')">🤖</button>` : '';
-      const aiCls = existingAI ? ('ai-result show ' + (existingAI.html.includes('✅') ? 'valid' : existingAI.html.includes('❌') ? 'invalid' : 'unsure')) : 'ai-result';
+      const aiCls = existingAI ? ('ai-result show ' + (existingAI.cls || (existingAI.html.includes('✅') ? 'valid' : existingAI.html.includes('❌') ? 'invalid' : 'unsure'))) : 'ai-result';
       const aiRes = ans ? `<div class="ai-result ${aiCls}" id="ai_res_${key}">${existingAI ? existingAI.html : ''}</div>` : '';
       const voteHtml = ans ? renderVotes(key, {}, G_validationMode, players, true) : '';
       html += `<div class="val-entry" id="ve_${key}">
@@ -3456,7 +3456,8 @@ function applyAIResults(aiResults) {
     const el = document.getElementById('ai_res_' + key);
     if (el && data.html) {
       el.innerHTML = data.html;
-      el.className = 'ai-result show ' + (data.html.includes('✅') ? 'valid' : data.html.includes('❌') ? 'invalid' : 'unsure');
+      const cls = data.cls || (data.html.includes('✅') ? 'valid' : data.html.includes('❌') ? 'invalid' : 'unsure');
+      el.className = 'ai-result show ' + cls;
     }
     // Hide the AI button — result is in, no need to query again
     const btn = document.getElementById('ai_btn_' + key);
@@ -3660,10 +3661,10 @@ window.askAI = async (word, category, letter, key) => {
     const icon = cls === 'valid' ? '✅' : cls === 'invalid' ? '❌' : '🤔';
     const labelMap = { valid: {es:'Válido',en:'Valid',fr:'Valide',de:'Gültig',pt:'Válido',it:'Valido'}, invalid: {es:'Inválido',en:'Invalid',fr:'Invalide',de:'Ungültig',pt:'Inválido',it:'Invalido'}, unsure: {es:'Dudoso',en:'Unsure',fr:'Incertain',de:'Unsicher',pt:'Duvidoso',it:'Incerto'} };
     const label = (labelMap[cls]||labelMap.unsure)[LANG] || (labelMap[cls]||labelMap.unsure).es;
-    const aiHtml = icon + ' ' + label;
+    const aiHtml = '🤖 ' + label;
     result.innerHTML = aiHtml;
     // Broadcast to guests via Firebase
-    update(roomRef(G.roomCode), { [`aiResults/${key}`]: { html: aiHtml, key } });
+    update(roomRef(G.roomCode), { [`aiResults/${key}`]: { html: aiHtml, cls, key } });
     result.className = 'ai-result show ' + cls;
     btn.style.display = 'none'; // hide button — result locked in
   } catch(e) {
@@ -4592,7 +4593,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260903.15-tmp</div>
+  <div style="font-size:9px;opacity:0.5">v260903.16-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
