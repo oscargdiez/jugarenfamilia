@@ -3227,6 +3227,7 @@ function buildValidationHTML(room, invalidMap) {
       const isInvalid = !!(invalidMap&&invalidMap[key]);
       const pts = ans ? (isDup?50:100) : 0;
       const gSafeAns = ans ? ans.replace(/'/g,"\\'") : '';
+      const existingGAI = ans && room.aiResults && room.aiResults[key];
       const dictBtn = ans ? `<button class="dict-btn" id="gdictbtn_${key}" onclick="lookupWordGuest('${gSafeAns}','${key}')">${'<svg width="16" height="16" viewBox="0 0 22 22" fill="none"><path d="M11 3.5 C8.5 3 3 4 3 4 L3 17.5 C3 17.5 8 16.5 11 19" stroke="currentColor" stroke-width="1.3" fill="#faf8f3" stroke-linejoin="round"/><path d="M11 3.5 C13.5 3 19 4 19 4 L19 17.5 C19 17.5 14 16.5 11 19" stroke="currentColor" stroke-width="1.3" fill="#faf8f3" stroke-linejoin="round"/><line x1="11" y1="3.5" x2="11" y2="19" stroke="currentColor" stroke-width="2"/><line x1="4.5" y1="7.5" x2="9.5" y2="7" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.55"/><line x1="4.5" y1="10" x2="9.5" y2="9.5" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.55"/><line x1="4.5" y1="12.5" x2="9.5" y2="12" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.55"/><line x1="4.5" y1="15" x2="7.5" y2="14.7" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.55"/><line x1="12.5" y1="7" x2="17.5" y2="7.5" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.55"/><line x1="12.5" y1="9.5" x2="17.5" y2="10" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.55"/><line x1="12.5" y1="12" x2="17.5" y2="12.5" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.55"/><line x1="12.5" y1="14.7" x2="15.5" y2="15" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.55"/></svg>'}</button>` : '';
       const voteHtml = ans ? renderVotes(key, votes[key]||{}, mode, players, false) : '';
       const emojiHtml = renderEntryEmojis(key, entryReactions[key]||{}, false);
@@ -3239,11 +3240,11 @@ function buildValidationHTML(room, invalidMap) {
           <div class="val-entry-actions"><span class="pts-badge" id="pb_g_${key}">${isInvalid?t('invalidated'):pts+' pts'}</span></div>
           <div class="val-entry-emojis" id="emojis_${key}">${emojiHtml}</div>
           <div class="val-entry-votes" id="votes_${key}">${voteHtml}</div>
-          <div class="val-entry-right">${dictBtn}${(ans && G_aiEnabled && mode === 'democratic') ? `<button class="ai-btn" id="ai_btn_${key}" onclick="askAI('${gSafeAns}','${cat}','${room.currentLetter}','${key}')">🤖</button>` : ''}</div>
+          <div class="val-entry-right">${dictBtn}${(ans && G_aiEnabled && mode === 'democratic' && !existingGAI) ? `<button class="ai-btn" id="ai_btn_${key}" onclick="askAI('${gSafeAns}','${cat}','${room.currentLetter}','${key}')">🤖</button>` : ''}</div>
         </div>` : ''}
       </div>
       ${ans?`<div class="dict-result" id="gdict_${key}"></div>`:''}
-      ${ans?`<div class="ai-result" id="ai_res_${key}"></div>`:''}`;
+      ${ans?`<div class="${existingGAI?('ai-result show '+(existingGAI.html.includes('✅')?'valid':existingGAI.html.includes('❌')?'invalid':'unsure')):('ai-result')}" id="ai_res_${key}">${existingGAI?existingGAI.html:''}</div>`:''}`;
     });
     html += '</div>';
   });
@@ -3275,8 +3276,10 @@ function showValidation(room) {
       const invBtn = (ans && G_validationMode !== 'democratic') ? `<button class="inv-btn" id="ib_${key}" onclick="toggleInvalid('${key}',${pts})">✕</button>` : '';
       const ptsBadge = ans ? `<span class="pts-badge" id="pb_${key}">${pts} pts</span>` : '';
       const dictDiv = ans ? `<div class="dict-result" id="dict_${key}"></div>` : '';
-      const aiBtn = (ans && G_aiEnabled) ? `<button class="ai-btn" id="ai_btn_${key}" onclick="askAI('${ans.replace(/'/g,"\'")}','${cat}','${room.currentLetter}','${key}')">🤖</button>` : '';
-      const aiRes = ans ? `<div class="ai-result" id="ai_res_${key}"></div>` : '';
+      const existingAI = ans && room.aiResults && room.aiResults[key];
+      const aiBtn = (ans && G_aiEnabled && !existingAI) ? `<button class="ai-btn" id="ai_btn_${key}" onclick="askAI('${ans.replace(/'/g,"\'")}','${cat}','${room.currentLetter}','${key}')">🤖</button>` : '';
+      const aiCls = existingAI ? ('ai-result show ' + (existingAI.html.includes('✅') ? 'valid' : existingAI.html.includes('❌') ? 'invalid' : 'unsure')) : 'ai-result';
+      const aiRes = ans ? `<div class="ai-result ${aiCls}" id="ai_res_${key}">${existingAI ? existingAI.html : ''}</div>` : '';
       const voteHtml = ans ? renderVotes(key, {}, G_validationMode, players, true) : '';
       html += `<div class="val-entry" id="ve_${key}">
         <div class="val-entry-top">
@@ -3451,10 +3454,13 @@ function applyAIResults(aiResults) {
   if (!aiResults || !G_aiEnabled) return;
   Object.entries(aiResults).forEach(([key, data]) => {
     const el = document.getElementById('ai_res_' + key);
-    if (el && data.html && !el.classList.contains('show')) {
+    if (el && data.html) {
       el.innerHTML = data.html;
       el.className = 'ai-result show ' + (data.html.includes('✅') ? 'valid' : data.html.includes('❌') ? 'invalid' : 'unsure');
     }
+    // Hide the AI button — result is in, no need to query again
+    const btn = document.getElementById('ai_btn_' + key);
+    if (btn) btn.style.display = 'none';
   });
 }
 
@@ -3659,7 +3665,7 @@ window.askAI = async (word, category, letter, key) => {
     // Broadcast to guests via Firebase
     update(roomRef(G.roomCode), { [`aiResults/${key}`]: { html: aiHtml, key } });
     result.className = 'ai-result show ' + cls;
-    btn.textContent = '🤖';
+    btn.style.display = 'none'; // hide button — result locked in
   } catch(e) {
     const isTimeout = e.name === 'TimeoutError' || e.name === 'AbortError';
     result.innerHTML = isTimeout
@@ -4586,7 +4592,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260903.14-tmp</div>
+  <div style="font-size:9px;opacity:0.5">v260903.15-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
