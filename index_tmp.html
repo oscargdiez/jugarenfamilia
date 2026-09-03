@@ -66,7 +66,8 @@ body {
 #app {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  height: 100vh;   /* fallback */
+  height: 100dvh;  /* dynamic — shrinks when iOS keyboard opens */
   position: relative;
   background: var(--paper);
 }
@@ -4617,10 +4618,26 @@ applyLang();
 document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.getAttribute('onclick').includes("'"+LANG+"'")));
 try { const s=JSON.parse(localStorage.getItem('alto_session')||'{}'); if(s.name) document.getElementById('inp-name').value=s.name; } catch(e){}
 tryRestore();
+
+// ── iOS keyboard fix: keep #app locked to visual viewport height ──
+// dvh handles modern iOS; this listener covers older versions and edge cases
+(function() {
+  const app = document.getElementById('app');
+  function lockHeight() {
+    if (window.visualViewport) {
+      app.style.height = window.visualViewport.height + 'px';
+    }
+  }
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', lockHeight);
+    window.visualViewport.addEventListener('scroll', lockHeight);
+    lockHeight();
+  }
+})();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260908.1-tmp</div>
+  <div style="font-size:9px;opacity:0.5">v260908.2-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
