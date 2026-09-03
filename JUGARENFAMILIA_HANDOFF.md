@@ -208,7 +208,6 @@ assert len(c) < 300000
 ## 🐛 Known Issues / Watch List
 
 - OpenRouter free tier: 200 req/day cap, resets daily (50/day on unfunded account)
-- iOS Chrome sticky counter — not solved (flagged for layout redesign)
 - Free models rotate out without warning — if AI breaks, check OpenRouter logs and swap models in the `models[]` array. Re-add `console.log('[AI full data]', JSON.stringify(data))` before the raw extraction line to debug. Max 3 models in the array (OpenRouter limit).
 
 ---
@@ -312,6 +311,13 @@ Full audit — 15 bugs fixed. Room cleanup, collision-safe codes, stop caller ba
 - Tie display before all votes in (now shows nothing until all voted — may want "N/M votado" indicator)
 
 **Last version deployed: v260903.1**
+
+Additional changes in final deploys (v260903.1):
+- Democratic mode moved above AI assistant in config section
+- AI on/off toggle removed — AI assistant always on; `setAIEnabled` is now a no-op stub that forces true
+- Validation screen subtitles update dynamically based on mode: democratic shows "📖 Wikipedia · 👍👎 votar" instead of "✕ anular"
+- 🔍 magnifying glass restored on "Revisar respuestas" section title in rules panel (🤖 was wrong there)
+- File size limit raised to 300KB in pre-deploy checklist
 
 ### Session 6 (Sep 2)
 **Fixed shell layout — fully built:**
