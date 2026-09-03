@@ -3206,10 +3206,11 @@ function setTimerBubble(t, visible) {
     const cur = b ? parseInt(b.textContent) : 0;
     if (isNaN(cur) || cur <= 0) return;
     const ratio = Math.max(0, Math.min(1, 1 - (cur / _floatTotal))); // 0 at start, 1 at end
-    const interval = Math.round(7000 - ratio * 5000); // 7000ms → 2000ms
+    const interval = Math.round(7000 - ratio * 6000); // 7000ms → 1000ms
     spawnTimerFloat(cur, cur <= 10);
     _timerFloatInterval = setTimeout(scheduleNextFloat, interval);
   }
+  spawnTimerFloat(t, t <= 10); // immediate spawn at round start
   _timerFloatInterval = setTimeout(scheduleNextFloat, 7000);
 }
 
@@ -4660,7 +4661,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260908.14-tmp</div>
+  <div style="font-size:9px;opacity:0.5">v260908.15-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
