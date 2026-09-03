@@ -144,7 +144,7 @@ assert '// Init\nbuildEmojiGrid();' in c
 assert 'tryRestore();' in c
 
 # 3. File size sane
-assert len(c) < 250000
+assert len(c) < 300000
 ```
 
 **Always start from the uploaded working file** — never from a local copy that may have drifted. Ask the user to upload the current index.html if unsure.
@@ -215,11 +215,7 @@ assert len(c) < 250000
 
 ## 🗺 Flagged for Future Discussion
 
-- **Daily Challenge mode — READY TO BUILD (Session 7)** — solo, bypasses room setup entirely. Easy letters only, preset. 6 categories drawn randomly per day from vetted pool. Deterministic from date — same puzzle for everyone worldwide. Scoring: word length + speed bonus + originality vs other submissions. AI validation solves answer-checking — no predefined keys needed. Universal categories, same list for all languages, AI validates in game language.
-
-  **Approved category pool (26):** Nombre, Apellido, País, Ciudad, Animal, Fruta, Color, Profesión, Objeto, Comida/Plato, Deporte, Instrumento musical, Marca comercial, Película, Canción, Personaje de ficción, Animal marino, Árbol, Flor, Insecto, Pez, Ave/Pájaro, Cantante/Grupo, Actor/Actriz, Escritor/Autor, Elemento químico.
-
-  **Excluded (pool too small even with easy letters):** Superhéroe, Hueso del cuerpo, Planeta/Luna, País de Europa.
+- ~~**Daily Challenge mode**~~ — BUILT in Session 7. See session log.
 - **AI 3-step validation pipeline** — Step 1: letter check as model health test (if model fails "does X start with letter Y?" skip it). Step 2: category validation. Step 3: optional confidence. Self-healing model selection, much more accurate.
 - **AI model config in Firebase** — store `models[]` array in Firebase so it can be updated without a redeploy. Part of future Cloudflare Workers backend work.
 
@@ -227,6 +223,7 @@ assert len(c) < 250000
 - ~~**Timer visibility on mobile**~~ — resolved by fixed shell
 - **Help/Rules icon during game** — now always accessible via ? button in shell header
 - **Language as lobby setting** — currently global preference, should be per-game decision in lobby alongside rounds/timer/categories
+- **Democratic mode — minimum player guard** — with 1 player (host alone), majority=1 and host's single 👎 auto-invalidates, defeating the purpose. Should show a toast and block selecting democratic mode if only 1 player in lobby.
 - **Emoji picker on Windows** — SVG treatment like flags, or Twemoji for everything
 
 ---
@@ -257,6 +254,64 @@ Quick join, guest lobby card, per-entry reactions/votes, Wikipedia lookups, flyi
 ### Session 3 (Aug 31)
 Full audit — 15 bugs fixed. Room cleanup, collision-safe codes, stop caller banner, AI fallback chain, timer on rejoin, democratic mode fixes, debug mode (14 screens)
 
+
+### Session 7 (Sep 3)
+**Validation screen layout fix:**
+- Moved pts-badge + action buttons to bottom row — answer now has full width on iPhone
+- Bottom row layout: [pts · emojis · thumbs] | [📖 · 🤖 · ✕] separator before action buttons
+
+**Countdown before each round:**
+- 10s full-screen overlay (big red number, cdPop bounce animation, Special Elite font)
+- Shows "PREPARADOS / GET READY / PRÊTS…" label in all 6 languages
+- Synced via Firebase `countdownStart` timestamp — rejoiners start from correct number
+- Host drives transition: writes `phase:'playing'` at 0, guests enter simultaneously
+- Applies to both multiplayer (startGame + nextRound) and daily challenge
+- `roundStartTime` now set at `phase:'playing'`, not at countdown start — timer always starts at full configured time
+- Daily inputs disabled during countdown, enabled + focused when timer starts
+
+**Daily Challenge promoted to production:**
+- Removed 4 console.logs from daily AI validation
+- `__debug__` stripped from display name before Firebase save (bypass logic preserved)
+- `dailyRulesHTML()` function added — ? button on daily screens now works (was throwing silent error)
+- Daily rules panel shows only daily-relevant rules, not multiplayer helpHTML
+
+**AI assistant renamed:**
+- "Validación automática" → "🤖 Asistente IA" everywhere (33 occurrences, all 6 languages)
+- Help text updated: "su opinión es orientativa — el anfitrión tiene la última palabra"
+- Daily rules: "en el reto diario su decisión es definitiva" (accurate — no host override in daily)
+- AI result now shows as "🤖 Válido / 🤖 Inválido / 🤖 Dudoso" (robot attribution)
+
+**AI result sharing:**
+- First player to press 🤖 triggers the API call — result broadcasts to Firebase
+- Button disappears for all players when result arrives (via `applyAIResults`)
+- `cls` stored in Firebase payload — CSS class detection no longer relies on emoji scanning
+- AI results preserved on ← Revisar (were previously wiped)
+- Pre-populated on render if result already exists in Firebase (rejoiners see result immediately)
+
+**Democratic mode overhaul:**
+- Promoted from password-protected experimental panel to main config section
+- Experimental panel + `promptExperimental` + `promptAIPassword` + password logic fully removed
+- ✕ cancel button hidden in democratic mode — host cannot manually override
+- `toggleInvalid` hard-guarded against democratic mode
+- Guests get 🤖 Asistente IA button in democratic mode (any player can trigger, one call shared)
+- Vote restoration: if votes swing back below majority, entry is un-invalidated
+- Democratic result labels localized in all 6 languages (were hardcoded Spanish)
+- Tie badge only shown when ALL players have voted (not on incomplete split)
+- `refreshGuestValidation` rebuilds on vote changes too (not just invalidAnswers)
+- `finishValidation` re-reads vote majority from Firebase snapshot before scoring
+- Duplicate vote render loop removed
+- Dead `pct` variable removed from `renderVotes`
+
+**Other:**
+- 🤖 robot emoji restored everywhere (was changed to 🔍 in Session 5)
+- "Puntuación" consistent everywhere (was "Puntajes" in some places)
+- File size limit raised to 300KB in checklist (was 250KB)
+
+**Flagged for future:**
+- Democratic mode: minimum 2 players guard (1 player = host can self-invalidate)
+- Tie display before all votes in (now shows nothing until all voted — may want "N/M votado" indicator)
+
+**Last version deployed: v260903.1**
 
 ### Session 6 (Sep 2)
 **Fixed shell layout — fully built:**
@@ -303,7 +358,7 @@ Full audit — 15 bugs fixed. Room cleanup, collision-safe codes, stop caller ba
 - btn-create emoji/arrow preserved correctly in applyLang
 - Staging workflow: deploy_tmp.bat + deploy2.bat added to D:\09_ALTO\
 
-**Last version deployed: v260902.1**
+**Last version deployed: v260903.1**
 
 ### Session 5 (Sep 1)
 - AI validation fully fixed and tuned across many iterations
