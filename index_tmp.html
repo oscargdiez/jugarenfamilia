@@ -400,13 +400,13 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
   font-size: 36px;
   line-height: 1;
   color: var(--red);
-  animation: timerFloat 1.8s ease-in forwards;
+  animation: timerFloat 1.8s linear forwards;
   z-index: 996;
 }
 .timer-float.urgent { font-size: 42px; }
 @keyframes timerFloat {
   0%   { transform: translateY(0);      opacity: 0.6; }
-  50%  { transform: translateY(-140px); opacity: 0.6; }
+  70%  { transform: translateY(-154px); opacity: 0.6; }
   100% { transform: translateY(-220px); opacity: 0; }
 }
 
@@ -3198,13 +3198,13 @@ function setTimerBubble(t, visible) {
     return;
   }
   // Spawn one immediately, then every 2.5s
-  spawnTimerFloat(t, t <= 10);
   clearInterval(_timerFloatInterval);
+  // Delay first spawn slightly so it doesn't double-fire with any other init call
   _timerFloatInterval = setInterval(() => {
     const b = document.getElementById('ft-timer');
     const cur = b ? parseInt(b.textContent) : t;
     if (!isNaN(cur) && cur > 0) spawnTimerFloat(cur, cur <= 10);
-  }, 6000);
+  }, 4000);
 }
 
 function startTimer(secs) {
@@ -4654,7 +4654,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260908.11-tmp</div>
+  <div style="font-size:9px;opacity:0.5">v260908.12-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
