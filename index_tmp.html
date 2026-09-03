@@ -390,6 +390,31 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
 }
 #toast.show { opacity: 1; }
 
+/* ── Floating timer bubble — bottom-left, always above iOS keyboard ── */
+#timer-bubble {
+  position: fixed; bottom: 24px; left: 16px;
+  font-family: 'Special Elite', monospace;
+  font-size: 20px; line-height: 1;
+  color: var(--ink-sec);
+  background: var(--paper);
+  border: 1.5px solid var(--border);
+  border-radius: 20px;
+  padding: 5px 12px;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.2s;
+  z-index: 997;
+}
+#timer-bubble.visible { opacity: 1; }
+#timer-bubble.urgent {
+  color: var(--red);
+  border-color: var(--red);
+  animation: urgencyPulse 0.9s ease-in-out infinite;
+}
+@keyframes timerPulse {
+  0%, 100% { opacity: 0.7; }
+  50%       { opacity: 1; }
+}
+
 /* ── Stamp ── */
 .stamp {
   display: inline-block;
@@ -726,6 +751,7 @@ document.addEventListener('DOMContentLoaded', function() {
   <div id="countdown-label" id="cd-label">PREPARADOS</div>
 </div>
 <div id="toast"></div>
+<div id="timer-bubble"></div>
 
 <!-- ══ QUICK JOIN (when arriving via link) ══ -->
 <div id="s-quickjoin" class="screen">
@@ -1937,6 +1963,8 @@ window.show = function(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('on'));
   document.getElementById('s-'+id).classList.add('on');
   G.screen = id;
+  // Show timer bubble only on playing/daily-play screens
+  if (!['playing','daily-play'].includes(id)) setTimerBubble(0, false);
   // Set body class for CSS screen-specific rules
   document.body.className = document.body.className.replace(/\bscreen-\S+/g, '').trim();
   document.body.classList.add('screen-' + id);
@@ -2155,6 +2183,7 @@ window.startDailyChallenge = function() {
           if (fill2) { fill2.style.transition = 'none'; fill2.style.width = (remaining / G_daily.totalSecs * 100) + '%'; setTimeout(() => { fill2.style.transition = 'width 1s linear, background 0.3s'; }, 50); }
           const ft2 = document.getElementById('ft-timer');
           if (ft2) { ft2.textContent = remaining; ft2.classList.toggle('urgent', remaining <= 10); }
+          setTimerBubble(remaining, true);
           G_daily.timerInterval = setInterval(() => {
             G_daily.secsRemaining--;
             const pct2 = (G_daily.secsRemaining / G_daily.totalSecs) * 100;
@@ -2162,6 +2191,7 @@ window.startDailyChallenge = function() {
             if (f2) { f2.style.width = pct2 + '%'; f2.style.background = G_daily.secsRemaining <= 15 ? '#c0392b' : 'var(--red)'; }
             const ft3 = document.getElementById('ft-timer');
             if (ft3) { ft3.textContent = G_daily.secsRemaining; if (G_daily.secsRemaining <= 10) ft3.classList.add('urgent'); else ft3.classList.remove('urgent'); }
+            setTimerBubble(G_daily.secsRemaining, true);
             if (G_daily.secsRemaining <= 10) setUrgencyPulse(true);
             if (G_daily.secsRemaining <= 0) dailySubmit();
           }, 1000);
@@ -2199,12 +2229,14 @@ window.startDailyChallenge = function() {
     setTimeout(() => { if (fill) fill.style.transition = 'width 1s linear, background 0.3s'; }, 50);
     const ftTimer = document.getElementById('ft-timer');
     if (ftTimer) { ftTimer.textContent = G_daily.secsRemaining; ftTimer.classList.toggle('urgent', G_daily.secsRemaining <= 10); }
+    setTimerBubble(G_daily.secsRemaining, true);
     G_daily.timerInterval = setInterval(() => {
       G_daily.secsRemaining--;
       const pct = (G_daily.secsRemaining / G_daily.totalSecs) * 100;
       if (fill) { fill.style.width = pct + '%'; fill.style.background = G_daily.secsRemaining <= 15 ? '#c0392b' : 'var(--red)'; }
       const ft = document.getElementById('ft-timer');
       if (ft) { ft.textContent = G_daily.secsRemaining; if (G_daily.secsRemaining <= 10) ft.classList.add('urgent'); else ft.classList.remove('urgent'); }
+      setTimerBubble(G_daily.secsRemaining, true);
       if (G_daily.secsRemaining <= 10) setUrgencyPulse(true);
       if (G_daily.secsRemaining <= 0) dailySubmit();
     }, 1000);
@@ -3151,6 +3183,15 @@ function setUrgencyPulse(on) {
   if (ov) ov.classList.toggle('pulsing', on);
 }
 
+function setTimerBubble(t, visible) {
+  const b = document.getElementById('timer-bubble');
+  if (!b) return;
+  if (!visible) { b.classList.remove('visible','urgent'); return; }
+  b.textContent = t;
+  b.classList.add('visible');
+  b.classList.toggle('urgent', t <= 10);
+}
+
 function startTimer(secs) {
   clearInterval(G.timerInterval);
   setUrgencyPulse(false);
@@ -3159,12 +3200,14 @@ function startTimer(secs) {
   if (el) { el.classList.remove('urgent'); el.textContent = t; }
   const ftEl = document.getElementById('ft-timer');
   if (ftEl) { ftEl.classList.remove('urgent'); ftEl.textContent = t; }
+  setTimerBubble(t, true);
   G.timerInterval = setInterval(async () => {
     t--;
     if (el) { el.textContent = t; if (t<=10) el.classList.add('urgent'); }
     if (ftEl) { ftEl.textContent = t; if (t<=10) ftEl.classList.add('urgent'); else ftEl.classList.remove('urgent'); }
+    setTimerBubble(t, true);
     if (t<=10) setUrgencyPulse(true);
-    if (t<=0) { clearInterval(G.timerInterval); setUrgencyPulse(false); await doSubmit(null,true); }
+    if (t<=0) { clearInterval(G.timerInterval); setUrgencyPulse(false); setTimerBubble(0, false); await doSubmit(null,true); }
   }, 1000);
 }
 
@@ -4597,7 +4640,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260908.3-tmp</div>
+  <div style="font-size:9px;opacity:0.5">v260908.4-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
