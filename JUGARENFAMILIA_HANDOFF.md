@@ -67,10 +67,11 @@ Claude ALWAYS provides `jugarenfamilia.html` + `gitinfo.txt` together.
 
 ### Staging workflow (index_tmp.html)
 - Claude produces `jugarenfamilia_tmp.html` + `gitinfo_tmp.txt`
-- Drop both to Downloads, run `deploy_tmp.bat`
-- Test at `jugarenfamilia.es/index_tmp.html`
-- When happy: Claude produces `jugarenfamilia.html` + `gitinfo.txt`, deploy normally
-- `deploy_tmp.bat` and `deploy2.bat` are in `D:\09_ALTO\` Claude ALWAYS states the version number when deploying.
+- Drop both to `C:\Users\User\Downloads\`, run `D:\09_ALTO\deploy_tmp.bat`
+- Test at `https://jugarenfamilia.es/index_tmp.html`
+- When happy: Claude produces `jugarenfamilia.html` + `gitinfo.txt`, deploy with `deploy.bat`
+- Staging and production are independent — staging never auto-promotes
+- Claude ALWAYS states the version number when deploying (e.g. "deploying v260903.20-tmp")
 
 1. Download both files to `C:\Users\User\Downloads\`
 2. Double-click `D:\09_ALTO\deploy.bat`
