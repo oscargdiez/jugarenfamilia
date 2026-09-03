@@ -3773,6 +3773,18 @@ window.setValidationMode = (mode) => {
     if (m === mode) { btn.style.borderColor = '#c0392b'; btn.style.background = '#fdf0ee'; }
     else { btn.style.borderColor = 'var(--border-strong)'; btn.style.background = 'var(--paper-dark)'; }
   });
+  // Update validation screen subtitles to reflect current mode
+  const sub1 = document.getElementById('lbl-validate-sub1');
+  const sub2 = document.getElementById('lbl-validate-sub2');
+  if (mode === 'democratic') {
+    const s1 = {es:'📖 Wikipedia · 👍👎 votar', en:'📖 Wikipedia · 👍👎 vote', fr:'📖 Wikipedia · 👍👎 voter', de:'📖 Wikipedia · 👍👎 abstimmen', pt:'📖 Wikipedia · 👍👎 votar', it:'📖 Wikipedia · 👍👎 vota'}[LANG] || '📖 Wikipedia · 👍👎 votar';
+    const s2 = {es:'única = 100 pts · repetida = 50 pts · anulada = 0 pts', en:'unique = 100 pts · duplicate = 50 pts · invalid = 0 pts', fr:'unique = 100 pts · doublon = 50 pts · annulé = 0 pts', de:'einmalig = 100 Pkt · doppelt = 50 Pkt · ungültig = 0 Pkt', pt:'única = 100 pts · repetida = 50 pts · anulada = 0 pts', it:'unica = 100 pts · ripetuta = 50 pts · annullata = 0 pts'}[LANG] || 'única = 100 pts · repetida = 50 pts · anulada = 0 pts';
+    if (sub1) sub1.textContent = s1;
+    if (sub2) sub2.textContent = s2;
+  } else {
+    if (sub1) sub1.innerHTML = t('validateSub1');
+    if (sub2) sub2.textContent = t('validateSub2');
+  }
 };
 
 window.voteEntry = async (key, dir) => {
@@ -4603,7 +4615,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260903.18-tmp</div>
+  <div style="font-size:9px;opacity:0.5">v260903.19-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
