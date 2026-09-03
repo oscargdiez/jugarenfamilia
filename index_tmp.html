@@ -400,14 +400,14 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
   font-size: 36px;
   line-height: 1;
   color: var(--red);
-  animation: timerFloat 3s linear forwards;
+  animation: timerFloat 1.8s ease-in forwards;
   z-index: 996;
 }
 .timer-float.urgent { font-size: 42px; }
 @keyframes timerFloat {
-  0%   { transform: translateY(0);      opacity: 0.55; }
-  60%  { transform: translateY(-180px); opacity: 0.55; }
-  100% { transform: translateY(-260px); opacity: 0; }
+  0%   { transform: translateY(0);      opacity: 0.6; }
+  50%  { transform: translateY(-140px); opacity: 0.6; }
+  100% { transform: translateY(-220px); opacity: 0; }
 }
 
 /* ── Stamp ── */
@@ -2185,7 +2185,6 @@ window.startDailyChallenge = function() {
             if (f2) { f2.style.width = pct2 + '%'; f2.style.background = G_daily.secsRemaining <= 15 ? '#c0392b' : 'var(--red)'; }
             const ft3 = document.getElementById('ft-timer');
             if (ft3) { ft3.textContent = G_daily.secsRemaining; if (G_daily.secsRemaining <= 10) ft3.classList.add('urgent'); else ft3.classList.remove('urgent'); }
-            setTimerBubble(G_daily.secsRemaining, true);
             if (G_daily.secsRemaining <= 10) setUrgencyPulse(true);
             if (G_daily.secsRemaining <= 0) dailySubmit();
           }, 1000);
@@ -2230,7 +2229,6 @@ window.startDailyChallenge = function() {
       if (fill) { fill.style.width = pct + '%'; fill.style.background = G_daily.secsRemaining <= 15 ? '#c0392b' : 'var(--red)'; }
       const ft = document.getElementById('ft-timer');
       if (ft) { ft.textContent = G_daily.secsRemaining; if (G_daily.secsRemaining <= 10) ft.classList.add('urgent'); else ft.classList.remove('urgent'); }
-      setTimerBubble(G_daily.secsRemaining, true);
       if (G_daily.secsRemaining <= 10) setUrgencyPulse(true);
       if (G_daily.secsRemaining <= 0) dailySubmit();
     }, 1000);
@@ -3206,7 +3204,7 @@ function setTimerBubble(t, visible) {
     const b = document.getElementById('ft-timer');
     const cur = b ? parseInt(b.textContent) : t;
     if (!isNaN(cur) && cur > 0) spawnTimerFloat(cur, cur <= 10);
-  }, 7500);
+  }, 20000);
 }
 
 function startTimer(secs) {
@@ -3222,7 +3220,6 @@ function startTimer(secs) {
     t--;
     if (el) { el.textContent = t; if (t<=10) el.classList.add('urgent'); }
     if (ftEl) { ftEl.textContent = t; if (t<=10) ftEl.classList.add('urgent'); else ftEl.classList.remove('urgent'); }
-    setTimerBubble(t, true);
     if (t<=10) setUrgencyPulse(true);
     if (t<=0) { clearInterval(G.timerInterval); setUrgencyPulse(false); setTimerBubble(0, false); await doSubmit(null,true); }
   }, 1000);
@@ -4657,7 +4654,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260908.8-tmp</div>
+  <div style="font-size:9px;opacity:0.5">v260908.9-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
