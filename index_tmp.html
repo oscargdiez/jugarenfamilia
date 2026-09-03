@@ -352,8 +352,9 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
 
 /* ── Validation ── */
 .val-entry { display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px; padding: 6px 8px; border-radius: var(--radius); transition: background .15s; min-width: 0; }
-.val-entry-top { display: flex; flex-wrap: nowrap; align-items: center; gap: 6px; min-width: 0; }
+.val-entry-top { display: flex; flex-wrap: nowrap; align-items: baseline; gap: 6px; min-width: 0; }
 .val-entry-bottom { display: flex; flex-wrap: nowrap; align-items: center; gap: 6px; min-width: 0; }
+.val-entry-actions { display: flex; flex-wrap: nowrap; align-items: center; gap: 4px; flex-shrink: 0; }
 .val-entry-emojis { display: flex; flex-wrap: wrap; gap: 3px; align-items: center; flex: 1; min-width: 0; }
 .val-entry-votes { display: flex; flex-wrap: nowrap; gap: 3px; align-items: center; flex-shrink: 0; padding-left: 8px; border-left: 1px solid var(--border); }
 .val-entry.invalid { background: var(--red-light); }
@@ -3070,10 +3071,9 @@ function buildValidationHTML(room, invalidMap) {
         <div class="val-entry-top">
           <span class="val-name">${p}</span>
           <span class="ans-disp">${ans||'<span style="color:var(--ink-muted)">—</span>'}</span>
-          ${ans?`<span class="pts-badge">${isInvalid?t('invalidated'):pts+' pts'}</span>`:''}
-          ${dictBtn}
         </div>
         ${ans ? `<div class="val-entry-bottom">
+          <div class="val-entry-actions"><span class="pts-badge" id="pb_g_${key}">${isInvalid?t('invalidated'):pts+' pts'}</span>${dictBtn}</div>
           <div class="val-entry-emojis" id="emojis_${key}">${emojiHtml}</div>
           <div class="val-entry-votes" id="votes_${key}">${voteHtml}</div>
         </div>` : ''}
@@ -3118,9 +3118,9 @@ function showValidation(room) {
         <div class="val-entry-top">
           <span class="val-name">${p}</span>
           <span class="ans-disp">${ans||'<span style="color:var(--ink-muted)">—</span>'}</span>
-          ${ptsBadge}${dictBtn}${aiBtn}${invBtn}
         </div>
         ${ans ? `<div class="val-entry-bottom">
+          <div class="val-entry-actions">${ptsBadge}${dictBtn}${aiBtn}${invBtn}</div>
           <div class="val-entry-emojis" id="emojis_${key}">${renderEntryEmojis(key, {}, true)}</div>
           <div class="val-entry-votes" id="votes_${key}">${voteHtml}</div>
         </div>` : ''}
@@ -4431,7 +4431,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260902.29-tmp</div>
+  <div style="font-size:9px;opacity:0.5">v260903.1-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
