@@ -392,21 +392,18 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
 
 /* ── Floating timer bubble — bottom-left, always above iOS keyboard ── */
 #timer-bubble {
-  position: absolute; left: 16px; top: 80px;
+  position: absolute; left: 50%; transform: translateX(-50%);
+  top: 200px;
   font-family: 'Special Elite', monospace;
-  font-size: 20px; line-height: 1;
-  color: var(--ink-sec);
-  background: var(--paper);
-  border: 1.5px solid var(--border);
-  border-radius: 20px;
-  padding: 5px 12px;
+  font-size: 72px; line-height: 1;
+  color: var(--red);
+  background: none; border: none;
   opacity: 0; pointer-events: none;
   z-index: 997;
+  text-align: center;
 }
-#timer-bubble.visible { opacity: 1; }
+#timer-bubble.visible { opacity: 0.6; }
 #timer-bubble.urgent {
-  color: var(--red);
-  border-color: var(--red);
   animation: urgencyPulse 0.9s ease-in-out infinite;
 }
 
@@ -3191,7 +3188,7 @@ function setTimerBubble(t, visible) {
   b.classList.toggle('urgent', t <= 10);
   window._timerBubbleActive = true;
   // Position bubble in viewport: offset from top of .page by current scroll + padding
-  const BUBBLE_TOP_OFFSET = 70; // px from top of visible viewport (below shell header)
+  const BUBBLE_TOP_OFFSET = Math.round(window.innerHeight * 0.62);
   b.style.top = (window.scrollY + BUBBLE_TOP_OFFSET) + 'px';
 }
 
@@ -3200,7 +3197,7 @@ window._timerBubbleScroll = function() {
   if (!window._timerBubbleActive) return;
   const b = document.getElementById('timer-bubble');
   if (b && b.classList.contains('visible')) {
-    b.style.top = (window.scrollY + 70) + 'px';
+    b.style.top = (window.scrollY + Math.round(window.innerHeight * 0.62)) + 'px';
   }
 };
 window.addEventListener('scroll', window._timerBubbleScroll, { passive: true });
@@ -4653,7 +4650,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260908.5-tmp</div>
+  <div style="font-size:9px;opacity:0.5">v260908.6-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
