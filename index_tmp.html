@@ -2229,7 +2229,7 @@ window.startDailyChallenge = function() {
   G_daily.submitted = false;
   G_daily.secsRemaining = 90;
   G_daily.totalSecs = 90;
-  G_daily.startTimestamp = Date.now();
+  G_daily.startTimestamp = null; // set when timer actually starts after countdown
   G_daily.categories = getDailyCatNames(setup.indices);
 
   // Build input UI
@@ -2243,14 +2243,10 @@ window.startDailyChallenge = function() {
     <div class="daily-cat-row">
       <span class="daily-cat-label">${cat}</span>
       <input class="daily-cat-input" id="daily-inp-${i}" placeholder="${setup.letter}…"
-        maxlength="40" autocomplete="off" inputmode="text"
+        maxlength="40" autocomplete="off" inputmode="text" disabled style="opacity:0.4"
         oninput="dailyCheckInput(${i}, this.value)">
     </div>
   `).join('');
-
-  show('daily-play');
-  // Focus first input
-  setTimeout(() => document.getElementById('daily-inp-0')?.focus(), 300);
 
   // Save in-progress state to localStorage
   const _saveProgress = () => {
@@ -2263,7 +2259,15 @@ window.startDailyChallenge = function() {
   };
   G_daily.saveProgress = _saveProgress;
 
-  // Start timer
+  // Show screen first (inputs visible behind countdown overlay)
+  show('daily-play');
+
+  // Countdown before timer starts
+  startDailyCountdown();
+};
+
+function startDailyTimer() {
+  G_daily.startTimestamp = Date.now();
   clearInterval(G_daily.timerInterval);
   const fill = document.getElementById('daily-timer-fill');
   // Reset bar instantly without CSS transition
@@ -2293,7 +2297,44 @@ window.startDailyChallenge = function() {
     if (G_daily.secsRemaining <= 10) setUrgencyPulse(true);
     if (G_daily.secsRemaining <= 0) dailySubmit();
   }, 1000);
-};
+}
+
+function startDailyCountdown() {
+  clearInterval(G_countdownInterval);
+  const overlay = document.getElementById('countdown-overlay');
+  const numEl   = document.getElementById('countdown-number');
+  const lblEl   = document.getElementById('countdown-label');
+  if (!overlay || !numEl) { startDailyTimer(); setTimeout(() => document.getElementById('daily-inp-0')?.focus(), 50); return; }
+
+  if (lblEl) lblEl.textContent = t('getReady') || 'PREPARADOS';
+  let n = 10;
+  numEl.textContent = n;
+
+  function animateTick() {
+    numEl.style.animation = 'none';
+    numEl.offsetHeight;
+    numEl.style.animation = 'cdPop 1s ease-out both';
+  }
+
+  G.screen = 'countdown';
+  overlay.classList.add('open');
+  animateTick();
+
+  G_countdownInterval = setInterval(() => {
+    n--;
+    if (n <= 0) {
+      clearInterval(G_countdownInterval);
+      overlay.classList.remove('open');
+      G.screen = 'daily-play';
+      document.querySelectorAll('.daily-cat-input').forEach(inp => { inp.disabled = false; inp.style.opacity = ''; });
+      startDailyTimer();
+      setTimeout(() => document.getElementById('daily-inp-0')?.focus(), 50);
+    } else {
+      numEl.textContent = n;
+      animateTick();
+    }
+  }, 1000);
+}
 
 window.dailyCheckInput = function(i, val) {
   G_daily.answers[i] = val.trim();
@@ -4560,7 +4601,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260903.7-tmp</div>
+  <div style="font-size:9px;opacity:0.5">v260903.8-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
