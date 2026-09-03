@@ -1878,6 +1878,11 @@ let G = {
 };
 
 window.show = function(id) {
+  // If leaving daily-play, always clear the timer
+  if (G.screen === 'daily-play' && id !== 'daily-play') {
+    clearInterval(G_daily.timerInterval);
+    setUrgencyPulse(false);
+  }
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('on'));
   document.getElementById('s-'+id).classList.add('on');
   G.screen = id;
@@ -2094,6 +2099,9 @@ window.startDailyChallenge = function() {
   // Start timer
   clearInterval(G_daily.timerInterval);
   const fill = document.getElementById('daily-timer-fill');
+  // Reset bar instantly without CSS transition
+  if (fill) { fill.style.transition = 'none'; fill.style.width = '100%'; fill.style.background = 'var(--red)'; }
+  setTimeout(() => { if (fill) fill.style.transition = 'width 1s linear, background 0.3s'; }, 50);
   G_daily.timerInterval = setInterval(() => {
     G_daily.secsRemaining--;
     const pct = (G_daily.secsRemaining / G_daily.totalSecs) * 100;
