@@ -3309,11 +3309,13 @@ let G_lastInvalidHash = '';
 function refreshGuestValidation(room) {
   const el = document.getElementById('guest-val-content');
   if (!el || room.phase !== 'validate') return;
-  // Only rebuild if invalidAnswers changed — prevents wiping dict results
-  const newHash = JSON.stringify(room.invalidAnswers||{});
+  // Rebuild when invalidAnswers OR votes change (votes affect democratic result badges)
+  const newHash = JSON.stringify(room.invalidAnswers||{}) + JSON.stringify(room.votes||{});
   if (newHash !== G_lastInvalidHash) {
     G_lastInvalidHash = newHash;
     el.innerHTML = buildValidationHTML(room, room.invalidAnswers||{});
+    // Re-apply AI results and reactions after rebuild
+    if (room.aiResults) applyAIResults(room.aiResults);
   }
 }
 
@@ -3816,13 +3818,12 @@ function renderVotes(key, votes, mode, players, isHost) {
     const lblTie     = {es:'Empate',  en:'Tie',     fr:'Égalité', de:'Unentschieden',pt:'Empate',it:'Pareggio'}[LANG] || 'Empate';
     if (ups >= majority) democraticResult = '<span class="democratic-result valid">✅ ' + lblValid + '</span>';
     else if (downs >= majority) democraticResult = '<span class="democratic-result invalid">❌ ' + lblInvalid + '</span>';
-    else democraticResult = '<span class="democratic-result tie">⚖️ ' + lblTie + '</span>';
+    else if (total >= totalPlayers) democraticResult = '<span class="democratic-result tie">⚖️ ' + lblTie + '</span>';
+    // else: not everyone has voted yet — show nothing
   }
 
   const upClass = myVote === 'up' ? 'vote-btn thumbs-up voted' : 'vote-btn thumbs-up';
   const downClass = myVote === 'down' ? 'vote-btn thumbs-down voted' : 'vote-btn thumbs-down';
-  const pct = total > 0 ? Math.round((ups / total) * 100) : 50;
-
   return `<button class="${upClass}" onclick="voteEntry('${key}','up')">👍 <span class="vote-count">${ups}</span></button>
     <button class="${downClass}" onclick="voteEntry('${key}','down')">👎 <span class="vote-count">${downs}</span></button>
     ${democraticResult}`;
@@ -3989,6 +3990,15 @@ window.finishValidation = async () => {
   // Merge Firebase invalidAnswers (democratic mode saves there)
   const firebaseInvalids = room.invalidAnswers || {};
   Object.assign(G.invalidAnswers, firebaseInvalids);
+  if ((room.validationMode||'host') === 'democratic') {
+    const votes = room.votes || {};
+    const majority = Math.floor(players.length / 2) + 1;
+    Object.entries(votes).forEach(([key, playerVotes]) => {
+      const downs = Object.values(playerVotes).filter(v => v === 'down').length;
+      if (downs >= majority) G.invalidAnswers[key] = true;
+      else if (G.invalidAnswers[key]) G.invalidAnswers[key] = false;
+    });
+  }
   players.forEach(p => { if (!scores[p]) scores[p]=0; });
   const penalty = room.stopPenalty??50;
   const stopper = room.stopCaller||'';
@@ -4045,7 +4055,7 @@ window.goBackToValidation = async () => {
   const restoredScores = room.preRoundScores || room.scores || {};
   await update(roomRef(G.roomCode), {
     phase: 'validate', scores: restoredScores,
-    invalidAnswers: {}, aiResults: {}, votes: {}, entryReactions: {},
+    invalidAnswers: {}, votes: {}, entryReactions: {},
   });
   G.invalidAnswers = {};
   G_myVotes = {};
@@ -4593,7 +4603,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260903.16-tmp</div>
+  <div style="font-size:9px;opacity:0.5">v260903.17-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
