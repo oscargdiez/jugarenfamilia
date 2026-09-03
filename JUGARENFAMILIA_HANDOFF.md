@@ -221,6 +221,23 @@ assert len(c) < 300000
 - ~~**Fixed shell layout**~~ — BUILT in Session 6. See session log.
 - ~~**Timer visibility on mobile**~~ — resolved by fixed shell
 - **Help/Rules icon during game** — now always accessible via ? button in shell header
+- **iOS layout refactor — PRIORITY for Session 8** — replace `position:fixed` shell header with a true fixed layout using `html, body { height:100%; overflow:hidden }` + inner scrollable content div. This eliminates the iOS Safari keyboard viewport resize bug where the page jumps and the shell header shifts when the keyboard opens during gameplay.
+
+  **Full spec:**
+  - `html, body { height: 100%; overflow: hidden; margin: 0; }` — page never scrolls at body level
+  - Shell header stays as-is visually but is part of a flex column layout instead of `position:fixed`
+  - New wrapper: `#app { display: flex; flex-direction: column; height: 100%; }` containing shell header + `#content { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }`
+  - All `.screen` divs live inside `#content` — they scroll within the content div, not the page
+  - Remove `padding-top: calc(2rem + 50px)` from `.page` (no longer needed to clear fixed header)
+  - `overflow-y: scroll` on body (current approach) gets removed
+  - Urgency overlay and countdown overlay: `position: absolute` within `#app` instead of `position: fixed` — or keep fixed but scope to the app div
+  - Daily play and daily result screens: currently outside `.page` div — need to be brought inside `#content` with correct padding
+  - **Risk areas:** shell header height calculation, timer visibility, urgency pulse overlay, countdown overlay, emoji picker positioning, any `position:sticky` elements (`.topbar` in playing screen)
+  - Test on: iOS Safari (primary), iOS Chrome, Android Chrome, Windows Chrome
+  - This is the biggest layout refactor of the project — do it in staging first, test every screen with debug mode before promoting
+
+- **Windows / large screen — too small** — game renders as a narrow 560px column on wide monitors. Options: raise `max-width` to 720-800px for more breathing room, or add a responsive breakpoint above ~900px that goes multi-column (e.g. categories + answers side by side on playing screen, validation entries in 2 columns). Validation screen benefits most. Lower priority than iOS fix.
+
 - **Language as lobby setting** — currently global preference, should be per-game decision in lobby alongside rounds/timer/categories
 - **Democratic mode — minimum player guard** — with 1 player (host alone), majority=1 and host's single 👎 auto-invalidates, defeating the purpose. Should show a toast and block selecting democratic mode if only 1 player in lobby.
 - **Emoji picker on Windows** — SVG treatment like flags, or Twemoji for everything
