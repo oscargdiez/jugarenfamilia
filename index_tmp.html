@@ -392,7 +392,7 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
 
 /* ── Floating timer bubble — bottom-left, always above iOS keyboard ── */
 #timer-bubble {
-  position: fixed; bottom: 24px; left: 16px;
+  position: absolute; left: 16px; top: 80px;
   font-family: 'Special Elite', monospace;
   font-size: 20px; line-height: 1;
   color: var(--ink-sec);
@@ -401,7 +401,6 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
   border-radius: 20px;
   padding: 5px 12px;
   opacity: 0; pointer-events: none;
-  transition: opacity 0.2s;
   z-index: 997;
 }
 #timer-bubble.visible { opacity: 1; }
@@ -409,10 +408,6 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
   color: var(--red);
   border-color: var(--red);
   animation: urgencyPulse 0.9s ease-in-out infinite;
-}
-@keyframes timerPulse {
-  0%, 100% { opacity: 0.7; }
-  50%       { opacity: 1; }
 }
 
 /* ── Stamp ── */
@@ -703,7 +698,7 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 </head>
 <body>
-<div class="page">
+<div class="page" style="position:relative">
 <div class="reactions-stage" id="reactions-stage"></div>
 <!-- ══ SHELL HEADER (always visible) ══ -->
 <div id="shell-header">
@@ -744,6 +739,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <!-- legacy id kept for startTimer compat -->
 <div id="fixed-topbar" style="display:none"></div>
+<div id="timer-bubble"></div>
 <div class="confetti-stage" id="confetti-stage"></div>
 <div id="urgency-overlay"></div>
 <div id="countdown-overlay">
@@ -751,7 +747,6 @@ document.addEventListener('DOMContentLoaded', function() {
   <div id="countdown-label" id="cd-label">PREPARADOS</div>
 </div>
 <div id="toast"></div>
-<div id="timer-bubble"></div>
 
 <!-- ══ QUICK JOIN (when arriving via link) ══ -->
 <div id="s-quickjoin" class="screen">
@@ -3186,11 +3181,29 @@ function setUrgencyPulse(on) {
 function setTimerBubble(t, visible) {
   const b = document.getElementById('timer-bubble');
   if (!b) return;
-  if (!visible) { b.classList.remove('visible','urgent'); return; }
+  if (!visible) {
+    b.classList.remove('visible','urgent');
+    window._timerBubbleActive = false;
+    return;
+  }
   b.textContent = t;
   b.classList.add('visible');
   b.classList.toggle('urgent', t <= 10);
+  window._timerBubbleActive = true;
+  // Position bubble in viewport: offset from top of .page by current scroll + padding
+  const BUBBLE_TOP_OFFSET = 70; // px from top of visible viewport (below shell header)
+  b.style.top = (window.scrollY + BUBBLE_TOP_OFFSET) + 'px';
 }
+
+// Scroll tracker — keeps bubble visually pinned while page scrolls
+window._timerBubbleScroll = function() {
+  if (!window._timerBubbleActive) return;
+  const b = document.getElementById('timer-bubble');
+  if (b && b.classList.contains('visible')) {
+    b.style.top = (window.scrollY + 70) + 'px';
+  }
+};
+window.addEventListener('scroll', window._timerBubbleScroll, { passive: true });
 
 function startTimer(secs) {
   clearInterval(G.timerInterval);
@@ -4640,7 +4653,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260908.4-tmp</div>
+  <div style="font-size:9px;opacity:0.5">v260908.5-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
