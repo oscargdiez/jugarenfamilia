@@ -2067,6 +2067,37 @@ window.startDailyChallenge = function() {
   // In debug mode, clear stored result so we can replay
   if (_debugMode && stored) localStorage.removeItem('alto_daily_' + key);
 
+  // If a game is already in progress (navigated away and came back), resume it
+  if (G_daily.key === getDailyKey() && !G_daily.submitted && G_daily.secsRemaining > 0 && G_daily.secsRemaining < 90) {
+    // Restore inputs and resume timer
+    show('daily-play');
+    const dateEl = document.getElementById('daily-play-date');
+    if (dateEl) dateEl.textContent = getDailyDateString();
+    const letterEl = document.getElementById('daily-letter-display');
+    if (letterEl) letterEl.textContent = G_daily.letter;
+    // Re-populate inputs with saved answers
+    G_daily.categories.forEach((cat, i) => {
+      const inp = document.getElementById('daily-inp-' + i);
+      if (inp) inp.value = G_daily.answers[i] || '';
+    });
+    // Resume timer (interval was cleared by show() when leaving)
+    const fill = document.getElementById('daily-timer-fill');
+    if (fill) { fill.style.transition = 'none'; fill.style.width = (G_daily.secsRemaining / G_daily.totalSecs * 100) + '%'; }
+    setTimeout(() => { if (fill) fill.style.transition = 'width 1s linear, background 0.3s'; }, 50);
+    const ftTimer = document.getElementById('ft-timer');
+    if (ftTimer) { ftTimer.textContent = G_daily.secsRemaining; ftTimer.classList.toggle('urgent', G_daily.secsRemaining <= 10); }
+    G_daily.timerInterval = setInterval(() => {
+      G_daily.secsRemaining--;
+      const pct = (G_daily.secsRemaining / G_daily.totalSecs) * 100;
+      if (fill) { fill.style.width = pct + '%'; fill.style.background = G_daily.secsRemaining <= 15 ? '#c0392b' : 'var(--red)'; }
+      const ft = document.getElementById('ft-timer');
+      if (ft) { ft.textContent = G_daily.secsRemaining; if (G_daily.secsRemaining <= 10) ft.classList.add('urgent'); else ft.classList.remove('urgent'); }
+      if (G_daily.secsRemaining <= 10) setUrgencyPulse(true);
+      if (G_daily.secsRemaining <= 0) dailySubmit();
+    }, 1000);
+    return;
+  }
+
   const setup = getDailySetup();
   G_daily.letter = setup.letter;
   G_daily.indices = setup.indices;
