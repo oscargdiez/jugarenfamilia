@@ -2067,6 +2067,68 @@ window.startDailyChallenge = function() {
   // In debug mode, clear stored result so we can replay
   if (_debugMode && stored) localStorage.removeItem('alto_daily_' + key);
 
+  // Check localStorage for in-progress game (handles page refresh)
+  const inProgressKey = 'alto_daily_inprogress_' + key;
+  const inProgressData = localStorage.getItem(inProgressKey);
+  if (inProgressData && !G_daily.key) {
+    // Page was refreshed mid-game — reconstruct state
+    try {
+      const ipd = JSON.parse(inProgressData);
+      if (ipd.key === key && ipd.lang === LANG) {
+        const elapsed = Math.floor((Date.now() - ipd.startTimestamp) / 1000);
+        const remaining = Math.max(0, (ipd.totalSecs || 90) - elapsed);
+        if (remaining > 0) {
+          // Restore G_daily from saved state
+          G_daily.key = ipd.key;
+          G_daily.letter = ipd.letter;
+          G_daily.indices = ipd.indices;
+          G_daily.categories = ipd.categories;
+          G_daily.answers = ipd.answers || {};
+          G_daily.startTimestamp = ipd.startTimestamp;
+          G_daily.totalSecs = ipd.totalSecs || 90;
+          G_daily.secsRemaining = remaining;
+          G_daily.submitted = false;
+          // Re-render the play screen and resume
+          const card = document.getElementById('daily-inputs-card');
+          const letterEl = document.getElementById('daily-letter-display');
+          const dateEl = document.getElementById('daily-play-date');
+          if (letterEl) letterEl.textContent = G_daily.letter;
+          if (dateEl) dateEl.textContent = getDailyDateString();
+          if (card) card.innerHTML = G_daily.categories.map((cat, i) =>
+            `<div class="daily-cat-row"><span class="daily-cat-label">${cat}</span><input class="daily-cat-input" id="daily-inp-${i}" placeholder="${G_daily.letter}…" maxlength="40" autocomplete="off" inputmode="text" oninput="dailyCheckInput(${i}, this.value)" value="${(G_daily.answers[i]||'').replace(/"/g,'&quot;')}"></div>`
+          ).join('');
+          G_daily.saveProgress = () => localStorage.setItem(inProgressKey, JSON.stringify({ key: G_daily.key, letter: G_daily.letter, indices: G_daily.indices, categories: G_daily.categories, answers: G_daily.answers, startTimestamp: G_daily.startTimestamp, totalSecs: G_daily.totalSecs, lang: LANG }));
+          show('daily-play');
+          // Resume timer
+          const fill2 = document.getElementById('daily-timer-fill');
+          if (fill2) { fill2.style.transition = 'none'; fill2.style.width = (remaining / G_daily.totalSecs * 100) + '%'; setTimeout(() => { fill2.style.transition = 'width 1s linear, background 0.3s'; }, 50); }
+          const ft2 = document.getElementById('ft-timer');
+          if (ft2) { ft2.textContent = remaining; ft2.classList.toggle('urgent', remaining <= 10); }
+          G_daily.timerInterval = setInterval(() => {
+            G_daily.secsRemaining--;
+            const pct2 = (G_daily.secsRemaining / G_daily.totalSecs) * 100;
+            const f2 = document.getElementById('daily-timer-fill');
+            if (f2) { f2.style.width = pct2 + '%'; f2.style.background = G_daily.secsRemaining <= 15 ? '#c0392b' : 'var(--red)'; }
+            const ft3 = document.getElementById('ft-timer');
+            if (ft3) { ft3.textContent = G_daily.secsRemaining; if (G_daily.secsRemaining <= 10) ft3.classList.add('urgent'); else ft3.classList.remove('urgent'); }
+            if (G_daily.secsRemaining <= 10) setUrgencyPulse(true);
+            if (G_daily.secsRemaining <= 0) dailySubmit();
+          }, 1000);
+          return;
+        } else {
+          // Time ran out while away — auto-submit with saved answers
+          G_daily.key = ipd.key; G_daily.letter = ipd.letter; G_daily.indices = ipd.indices;
+          G_daily.categories = ipd.categories; G_daily.answers = ipd.answers || {};
+          G_daily.secsRemaining = 0; G_daily.totalSecs = ipd.totalSecs || 90;
+          G_daily.submitted = false;
+          localStorage.removeItem(inProgressKey);
+          dailySubmit();
+          return;
+        }
+      }
+    } catch(e) { localStorage.removeItem(inProgressKey); }
+  }
+
   // If a game is already in progress (navigated away and came back), resume it
   if (G_daily.key === getDailyKey() && !G_daily.submitted && G_daily.secsRemaining > 0 && G_daily.secsRemaining < 90) {
     // Restore inputs and resume timer
@@ -2107,6 +2169,7 @@ window.startDailyChallenge = function() {
   G_daily.submitted = false;
   G_daily.secsRemaining = 90;
   G_daily.totalSecs = 90;
+  G_daily.startTimestamp = Date.now();
   G_daily.categories = getDailyCatNames(setup.indices);
 
   // Build input UI
@@ -2129,12 +2192,26 @@ window.startDailyChallenge = function() {
   // Focus first input
   setTimeout(() => document.getElementById('daily-inp-0')?.focus(), 300);
 
+  // Save in-progress state to localStorage
+  const _saveProgress = () => {
+    localStorage.setItem('alto_daily_inprogress_' + G_daily.key, JSON.stringify({
+      key: G_daily.key, letter: G_daily.letter, indices: G_daily.indices,
+      categories: G_daily.categories, answers: G_daily.answers,
+      startTimestamp: G_daily.startTimestamp, totalSecs: G_daily.totalSecs,
+      lang: LANG,
+    }));
+  };
+  G_daily.saveProgress = _saveProgress;
+
   // Start timer
   clearInterval(G_daily.timerInterval);
   const fill = document.getElementById('daily-timer-fill');
   // Reset bar instantly without CSS transition
   if (fill) { fill.style.transition = 'none'; fill.style.width = '100%'; fill.style.background = 'var(--red)'; }
   setTimeout(() => { if (fill) fill.style.transition = 'width 1s linear, background 0.3s'; }, 50);
+  // Save initial progress state
+  if (G_daily.saveProgress) G_daily.saveProgress();
+
   // Initialise shell timer display
   const ftTimer = document.getElementById('ft-timer');
   if (ftTimer) { ftTimer.textContent = G_daily.totalSecs; ftTimer.classList.remove('urgent'); }
@@ -2160,6 +2237,7 @@ window.startDailyChallenge = function() {
 
 window.dailyCheckInput = function(i, val) {
   G_daily.answers[i] = val.trim();
+  if (G_daily.saveProgress) G_daily.saveProgress();
 };
 
 window.dailySubmit = async function() {
@@ -2170,6 +2248,8 @@ window.dailySubmit = async function() {
   G_daily.submitted = true;
   clearInterval(G_daily.timerInterval);
   setUrgencyPulse(false);
+  // Clear in-progress save
+  localStorage.removeItem('alto_daily_inprogress_' + G_daily.key);
   const submitBtn = document.getElementById('btn-daily-submit');
   if (submitBtn) { submitBtn.disabled = true; submitBtn.innerHTML = '<span class="spin-icon">↻</span> Validando…'; }
   // Disable all answer inputs so player can't edit during validation
