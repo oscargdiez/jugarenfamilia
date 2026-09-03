@@ -3167,8 +3167,10 @@ function enterPlaying(room) {
     </div>`
   ).join('');
   document.querySelector('.ans-inp')?.focus();
+  const maxSecs = room.timePerRound || 60;
   const elapsed = room.roundStartTime ? Math.floor((Date.now() - room.roundStartTime) / 1000) : 0;
-  const remaining = Math.max(5, (room.timePerRound || 60) - elapsed);
+  // Guard: if elapsed >= maxSecs the roundStartTime is stale (from previous round)
+  const remaining = (elapsed < 0 || elapsed >= maxSecs) ? maxSecs : Math.max(5, maxSecs - elapsed);
   startTimer(remaining);
 }
 
@@ -3204,7 +3206,7 @@ function setTimerBubble(t, visible) {
     const b = document.getElementById('ft-timer');
     const cur = b ? parseInt(b.textContent) : t;
     if (!isNaN(cur) && cur > 0) spawnTimerFloat(cur, cur <= 10);
-  }, 2500);
+  }, 7500);
 }
 
 function startTimer(secs) {
@@ -4123,7 +4125,7 @@ window.nextRound = async () => {
   used.push(letter);
   await update(roomRef(G.roomCode), {
     currentRound:room.currentRound+1, currentLetter:letter, usedLetters:used,
-    phase:'countdown', countdownStart:Date.now(), allAnswers:{}, calledStop:false, stopCaller:'', aiResults:{}, votes:{}, entryReactions:{},
+    phase:'countdown', countdownStart:Date.now(), roundStartTime:null, allAnswers:{}, calledStop:false, stopCaller:'', aiResults:{}, votes:{}, entryReactions:{},
   });
 };
 
@@ -4655,7 +4657,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260908.7-tmp</div>
+  <div style="font-size:9px;opacity:0.5">v260908.8-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
