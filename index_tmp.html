@@ -3272,7 +3272,7 @@ function showValidation(room) {
       const pts = ans ? (isDup?50:100) : 0;
       const safeAns = ans ? ans.replace(/'/g,"\'") : '';
       const dictBtn = ans ? `<button class="dict-btn" id="dictbtn_${key}" onclick="lookupWord('${safeAns}','${key}')" aria-label="Buscar en Wikipedia"><svg width="16" height="16" viewBox="0 0 22 22" fill="none"><path d="M11 3.5 C8.5 3 3 4 3 4 L3 17.5 C3 17.5 8 16.5 11 19" stroke="currentColor" stroke-width="1.3" fill="#faf8f3" stroke-linejoin="round"/><path d="M11 3.5 C13.5 3 19 4 19 4 L19 17.5 C19 17.5 14 16.5 11 19" stroke="currentColor" stroke-width="1.3" fill="#faf8f3" stroke-linejoin="round"/><line x1="11" y1="3.5" x2="11" y2="19" stroke="currentColor" stroke-width="2"/><line x1="4.5" y1="7.5" x2="9.5" y2="7" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.55"/><line x1="4.5" y1="10" x2="9.5" y2="9.5" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.55"/><line x1="4.5" y1="12.5" x2="9.5" y2="12" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.55"/><line x1="4.5" y1="15" x2="7.5" y2="14.7" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.55"/><line x1="12.5" y1="7" x2="17.5" y2="7.5" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.55"/><line x1="12.5" y1="9.5" x2="17.5" y2="10" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.55"/><line x1="12.5" y1="12" x2="17.5" y2="12.5" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.55"/><line x1="12.5" y1="14.7" x2="15.5" y2="15" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.55"/></svg></button>` : '';
-      const invBtn = ans ? `<button class="inv-btn" id="ib_${key}" onclick="toggleInvalid('${key}',${pts})">✕</button>` : '';
+      const invBtn = (ans && G_validationMode !== 'democratic') ? `<button class="inv-btn" id="ib_${key}" onclick="toggleInvalid('${key}',${pts})">✕</button>` : '';
       const ptsBadge = ans ? `<span class="pts-badge" id="pb_${key}">${pts} pts</span>` : '';
       const dictDiv = ans ? `<div class="dict-result" id="dict_${key}"></div>` : '';
       const aiBtn = (ans && G_aiEnabled) ? `<button class="ai-btn" id="ai_btn_${key}" onclick="askAI('${ans.replace(/'/g,"\'")}','${cat}','${room.currentLetter}','${key}')">🤖</button>` : '';
@@ -3804,9 +3804,12 @@ function renderVotes(key, votes, mode, players, isHost) {
   let democraticResult = '';
   if (mode === 'democratic' && total > 0) {
     const majority = Math.floor(totalPlayers / 2) + 1;
-    if (ups >= majority) democraticResult = '<span class="democratic-result valid">✅ Válido</span>';
-    else if (downs >= majority) democraticResult = '<span class="democratic-result invalid">❌ Inválido</span>';
-    else democraticResult = '<span class="democratic-result tie">⚖️ Empate</span>';
+    const lblValid   = {es:'Válido',  en:'Valid',   fr:'Valide', de:'Gültig',   pt:'Válida',  it:'Valida' }[LANG]  || 'Válido';
+    const lblInvalid = {es:'Inválido',en:'Invalid', fr:'Invalide',de:'Ungültig',pt:'Inválida',it:'Invalida'}[LANG] || 'Inválido';
+    const lblTie     = {es:'Empate',  en:'Tie',     fr:'Égalité', de:'Unentschieden',pt:'Empate',it:'Pareggio'}[LANG] || 'Empate';
+    if (ups >= majority) democraticResult = '<span class="democratic-result valid">✅ ' + lblValid + '</span>';
+    else if (downs >= majority) democraticResult = '<span class="democratic-result invalid">❌ ' + lblInvalid + '</span>';
+    else democraticResult = '<span class="democratic-result tie">⚖️ ' + lblTie + '</span>';
   }
 
   const upClass = myVote === 'up' ? 'vote-btn thumbs-up voted' : 'vote-btn thumbs-up';
@@ -3858,25 +3861,32 @@ function applyVotesAndReactions(room, isHost) {
     const emojiEl = document.getElementById('emojis_' + key);
     if (emojiEl) emojiEl.innerHTML = renderEntryEmojis(key, entryReactions[key], isHost);
   });
-  // Also update vote displays for guest screens
-  Object.keys(votes).forEach(key => {
-    const voteEl = document.getElementById('votes_' + key);
-    if (voteEl) voteEl.innerHTML = renderVotes(key, votes[key], mode, players, isHost);
-  });
-
-  // In democratic mode, auto-invalidate entries where majority voted down
+  // In democratic mode, auto-invalidate/restore based on current vote majority
   if (isHost && mode === 'democratic') {
     const majority = Math.floor(players.length / 2) + 1;
     let changed = false;
     Object.entries(votes).forEach(([key, playerVotes]) => {
       const downs = Object.values(playerVotes).filter(v => v === 'down').length;
-      if (downs >= majority && !G.invalidAnswers[key]) {
+      const majorityAgainst = downs >= majority;
+      const isCurrentlyInvalid = !!G.invalidAnswers[key];
+      if (majorityAgainst && !isCurrentlyInvalid) {
+        // Majority voted against — invalidate
         G.invalidAnswers[key] = true;
         changed = true;
         const entry = document.getElementById('ve_' + key);
         const ib = document.getElementById('ib_' + key);
         if (entry) entry.classList.add('invalid');
-        if (ib) ib.innerHTML = '↩';
+        if (ib) ib.textContent = '↩';
+      } else if (!majorityAgainst && isCurrentlyInvalid) {
+        // Votes swung back — restore (only if it was auto-invalidated by democratic mode,
+        // not manually invalidated by host — we can't distinguish, but democratic mode
+        // takes precedence over manual when mode is active)
+        G.invalidAnswers[key] = false;
+        changed = true;
+        const entry = document.getElementById('ve_' + key);
+        const ib = document.getElementById('ib_' + key);
+        if (entry) entry.classList.remove('invalid');
+        if (ib) ib.textContent = '✕';
       }
     });
     if (changed) update(roomRef(G.roomCode), { invalidAnswers: G.invalidAnswers });
@@ -3950,6 +3960,7 @@ function processReactions(room) {
 }
 
 window.toggleInvalid = (key, pts) => {
+  if (G_validationMode === 'democratic') return; // host can't override in democratic mode
   const isNowInvalid = !G.invalidAnswers[key];
   G.invalidAnswers[key] = isNowInvalid;
   const entry = document.getElementById('ve_'+key);
@@ -4575,7 +4586,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260903.11-tmp</div>
+  <div style="font-size:9px;opacity:0.5">v260903.13-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
