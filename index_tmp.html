@@ -2347,7 +2347,10 @@ function renderLeaderboard(allScores) {
   const lbEl = document.getElementById('daily-lb-list');
   if (!lbEl) return;
   const myName = G_daily.displayName || ((G.playerName || '') + ' ' + (G.playerEmoji || ''));
-  const entries = Object.values(allScores).sort((a,b) => b.totalScore - a.totalScore);
+  // Normalise entries — handle old schema (score) and new (totalScore)
+  const entries = Object.values(allScores)
+    .map(e => ({ ...e, totalScore: e.totalScore ?? e.score ?? 0 }))
+    .sort((a,b) => b.totalScore - a.totalScore);
   const medals = ['🥇','🥈','🥉'];
   const top10 = entries.slice(0, 10);
   const myIdx = entries.findIndex(e => e.name.trim() === myName.trim());
