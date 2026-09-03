@@ -2996,7 +2996,6 @@ window.startGame = async () => {
     currentLetter:letter, usedLetters:[letter],
     allAnswers:{}, calledStop:false, stopCaller:'',
     scores, easyLetters:easy, stopPenalty:penalty, groupName:groupName, aiEnabled:G_aiEnabled, aiStrictness:G_aiStrictness, aiSpelling:G_aiSpelling, validationMode:G_validationMode, gameLang:LANG,
-    roundStartTime: Date.now(),
   });
 };
 
@@ -4006,7 +4005,6 @@ window.nextRound = async () => {
   await update(roomRef(G.roomCode), {
     currentRound:room.currentRound+1, currentLetter:letter, usedLetters:used,
     phase:'countdown', countdownStart:Date.now(), allAnswers:{}, calledStop:false, stopCaller:'', aiResults:{}, votes:{}, entryReactions:{},
-    roundStartTime: Date.now(),
   });
 };
 
@@ -4538,7 +4536,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260903.5-tmp</div>
+  <div style="font-size:9px;opacity:0.5">v260903.6-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
