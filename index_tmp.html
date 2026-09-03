@@ -1509,6 +1509,30 @@ window.setLang = function(lang) {
 }
 
 
+
+function dailyRulesHTML() {
+  const d = {
+    es: { h: 'Reto diario', r1: 'Una letra y 6 categorías fijas, iguales para todo el mundo cada día', r2: 'Rellena todas las categorías con palabras que empiecen por esa letra — ¡lo más rápido posible!', r3: 'La IA valida cada respuesta automáticamente', s: 'Puntuación:', u: 'Respuesta válida', spd: 'Bonus por velocidad', orig: 'Bonus por originalidad (respuesta única entre todos)', e: 'Respuesta inválida o en blanco' },
+    en: { h: 'Daily challenge', r1: 'One letter and 6 fixed categories, the same for everyone each day', r2: 'Fill all categories with words starting with that letter — as fast as you can!', r3: 'AI automatically validates each answer', s: 'Scoring:', u: 'Valid answer', spd: 'Speed bonus', orig: 'Originality bonus (unique answer among all players)', e: 'Invalid or blank answer' },
+    fr: { h: 'Défi du jour', r1: 'Une lettre et 6 catégories fixes, identiques pour tout le monde chaque jour', r2: 'Remplis toutes les catégories avec des mots commençant par cette lettre — le plus vite possible!', r3: "L'IA valide chaque réponse automatiquement", s: 'Points:', u: 'Réponse valide', spd: 'Bonus de vitesse', orig: "Bonus d'originalité (réponse unique parmi tous les joueurs)", e: 'Réponse invalide ou vide' },
+    de: { h: 'Tagesrätsel', r1: 'Ein Buchstabe und 6 feste Kategorien, täglich für alle gleich', r2: 'Fülle alle Kategorien mit Wörtern aus die mit diesem Buchstaben beginnen — so schnell wie möglich!', r3: 'KI validiert jede Antwort automatisch', s: 'Punkte:', u: 'Gültige Antwort', spd: 'Geschwindigkeitsbonus', orig: 'Originalitätsbonus (einmalige Antwort unter allen Spielern)', e: 'Ungültige oder leere Antwort' },
+    pt: { h: 'Desafio diário', r1: 'Uma letra e 6 categorias fixas, iguais para toda a gente cada dia', r2: 'Preenche todas as categorias com palavras que comecem por essa letra — o mais rápido possível!', r3: 'A IA valida cada resposta automaticamente', s: 'Pontuação:', u: 'Resposta válida', spd: 'Bónus de velocidade', orig: 'Bónus de originalidade (resposta única entre todos os jogadores)', e: 'Resposta inválida ou em branco' },
+    it: { h: 'Sfida del giorno', r1: 'Una lettera e 6 categorie fisse, uguali per tutti ogni giorno', r2: 'Riempi tutte le categorie con parole che iniziano con quella lettera — il più veloce possibile!', r3: "L'IA convalida ogni risposta automaticamente", s: 'Punteggio:', u: 'Risposta valida', spd: 'Bonus velocità', orig: 'Bonus originalità (risposta unica tra tutti i giocatori)', e: 'Risposta non valida o vuota' },
+  };
+  const r = d[LANG] || d.es;
+  return `
+    <div class="rules-step"><span class="rules-icon">📅</span><span class="rules-text">${r.r1}</span></div>
+    <div class="rules-step"><span class="rules-icon">✏️</span><span class="rules-text">${r.r2}</span></div>
+    <div class="rules-step"><span class="rules-icon">🤖</span><span class="rules-text">${r.r3}</span></div>
+    <div class="rules-scoring">
+      <div class="rules-score-row"><span>${r.s}</span></div>
+      <div class="rules-score-row"><span>${r.u}</span><span class="rules-pts">10 pts</span></div>
+      <div class="rules-score-row"><span>${r.spd}</span><span class="rules-pts">×1.0–2.0</span></div>
+      <div class="rules-score-row"><span>${r.orig}</span><span class="rules-pts">+5 pts</span></div>
+      <div class="rules-score-row"><span>${r.e}</span><span class="rules-pts">0 pts</span></div>
+    </div>`;
+}
+
 function rulesHTML() {
   const rules = rulesHTML._data = {
     es: { h: 'Reglas del juego', r1: 'Se elige una letra al azar para cada ronda', r2: 'Rellena todas las categorías con palabras que empiecen por esa letra — ¡lo más rápido posible!', r3: 'El primero en terminar pulsa ¡Alto! para terminar la ronda', s: 'Puntuación:', u: 'Respuesta única', d: 'Respuesta repetida', e: 'Sin respuesta', penalty: '⚠️ Si pulsas ¡Alto! y todas tus respuestas son inválidas, pierdes puntos como penalización.' },
@@ -4536,7 +4560,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260903.6-tmp</div>
+  <div style="font-size:9px;opacity:0.5">v260903.7-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
