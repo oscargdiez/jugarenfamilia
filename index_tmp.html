@@ -897,13 +897,10 @@ document.addEventListener('DOMContentLoaded', function() {
               <button id="ai-spelling-si" onclick="setAISpelling(true)" style="font-size:12px;padding:4px 10px;border-radius:20px;border:1.5px solid var(--border-strong);background:var(--paper-dark);cursor:pointer"><span id="lbl-ai-yes">Sí</span></button>
             </div>
           </div>
-          <button onclick="promptExperimental()" style="width:100%;background:transparent;border:1px dashed var(--border-strong);color:var(--ink-muted);font-family:'Special Elite',monospace;font-size:11px;padding:7px;border-radius:var(--radius);cursor:pointer;letter-spacing:1px" id="btn-experimental">⚗️ FUNCIONES EXPERIMENTALES</button>
-          <div id="experimental-panel" style="display:none;margin-top:10px">
-            <p class="lbl" style="margin-bottom:6px">🗳️ Modo democrático <span style="font-size:9px;background:var(--paper-dark);padding:1px 5px;border-radius:3px;font-family:'Special Elite',monospace">EN PRUEBAS</span></p>
-            <div style="display:flex;gap:6px">
-              <button id="mode-host" onclick="setValidationMode('host')" style="font-size:12px;padding:4px 10px;border-radius:20px;border:1.5px solid #c0392b;background:#fdf0ee;cursor:pointer">👑 Normal</button>
-              <button id="mode-democratic" onclick="setValidationMode('democratic')" style="font-size:12px;padding:4px 10px;border-radius:20px;border:1.5px solid var(--border-strong);background:var(--paper-dark);cursor:pointer">🗳️ Democrático</button>
-            </div>
+          <p class="lbl" style="margin-bottom:6px" id="lbl-validation-mode">🗳️ Modo de validación</p>
+          <div style="display:flex;gap:6px">
+            <button id="mode-host" onclick="setValidationMode('host')" style="font-size:12px;padding:4px 10px;border-radius:20px;border:1.5px solid #c0392b;background:#fdf0ee;cursor:pointer">👑 Normal</button>
+            <button id="mode-democratic" onclick="setValidationMode('democratic')" style="font-size:12px;padding:4px 10px;border-radius:20px;border:1.5px solid var(--border-strong);background:var(--paper-dark);cursor:pointer">🗳️ Democrático</button>
           </div>
         </div>
       </div>
@@ -1732,8 +1729,8 @@ window.applyLang = function() {
   s('btn-leave', t('leaveRoom'));
   s('btn-leave-text', t('leaveRoom2') || t('leaveRoom'));
   s('btn-config-label', t('configLabel'));
-  s('btn-experimental', t('expBtn'));
   s('gc-status', t('gcInside'));
+  s('lbl-validation-mode', '🗳️ ' + {'es':'Modo de validación','en':'Validation mode','fr':'Mode de validation','de':'Abstimmungsmodus','pt':'Modo de validação','it':'Modalità di convalida'}[LANG]);
   s('mode-host', t('modeHost'));
   s('mode-democratic', t('modeDemocratic'));
   s('lbl-ai-validation-text', t('aiValidation'));
@@ -3532,29 +3529,6 @@ let G_aiEnabled = true; // ON by default
 let G_aiStrictness = 'estricto'; // 'relajado' or 'estricto'
 let G_aiSpelling = false; // false = no spelling mistakes allowed
 
-window.promptExperimental = () => {
-  const panel = document.getElementById('experimental-panel');
-  if (!panel) return;
-  if (panel.style.display === 'block') { panel.style.display = 'none'; return; }
-  const pwd = prompt(t('expBtn') + '\n\n' + {'es':'Contraseña:','en':'Password:','fr':'Mot de passe:','de':'Passwort:','pt':'Palavra-passe:','it':'Password:'}[LANG]);
-  if (pwd === 'monica8') {
-    panel.style.display = 'block';
-    toast(t('expActivated'));
-  } else if (pwd !== null) {
-    toast(t('wrongPwd'));
-  }
-};
-
-window.promptAIPassword = () => {
-  const pwd = prompt('🤖 Asistente IA — BETA\nIntroduce la contraseña para activar:');
-  if (pwd === 'monica8') {
-    window.setAIEnabled(true);
-    toast('🤖 Asistente IA activado (Beta)');
-  } else if (pwd !== null) {
-    toast(t('wrongPwd'));
-  }
-};
-
 window.setAIEnabled = (enabled) => {
   G_aiEnabled = enabled;
   const offBtn = document.getElementById('ai-off');
@@ -4601,7 +4575,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260903.10-tmp</div>
+  <div style="font-size:9px;opacity:0.5">v260903.11-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
