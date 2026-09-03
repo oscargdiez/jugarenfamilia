@@ -2018,7 +2018,7 @@ window.shellHelpOpen = function() {
   const isDailyScreen = ['daily-play','daily-result'].includes(G.screen);
   if (body) {
     if (isDailyScreen) {
-      body.innerHTML = dailyRulesHTML() + '<div style="margin-top:1.5rem;border-top:2px dashed var(--border);padding-top:1.25rem">' + helpHTML() + '</div>';
+      body.innerHTML = dailyRulesHTML();
     } else {
       body.innerHTML = rulesHTML() + '<div style="margin-top:1.5rem;border-top:2px dashed var(--border);padding-top:1.25rem">' + helpHTML() + '</div>';
     }
@@ -4601,7 +4601,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260903.9-tmp</div>
+  <div style="font-size:9px;opacity:0.5">v260903.10-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
