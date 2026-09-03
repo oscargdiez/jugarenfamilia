@@ -3239,7 +3239,7 @@ function buildValidationHTML(room, invalidMap) {
           <div class="val-entry-actions"><span class="pts-badge" id="pb_g_${key}">${isInvalid?t('invalidated'):pts+' pts'}</span></div>
           <div class="val-entry-emojis" id="emojis_${key}">${emojiHtml}</div>
           <div class="val-entry-votes" id="votes_${key}">${voteHtml}</div>
-          <div class="val-entry-right">${dictBtn}</div>
+          <div class="val-entry-right">${dictBtn}${(ans && G_aiEnabled && mode === 'democratic') ? `<button class="ai-btn" id="ai_btn_${key}" onclick="askAI('${gSafeAns}','${cat}','${room.currentLetter}','${key}')">🤖</button>` : ''}</div>
         </div>` : ''}
       </div>
       ${ans?`<div class="dict-result" id="gdict_${key}"></div>`:''}
@@ -4586,7 +4586,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260903.13-tmp</div>
+  <div style="font-size:9px;opacity:0.5">v260903.14-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
