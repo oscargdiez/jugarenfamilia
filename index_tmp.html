@@ -3806,7 +3806,7 @@ function applyQuickJoinLang() {
 }
 
 // ── Per-entry reactions & voting ─────────────────────
-const ENTRY_EMOJIS = ['😂','🔥','👏','🤔','😱','💀'];
+const ENTRY_EMOJIS = ['👏','😂','😬','😱'];
 let G_validationMode = 'host'; // 'host' or 'democratic'
 let G_myVotes = {}; // key -> 'up' or 'down'
 let G_myEntryEmojis = {}; // key+emoji -> true
@@ -3882,6 +3882,8 @@ function renderVotes(key, votes, mode, players, isHost) {
 
   const upClass = myVote === 'up' ? 'vote-btn thumbs-up voted' : 'vote-btn thumbs-up';
   const downClass = myVote === 'down' ? 'vote-btn thumbs-down voted' : 'vote-btn thumbs-down';
+  // Thumbs only shown in democratic mode
+  if (mode !== 'democratic') return '';
   return `<button class="${upClass}" onclick="voteEntry('${key}','up')">👍 <span class="vote-count">${ups}</span></button>
     <button class="${downClass}" onclick="voteEntry('${key}','down')">👎 <span class="vote-count">${downs}</span></button>
     ${democraticResult}`;
@@ -4661,7 +4663,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260908.15-tmp</div>
+  <div style="font-size:9px;opacity:0.5">v260908.16-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
