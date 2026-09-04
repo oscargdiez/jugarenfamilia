@@ -574,7 +574,7 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
 .vote-btn.thumbs-down.voted { background: var(--danger-bg); border-color: var(--danger); color: var(--danger); }
 .vote-count { font-size: 10px; font-weight: 700; }
 .democratic-badge { font-size: 10px; font-family: 'Special Elite', monospace; color: var(--ink-muted); padding: 1px 5px; border-radius: 3px; border: 1px solid var(--border); }
-.democratic-result { font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: var(--radius); }
+.democratic-result { font-size: 18px; font-weight: 700; padding: 2px 4px; border-radius: var(--radius); }
 .democratic-result.valid { background: var(--success-bg); color: var(--success); }
 .democratic-result.invalid { background: var(--danger-bg); color: var(--danger); }
 .democratic-result.tie { background: var(--paper-dark); color: var(--ink-sec); }
@@ -3707,7 +3707,11 @@ window.askAI = async (word, category, letter, key) => {
     else if (/\bno\b|\bincorrect\b|\bwrong\b|\bincorrecto\b/.test(norm)) cls = 'invalid';
 
     const icon = cls === 'valid' ? '✅' : cls === 'invalid' ? '❌' : '🤔';
-    const labelMap = { valid: {es:'Válido',en:'Valid',fr:'Valide',de:'Gültig',pt:'Válido',it:'Valido'}, invalid: {es:'Inválido',en:'Invalid',fr:'Invalide',de:'Ungültig',pt:'Inválido',it:'Invalido'}, unsure: {es:'Dudoso',en:'Unsure',fr:'Incertain',de:'Unsicher',pt:'Duvidoso',it:'Incerto'} };
+    const labelMap = {
+      valid:   {es:'¡El robot cree que es válido!',   en:'Robot thinks it\'s valid!',      fr:'Le robot pense que c\'est valide!', de:'Roboter meint: gültig!',       pt:'O robô acha que é válido!',    it:'Il robot pensa che sia valido!'},
+      invalid: {es:'¡El robot cree que es inválido!', en:'Robot thinks it\'s invalid!',    fr:'Le robot pense que c\'est invalide!', de:'Roboter meint: ungültig!',    pt:'O robô acha que é inválido!',  it:'Il robot pensa che sia invalido!'},
+      unsure:  {es:'¡El robot no está seguro!',       en:'Robot is not sure!',              fr:'Le robot n\'est pas sûr!',         de:'Roboter ist unsicher!',        pt:'O robô não tem certeza!',      it:'Il robot non è sicuro!'}
+    };
     const label = (labelMap[cls]||labelMap.unsure)[LANG] || (labelMap[cls]||labelMap.unsure).es;
     const aiHtml = '🤖 ' + label;
     result.innerHTML = aiHtml;
@@ -4662,7 +4666,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260908.26-tmp</div>
+  <div style="font-size:9px;opacity:0.5">v260908.27-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
