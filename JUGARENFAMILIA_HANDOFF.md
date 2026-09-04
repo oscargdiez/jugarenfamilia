@@ -149,6 +149,7 @@ assert len(c) < 300000
 ```
 
 **Always start from the uploaded working file** — never from a local copy that may have drifted. Ask the user to upload the current index.html if unsure.
+**First thing every session — make a backup:** `cp index_tmp.html index_tmp_backup_sessionN.html` before any edits. If a bad edit corrupts the file, restore in one command. No exceptions.
 
 ---
 
