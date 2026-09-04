@@ -359,6 +359,8 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
 .val-entry-votes { display: flex; flex-wrap: nowrap; gap: 3px; align-items: center; flex-shrink: 0; }
 .val-entry-right { display: flex; flex-wrap: nowrap; align-items: center; gap: 4px; flex-shrink: 0; margin-left: auto; }
 .val-entry.invalid { background: var(--red-light); }
+.val-entry.democratic-valid { background: #edf7f1; }
+.val-entry.democratic-draw { background: #fef6e4; }
 .val-entry.invalid .ans-disp { text-decoration: line-through; color: var(--ink-muted); }
 .val-entry.invalid .pts-badge { text-decoration: line-through; color: var(--ink-muted); }
 .ans-disp { flex: 1; min-width: 0; font-family: 'Caveat', cursive; font-size: 20px; overflow-wrap: break-word; word-break: break-word; hyphens: auto; }
@@ -568,13 +570,13 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
 .entry-emoji-btn { font-size: 13px; padding: 3px 3px; border-radius: 4px; border: none; background: transparent; cursor: pointer; opacity: 0.4; transition: all .1s; line-height: 1; display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; }
 .entry-emoji-btn:hover { opacity: 1; transform: scale(1.15); }
 .entry-emoji-btn.active { opacity: 1; background: var(--paper-dark); }
-.vote-btn { font-size: 12px; padding: 2px 5px; border-radius: var(--radius); border: 1.5px solid var(--border); background: transparent; cursor: pointer; font-family: monospace; display: inline-flex; align-items: center; gap: 2px; transition: all .1s; }
+.vote-btn { font-size: 14px; height: 32px; padding: 0 8px; border-radius: var(--radius); border: 1.5px solid var(--border); background: transparent; cursor: pointer; font-family: monospace; display: inline-flex; align-items: center; gap: 3px; transition: all .1s; }
 .vote-btn:hover { background: var(--paper-dark); }
 .vote-btn.thumbs-up.voted { background: var(--success-bg); border-color: var(--success); color: var(--success); }
 .vote-btn.thumbs-down.voted { background: var(--danger-bg); border-color: var(--danger); color: var(--danger); }
 .vote-count { font-size: 10px; font-weight: 700; }
 .democratic-badge { font-size: 10px; font-family: 'Special Elite', monospace; color: var(--ink-muted); padding: 1px 5px; border-radius: 3px; border: 1px solid var(--border); }
-.democratic-result { font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: var(--radius); }
+.democratic-result { font-size: 18px; font-weight: 700; padding: 2px 4px; border-radius: var(--radius); }
 .democratic-result.valid { background: var(--success-bg); color: var(--success); }
 .democratic-result.invalid { background: var(--danger-bg); color: var(--danger); }
 .democratic-result.tie { background: var(--paper-dark); color: var(--ink-sec); }
@@ -3197,9 +3199,9 @@ function setTimerBubble(t, visible) {
     _timerFloatInterval = null;
     return;
   }
-  // Spawn one immediately, then every 2.5s
+  // Spawn rate increases as timer counts down: 7s at full time → 1s at zero
+  const _isFirstCall = !_timerFloatInterval; // check BEFORE clearInterval resets it
   clearInterval(_timerFloatInterval);
-  // Spawn rate increases as timer counts down: 7s at full time → 2s at zero
   const _floatTotal = t; // capture full duration at round start
   function scheduleNextFloat() {
     const b = document.getElementById('ft-timer');
@@ -3210,7 +3212,8 @@ function setTimerBubble(t, visible) {
     spawnTimerFloat(cur, cur <= 10);
     _timerFloatInterval = setTimeout(scheduleNextFloat, interval);
   }
-  spawnTimerFloat(t, t <= 10); // immediate spawn at round start
+  // Only spawn immediately on first call — guard against double-fire
+  if (_isFirstCall) spawnTimerFloat(t, t <= 10);
   _timerFloatInterval = setTimeout(scheduleNextFloat, 7000);
 }
 
@@ -3707,7 +3710,11 @@ window.askAI = async (word, category, letter, key) => {
     else if (/\bno\b|\bincorrect\b|\bwrong\b|\bincorrecto\b/.test(norm)) cls = 'invalid';
 
     const icon = cls === 'valid' ? '✅' : cls === 'invalid' ? '❌' : '🤔';
-    const labelMap = { valid: {es:'Válido',en:'Valid',fr:'Valide',de:'Gültig',pt:'Válido',it:'Valido'}, invalid: {es:'Inválido',en:'Invalid',fr:'Invalide',de:'Ungültig',pt:'Inválido',it:'Invalido'}, unsure: {es:'Dudoso',en:'Unsure',fr:'Incertain',de:'Unsicher',pt:'Duvidoso',it:'Incerto'} };
+    const labelMap = {
+      valid:   {es:'¡El robot cree que es válido!',   en:'Robot thinks it\'s valid!',      fr:'Le robot pense que c\'est valide!', de:'Roboter meint: gültig!',       pt:'O robô acha que é válido!',    it:'Il robot pensa che sia valido!'},
+      invalid: {es:'¡El robot cree que es inválido!', en:'Robot thinks it\'s invalid!',    fr:'Le robot pense que c\'est invalide!', de:'Roboter meint: ungültig!',    pt:'O robô acha que é inválido!',  it:'Il robot pensa che sia invalido!'},
+      unsure:  {es:'¡El robot no está seguro!',       en:'Robot is not sure!',              fr:'Le robot n\'est pas sûr!',         de:'Roboter ist unsicher!',        pt:'O robô não tem certeza!',      it:'Il robot non è sicuro!'}
+    };
     const label = (labelMap[cls]||labelMap.unsure)[LANG] || (labelMap[cls]||labelMap.unsure).es;
     const aiHtml = '🤖 ' + label;
     result.innerHTML = aiHtml;
@@ -3874,9 +3881,9 @@ function renderVotes(key, votes, mode, players, isHost) {
     const lblValid   = {es:'Válido',  en:'Valid',   fr:'Valide', de:'Gültig',   pt:'Válida',  it:'Valida' }[LANG]  || 'Válido';
     const lblInvalid = {es:'Inválido',en:'Invalid', fr:'Invalide',de:'Ungültig',pt:'Inválida',it:'Invalida'}[LANG] || 'Inválido';
     const lblTie     = {es:'Empate',  en:'Tie',     fr:'Égalité', de:'Unentschieden',pt:'Empate',it:'Pareggio'}[LANG] || 'Empate';
-    if (ups >= majority) democraticResult = '<span class="democratic-result valid">✅ ' + lblValid + '</span>';
-    else if (downs >= majority) democraticResult = '<span class="democratic-result invalid">❌ ' + lblInvalid + '</span>';
-    else if (total >= totalPlayers) democraticResult = '<span class="democratic-result tie">⚖️ ' + lblTie + '</span>';
+    if (ups >= majority) democraticResult = '<span class="democratic-result valid">✅</span>';
+    else if (downs >= majority) democraticResult = '<span class="democratic-result invalid">❌</span>';
+    else if (total >= totalPlayers) democraticResult = '<span class="democratic-result tie">🤝</span>';
     // else: not everyone has voted yet — show nothing
   }
 
@@ -3884,9 +3891,8 @@ function renderVotes(key, votes, mode, players, isHost) {
   const downClass = myVote === 'down' ? 'vote-btn thumbs-down voted' : 'vote-btn thumbs-down';
   // Thumbs only shown in democratic mode
   if (mode !== 'democratic') return '';
-  return `<button class="${upClass}" onclick="voteEntry('${key}','up')">👍 <span class="vote-count">${ups}</span></button>
-    <button class="${downClass}" onclick="voteEntry('${key}','down')">👎 <span class="vote-count">${downs}</span></button>
-    ${democraticResult}`;
+  return `${democraticResult}<button class="${upClass}" onclick="voteEntry('${key}','up')">👍 <span class="vote-count">${ups}</span></button>
+    <button class="${downClass}" onclick="voteEntry('${key}','down')">👎 <span class="vote-count">${downs}</span></button>`;
 }
 
 function renderEntryEmojis(key, entryReactions, isHost) {
@@ -3934,15 +3940,24 @@ function applyVotesAndReactions(room, isHost) {
     const majority = Math.floor(players.length / 2) + 1;
     let changed = false;
     Object.entries(votes).forEach(([key, playerVotes]) => {
+      const ups = Object.values(playerVotes).filter(v => v === 'up').length;
       const downs = Object.values(playerVotes).filter(v => v === 'down').length;
+      const totalPlayers = players.length;
       const majorityAgainst = downs >= majority;
+      const majorityFor = ups >= majority;
+      const isDraw = !majorityFor && !majorityAgainst && (ups + downs) >= totalPlayers;
       const isCurrentlyInvalid = !!G.invalidAnswers[key];
+      const entry = document.getElementById('ve_' + key);
+      const ib = document.getElementById('ib_' + key);
+      // Update tint classes
+      if (entry) {
+        entry.classList.toggle('democratic-valid', majorityFor && !majorityAgainst);
+        entry.classList.toggle('democratic-draw', isDraw);
+      }
       if (majorityAgainst && !isCurrentlyInvalid) {
         // Majority voted against — invalidate
         G.invalidAnswers[key] = true;
         changed = true;
-        const entry = document.getElementById('ve_' + key);
-        const ib = document.getElementById('ib_' + key);
         if (entry) entry.classList.add('invalid');
         if (ib) ib.textContent = '↩';
       } else if (!majorityAgainst && isCurrentlyInvalid) {
@@ -3951,8 +3966,6 @@ function applyVotesAndReactions(room, isHost) {
         // takes precedence over manual when mode is active)
         G.invalidAnswers[key] = false;
         changed = true;
-        const entry = document.getElementById('ve_' + key);
-        const ib = document.getElementById('ib_' + key);
         if (entry) entry.classList.remove('invalid');
         if (ib) ib.textContent = '✕';
       }
@@ -4663,7 +4676,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260908.2</div>
+  <div style="font-size:9px;opacity:0.5">v260908.3</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
