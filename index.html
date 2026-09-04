@@ -1584,7 +1584,7 @@ window.toggleInvite = () => {
   const hostUrl = document.getElementById('share-url');
   if (guestUrl && hostUrl) guestUrl.textContent = hostUrl.textContent;
   const labels = {es:'− Ocultar',en:'− Hide',fr:"− Masquer"};
-  const showLabels = {es:'+ ¿Quieres invitar a alguien más?',en:'+ Want to invite someone?',fr:"+ Inviter quelqu'un d'autre?"};
+  const showLabels = {es:'+ ¿Quieres invitar a alguien más?',en:'+ Want to invite someone?',fr:"+ Inviter quelqu'un d'autre?",de:'+ Jemanden einladen?',pt:'+ Quer convidar alguém?'};
   if (btn) btn.textContent = isOpen ? (labels[LANG]||labels.es) : (showLabels[LANG]||showLabels.es);
 };
 
@@ -1693,7 +1693,7 @@ function prefillGroup() {
 }
 
 let G = {
-  roomCo, playerName:'', isHost:false,
+  roomCode:'', playerName:'', isHost:false,
   selectedCats:['Nombre','Apellido','Ciudad','País','Animal','Objeto','Fruta','Color'],
   selectedTheme:'🎲 Clásico',
   easyLetters:true,
@@ -2559,7 +2559,9 @@ function updateDailyButtonDate() {
   const doneLabels = {
     es:'✅ Ya jugaste hoy · Ver puntuación',
     en:'✅ Already played · See score',
-    fr:'✅ Déjà joué · Voir le score'
+    fr:'✅ Déjà joué · Voir le score',
+    de:'✅ Bereits gespielt · Ergebnis sehen',
+    pt:'✅ Já jogaste hoje · Ver pontuação'
   };
 
   const label = labels[LANG] || labels.es;
