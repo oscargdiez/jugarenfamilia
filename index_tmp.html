@@ -357,13 +357,13 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
 .val-entry-actions { display: flex; flex-wrap: nowrap; align-items: center; gap: 4px; flex-shrink: 0; }
 .val-entry-emojis { display: flex; flex-wrap: wrap; gap: 3px; align-items: center; flex: 1; min-width: 0; }
 .val-entry-votes { display: flex; flex-wrap: nowrap; gap: 3px; align-items: center; flex-shrink: 0; }
-.val-entry-right { display: flex; flex-wrap: nowrap; align-items: center; gap: 4px; flex-shrink: 0; margin-left: auto; padding-left: 8px; border-left: 1px solid var(--border); }
+.val-entry-right { display: flex; flex-wrap: nowrap; align-items: center; gap: 4px; flex-shrink: 0; margin-left: auto; }
 .val-entry.invalid { background: var(--red-light); }
 .val-entry.invalid .ans-disp { text-decoration: line-through; color: var(--ink-muted); }
 .val-entry.invalid .pts-badge { text-decoration: line-through; color: var(--ink-muted); }
 .ans-disp { flex: 1; min-width: 0; font-family: 'Caveat', cursive; font-size: 20px; overflow-wrap: break-word; word-break: break-word; hyphens: auto; }
 .pts-badge { font-family: 'Special Elite', monospace; font-size: 13px; color: var(--red); font-weight: 700; flex-shrink: 0; }
-.inv-btn { font-size: 12px; padding: 4px 8px; border-radius: var(--radius); border: 1.5px solid var(--border-strong); background: transparent; color: var(--ink-sec); cursor: pointer; flex-shrink: 0; font-family: 'Special Elite', monospace; display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; line-height: 1; }
+.inv-btn { font-size: 15px; padding: 4px 6px; border-radius: var(--radius); border: 1.5px solid var(--border-strong); background: transparent; color: var(--ink-sec); cursor: pointer; flex-shrink: 0; font-family: 'Special Elite', monospace; display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; line-height: 1; }
 .inv-btn:hover { background: var(--red-light); border-color: var(--red); color: var(--red); }
 .val-entry.invalid .inv-btn { border-color: var(--red); color: var(--red); background: var(--red-light); }
 .val-name { font-family: 'Caveat', cursive; font-size: 16px; color: var(--ink-sec); width: 90px; flex-shrink: 0; }
@@ -565,7 +565,7 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
 /* ── Per-entry reactions & voting ── */
 .entry-reactions { display: flex; align-items: center; gap: 3px; flex-wrap: wrap; margin-top: 3px; padding-top: 3px; }
 .entry-emoji-strip { display: flex; gap: 2px; }
-.entry-emoji-btn { font-size: 13px; padding: 1px 3px; border-radius: 4px; border: none; background: transparent; cursor: pointer; opacity: 0.4; transition: all .1s; line-height: 1; }
+.entry-emoji-btn { font-size: 13px; padding: 1px 3px; border-radius: 4px; border: none; background: transparent; cursor: pointer; opacity: 0.4; transition: all .1s; line-height: 1; display: inline-flex; align-items: center; justify-content: center; }
 .entry-emoji-btn:hover { opacity: 1; transform: scale(1.15); }
 .entry-emoji-btn.active { opacity: 1; background: var(--paper-dark); }
 .vote-btn { font-size: 12px; padding: 2px 5px; border-radius: var(--radius); border: 1.5px solid var(--border); background: transparent; cursor: pointer; font-family: monospace; display: inline-flex; align-items: center; gap: 2px; transition: all .1s; }
@@ -580,8 +580,8 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
 .democratic-result.tie { background: var(--paper-dark); color: var(--ink-sec); }
 
 /* ── AI validation ── */
-.ai-btn { font-size: 12px; padding: 3px 8px; border-radius: var(--radius); border: 1.5px solid #8e44ad; background: transparent; color: #8e44ad; cursor: pointer; flex-shrink: 0; font-family: 'Special Elite', monospace; }
-.ai-btn:hover { background: #f5eef8; }
+.ai-btn { font-size: 15px; padding: 4px 6px; border-radius: var(--radius); border: 1.5px solid var(--border-strong); background: transparent; color: var(--ink-sec); cursor: pointer; flex-shrink: 0; font-family: 'Special Elite', monospace; display: inline-flex; align-items: center; justify-content: center; line-height: 1; }
+.ai-btn:hover { background: var(--paper-dark); }
 .ai-btn.loading { opacity: 0.6; cursor: wait; }
 .ai-result { margin-top: 6px; padding: 6px 10px; border-radius: var(--radius); font-family: 'Caveat', cursive; font-size: 15px; line-height: 1.4; display: none; }
 .ai-result.show { display: block; }
@@ -3806,7 +3806,7 @@ function applyQuickJoinLang() {
 }
 
 // ── Per-entry reactions & voting ─────────────────────
-const ENTRY_EMOJIS = ['👏','😂','😬','😱'];
+const ENTRY_EMOJIS = ['👏','😂','😬','😱','🎯'];
 let G_validationMode = 'host'; // 'host' or 'democratic'
 let G_myVotes = {}; // key -> 'up' or 'down'
 let G_myEntryEmojis = {}; // key+emoji -> true
@@ -4663,7 +4663,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260908.17-tmp</div>
+  <div style="font-size:9px;opacity:0.5">v260908.18-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
