@@ -295,7 +295,19 @@ Full audit — 15 bugs fixed. Room cleanup, collision-safe codes, stop caller ba
 - Daily leaderboard: saves aiResults to Firebase on submit, shows ✅/❌ per answer
 - Language flags (🇪🇸🇬🇧🇫🇷🇮🇹) shown on player chips, scores, final screen
 - Daily categories overhauled: dropped Marca comercial/Animal marino/Pez/Insecto, added Nombre de persona/Medio de transporte/Prenda de ropa/Cosa en la cocina (then further refined)
-- Dropped German (DE) and Portuguese (PT) — 4 languages remain: ES, EN, FR, IT — 14KB saved
+- Dropped German (DE), Portuguese (PT), and Italian (IT) — 3 languages remain: ES, EN, FR — 27KB saved total
+
+**AI Proxy — Cloudflare Worker:**
+- OpenRouter key was disabled by GitHub scanner (key was in public repo)
+- Key moved to Cloudflare Worker at https://api.oscar-g-diez.workers.dev/
+- Game HTML calls the Worker, Worker calls OpenRouter with the secret key
+- Key never touches GitHub — if key needs updating, edit the Worker only
+- IONOS PHP proxy attempted first but WordPress blocked PHP execution — Worker is cleaner
+- Worker is free tier: 100k requests/day
+
+**v260908.15:** Drop IT/DE/PT — 3 languages remain (ES EN FR), done cleanly with exact replacements (not regex — regex earlier broke the app by eating legitimate JS)
+**v260908.16:** AI calls routed through Cloudflare Worker proxy
+**v260908.17:** Final Worker URL confirmed working
 
 **Next session — category system overhaul (PRIORITY):**
 - Paste in the category table JSON from the prompt sent to another chat
@@ -344,7 +356,7 @@ Full audit — 15 bugs fixed. Room cleanup, collision-safe codes, stop caller ba
 - Partially worked but iOS still misbehaved in edge cases; rolled back
 - Floating timer numbers chosen as pragmatic solution — immune to the iOS keyboard bug
 
-**Last version deployed: v260908.14**
+**Last version deployed: v260908.17**
 
 ### Session 7 (Sep 3)
 **Validation screen layout fix:**
@@ -402,7 +414,7 @@ Full audit — 15 bugs fixed. Room cleanup, collision-safe codes, stop caller ba
 - Democratic mode: minimum 2 players guard (1 player = host can self-invalidate)
 - Tie display before all votes in (now shows nothing until all voted — may want "N/M votado" indicator)
 
-**Last version deployed: v260908.14**
+**Last version deployed: v260908.17**
 
 Additional changes in final deploys (v260908.1):
 - Democratic mode moved above AI assistant in config section
