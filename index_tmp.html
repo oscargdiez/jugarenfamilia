@@ -489,6 +489,23 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
 .daily-lb-orig { font-family: 'Special Elite', monospace; font-size: 11px; color: var(--ink-muted); flex-shrink: 0; margin-left: 2px; }
 .daily-lb-sep { text-align: center; font-family: 'Special Elite', monospace; font-size: 11px; color: var(--ink-muted); padding: 4px 0; letter-spacing: 2px; }
 .daily-lb-row.daily-lb-me { background: var(--red-light); border: 1.5px solid var(--red); }
+.daily-lb-row { cursor: pointer; }
+.daily-lb-row.expanded { border-radius: var(--radius) var(--radius) 0 0; margin-bottom: 0; }
+.daily-lb-answers {
+  display: none; background: var(--paper);
+  border: 1px solid var(--border); border-top: none;
+  border-radius: 0 0 var(--radius) var(--radius);
+  padding: 8px 10px; margin-bottom: 4px;
+}
+.daily-lb-answers.open { display: block; }
+.daily-lb-answer-row {
+  display: flex; justify-content: space-between; align-items: baseline;
+  padding: 3px 0; border-bottom: 1px dashed var(--border); gap: 8px;
+}
+.daily-lb-answer-row:last-child { border-bottom: none; }
+.daily-lb-answer-cat { font-family: 'Special Elite', monospace; font-size: 11px; color: var(--ink-muted); flex-shrink: 0; }
+.daily-lb-answer-val { font-family: 'Caveat', cursive; font-size: 15px; color: var(--ink); text-align: right; }
+.daily-lb-answer-val.empty { color: var(--ink-muted); font-style: italic; font-size: 12px; }
 .daily-result-orig { font-family: 'Special Elite', monospace; font-size: 11px; color: var(--ink-muted); flex-shrink: 0; }
 .daily-already-played { text-align: center; padding: 1.5rem 0; }
 .daily-already-score { font-family: 'Caveat', cursive; font-size: 48px; font-weight: 700; color: var(--red); }
@@ -2606,32 +2623,54 @@ function renderLeaderboard(allScores) {
   const myIdx = entries.findIndex(e => e.name.trim() === myName.trim());
   const isInTop10 = myIdx >= 0 && myIdx < 10;
 
+  const cats = G_daily.categories || [];
+  function buildAnswerPanel(e, idx) {
+    if (!e.answers || !cats.length) return '';
+    const rows = cats.map((cat, i) => {
+      const val = e.answers[i] || '';
+      return `<div class="daily-lb-answer-row">
+        <span class="daily-lb-answer-cat">${cat}</span>
+        <span class="daily-lb-answer-val${val ? '' : ' empty'}">${val || '—'}</span>
+      </div>`;
+    }).join('');
+    return `<div class="daily-lb-answers" id="daily-ans-${idx}">${rows}</div>`;
+  }
+
   let html = top10.map((e, i) => {
     const isMe = e.name.trim() === myName.trim();
     const orig = e.originality > 0 ? `<span class="daily-lb-orig">+${e.originality}✨</span>` : '';
-    return `<div class="daily-lb-row${isMe ? ' daily-lb-me' : ''}">
+    return `<div class="daily-lb-row${isMe ? ' daily-lb-me' : ''}" id="daily-row-${i}" onclick="toggleDailyAnswers(${i})">
       <span class="daily-lb-rank">${medals[i] || (i+1)}</span>
       <span class="daily-lb-name">${e.name}</span>
       <span class="daily-lb-score">${e.totalScore} pts</span>
       ${orig}
-    </div>`;
+    </div>${buildAnswerPanel(e, i)}`;
   }).join('');
 
   // Show my row if outside top 10
   if (!isInTop10 && myIdx >= 0) {
     const me = entries[myIdx];
     const orig = me.originality > 0 ? `<span class="daily-lb-orig">+${me.originality}✨</span>` : '';
+    const sepIdx = 'me';
     html += `<div class="daily-lb-sep">· · ·</div>`;
-    html += `<div class="daily-lb-row daily-lb-me">
+    html += `<div class="daily-lb-row daily-lb-me" id="daily-row-me" onclick="toggleDailyAnswers('me')">
       <span class="daily-lb-rank">${myIdx+1}</span>
       <span class="daily-lb-name">${me.name}</span>
       <span class="daily-lb-score">${me.totalScore} pts</span>
       ${orig}
-    </div>`;
+    </div>${buildAnswerPanel(me, 'me')}`;
   }
 
   lbEl.innerHTML = html;
 }
+
+window.toggleDailyAnswers = function(idx) {
+  const panel = document.getElementById('daily-ans-' + idx);
+  const row = document.getElementById('daily-row-' + idx);
+  if (!panel || !row) return;
+  const open = panel.classList.toggle('open');
+  row.classList.toggle('expanded', open);
+};
 
 async function computeAndUpdateOriginality(allScores, key) {
   // For each of my valid answers, check if it's unique among all players
@@ -4694,7 +4733,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260908.37-tmp</div>
+  <div style="font-size:9px;opacity:0.5">v260908.38-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
