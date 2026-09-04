@@ -4335,18 +4335,22 @@ async function tryRestore() {
   const urlCode = new URLSearchParams(window.location.search).get('room');
   if (urlCode) {
     const code = urlCode.toUpperCase();
-    G.roomCode = code;
-    // Show quick join screen
-    buildQuickJoinEmojiGrid();
-    applyQuickJoinLang();
-    // Pre-fill name from last session
-    const lastSession = JSON.parse(localStorage.getItem('alto_session') || '{}');
-    const qjName = document.getElementById('qj-name');
-    if (qjName && lastSession.name) qjName.value = lastSession.name;
-    const codeLabel = document.getElementById('qj-room-code');
-    if (codeLabel) codeLabel.textContent = code;
-    window.show('quickjoin');
-    return;
+    // If we have a saved session for this exact room, skip quickjoin and restore directly
+    const savedSession = JSON.parse(localStorage.getItem('alto_session') || '{}');
+    if (savedSession.name && savedSession.code === code) {
+      // Fall through to session restore below — don't show quickjoin
+    } else {
+      G.roomCode = code;
+      // Show quick join screen
+      buildQuickJoinEmojiGrid();
+      applyQuickJoinLang();
+      const qjName = document.getElementById('qj-name');
+      if (qjName && savedSession.name) qjName.value = savedSession.name;
+      const codeLabel = document.getElementById('qj-room-code');
+      if (codeLabel) codeLabel.textContent = code;
+      window.show('quickjoin');
+      return;
+    }
   }
   const saved = localStorage.getItem('alto_session');
   if (!saved) return;
@@ -4677,7 +4681,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260908.34-tmp</div>
+  <div style="font-size:9px;opacity:0.5">v260908.35-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
