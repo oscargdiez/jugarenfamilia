@@ -363,7 +363,7 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
 .val-entry.invalid .pts-badge { text-decoration: line-through; color: var(--ink-muted); }
 .ans-disp { flex: 1; min-width: 0; font-family: 'Caveat', cursive; font-size: 20px; overflow-wrap: break-word; word-break: break-word; hyphens: auto; }
 .pts-badge { font-family: 'Special Elite', monospace; font-size: 13px; color: var(--red); font-weight: 700; flex-shrink: 0; }
-.inv-btn { font-size: 17px; padding: 4px 6px; border-radius: var(--radius); border: 1.5px solid var(--border-strong); background: transparent; color: var(--ink-sec); cursor: pointer; flex-shrink: 0; font-family: 'Special Elite', monospace; display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; line-height: 1; }
+.inv-btn { font-size: 17px; width: 32px; height: 32px; border-radius: var(--radius); border: 1.5px solid var(--border-strong); background: transparent; color: var(--ink-sec); cursor: pointer; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; padding: 0; line-height: 1; }
 .inv-btn:hover { background: var(--red-light); border-color: var(--red); color: var(--red); }
 .val-entry.invalid .inv-btn { border-color: var(--red); color: var(--red); background: var(--red-light); }
 .val-name { font-family: 'Caveat', cursive; font-size: 16px; color: var(--ink-sec); width: 90px; flex-shrink: 0; }
@@ -430,7 +430,7 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
 .group-input-wrap { position: relative; }
 
 /* ── Dictionary lookup ── */
-.dict-btn { font-size: 15px; padding: 4px 6px; border-radius: var(--radius); border: 1.5px solid var(--border-strong); background: transparent; color: var(--ink-sec); cursor: pointer; flex-shrink: 0; font-family: 'Special Elite', monospace; display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; line-height: 1; }
+.dict-btn { font-size: 15px; width: 32px; height: 32px; border-radius: var(--radius); border: 1.5px solid var(--border-strong); background: transparent; color: var(--ink-sec); cursor: pointer; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; padding: 0; line-height: 1; }
 .dict-btn:hover { background: var(--accent-bg); border-color: var(--accent); color: var(--accent); }
 .dict-result { margin-top: 8px; padding: 8px 10px; background: var(--paper-dark); border-left: 3px solid var(--border-strong); border-radius: 0 var(--radius) var(--radius) 0; font-family: 'Caveat', cursive; font-size: 15px; color: var(--ink-sec); line-height: 1.5; display: none; }
 .dict-result.show { display: block; }
@@ -580,7 +580,7 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
 .democratic-result.tie { background: var(--paper-dark); color: var(--ink-sec); }
 
 /* ── AI validation ── */
-.ai-btn { font-size: 15px; padding: 4px 6px; border-radius: var(--radius); border: 1.5px solid var(--border-strong); background: transparent; color: var(--ink-sec); cursor: pointer; flex-shrink: 0; font-family: 'Special Elite', monospace; display: inline-flex; align-items: center; justify-content: center; line-height: 1; }
+.ai-btn { font-size: 15px; width: 32px; height: 32px; border-radius: var(--radius); border: 1.5px solid var(--border-strong); background: transparent; color: var(--ink-sec); cursor: pointer; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; padding: 0; line-height: 1; }
 .ai-btn:hover { background: var(--paper-dark); }
 .ai-btn.loading { opacity: 0.6; cursor: wait; }
 .ai-result { margin-top: 6px; padding: 6px 10px; border-radius: var(--radius); font-family: 'Caveat', cursive; font-size: 15px; line-height: 1.4; display: none; }
@@ -4663,7 +4663,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260908.19-tmp</div>
+  <div style="font-size:9px;opacity:0.5">v260908.20-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
