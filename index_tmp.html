@@ -3199,9 +3199,9 @@ function setTimerBubble(t, visible) {
     _timerFloatInterval = null;
     return;
   }
-  // Spawn one immediately, then every 2.5s
+  // Spawn rate increases as timer counts down: 7s at full time → 1s at zero
+  const _isFirstCall = !_timerFloatInterval; // check BEFORE clearInterval resets it
   clearInterval(_timerFloatInterval);
-  // Spawn rate increases as timer counts down: 7s at full time → 2s at zero
   const _floatTotal = t; // capture full duration at round start
   function scheduleNextFloat() {
     const b = document.getElementById('ft-timer');
@@ -3212,8 +3212,8 @@ function setTimerBubble(t, visible) {
     spawnTimerFloat(cur, cur <= 10);
     _timerFloatInterval = setTimeout(scheduleNextFloat, interval);
   }
-  // Only spawn immediately on first call — guard against double-fire from multiple Firebase listeners
-  if (!_timerFloatInterval) spawnTimerFloat(t, t <= 10);
+  // Only spawn immediately on first call — guard against double-fire
+  if (_isFirstCall) spawnTimerFloat(t, t <= 10);
   _timerFloatInterval = setTimeout(scheduleNextFloat, 7000);
 }
 
@@ -3940,7 +3940,9 @@ function applyVotesAndReactions(room, isHost) {
     const majority = Math.floor(players.length / 2) + 1;
     let changed = false;
     Object.entries(votes).forEach(([key, playerVotes]) => {
+      const ups = Object.values(playerVotes).filter(v => v === 'up').length;
       const downs = Object.values(playerVotes).filter(v => v === 'down').length;
+      const totalPlayers = players.length;
       const majorityAgainst = downs >= majority;
       const majorityFor = ups >= majority;
       const isDraw = !majorityFor && !majorityAgainst && (ups + downs) >= totalPlayers;
@@ -4674,7 +4676,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260908.29-tmp</div>
+  <div style="font-size:9px;opacity:0.5">v260908.30-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
