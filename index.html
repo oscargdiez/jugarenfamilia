@@ -730,8 +730,6 @@ document.addEventListener('DOMContentLoaded', function() {
         <button class="lang-btn active" onclick="setLang('es')" title="Español">🇪🇸</button>
         <button class="lang-btn" onclick="setLang('en')" title="English">🇬🇧</button>
         <button class="lang-btn" onclick="setLang('fr')" title="Français">🇫🇷</button>
-        <button class="lang-btn" onclick="setLang('de')" title="Deutsch">🇩🇪</button>
-        <button class="lang-btn" onclick="setLang('pt')" title="Português">🇧🇷</button>
         <button class="lang-btn" onclick="setLang('it')" title="Italiano">🇮🇹</button>
       </div>
     </div>
@@ -1077,8 +1075,6 @@ const LETTERS_FULL = {
   es: 'ABCDEFGHIJKLMNÑOPQRSTUVWXYZ'.split(''),
   en: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split(''),
   fr: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split(''),
-  de: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split(''),
-  pt: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split(''),
   it: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split(''),
 };
 
@@ -1126,28 +1122,6 @@ const THEMES_ALL = {
     '✏️ Catégories': null,
     '✍️ Libre':      'free',
   },
-  de: {
-    '🎲 Klassisch':  ['Vorname','Nachname','Stadt','Land','Tier','Objekt','Frucht','Farbe'],
-    '🌍 Geografie':  ['Stadt','Land','Hauptstadt','Fluss','Berg','Kontinent','Meer','Insel'],
-    '🎵 Musik':      ['Sänger','Lied','Band','Instrument','Genre','Album','Festival','Tanz'],
-    '🎬 Film & TV':  ['Film','Serie','Schauspieler','Schauspielerin','Regisseur','Figur','Sender','Preis'],
-    '🍽️ Essen':      ['Gericht','Frucht','Gemüse','Getränk','Dessert','Gewürz','Restaurant','Land'],
-    '🌱 Natur':      ['Tier','Pflanze','Insekt','Vogel','Baum','Blume','Meer','Berg'],
-    '⚽ Sport':      ['Sport','Mannschaft','Spieler','Land','Stadion','Pokal','Marke','Liga'],
-    '✏️ Kategorien': null,
-    '✍️ Frei':       'free',
-  },
-  pt: {
-    '🎲 Clássico':   ['Nome','Apelido','Cidade','País','Animal','Objeto','Fruta','Cor'],
-    '🌍 Geografia':  ['Cidade','País','Capital','Rio','Montanha','Continente','Mar','Ilha'],
-    '🎵 Música':     ['Cantor','Canção','Banda','Instrumento','Género','Álbum','Festival','Dança'],
-    '🎬 Cinema':     ['Filme','Série','Ator','Atriz','Realizador','Personagem','Canal','Prémio'],
-    '🍽️ Gastronomia':['Prato','Fruta','Legume','Bebida','Sobremesa','Especiaria','Restaurante','País'],
-    '🌱 Natureza':   ['Animal','Planta','Inseto','Ave','Árvore','Flor','Mar','Montanha'],
-    '⚽ Desporto':   ['Desporto','Equipa','Jogador','País','Estádio','Troféu','Marca','Liga'],
-    '✏️ Categorias': null,
-    '✍️ Livre':      'free',
-  },
   it: {
     '🎲 Classico':   ['Nome','Cognome','Città','Paese','Animale','Objeto','Frutto','Colore'],
     '🌍 Geografia':  ['Città','Paese','Capitale','Fiume','Montagna','Continente','Mare','Isola'],
@@ -1165,8 +1139,6 @@ const CUSTOM_CATS_ALL = {
   es: ['Nombre','Apellido','Ciudad','País','Animal','Objeto','Fruta','Color','Flor','Profesión','Comida','Marca','Deporte','Película'],
   en: ['Name','Surname','City','Country','Animal','Object','Fruit','Colour','Flower','Profession','Food','Brand','Sport','Film'],
   fr: ['Prénom','Nom','Ville','Pays','Animal','Objet','Fruit','Couleur','Fleur','Profession','Nourriture','Marque','Sport','Film'],
-  de: ['Vorname','Nachname','Stadt','Land','Tier','Objekt','Frucht','Farbe','Blume','Beruf','Essen','Marke','Sport','Film'],
-  pt: ['Nome','Apelido','Cidade','País','Animal','Objeto','Fruta','Cor','Flor','Profissão','Comida','Marca','Desporto','Filme'],
   it: ['Nome','Cognome','Città','Paese','Animale','Objeto','Frutto','Colore','Fiore','Professione','Cibo','Marca','Sport','Film'],
 };
 
@@ -1177,7 +1149,7 @@ function getCustomCats() { return CUSTOM_CATS_ALL[LANG] || CUSTOM_CATS_ALL.es; }
 const THEMES = new Proxy({}, { get: (_, k) => getThemes()[k] });
 const CUSTOM_CATS = new Proxy([], { get: (_, k) => (getCustomCats())[k] });
 const MEDALS = ['🥇','🥈','🥉'];
-const LANG_FLAGS = {es:'🇪🇸', en:'🇬🇧', fr:'🇫🇷', de:'🇩🇪', pt:'🇧🇷', it:'🇮🇹'};
+const LANG_FLAGS = {es:'🇪🇸', en:'🇬🇧', fr:'🇫🇷', it:'🇮🇹'};
 
 // ── Translations ──────────────────────────────────
 const T = {
@@ -1352,120 +1324,6 @@ const T = {
     shellLeaveYes: 'Quitter', shellLeaveNo: 'Continuer',
     toastRoomCopied: 'Lien copié!',
   },
-  de: {
-    tagline: 'das Spiel von damals, mit den Liebsten',
-    yourName: 'dein Name', namePlaceholder: 'Maria...',
-    chooseEmoji: 'wähle dein Emoji',
-    createRoom: 'Raum erstellen', join: 'Beitreten',
-    roomCode: 'Raumcode',
-    enter: 'Beitreten',
-    noReg: 'KEINE ANMELDUNG · KEIN DOWNLOAD · KOSTENLOS',
-    shareCode: 'teile diesen Code mit deiner Gruppe',
-    copyLink: 'Kopieren', wa: 'Per WhatsApp teilen',
-    players: 'Spieler', host: 'Du bist der Gastgeber',
-    waiting: '✏️ Warte auf den Gastgeber…',
-    groupName: 'Gruppenname',
-    groupHint: 'Familie, Freunde, Kollegen... wie ihr wollt',
-    groupPlaceholder: 'Die Müllers, Schulfreunde...',
-    theme: 'Thema', easyLetters: 'nur einfache Buchstaben',
-    rounds: 'Runden', seconds: 'Sekunden pro Runde',
-    penalty: 'Stop! Strafe für ungültige Antworten',
-    start: 'Starten! →',
-    guestWait: '✏️ Warte auf den Gastgeber…',
-    letter: 'Buchstabe', round: 'Runde', of: 'von', freeCatLabel: 'Schreib deine Kategorien (eine pro Zeile)', freeCatPlaceholder: 'Fußballspieler\nHorrorfilme\nDinge in der Küche',
-    stop: '¡ A L T O !',
-    review: 'Überprüfen',
-    reviewSub: '✕ zum Annullieren · einzigartig = 100 · doppelt = 50 · ungültig = 0',
-    calculate: 'Punkte berechnen →', stopCallerMsg: '{name} hat Stop gerufen!', timerRanOut: 'Zeit abgelaufen',
-    submitted: 'Antworten gesendet',
-    hostReviewing: 'der Gastgeber prüft die Antworten',
-    scores: 'Punkte', nextRound: 'Nächste Runde →',
-    endGame: 'Spiel beenden', hostWait: 'Warte auf den Gastgeber…',
-    leaderboard: 'Bestenliste', myGroup: 'Meine Gruppe', world: 'Weltweit',
-    worldSub: 'die besten Spieler der Welt',
-    noGroup: 'Gruppenname setzen um die Bestenliste zu sehen',
-    noGroupGlobal: 'Noch keine Spiele registriert.',
-    noGroupLocal: 'Noch keine Spiele für diese Gruppe.',
-    endGame2: 'Spiel vorbei!', playAgain: 'Nochmal spielen',
-    leaveRoom: 'Raum verlassen',
-    wins: 'Siege', games: 'Spiele',
-    toastCopied: 'Link kopiert!', toastNoGroup: 'Kein Gruppenname',
-    toastPenalty: 'verliert', toastPenaltySuffix: 'Pkt',
-    toastName: 'Bitte zuerst deinen Namen eingeben',
-    toastCode: 'Code muss 4 Buchstaben haben',
-    toastNotFound: 'Raum nicht gefunden. Code prüfen.',
-    toastCats: 'Mindestens eine Kategorie auswählen',
-    toastFreeCats: 'Mindestens 2 Kategorien eingeben',
-    toastHostOnly: 'Nur der Gastgeber kann neu starten',
-    continueBtn: 'Weiter →', notMe: 'Das bin ich nicht — ändern', groupHint2: 'Familie, Freunde, Arbeit... wie ihr wollt', easyHint: '(ohne Q, X, Y, Z)', validate: 'Überprüfen', validateSub1: '📖 Wikipedia · 🤖 KI · ✕ ungültig', validateSub2: 'einmalig = 100 Pkt · doppelt = 50 Pkt · ungültig = 0 Pkt', submitted2: 'Antworten gesendet', hostReviewing2: 'Gastgeber prüft', leaderboardBack: '← zurück', loading: 'Laden…', final2: 'Spiel vorbei!', searching: 'Suche...', hostSearching: 'Gastgeber sucht...', rndLabel: 'Runde', of: 'von', freeCatLabel: 'Schreib deine Kategorien (eine pro Zeile)', freeCatPlaceholder: 'Fußballspieler\nHorrorfilme\nDinge in der Küche', letterLabel: 'Buchstabe', calculate: 'Punkte berechnen →', stopCallerMsg: '{name} hat Stop gerufen!', timerRanOut: 'Zeit abgelaufen', scoresTitle: 'Punkte', lbTitle: 'Bestenliste',
-    invited: 'Du wurdest eingeladen zu spielen!', rulesBtn: 'Wie spielt man?', expBtn: '⚗️ EXPERIMENTELLE FUNKTIONEN', aiValidation: '🤖 KI-Assistent', aiRelajado: '🟢 Locker', aiEstricto: '🔴 Streng', aiSpelling: '✏️ Rechtschreibfehler erlauben', aiYes: 'Ja', aiNo: 'Nein', modeHost: '👑 Normal', modeDemocratic: '🗳️ Demokratisch', invalidated: 'ungültig', winnerLine: '{emoji} {name} gewinnt mit {pts} Punkten!', wrongPwd: '❌ Falsches Passwort', expActivated: '⚗️ Experimentelle Funktionen aktiviert', qjCodeLabel: 'Raum:', gcInside: '✅ DU BIST DRIN', inviteMore: '+ Jemanden einladen?', getReady: 'BEREIT',
-    toastBack: 'Wiederbeitritt als', notFoundWord: '📭 Nicht gefunden', didYouMean: 'Meinten Sie', noDefinition: '📭 Keine Definition fuer',
-    waMsg: 'Spiel Stop! mit mir 🎮 Tritt hier bei:',
-    createSub: 'MEHRSPIELER · MIT FAMILIE UND FREUNDEN', configLabel: '⚙️ Einstellungen', leaveRoom2: 'Raum verlassen',
-    dailySub: 'DU GEGEN DIE WELT · EINE AUFGABE PRO TAG',
-    rulesTitle: 'Spielregeln',
-    shellLeave: 'Spiel verlassen?',
-    shellLeaveConfirm: 'Du verlierst deinen Fortschritt in dieser Runde.',
-    shellLeaveYes: 'Verlassen', shellLeaveNo: 'Weiterspielen',
-    toastRoomCopied: 'Link kopiert!',
-  },
-  pt: {
-    tagline: 'o jogo de sempre, com quem mais importa',
-    yourName: 'teu nome', namePlaceholder: 'Maria...',
-    chooseEmoji: 'escolhe o teu emoji',
-    createRoom: 'Criar sala', join: 'Entrar',
-    roomCode: 'código da sala',
-    enter: 'Entrar',
-    noReg: 'SEM REGISTRO · SEM DOWNLOAD · GRÁTIS',
-    shareCode: 'partilha este código com o teu grupo',
-    copyLink: 'Copiar', wa: 'Partilhar no WhatsApp',
-    players: 'jogadores', host: 'És o anfitrião',
-    waiting: '✏️ À espera do anfitrião…',
-    groupName: 'nome do grupo',
-    groupHint: 'família, amigos, colegas... como quiserem',
-    groupPlaceholder: 'Os Silva, Amigos da escola...',
-    theme: 'tema', easyLetters: 'só letras fáceis',
-    rounds: 'rondas', seconds: 'segundos por ronda',
-    penalty: 'penalização Stop! inválido',
-    start: 'Começar! →',
-    guestWait: '✏️ À espera do anfitrião…',
-    letter: 'letra', round: 'ronda', of: 'de', freeCatLabel: 'escreve as tuas categorias (uma por linha)', freeCatPlaceholder: 'Jogadores do Barça\nFilmes de terror\nCoisas na cozinha', freeCatLabel: 'escribe tus categorías (una por línea)', freeCatPlaceholder: 'Jugadores del Barça\nPelículas de terror\nCosas en la cocina',
-    stop: '¡ A L T O !',
-    review: 'Rever',
-    reviewSub: '✕ para anular · única = 100 · repetida = 50 · anulada = 0',
-    calculate: 'Calcular pontuações →', stopCallerMsg: '{name} chamou o Stop!', timerRanOut: 'tempo esgotado',
-    submitted: 'Respostas enviadas',
-    hostReviewing: 'o anfitrião está a rever',
-    scores: 'Pontuações', nextRound: 'Próxima ronda →',
-    endGame: 'Terminar', hostWait: 'À espera do anfitrião…',
-    leaderboard: 'Classificação', myGroup: 'O meu grupo', world: 'Mundial',
-    worldSub: 'os melhores jogadores do mundo',
-    noGroup: 'define um nome de grupo para ver a classificação',
-    noGroupGlobal: 'Ainda não há jogos registados.',
-    noGroupLocal: 'Ainda não há jogos para este grupo.',
-    endGame2: 'Fim do jogo!', playAgain: 'Jogar de novo',
-    leaveRoom: 'sair da sala',
-    wins: 'vitórias', games: 'jogos',
-    toastCopied: 'Link copiado!', toastNoGroup: 'Sem nome de grupo',
-    toastPenalty: 'perde', toastPenaltySuffix: 'pts',
-    toastName: 'Escreve o teu nome primeiro',
-    toastCode: 'O código deve ter 4 letras',
-    toastNotFound: 'Sala não encontrada. Verifica o código.',
-    toastCats: 'Seleciona pelo menos uma categoria',
-    toastFreeCats: 'Escreve pelo menos 2 categorias',
-    toastHostOnly: 'Só o anfitrião pode reiniciar',
-    continueBtn: 'Continuar →', notMe: 'Não sou eu — mudar', groupHint2: 'família, amigos, trabalho... como quiserem', easyHint: '(sem K, Q, U, W, X, Y, Z)', validate: 'Rever', validateSub1: '📖 Wikipedia · 🤖 IA · ✕ anular', validateSub2: 'única = 100 pts · repetida = 50 pts · anulada = 0 pts', submitted2: 'Respostas enviadas', hostReviewing2: 'anfitrião a rever', leaderboardBack: '← voltar', loading: 'A carregar…', final2: 'Fim do jogo!', searching: 'A pesquisar...', hostSearching: 'Anfitrião a pesquisar...', rndLabel: 'ronda', of: 'de', freeCatLabel: 'escreve as tuas categorias (uma por linha)', freeCatPlaceholder: 'Jogadores do Barça\nFilmes de terror\nCoisas na cozinha', freeCatLabel: 'escribe tus categorías (una por línea)', freeCatPlaceholder: 'Jugadores del Barça\nPelículas de terror\nCosas en la cocina', of: 'de', freeCatLabel: 'escreve as tuas categorias (uma por linha)', freeCatPlaceholder: 'Jogadores do Barça\nFilmes de terror\nCoisas na cozinha', freeCatLabel: 'escribe tus categorías (una por línea)', freeCatPlaceholder: 'Jugadores del Barça\nPelículas de terror\nCosas en la cocina', letterLabel: 'letra', calculate: 'Calcular pontuações →', stopCallerMsg: '{name} chamou o Stop!', timerRanOut: 'tempo esgotado', scoresTitle: 'Pontuações', lbTitle: 'Classificação',
-    invited: 'Foste convidado a jogar!', rulesBtn: 'Como se joga?', expBtn: '⚗️ FUNÇÕES EXPERIMENTAIS', aiValidation: '🤖 Assistente IA', aiRelajado: '🟢 Relaxada', aiEstricto: '🔴 Estrita', aiSpelling: '✏️ Permitir erros ortográficos', aiYes: 'Sim', aiNo: 'Não', modeHost: '👑 Normal', modeDemocratic: '🗳️ Democrático', invalidated: 'anulada', winnerLine: '{emoji} {name} ganha com {pts} pontos!', wrongPwd: '❌ Palavra-passe incorreta', expActivated: '⚗️ Funções experimentais ativadas', qjCodeLabel: 'sala:', gcInside: '✅ ESTÁS DENTRO', inviteMore: '+ Queres convidar alguém?', getReady: 'PREPARADOS',
-    toastBack: 'A voltar como', notFoundWord: '📭 Nao encontrado', didYouMean: 'Quiseste dizer', noDefinition: '📭 Sem definicao para',
-    waMsg: 'Joga Stop! comigo 🎮 Junta-te aqui:',
-    createSub: 'MULTIJOGADOR · COM FAMÍLIA E AMIGOS', configLabel: '⚙️ Configuração', leaveRoom2: 'Sair da sala',
-    dailySub: 'TU CONTRA O MUNDO · UM DESAFIO POR DIA',
-    rulesTitle: 'Regras do jogo',
-    shellLeave: 'Sair do jogo?',
-    shellLeaveConfirm: 'Vais perder o teu progresso nesta ronda.',
-    shellLeaveYes: 'Sair', shellLeaveNo: 'Continuar a jogar',
-    toastRoomCopied: 'Link copiado!',
-  },
   it: {
     tagline: 'il gioco di sempre, con chi vuoi bene',
     yourName: 'il tuo nome', namePlaceholder: 'Maria...',
@@ -1548,8 +1406,6 @@ function dailyRulesHTML() {
     es: { h: 'Reto diario', r1: 'Una letra y 6 categorías fijas, iguales para todo el mundo cada día', r2: 'Rellena todas las categorías con palabras que empiecen por esa letra — ¡lo más rápido posible!', r3: 'El asistente IA valida cada respuesta — en el reto diario su decisión es definitiva', s: 'Puntuación:', u: 'Respuesta válida', spd: 'Bonus por velocidad', orig: 'Bonus por originalidad (respuesta única entre todos)', e: 'Respuesta inválida o en blanco' },
     en: { h: 'Daily challenge', r1: 'One letter and 6 fixed categories, the same for everyone each day', r2: 'Fill all categories with words starting with that letter — as fast as you can!', r3: 'The AI assistant validates each answer — in the daily challenge its decision is final', s: 'Scoring:', u: 'Valid answer', spd: 'Speed bonus', orig: 'Originality bonus (unique answer among all players)', e: 'Invalid or blank answer' },
     fr: { h: 'Défi du jour', r1: 'Une lettre et 6 catégories fixes, identiques pour tout le monde chaque jour', r2: 'Remplis toutes les catégories avec des mots commençant par cette lettre — le plus vite possible!', r3: "L'assistant IA valide chaque réponse — dans le défi du jour sa décision est définitive", s: 'Points:', u: 'Réponse valide', spd: 'Bonus de vitesse', orig: "Bonus d'originalité (réponse unique parmi tous les joueurs)", e: 'Réponse invalide ou vide' },
-    de: { h: 'Tagesrätsel', r1: 'Ein Buchstabe und 6 feste Kategorien, täglich für alle gleich', r2: 'Fülle alle Kategorien mit Wörtern aus die mit diesem Buchstaben beginnen — so schnell wie möglich!', r3: 'Der KI-Assistent validiert jede Antwort — beim Tagesrätsel ist seine Entscheidung endgültig', s: 'Punkte:', u: 'Gültige Antwort', spd: 'Geschwindigkeitsbonus', orig: 'Originalitätsbonus (einmalige Antwort unter allen Spielern)', e: 'Ungültige oder leere Antwort' },
-    pt: { h: 'Desafio diário', r1: 'Uma letra e 6 categorias fixas, iguais para toda a gente cada dia', r2: 'Preenche todas as categorias com palavras que comecem por essa letra — o mais rápido possível!', r3: 'O assistente IA valida cada resposta — no desafio diário a sua decisão é definitiva', s: 'Pontuação:', u: 'Resposta válida', spd: 'Bónus de velocidade', orig: 'Bónus de originalidade (resposta única entre todos os jogadores)', e: 'Resposta inválida ou em branco' },
     it: { h: 'Sfida del giorno', r1: 'Una lettera e 6 categorie fisse, uguali per tutti ogni giorno', r2: 'Riempi tutte le categorie con parole che iniziano con quella lettera — il più veloce possibile!', r3: "L'assistente IA convalida ogni risposta — nella sfida del giorno la sua decisione è definitiva", s: 'Punteggio:', u: 'Risposta valida', spd: 'Bonus velocità', orig: 'Bonus originalità (risposta unica tra tutti i giocatori)', e: 'Risposta non valida o vuota' },
   };
   const r = d[LANG] || d.es;
@@ -1571,8 +1427,6 @@ function rulesHTML() {
     es: { h: 'Reglas del juego', r1: 'Se elige una letra al azar para cada ronda', r2: 'Rellena todas las categorías con palabras que empiecen por esa letra — ¡lo más rápido posible!', r3: 'El primero en terminar pulsa ¡Alto! para terminar la ronda', s: 'Puntuación:', u: 'Respuesta única', d: 'Respuesta repetida', e: 'Sin respuesta', penalty: '⚠️ Si pulsas ¡Alto! y todas tus respuestas son inválidas, pierdes puntos como penalización.' },
     en: { h: 'How to play', r1: 'A random letter is chosen for each round', r2: 'Fill all categories with words starting with that letter — as fast as you can!', r3: 'The first to finish taps Stop! to end the round', s: 'Scoring:', u: 'Unique answer', d: 'Duplicate answer', e: 'No answer', penalty: '⚠️ If you tap Stop! and all your answers are invalid, you lose points as a penalty.' },
     fr: { h: 'Règles du jeu', r1: 'Une lettre aléatoire est choisie pour chaque manche', r2: 'Remplis toutes les catégories avec des mots commençant par cette lettre — le plus vite possible!', r3: 'Le premier à finir appuie sur Stop! pour terminer la manche', s: 'Points:', u: 'Réponse unique', d: 'Réponse en double', e: 'Sans réponse', penalty: "⚠️ Si tu appuies sur Stop! et que toutes tes réponses sont invalides, tu perds des points en pénalité." },
-    de: { h: 'Spielregeln', r1: 'Für jede Runde wird ein zufälliger Buchstabe gewählt', r2: 'Fülle alle Kategorien mit Wörtern aus die mit diesem Buchstaben beginnen — so schnell wie möglich!', r3: 'Der Erste der fertig ist drückt Stop! um die Runde zu beenden', s: 'Punkte:', u: 'Einmalige Antwort', d: 'Doppelte Antwort', e: 'Keine Antwort', penalty: '⚠️ Wenn du Stop! drückst und alle deine Antworten ungültig sind, verlierst du Punkte als Strafe.' },
-    pt: { h: 'Regras do jogo', r1: 'É escolhida uma letra aleatória para cada ronda', r2: 'Preenche todas as categorias com palavras que comecem por essa letra — o mais rápido possível!', r3: 'O primeiro a terminar prime ¡Alto! para terminar a ronda', s: 'Pontuação:', u: 'Resposta única', d: 'Resposta repetida', e: 'Sem resposta', penalty: '⚠️ Se premires ¡Alto! e todas as tuas respostas forem inválidas, perdes pontos como penalização.' },
     it: { h: 'Regole del gioco', r1: 'Viene scelta una lettera casuale per ogni round', r2: 'Riempi tutte le categorie con parole che iniziano con quella lettera — il più veloce possibile!', r3: 'Il primo a finire preme Stop! per terminare il round', s: 'Punteggio:', u: 'Risposta unica', d: 'Risposta ripetuta', e: 'Senza risposta', penalty: '⚠️ Se premi Stop! e tutte le tue risposte sono invalide, perdi punti come penalità.' },
   };
   const r = rules[LANG] || rules.es;
@@ -1653,36 +1507,6 @@ function helpHTML() {
       t5: '🎮 Groupe',
       b5: "L'hôte tape un nom de groupe (ex. 'Les Dupont'). Vos parties et victoires sont sauvegardées sous ce nom. Utilisez toujours le même pour accumuler l'historique!",
       btnLabel: '▲ ❓ Aide — fonctions avancées',
-    },
-    de: {
-      t1: '🔍 Antworten überprüfen',
-      b1: 'Nach jeder Runde überprüft der Gastgeber alle Antworten:',
-      l1: ['📖 Definition auf Wikipedia nachschlagen', '🤖 KI-Assistent befragen — sein Urteil ist ein Hinweis, der Gastgeber entscheidet', '👍👎 Spieler stimmen über jede Antwort ab', '✕ Der Gastgeber kann eine Antwort manuell ungültig machen'],
-      t2: '🗳️ Demokratischer Modus',
-      b2: 'Statt dass der Gastgeber alleine entscheidet, stimmen die Spieler 👍👎. Wenn die Mehrheit dagegen stimmt, wird die Antwort automatisch ungültig.',
-      t3: '🤖 KI-Assistent',
-      b3: 'Der Gastgeber aktiviert den KI-Assistenten. Sein Urteil ist ein Hinweis — der Gastgeber hat immer das letzte Wort.',
-      l3: ['🟢 Locker — Grenzfälle und kreative Antworten akzeptiert', '🔴 Streng — nur klare und eindeutige Antworten akzeptiert', '✏️ Rechtschreibfehler — aktivieren wenn ihr nachsichtiger mit der Schreibweise sein wollt'],
-      t4: '🏆 Bestenliste',
-      b4: 'Ihre Gruppe sammelt Siege über alle Spiele hinweg. Die globale Bestenliste vergleicht Sie mit Spielern weltweit.',
-      t5: '🎮 Gruppe',
-      b5: 'Der Gastgeber gibt einen Gruppennamen ein (z.B. "Die Müllers"). Ihre Spiele und Siege werden unter diesem Namen gespeichert. Benutzen Sie immer denselben!',
-      btnLabel: '▲ ❓ Hilfe — erweiterte Funktionen',
-    },
-    pt: {
-      t1: '🔍 Rever respostas',
-      b1: 'Depois de cada ronda o anfitrião revê todas as respostas:',
-      l1: ['📖 Procura a definição na Wikipedia', '🤖 Consulta o assistente IA — a sua opinião é orientativa, o anfitrião decide', '👍👎 Os jogadores votam em cada resposta', '✕ O anfitrião pode anular uma resposta manualmente'],
-      t2: '🗳️ Modo democrático',
-      b2: 'Em vez do anfitrião decidir sozinho, os jogadores votam 👍👎. Se a maioria votar contra, a resposta é automaticamente anulada.',
-      t3: '🤖 Assistente IA',
-      b3: 'O anfitrião ativa o assistente IA. A sua opinião é orientativa — o anfitrião tem sempre a última palavra.',
-      l3: ['🟢 Relaxada — respostas criativas e borderline aceites', '🔴 Estrita — apenas respostas claras e indiscutíveis aceites', '✏️ Erros ortográficos — ativa se quiserem ser mais permissivos com a escrita'],
-      t4: '🏆 Classificação',
-      b4: 'O teu grupo acumula vitórias em todas as partidas. A classificação global compara-te com jogadores de todo o mundo.',
-      t5: '🎮 Grupo',
-      b5: 'O anfitrião escreve um nome de grupo (ex. "Os Silva"). As tuas partidas e vitórias ficam guardadas sob esse nome. Usa sempre o mesmo para acumular histórico!',
-      btnLabel: '▲ ❓ Ajuda — funções avançadas',
     },
     it: {
       t1: '🔍 Rivedere le risposte',
@@ -1766,7 +1590,7 @@ window.applyLang = function() {
   s('btn-leave-text', t('leaveRoom2') || t('leaveRoom'));
   s('btn-config-label', t('configLabel'));
   s('gc-status', t('gcInside'));
-  s('lbl-validation-mode', '🗳️ ' + {'es':'Modo de validación','en':'Validation mode','fr':'Mode de validation','de':'Abstimmungsmodus','pt':'Modo de validação','it':'Modalità di convalida'}[LANG]);
+  s('lbl-validation-mode', '🗳️ ' + {'es':'Modo de validación','en':'Validation mode','fr':'Mode de validation','it':'Modalità di convalida'}[LANG]);
   s('mode-host', t('modeHost'));
   s('mode-democratic', t('modeDemocratic'));
   s('lbl-ai-validation-text', t('aiValidation'));
@@ -2095,12 +1919,10 @@ function mulberry32(seed) {
 const DAILY_CONSENSUS = false;
 
 const DAILY_CATS = {
-  es: ['País','Ciudad','Animal','Fruta','Color','Profesión','Objeto','Comida/Plato','Deporte','Instrumento musical','Marca comercial','Animal marino','Árbol','Flor','Insecto','Pez','Ave/Pájaro'],
-  en: ['Country','City','Animal','Fruit','Colour','Profession','Object','Food/Dish','Sport','Musical instrument','Brand','Sea animal','Tree','Flower','Insect','Fish','Bird'],
-  fr: ['Pays','Ville','Animal','Fruit','Couleur','Profession','Objet','Aliment/Plat','Sport','Instrument de musique','Marque','Animal marin','Arbre','Fleur','Insecte','Poisson','Oiseau'],
-  de: ['Land','Stadt','Tier','Frucht','Farbe','Beruf','Gegenstand','Essen/Gericht','Sport','Musikinstrument','Marke','Meerestier','Baum','Blume','Insekt','Fisch','Vogel'],
-  pt: ['País','Cidade','Animal','Fruta','Cor','Profissão','Objeto','Comida/Prato','Desporto','Instrumento musical','Marca','Animal marinho','Árvore','Flor','Inseto','Peixe','Ave/Pássaro'],
-  it: ['Paese','Città','Animale','Frutto','Colore','Professione','Oggetto','Cibo/Piatto','Sport','Strumento musicale','Marca','Animale marino','Albero','Fiore','Insetto','Pesce','Uccello'],
+  es: ['País','Ciudad','Animal','Fruta','Color','Profesión','Objeto','Comida/Plato','Deporte','Instrumento musical','Nombre de persona','Medio de transporte','Árbol','Flor','Prenda de ropa','Ave/Pájaro','Cosa que encuentras en la cocina'],
+  en: ['Country','City','Animal','Fruit','Colour','Profession','Object','Food/Dish','Sport','Musical instrument','Person name','Means of transport','Tree','Flower','Clothing item','Bird','Thing you find in the kitchen'],
+  fr: ['Pays','Ville','Animal','Fruit','Couleur','Profession','Objet','Aliment/Plat','Sport','Instrument de musique','Prénom','Moyen de transport','Arbre','Fleur','Vêtement','Oiseau','Cosa en la cocina (FR)'],
+  it: ['Paese','Città','Animale','Frutto','Colore','Professione','Oggetto','Cibo/Piatto','Sport','Strumento musicale','Nome di persona','Mezzo di trasporto','Albero','Fiore','Capo di abbigliamento','Uccello','Cosa che si trova in cucina'],
 };
 
 // Get today's date key YYYY-MM-DD
@@ -2468,14 +2290,14 @@ window.dailySubmit = async function() {
 // Build system + user prompts for daily validation
 function dailyBuildPromptWithWord(word, category, letter) {
   const [sys, _] = dailyBuildPrompt(category, letter);
-  const langNames = {es:'Spanish',en:'English',fr:'French',de:'German',pt:'Portuguese',it:'Italian'};
+  const langNames = {es:'Spanish',en:'English',fr:'French',it:'Italian'};
   const gameLang = langNames[LANG] || 'Spanish';
   const userPrompt = `${gameLang} word game. Letter: "${letter}". Category: "${category}". Answer: "${word}". Does the answer start with "${letter}" and genuinely belong to the category? Reply ONE word only: VALIDO, INVALIDO, or DUDOSO.`;
   return [sys, userPrompt];
 }
 
 function dailyBuildPrompt(category, letter) {
-  const langNames = {es:'Spanish',en:'English',fr:'French',de:'German',pt:'Portuguese',it:'Italian'};
+  const langNames = {es:'Spanish',en:'English',fr:'French',it:'Italian'};
   const gameLang = langNames[LANG] || 'Spanish';
   const systemPrompt = `You are a fair and balanced judge of a ${gameLang}-language word game. Rules: (1) Ignore accents and tildes — Ramon=Ramón is fine. (2) Accept borderline, regional, informal, and less common but genuinely real answers. Reject made-up or unverifiable answers. (3) Brands are international — accept in any language if well-known. All other answers must be in ${gameLang}. (4) Spelling must be correct (accents/tildes excepted) — misspelled words are INVALIDO. (5) VALIDO for real correctly-spelled answers even if uncommon. INVALIDO for clearly wrong, made-up, or misspelled answers. DUDOSO when genuinely uncertain whether something exists.`;
   const userPrompt = gameLang + ' word game. Letter: "' + letter + '". Category: "' + category + '". Does the answer start with "' + letter + '" and genuinely belong to the category? Reply ONE word only: VALIDO, INVALIDO, or DUDOSO.';
@@ -2768,22 +2590,6 @@ const DAILY_LABELS = {
     noResults: 'Pas encore de résultats', errorLb: 'Erreur de chargement',
     speedLabel: 'vitesse', baseLabel: 'base', origLabel: 'originalité', sep: '· · ·',
   },
-  de: {
-    yourAnswers: 'deine Antworten', leaderboard: 'Tagesrangliste',
-    lbNote: 'Rangliste in Echtzeit', backHome: '← Zurück',
-    dailySubmitBtn: 'Stop! →', dailyPlayLabel: 'Tagesrätsel',
-    refreshBtn: '↻ aktualisieren', validating: 'Wird geprüft…',
-    noResults: 'Noch keine Ergebnisse', errorLb: 'Fehler beim Laden',
-    speedLabel: 'Tempo', baseLabel: 'Basis', origLabel: 'Originalität', sep: '· · ·',
-  },
-  pt: {
-    yourAnswers: 'as tuas respostas', leaderboard: 'classificação do dia',
-    lbNote: 'classificação em tempo real', backHome: '← Voltar',
-    dailySubmitBtn: 'Alto! →', dailyPlayLabel: 'Desafio diário',
-    refreshBtn: '↻ atualizar', validating: 'A validar…',
-    noResults: 'Sem resultados ainda', errorLb: 'Erro ao carregar',
-    speedLabel: 'velocidade', baseLabel: 'base', origLabel: 'originalidade', sep: '· · ·',
-  },
   it: {
     yourAnswers: 'le tue risposte', leaderboard: 'classifica del giorno',
     lbNote: 'classifica in tempo reale', backHome: '← Torna alla home',
@@ -2833,11 +2639,9 @@ function getDailyDateString() {
     const suffix = s[(v-20)%10] || s[v] || s[0];
     // Capitalise month
     return month.charAt(0).toUpperCase() + month.slice(1) + ' ' + day + suffix;
-  } else if (LANG === 'de') {
-    return day + '. ' + month.charAt(0).toUpperCase() + month.slice(1);
   } else {
-    // es, fr, pt, it: "2 de septiembre" / "2 septembre" / "2 settembre"
-    const ofWord = { es:' de ', fr:' ', pt:' de ', it:' ', de:'. ' };
+    // es, fr, it: "2 de septiembre" / "2 septembre" / "2 settembre"
+    const ofWord = { es:' de ', fr:' ', it:' ' };
     return day + (ofWord[LANG]||' de ') + month;
   }
 }
@@ -2851,7 +2655,7 @@ function updateDailyButtonDate() {
   const key = getDailyKey();
   const played = !!localStorage.getItem('alto_daily_' + key);
 
-  const labels = { es:'Reto diario', en:'Daily challenge', fr:'Défi du jour', de:'Tagesrätsel', pt:'Desafio diário', it:'Sfida del giorno' };
+  const labels = { es:'Reto diario', en:'Daily challenge', fr:'Défi du jour', it:'Sfida del giorno' };
   const doneLabels = {
     es:'✅ Ya jugaste hoy · Ver puntuación',
     en:'✅ Already played · See score',
@@ -3438,7 +3242,7 @@ function clearGuestDictResults() {
 }
 
 // ── Dictionary / Wikipedia lookup ────────────────
-const WIKI_LANG = { es:'es', en:'en', fr:'fr', de:'de', pt:'pt', it:'it' };
+const WIKI_LANG = { es:'es', en:'en', fr:'fr', it:'it' };
 
 // Fast fetch with timeout
 async function fetchWT(url, ms=4000) {
@@ -3701,7 +3505,7 @@ window.askAI = async (word, category, letter, key) => {
   result.className = 'ai-result';
   result.innerHTML = '';
 
-  const langNames = {es:'Spanish',en:'English',fr:'French',de:'German',pt:'Portuguese',it:'Italian'};
+  const langNames = {es:'Spanish',en:'English',fr:'French',it:'Italian'};
   const gameLang = langNames[LANG] || 'Spanish';
   const spellingRule = G_aiSpelling
     ? '(6) Minor spelling mistakes and phonetic spellings are acceptable as long as the intended word is clear.'
@@ -4742,7 +4546,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260908.12</div>
+  <div style="font-size:9px;opacity:0.5">v260908.14</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
@@ -4762,8 +4566,6 @@ tryRestore();
       <option value="es">🇪🇸 ES</option>
       <option value="en">🇬🇧 EN</option>
       <option value="fr">🇫🇷 FR</option>
-      <option value="de">🇩🇪 DE</option>
-      <option value="pt">🇧🇷 PT</option>
       <option value="it">🇮🇹 IT</option>
     </select>
     <!-- AI toggle -->
