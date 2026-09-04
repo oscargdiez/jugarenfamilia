@@ -3791,8 +3791,17 @@ window.quickJoin = async () => {
     [`players/${name}`]: G.playerEmoji,
     [`scores/${name}`]: room.scores?.[name] ?? 0
   });
+  saveSession();
   subscribe(code);
-  enterLobby(room);
+  // Route to correct screen based on current phase
+  const phase = room.phase;
+  if (phase === 'lobby') enterLobby(room);
+  else if (phase === 'countdown') startCountdown(room);
+  else if (phase === 'playing') enterPlaying(room);
+  else if (phase === 'validate') { showGuestValidation(room); applyVotesAndReactions(room, false); if (room.aiResults) applyAIResults(room.aiResults); }
+  else if (phase === 'scores') showScores(room);
+  else if (phase === 'final') showFinal(room);
+  else enterLobby(room);
 };
 
 // ── Translate quick join screen ───────────────────────
@@ -4681,7 +4690,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260908.35-tmp</div>
+  <div style="font-size:9px;opacity:0.5">v260908.36-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
