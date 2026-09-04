@@ -289,6 +289,21 @@ Full audit — 15 bugs fixed. Room cleanup, collision-safe codes, stop caller ba
 **v260908.6:** Guest refresh skips quickjoin when saved session matches URL room code — goes straight to welcome-back flow
 **v260908.7:** quickJoinRoom now calls saveSession() + routes by room phase (not always enterLobby) — fixes guest rejoining mid-game going to wrong screen
 
+**v260908.8–v260908.14 additions:**
+- Daily leaderboard: tap row to expand answers accordion (with chevron indicator)
+- Daily leaderboard: saves aiResults to Firebase on submit, shows ✅/❌ per answer
+- Language flags (🇪🇸🇬🇧🇫🇷🇮🇹) shown on player chips, scores, final screen
+- Daily categories overhauled: dropped Marca comercial/Animal marino/Pez/Insecto, added Nombre de persona/Medio de transporte/Prenda de ropa/Cosa en la cocina (then further refined)
+- Dropped German (DE) and Portuguese (PT) — 4 languages remain: ES, EN, FR, IT — 14KB saved
+
+**Next session — category system overhaul (PRIORITY):**
+- Paste in the category table JSON from the prompt sent to another chat
+- Implement letter-aware category picker: each category declares which letters it supports
+- Group-aware picker: max one category per group per day (no Nombre de mujer + Nombre de hombre same day)
+- Remove DE and PT from game category data (done) and from the new category table
+
+**Category table prompt:** saved in handoff — send to a fresh Claude chat to generate the JSON table before next session.
+
 **Session 8 full summary:**
 - Floating timer numbers: spawn from left/right edges, accelerate 7s→1s as time runs out, single spawn at round start
 - Round timer bug fixed: roundStartTime:null written in startGame/nextRound/playAgain + stale guard in enterPlaying
@@ -328,7 +343,7 @@ Full audit — 15 bugs fixed. Room cleanup, collision-safe codes, stop caller ba
 - Partially worked but iOS still misbehaved in edge cases; rolled back
 - Floating timer numbers chosen as pragmatic solution — immune to the iOS keyboard bug
 
-**Last version deployed: v260908.7**
+**Last version deployed: v260908.14**
 
 ### Session 7 (Sep 3)
 **Validation screen layout fix:**
@@ -386,7 +401,7 @@ Full audit — 15 bugs fixed. Room cleanup, collision-safe codes, stop caller ba
 - Democratic mode: minimum 2 players guard (1 player = host can self-invalidate)
 - Tie display before all votes in (now shows nothing until all voted — may want "N/M votado" indicator)
 
-**Last version deployed: v260908.7**
+**Last version deployed: v260908.14**
 
 Additional changes in final deploys (v260908.1):
 - Democratic mode moved above AI assistant in config section
