@@ -491,6 +491,8 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
 .daily-lb-row.daily-lb-me { background: var(--red-light); border: 1.5px solid var(--red); }
 .daily-lb-row { cursor: pointer; }
 .daily-lb-row.expanded { border-radius: var(--radius) var(--radius) 0 0; margin-bottom: 0; }
+.daily-lb-chevron { font-size: 10px; color: var(--ink-muted); transition: transform 0.2s; flex-shrink: 0; }
+.daily-lb-row.expanded .daily-lb-chevron { transform: rotate(90deg); }
 .daily-lb-answers {
   display: none; background: var(--paper);
   border: 1px solid var(--border); border-top: none;
@@ -2454,6 +2456,7 @@ window.dailySubmit = async function() {
       name: displayName,
       baseScore, totalScore, originality: 0,
       answers: answersObj,
+      aiResults: aiResults,
       timestamp: Date.now()
     });
     G_daily.playerKey = playerKey;
@@ -2632,9 +2635,11 @@ function renderLeaderboard(allScores) {
     if (!e.answers || !cats.length) return '';
     const rows = cats.map((cat, i) => {
       const val = e.answers[i] || '';
+      const ai = e.aiResults ? e.aiResults[i] : null;
+      const aiIcon = ai === 'VALIDO' ? ' ✅' : ai === 'INVALIDO' ? ' ❌' : '';
       return `<div class="daily-lb-answer-row">
         <span class="daily-lb-answer-cat">${cat}</span>
-        <span class="daily-lb-answer-val${val ? '' : ' empty'}">${val || '—'}</span>
+        <span class="daily-lb-answer-val${val ? '' : ' empty'}">${val || '—'}${aiIcon}</span>
       </div>`;
     }).join('');
     return `<div class="daily-lb-answers" id="daily-ans-${idx}">${rows}</div>`;
@@ -2647,7 +2652,7 @@ function renderLeaderboard(allScores) {
       <span class="daily-lb-rank">${medals[i] || (i+1)}</span>
       <span class="daily-lb-name">${e.name}</span>
       <span class="daily-lb-score">${e.totalScore} pts</span>
-      ${orig}
+      ${orig}<span class="daily-lb-chevron">▶</span>
     </div>${buildAnswerPanel(e, i)}`;
   }).join('');
 
@@ -2661,7 +2666,7 @@ function renderLeaderboard(allScores) {
       <span class="daily-lb-rank">${myIdx+1}</span>
       <span class="daily-lb-name">${me.name}</span>
       <span class="daily-lb-score">${me.totalScore} pts</span>
-      ${orig}
+      ${orig}<span class="daily-lb-chevron">▶</span>
     </div>${buildAnswerPanel(me, 'me')}`;
   }
 
@@ -4737,7 +4742,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260908.9</div>
+  <div style="font-size:9px;opacity:0.5">v260908.12</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
