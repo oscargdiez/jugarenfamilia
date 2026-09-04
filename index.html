@@ -2623,6 +2623,10 @@ function renderLeaderboard(allScores) {
   const myIdx = entries.findIndex(e => e.name.trim() === myName.trim());
   const isInTop10 = myIdx >= 0 && myIdx < 10;
 
+  // Ensure categories are available even when leaderboard viewed after session
+  if (!G_daily.categories || !G_daily.categories.length) {
+    try { const s = getDailySetup(); G_daily.categories = getDailyCatNames(s.indices); } catch(e) {}
+  }
   const cats = G_daily.categories || [];
   function buildAnswerPanel(e, idx) {
     if (!e.answers || !cats.length) return '';
@@ -4733,7 +4737,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260908.8</div>
+  <div style="font-size:9px;opacity:0.5">v260908.9</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
