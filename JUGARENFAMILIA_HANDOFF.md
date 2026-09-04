@@ -222,7 +222,7 @@ assert len(c) < 300000
 - ~~**Fixed shell layout**~~ — BUILT in Session 6. See session log.
 - ~~**Timer visibility on mobile**~~ — resolved by fixed shell
 - **Help/Rules icon during game** — now always accessible via ? button in shell header
-- **iOS layout refactor — PRIORITY for Session 8** — replace `position:fixed` shell header with a true fixed layout using `html, body { height:100%; overflow:hidden }` + inner scrollable content div. This eliminates the iOS Safari keyboard viewport resize bug where the page jumps and the shell header shifts when the keyboard opens during gameplay.
+- **iOS layout refactor — still open (Session 9+)** — replace `position:fixed` shell header with a true fixed layout using `html, body { height:100%; overflow:hidden }` + inner scrollable content div. This eliminates the iOS Safari keyboard viewport resize bug where the page jumps and the shell header shifts when the keyboard opens during gameplay.
 
   **Full spec:**
   - `html, body { height: 100%; overflow: hidden; margin: 0; }` — page never scrolls at body level
@@ -271,6 +271,64 @@ Quick join, guest lobby card, per-entry reactions/votes, Wikipedia lookups, flyi
 ### Session 3 (Aug 31)
 Full audit — 15 bugs fixed. Room cleanup, collision-safe codes, stop caller banner, AI fallback chain, timer on rejoin, democratic mode fixes, debug mode (14 screens)
 
+
+### Session 8 (Sep 8) — continued
+**Validation row overhaul:**
+- Emojis: trimmed to 5 — `👏 😂 😬 😱 🎯`, thumbs 👍👎 hidden in host mode (democratic only)
+- SVG book icon replaced with 📖 emoji everywhere (saved ~1.4KB)
+- Action buttons (📖 🤖 ✕) unified to fixed 32×32px squares, identical size
+- ✕ button now red border and text
+- Emoji centering fixed with inline-flex + equal padding
+- Subtitle text: normal mode `📖 Wikipedia · 🤖 IA · ✕ anular`, democratic `👍👎 votar · 📖 Wikipedia · 🤖 IA`
+- Fixed double 📖 bug in democratic mode subtitle
+
+**Production deploys this session:** v260908.1–v260908.6
+
+**v260908.4:** Guest AI button available in all modes (was democratic-only bug)
+**v260908.5:** Guest AI results broadcast to host; guest restores to validation screen on refresh (showGuestValidation instead of refreshGuestValidation)
+**v260908.6:** Guest refresh skips quickjoin when saved session matches URL room code — goes straight to welcome-back flow
+**v260908.7:** quickJoinRoom now calls saveSession() + routes by room phase (not always enterLobby) — fixes guest rejoining mid-game going to wrong screen
+
+**Session 8 full summary:**
+- Floating timer numbers: spawn from left/right edges, accelerate 7s→1s as time runs out, single spawn at round start
+- Round timer bug fixed: roundStartTime:null written in startGame/nextRound/playAgain + stale guard in enterPlaying
+- Validation row: 5 emojis (👏😂😬😱🎯), thumbs democratic-only, 📖 replaces SVG icon, 32×32 action buttons, ✕ red
+- Democratic mode: green/red/orange entry tinting, result badge icons only (✅❌🤝), result left of thumbs
+- AI verdicts: funny messages in 6 languages ("¡El robot cree que es válido!")
+- Guest AI button: now shows in all modes, results broadcast bidirectionally via Firebase
+- Restore/refresh: guests now restore correctly to validation screen in all paths (tryRestore, continueSession, quickJoinRoom)
+
+**v260908.3 additions:**
+- Democratic mode entry tinting: green=valid majority, red=invalid, orange=draw (no border-left, matches red style)
+- Vote buttons height 32px to match action buttons
+- Democratic result badge: icon only (✅ ❌ 🤝), no text — fits on iOS
+- Tie emoji changed to 🤝
+- Result badge renders left of thumbs so thumbs stay anchored right
+- AI funny verdicts: "¡El robot cree que es válido/inválido!" in all 6 languages
+- Fixed double 90s spawn at round start (guard before clearInterval)
+- Fixed democratic tinting bug (ups variable was undefined)
+
+### Session 8 (Sep 8)
+**Floating timer numbers:**
+- Replaced the shell header timer (which disappeared on iOS when keyboard opens) with floating timer numbers that drift upward from the screen edges
+- Uses `reactions-stage` (position:fixed) so immune to scroll/keyboard issues on iOS
+- Spawns on left and right edges (5-30% and 70-95% of viewport width), avoids center
+- Dynamic spawn rate: starts at 7s intervals, accelerates to 1s as time runs out
+- Initial float spawns immediately at round start showing full time
+- Pure linear animation (1.8s), no easing
+- Turns urgent (larger) at ≤10s, matches urgency pulse
+
+**Round timer bug fix:**
+- Rounds 2+ sometimes started from a low number (e.g. 7s) due to stale `roundStartTime` from previous round in Firebase
+- Fixed: `roundStartTime:null` now explicitly written in `nextRound`, `startGame`, and `playAgain`
+- Added guard in `enterPlaying`: if elapsed >= maxSecs, treat as fresh start
+
+**iOS layout investigation:**
+- Attempted full refactor (`height:100%;overflow:hidden` + flex column + inner scroll container)
+- Partially worked but iOS still misbehaved in edge cases; rolled back
+- Floating timer numbers chosen as pragmatic solution — immune to the iOS keyboard bug
+
+**Last version deployed: v260908.7**
 
 ### Session 7 (Sep 3)
 **Validation screen layout fix:**
@@ -328,9 +386,9 @@ Full audit — 15 bugs fixed. Room cleanup, collision-safe codes, stop caller ba
 - Democratic mode: minimum 2 players guard (1 player = host can self-invalidate)
 - Tie display before all votes in (now shows nothing until all voted — may want "N/M votado" indicator)
 
-**Last version deployed: v260903.1**
+**Last version deployed: v260908.7**
 
-Additional changes in final deploys (v260903.1):
+Additional changes in final deploys (v260908.1):
 - Democratic mode moved above AI assistant in config section
 - AI on/off toggle removed — AI assistant always on; `setAIEnabled` is now a no-op stub that forces true
 - Validation screen subtitles update dynamically based on mode: democratic shows "📖 Wikipedia · 👍👎 votar" instead of "✕ anular"
