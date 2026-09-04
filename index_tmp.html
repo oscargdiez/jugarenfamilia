@@ -1158,6 +1158,7 @@ function getCustomCats() { return CUSTOM_CATS_ALL[LANG] || CUSTOM_CATS_ALL.es; }
 const THEMES = new Proxy({}, { get: (_, k) => getThemes()[k] });
 const CUSTOM_CATS = new Proxy([], { get: (_, k) => (getCustomCats())[k] });
 const MEDALS = ['🥇','🥈','🥉'];
+const LANG_FLAGS = {es:'🇪🇸', en:'🇬🇧', fr:'🇫🇷', de:'🇩🇪', pt:'🇧🇷', it:'🇮🇹'};
 
 // ── Translations ──────────────────────────────────
 const T = {
@@ -2875,7 +2876,7 @@ function subscribe(code) {
 
 function handleRoom(room) {
   if (G.screen === 'lobby') {
-    renderPlayers(room.players || {});
+    renderPlayers(room.players || {}, room.langs || {});
     if (room.phase === 'countdown') startCountdown(room);
     if (room.phase === 'playing') enterPlaying(room);
   }
@@ -2931,7 +2932,7 @@ window.createRoom = async () => {
   G.playerName = name; G.isHost = true; G.roomCode = await genUniqueCode();
   localStorage.setItem('alto_emoji', G.playerEmoji);
   const room = {
-    code:G.roomCode, host:name,
+    code:G.roomCode, host:name, langs:{[name]:LANG},
     players:{[name]:G.playerEmoji}, phase:'lobby',
     categories:G.selectedCats, rounds:5, timePerRound:60,
     currentRound:0, currentLetter:'',
@@ -2952,7 +2953,7 @@ window.joinRoom = async () => {
   const snap = await get(roomRef(code));
   if (!snap.exists()) { toast(t('toastNotFound')); return; }
   const room = snap.val();
-  await update(roomRef(code), {[`players/${name}`]:G.playerEmoji, [`scores/${name}`]:room.scores?.[name] ?? 0});
+  await update(roomRef(code), {[`players/${name}`]:G.playerEmoji, [`scores/${name}`]:room.scores?.[name] ?? 0, [`langs/${name}`]:LANG});
   saveSession(); subscribe(code); enterLobby(room);
 };
 
@@ -2990,12 +2991,12 @@ function enterLobby(room) {
     document.getElementById('host-panel').style.display = 'none';
     document.getElementById('guest-panel').style.display = 'block';
   }
-  renderPlayers(room.players || {});
+  renderPlayers(room.players || {}, room.langs || {});
 }
 
-function renderPlayers(players) {
+function renderPlayers(players, langs={}) {
   document.getElementById('lob-players').innerHTML =
-    Object.entries(players).map(([n,emoji]) => `<div class="chip ok"><span style="font-size:16px">${emoji||'🎲'}</span>${n}</div>`).join('');
+    Object.entries(players).map(([n,emoji]) => `<div class="chip ok"><span style="font-size:16px">${emoji||'🎲'}</span>${n}${langs[n]?' <span style="font-size:10px;opacity:0.7">'+( LANG_FLAGS[langs[n]]||'')+'</span>':''}</div>`).join('');
 }
 
 function buildThemePicker() {
@@ -3789,7 +3790,8 @@ window.quickJoin = async () => {
   G.isHost = false;
   await update(roomRef(code), {
     [`players/${name}`]: G.playerEmoji,
-    [`scores/${name}`]: room.scores?.[name] ?? 0
+    [`scores/${name}`]: room.scores?.[name] ?? 0,
+    [`langs/${name}`]: LANG
   });
   saveSession();
   subscribe(code);
@@ -4116,8 +4118,9 @@ function showScores(room) {
   document.getElementById('sc-badge').textContent = `— ${t('rndLabel')} ${room.currentRound} ${t('of')} ${room.rounds}`;
   const sorted = Object.entries(room.scores||{}).sort((a,b)=>b[1]-a[1]);
   const players = room.players||{};
+  const langs = room.langs||{};
   document.getElementById('sc-list').innerHTML = sorted.map(([n,pts],i) =>
-    `<div class="score-row"><span>${MEDALS[i]||''} ${players[n]||'🎲'} ${n}</span><span class="pts">${pts} pts</span></div>`
+    `<div class="score-row"><span>${MEDALS[i]||''} ${players[n]||'🎲'} ${n}${langs[n]?' '+(LANG_FLAGS[langs[n]]||''):''}</span><span class="pts">${pts} pts</span></div>`
   ).join('');
   let btns = '';
   if (G.isHost) {
@@ -4279,8 +4282,9 @@ function showFinal(room) {
     launchConfetti(wPlayers[sorted[0][0]]);
   }
   const fPlayers = room.players||{};
+  const fLangs = room.langs||{};
   document.getElementById('final-list').innerHTML = sorted.map(([n,pts],i) =>
-    `<div class="score-row"><span>${MEDALS[i]||''} ${fPlayers[n]||'🎲'} ${n}</span><span class="pts">${pts} pts</span></div>`
+    `<div class="score-row"><span>${MEDALS[i]||''} ${fPlayers[n]||'🎲'} ${n}${fLangs[n]?' '+(LANG_FLAGS[fLangs[n]]||''):''}</span><span class="pts">${pts} pts</span></div>`
   ).join('');
 }
 
@@ -4309,7 +4313,7 @@ window.continueSession = async () => {
   const snap = await get(roomRef(G.roomCode));
   if (!snap.exists()) { clearSession(); window.show('home'); return; }
   const room = snap.val();
-  await update(roomRef(G.roomCode), {[`players/${G.playerName}`]:G.playerEmoji, [`scores/${G.playerName}`]:room.scores?.[G.playerName]??0});
+  await update(roomRef(G.roomCode), {[`players/${G.playerName}`]:G.playerEmoji, [`scores/${G.playerName}`]:room.scores?.[G.playerName]??0, [`langs/${G.playerName}`]:LANG});
   subscribe(G.roomCode);
   const phase = room.phase;
   if (phase==='lobby') enterLobby(room);
@@ -4498,7 +4502,7 @@ window.dbg = function dbg(screen) {
       document.getElementById('host-panel').style.display = '';
       document.getElementById('guest-panel').style.display = 'none';
       document.getElementById('lob-role').textContent = 'anfitrión · sala DBUG';
-      renderPlayers(DBG.players);
+      renderPlayers(DBG.players, {});
       buildThemePicker();
       buildCatGrid();
       break;
@@ -4515,7 +4519,7 @@ window.dbg = function dbg(screen) {
       document.getElementById('gc-name').textContent = '__debug__';
       document.getElementById('gc-status') && (document.getElementById('gc-status').textContent = '✅ ESTÁS DENTRO');
       document.getElementById('share-url-guest') && (document.getElementById('share-url-guest').textContent = 'jugarenfamilia.es?room=DBUG');
-      renderPlayers(DBG.players);
+      renderPlayers(DBG.players, {});
       break;
 
     case 'playing':
@@ -4690,7 +4694,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260908.36-tmp</div>
+  <div style="font-size:9px;opacity:0.5">v260908.37-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
