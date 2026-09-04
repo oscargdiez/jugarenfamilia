@@ -359,6 +359,8 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
 .val-entry-votes { display: flex; flex-wrap: nowrap; gap: 3px; align-items: center; flex-shrink: 0; }
 .val-entry-right { display: flex; flex-wrap: nowrap; align-items: center; gap: 4px; flex-shrink: 0; margin-left: auto; }
 .val-entry.invalid { background: var(--red-light); }
+.val-entry.democratic-valid { background: #edf7f1; border-left: 3px solid #2d7a4a; }
+.val-entry.democratic-draw { background: #fef6e4; border-left: 3px solid #e67e22; }
 .val-entry.invalid .ans-disp { text-decoration: line-through; color: var(--ink-muted); }
 .val-entry.invalid .pts-badge { text-decoration: line-through; color: var(--ink-muted); }
 .ans-disp { flex: 1; min-width: 0; font-family: 'Caveat', cursive; font-size: 20px; overflow-wrap: break-word; word-break: break-word; hyphens: auto; }
@@ -3939,13 +3941,20 @@ function applyVotesAndReactions(room, isHost) {
     Object.entries(votes).forEach(([key, playerVotes]) => {
       const downs = Object.values(playerVotes).filter(v => v === 'down').length;
       const majorityAgainst = downs >= majority;
+      const majorityFor = ups >= majority;
+      const isDraw = !majorityFor && !majorityAgainst && (ups + downs) >= totalPlayers;
       const isCurrentlyInvalid = !!G.invalidAnswers[key];
+      const entry = document.getElementById('ve_' + key);
+      const ib = document.getElementById('ib_' + key);
+      // Update tint classes
+      if (entry) {
+        entry.classList.toggle('democratic-valid', majorityFor && !majorityAgainst);
+        entry.classList.toggle('democratic-draw', isDraw);
+      }
       if (majorityAgainst && !isCurrentlyInvalid) {
         // Majority voted against — invalidate
         G.invalidAnswers[key] = true;
         changed = true;
-        const entry = document.getElementById('ve_' + key);
-        const ib = document.getElementById('ib_' + key);
         if (entry) entry.classList.add('invalid');
         if (ib) ib.textContent = '↩';
       } else if (!majorityAgainst && isCurrentlyInvalid) {
@@ -3954,8 +3963,6 @@ function applyVotesAndReactions(room, isHost) {
         // takes precedence over manual when mode is active)
         G.invalidAnswers[key] = false;
         changed = true;
-        const entry = document.getElementById('ve_' + key);
-        const ib = document.getElementById('ib_' + key);
         if (entry) entry.classList.remove('invalid');
         if (ib) ib.textContent = '✕';
       }
@@ -4666,7 +4673,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260908.27-tmp</div>
+  <div style="font-size:9px;opacity:0.5">v260908.28-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
