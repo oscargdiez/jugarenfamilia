@@ -2215,7 +2215,7 @@ function dailyBuildPrompt(category, letter) {
 // Call a single specific model and return 'valid'|'invalid'|'unsure'
 async function dailyAICallModel(word, category, letter, model, systemPrompt, prompt) {
   try {
-    const response = await fetch('https://oscargonzalezdiez.com/api/ai-proxy.php', {
+    const response = await fetch('https://api.oscar-g-diez.workers.dev/', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -3413,7 +3413,7 @@ window.askAI = async (word, category, letter, key) => {
 
   try {
     const response = await fetch(
-      'https://oscargonzalezdiez.com/api/ai-proxy.php',
+      'https://api.oscar-g-diez.workers.dev/',
       {
         method: 'POST',
         headers: {
@@ -4438,7 +4438,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260908.16</div>
+  <div style="font-size:9px;opacity:0.5">v260908.17</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
