@@ -730,7 +730,6 @@ document.addEventListener('DOMContentLoaded', function() {
         <button class="lang-btn active" onclick="setLang('es')" title="Español">🇪🇸</button>
         <button class="lang-btn" onclick="setLang('en')" title="English">🇬🇧</button>
         <button class="lang-btn" onclick="setLang('fr')" title="Français">🇫🇷</button>
-        <button class="lang-btn" onclick="setLang('it')" title="Italiano">🇮🇹</button>
       </div>
     </div>
     <div id="shell-center">
@@ -1075,7 +1074,6 @@ const LETTERS_FULL = {
   es: 'ABCDEFGHIJKLMNÑOPQRSTUVWXYZ'.split(''),
   en: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split(''),
   fr: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split(''),
-  it: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split(''),
 };
 
 // Easy letters per language — drops letters that are genuinely hard for that language
@@ -1083,9 +1081,6 @@ const LETTERS_EASY = {
   es: 'ABCDEFGHIJLMNOPRSTV'.split(''),         // drop K Ñ Q U W X Y Z
   en: 'ABCDEFGHIJKLMNOPRSTV'.split(''),         // drop Q U W X Y Z (keep K)
   fr: 'ABCDEFGHIJLMNOPRSTV'.split(''),          // drop K Q U W X Y Z
-  de: 'ABCDEFGHIJKLMNOPRSTUVW'.split(''),       // drop Q X Y Z (keep K W — very common in German)
-  pt: 'ABCDEFGHIJLMNOPRSTV'.split(''),          // drop K Q U W X Y Z
-  it: 'ABCDEFGHILMNOPRSTV'.split(''),           // drop J K Q U W X Y Z (Italian barely uses them)
 };
 
 const THEMES_ALL = {
@@ -1122,24 +1117,12 @@ const THEMES_ALL = {
     '✏️ Catégories': null,
     '✍️ Libre':      'free',
   },
-  it: {
-    '🎲 Classico':   ['Nome','Cognome','Città','Paese','Animale','Objeto','Frutto','Colore'],
-    '🌍 Geografia':  ['Città','Paese','Capitale','Fiume','Montagna','Continente','Mare','Isola'],
-    '🎵 Musica':     ['Cantante','Canzone','Banda','Strumento','Genere','Album','Festival','Ballo'],
-    '🎬 Cinema':     ['Film','Serie','Attore','Attrice','Regista','Personaggio','Canale','Premio'],
-    '🍽️ Cucina':     ['Piatto','Frutto','Verdura','Bevanda','Dolce','Spezia','Ristorante','Paese'],
-    '🌱 Natura':     ['Animale','Pianta','Insetto','Uccello','Albero','Fiore','Mare','Montagna'],
-    '⚽ Sport':      ['Sport','Squadra','Giocatore','Paese','Stadio','Trofeo','Marca','Lega'],
-    '✏️ Categorie':  null,
-    '✍️ Libero':     'free',
-  },
 };
 
 const CUSTOM_CATS_ALL = {
   es: ['Nombre','Apellido','Ciudad','País','Animal','Objeto','Fruta','Color','Flor','Profesión','Comida','Marca','Deporte','Película'],
   en: ['Name','Surname','City','Country','Animal','Object','Fruit','Colour','Flower','Profession','Food','Brand','Sport','Film'],
   fr: ['Prénom','Nom','Ville','Pays','Animal','Objet','Fruit','Couleur','Fleur','Profession','Nourriture','Marque','Sport','Film'],
-  it: ['Nome','Cognome','Città','Paese','Animale','Objeto','Frutto','Colore','Fiore','Professione','Cibo','Marca','Sport','Film'],
 };
 
 function getThemes() { return THEMES_ALL[LANG] || THEMES_ALL.es; }
@@ -1149,7 +1132,7 @@ function getCustomCats() { return CUSTOM_CATS_ALL[LANG] || CUSTOM_CATS_ALL.es; }
 const THEMES = new Proxy({}, { get: (_, k) => getThemes()[k] });
 const CUSTOM_CATS = new Proxy([], { get: (_, k) => (getCustomCats())[k] });
 const MEDALS = ['🥇','🥈','🥉'];
-const LANG_FLAGS = {es:'🇪🇸', en:'🇬🇧', fr:'🇫🇷', it:'🇮🇹'};
+const LANG_FLAGS = {es:'🇪🇸', en:'🇬🇧', fr:'🇫🇷'};
 
 // ── Translations ──────────────────────────────────
 const T = {
@@ -1324,63 +1307,6 @@ const T = {
     shellLeaveYes: 'Quitter', shellLeaveNo: 'Continuer',
     toastRoomCopied: 'Lien copié!',
   },
-  it: {
-    tagline: 'il gioco di sempre, con chi vuoi bene',
-    yourName: 'il tuo nome', namePlaceholder: 'Maria...',
-    chooseEmoji: 'scegli la tua emoji',
-    createRoom: 'Crea stanza', join: 'Unisciti',
-    roomCode: 'codice stanza',
-    enter: 'Entra',
-    noReg: 'SENZA REGISTRAZIONE · SENZA DOWNLOAD · GRATIS',
-    shareCode: 'condividi questo codice con il tuo gruppo',
-    copyLink: 'Copia', wa: 'Condividi su WhatsApp',
-    players: 'giocatori', host: "Sei l'host",
-    waiting: "✏️ In attesa dell'host…",
-    groupName: 'nome del gruppo',
-    groupHint: 'famiglia, amici, colleghi... come volete',
-    groupPlaceholder: 'I Rossi, Amici del liceo...',
-    theme: 'tema', easyLetters: 'solo lettere facili',
-    rounds: 'round', seconds: 'secondi per round',
-    penalty: 'penalità Stop! non valido',
-    start: 'Inizia! →',
-    guestWait: "✏️ In attesa dell'host…",
-    letter: 'lettera', round: 'round', of: 'di', freeCatLabel: 'scrivi le tue categorie (una per riga)', freeCatPlaceholder: 'Giocatori del Barça\nFilm horror\nCose in cucina',
-    stop: '¡ A L T O !',
-    review: 'Revisione',
-    reviewSub: '✕ per annullare · unica = 100 · ripetuta = 50 · annullata = 0',
-    calculate: 'Calcola i punteggi →', stopCallerMsg: '{name} ha chiamato Stop!', timerRanOut: 'tempo scaduto',
-    submitted: 'Risposte inviate',
-    hostReviewing: "l'host sta revisionando",
-    scores: 'Punteggi', nextRound: 'Round successivo →',
-    endGame: 'Fine partita', hostWait: "In attesa dell'host…",
-    leaderboard: 'Classifica', myGroup: 'Il mio gruppo', world: 'Mondiale',
-    worldSub: 'i migliori giocatori del mondo',
-    noGroup: 'imposta un nome gruppo per vedere la classifica',
-    noGroupGlobal: 'Nessuna partita registrata.',
-    noGroupLocal: 'Nessuna partita per questo gruppo.',
-    endGame2: 'Fine del gioco!', playAgain: 'Gioca ancora',
-    leaveRoom: 'esci dalla stanza',
-    wins: 'vittorie', games: 'partite',
-    toastCopied: 'Link copiato!', toastNoGroup: 'Nessun nome gruppo',
-    toastPenalty: 'perde', toastPenaltySuffix: 'pt',
-    toastName: 'Scrivi prima il tuo nome',
-    toastCode: 'Il codice deve avere 4 lettere',
-    toastNotFound: 'Stanza non trovata. Controlla il codice.',
-    toastCats: 'Seleziona almeno una categoria',
-    toastFreeCats: 'Inserisci almeno 2 categorie',
-    toastHostOnly: "Solo l'host può ricominciare",
-    continueBtn: 'Continua →', notMe: 'Non sono io — cambia', groupHint2: 'famiglia, amici, lavoro... come volete', easyHint: '(senza J, K, Q, U, W, X, Y, Z)', validate: 'Revisione', validateSub1: '📖 Wikipedia · 🤖 IA · ✕ annulla', validateSub2: 'unica = 100 pts · ripetuta = 50 pts · annullata = 0 pts', submitted2: 'Risposte inviate', hostReviewing2: "l'host sta revisionando", leaderboardBack: '← indietro', loading: 'Caricamento…', final2: 'Fine del gioco!', searching: 'Ricerca...', hostSearching: "L'host sta cercando...", rndLabel: 'round', of: 'di', freeCatLabel: 'scrivi le tue categorie (una per riga)', freeCatPlaceholder: 'Giocatori del Barça\nFilm horror\nCose in cucina', of: 'of', freeCatLabel: 'write your categories (one per line)', freeCatPlaceholder: 'Football players\nHorror films\nThings in the kitchen', letterLabel: 'lettera', calculate: 'Calcola i punteggi →', stopCallerMsg: '{name} ha chiamato Stop!', timerRanOut: 'tempo scaduto', scoresTitle: 'Punteggi', lbTitle: 'Classifica',
-    invited: 'Sei stato invitato a giocare!', rulesBtn: 'Come si gioca?', expBtn: '⚗️ FUNZIONI SPERIMENTALI', aiValidation: '🤖 Assistente IA', aiRelajado: '🟢 Rilassata', aiEstricto: '🔴 Rigorosa', aiSpelling: '✏️ Permettere errori ortografici', aiYes: 'Sì', aiNo: 'No', modeHost: '👑 Normale', modeDemocratic: '🗳️ Democratico', invalidated: 'annullata', winnerLine: '{emoji} {name} vince con {pts} punti!', wrongPwd: '❌ Password errata', expActivated: '⚗️ Funzioni sperimentali attivate', qjCodeLabel: 'stanza:', gcInside: '✅ SEI DENTRO', inviteMore: '+ Vuoi invitare qualcuno?', getReady: 'PRONTI',
-    toastBack: 'Riconnessione come', notFoundWord: '📭 Non trovato', didYouMean: 'Intendevi', noDefinition: '📭 Nessuna definizione per',
-    waMsg: 'Gioca a Stop! con me 🎮 Unisciti qui:',
-    createSub: 'MULTIGIOCATORE · CON FAMIGLIA E AMICI', configLabel: '⚙️ Impostazioni', leaveRoom2: 'Esci dalla stanza',
-    dailySub: 'TU CONTRO IL MONDO · UNA SFIDA AL GIORNO',
-    rulesTitle: 'Regole del gioco',
-    shellLeave: 'Uscire dal gioco?',
-    shellLeaveConfirm: 'Perderai i progressi in questo round.',
-    shellLeaveYes: 'Esci', shellLeaveNo: 'Continua a giocare',
-    toastRoomCopied: 'Link copiato!',
-  },
 };
 
 let LANG = localStorage.getItem('alto_lang') || 'es';
@@ -1406,7 +1332,6 @@ function dailyRulesHTML() {
     es: { h: 'Reto diario', r1: 'Una letra y 6 categorías fijas, iguales para todo el mundo cada día', r2: 'Rellena todas las categorías con palabras que empiecen por esa letra — ¡lo más rápido posible!', r3: 'El asistente IA valida cada respuesta — en el reto diario su decisión es definitiva', s: 'Puntuación:', u: 'Respuesta válida', spd: 'Bonus por velocidad', orig: 'Bonus por originalidad (respuesta única entre todos)', e: 'Respuesta inválida o en blanco' },
     en: { h: 'Daily challenge', r1: 'One letter and 6 fixed categories, the same for everyone each day', r2: 'Fill all categories with words starting with that letter — as fast as you can!', r3: 'The AI assistant validates each answer — in the daily challenge its decision is final', s: 'Scoring:', u: 'Valid answer', spd: 'Speed bonus', orig: 'Originality bonus (unique answer among all players)', e: 'Invalid or blank answer' },
     fr: { h: 'Défi du jour', r1: 'Une lettre et 6 catégories fixes, identiques pour tout le monde chaque jour', r2: 'Remplis toutes les catégories avec des mots commençant par cette lettre — le plus vite possible!', r3: "L'assistant IA valide chaque réponse — dans le défi du jour sa décision est définitive", s: 'Points:', u: 'Réponse valide', spd: 'Bonus de vitesse', orig: "Bonus d'originalité (réponse unique parmi tous les joueurs)", e: 'Réponse invalide ou vide' },
-    it: { h: 'Sfida del giorno', r1: 'Una lettera e 6 categorie fisse, uguali per tutti ogni giorno', r2: 'Riempi tutte le categorie con parole che iniziano con quella lettera — il più veloce possibile!', r3: "L'assistente IA convalida ogni risposta — nella sfida del giorno la sua decisione è definitiva", s: 'Punteggio:', u: 'Risposta valida', spd: 'Bonus velocità', orig: 'Bonus originalità (risposta unica tra tutti i giocatori)', e: 'Risposta non valida o vuota' },
   };
   const r = d[LANG] || d.es;
   return `
@@ -1427,7 +1352,6 @@ function rulesHTML() {
     es: { h: 'Reglas del juego', r1: 'Se elige una letra al azar para cada ronda', r2: 'Rellena todas las categorías con palabras que empiecen por esa letra — ¡lo más rápido posible!', r3: 'El primero en terminar pulsa ¡Alto! para terminar la ronda', s: 'Puntuación:', u: 'Respuesta única', d: 'Respuesta repetida', e: 'Sin respuesta', penalty: '⚠️ Si pulsas ¡Alto! y todas tus respuestas son inválidas, pierdes puntos como penalización.' },
     en: { h: 'How to play', r1: 'A random letter is chosen for each round', r2: 'Fill all categories with words starting with that letter — as fast as you can!', r3: 'The first to finish taps Stop! to end the round', s: 'Scoring:', u: 'Unique answer', d: 'Duplicate answer', e: 'No answer', penalty: '⚠️ If you tap Stop! and all your answers are invalid, you lose points as a penalty.' },
     fr: { h: 'Règles du jeu', r1: 'Une lettre aléatoire est choisie pour chaque manche', r2: 'Remplis toutes les catégories avec des mots commençant par cette lettre — le plus vite possible!', r3: 'Le premier à finir appuie sur Stop! pour terminer la manche', s: 'Points:', u: 'Réponse unique', d: 'Réponse en double', e: 'Sans réponse', penalty: "⚠️ Si tu appuies sur Stop! et que toutes tes réponses sont invalides, tu perds des points en pénalité." },
-    it: { h: 'Regole del gioco', r1: 'Viene scelta una lettera casuale per ogni round', r2: 'Riempi tutte le categorie con parole che iniziano con quella lettera — il più veloce possibile!', r3: 'Il primo a finire preme Stop! per terminare il round', s: 'Punteggio:', u: 'Risposta unica', d: 'Risposta ripetuta', e: 'Senza risposta', penalty: '⚠️ Se premi Stop! e tutte le tue risposte sono invalide, perdi punti come penalità.' },
   };
   const r = rules[LANG] || rules.es;
   return `
@@ -1451,7 +1375,7 @@ window.toggleRules = () => {
 };
 
 window.updateRulesBtn = function() {
-  const labels = {es:'¿Cómo se juega?',en:'How to play?',fr:'Comment jouer?',de:'Wie spielt man?',pt:'Como se joga?',it:'Come si gioca?'};
+  const labels = {es:'¿Cómo se juega?',en:'How to play?',fr:'Comment jouer?'};
   const btn = document.getElementById('rules-btn');
   if (!btn) return;
   const isOpen = document.getElementById('rules-box').classList.contains('open');
@@ -1507,21 +1431,6 @@ function helpHTML() {
       t5: '🎮 Groupe',
       b5: "L'hôte tape un nom de groupe (ex. 'Les Dupont'). Vos parties et victoires sont sauvegardées sous ce nom. Utilisez toujours le même pour accumuler l'historique!",
       btnLabel: '▲ ❓ Aide — fonctions avancées',
-    },
-    it: {
-      t1: '🔍 Rivedere le risposte',
-      b1: "Dopo ogni round l'host rivede tutte le risposte:",
-      l1: ["📖 Cerca la definizione su Wikipedia", "🤖 Consulta l'assistente IA — il suo parere è indicativo, l'host decide", "👍👎 I giocatori votano ogni risposta", "✕ L'host può annullare una risposta manualmente"],
-      t2: '🗳️ Modalità democratica',
-      b2: "Invece che l'host decida da solo, i giocatori votano 👍👎. Se la maggioranza vota contro, la risposta viene automaticamente annullata.",
-      t3: '🤖 Assistente IA',
-      b3: "L'host attiva l'assistente IA. Il suo parere è indicativo — l'host ha sempre l'ultima parola.",
-      l3: ['🟢 Rilassata — risposte creative e borderline accettate', '🔴 Rigorosa — solo risposte chiare e indiscutibili accettate', '✏️ Errori ortografici — attiva se volete essere più permissivi con la scrittura'],
-      t4: '🏆 Classifica',
-      b4: 'Il tuo gruppo accumula vittorie in tutte le partite. La classifica globale ti confronta con giocatori di tutto il mondo.',
-      t5: '🎮 Gruppo',
-      b5: "L'host scrive un nome gruppo (es. 'I Rossi'). Le tue partite e vittorie vengono salvate sotto quel nome. Usa sempre lo stesso per accumulare storia!",
-      btnLabel: '▲ ❓ Aiuto — funzioni avanzate',
     },
   };
   const d = h[LANG] || h.es;
@@ -1590,7 +1499,7 @@ window.applyLang = function() {
   s('btn-leave-text', t('leaveRoom2') || t('leaveRoom'));
   s('btn-config-label', t('configLabel'));
   s('gc-status', t('gcInside'));
-  s('lbl-validation-mode', '🗳️ ' + {'es':'Modo de validación','en':'Validation mode','fr':'Mode de validation','it':'Modalità di convalida'}[LANG]);
+  s('lbl-validation-mode', '🗳️ ' + {'es':'Modo de validación','en':'Validation mode','fr':'Mode de validation'}[LANG]);
   s('mode-host', t('modeHost'));
   s('mode-democratic', t('modeDemocratic'));
   s('lbl-ai-validation-text', t('aiValidation'));
@@ -1640,14 +1549,14 @@ window.applyLang = function() {
   updateRulesBtn();
   // Guest confirmed status
   const gcStatus = document.getElementById('gc-status');
-  if (gcStatus) gcStatus.textContent = {es:'✅ ESTÁS DENTRO',en:'✅ YOU\'RE IN',fr:'✅ TU ES DEDANS',de:'✅ DU BIST DABEI',pt:'✅ ESTÁS DENTRO',it:'✅ SEI DENTRO'}[LANG] || '✅ ESTÁS DENTRO';
+  if (gcStatus) gcStatus.textContent = {es:'✅ ESTÁS DENTRO',en:'✅ YOU\'RE IN',fr:'✅ TU ES DEDANS'}[LANG] || '✅ ESTÁS DENTRO';
   // Invite toggle label
   const invBtn = document.getElementById('invite-toggle-btn');
   const invBox = document.getElementById('invite-box');
   if (invBtn && invBox) {
     const isOpen = invBox.classList.contains('open');
-    const labels = {es:'− Ocultar',en:'− Hide',fr:"− Masquer",de:'− Ausblenden',pt:'− Ocultar',it:'− Nascondi'};
-    const showLabels = {es:t('inviteMore'),en:t('inviteMore'),fr:t('inviteMore'),de:t('inviteMore'),pt:t('inviteMore'),it:t('inviteMore')};
+    const labels = {es:'− Ocultar',en:'− Hide',fr:"− Masquer"};
+    const showLabels = {es:t('inviteMore'),en:t('inviteMore'),fr:t('inviteMore')};
     invBtn.textContent = isOpen ? (labels[LANG]||labels.es) : (showLabels[LANG]||showLabels.es);
   }
   applyQuickJoinLang();
@@ -1674,8 +1583,8 @@ window.toggleInvite = () => {
   const guestUrl = document.getElementById('share-url-guest');
   const hostUrl = document.getElementById('share-url');
   if (guestUrl && hostUrl) guestUrl.textContent = hostUrl.textContent;
-  const labels = {es:'− Ocultar',en:'− Hide',fr:"− Masquer",de:'− Ausblenden',pt:'− Ocultar',it:'− Nascondi'};
-  const showLabels = {es:'+ ¿Quieres invitar a alguien más?',en:'+ Want to invite someone?',fr:"+ Inviter quelqu'un d'autre?",de:'+ Jemanden einladen?',pt:'+ Quer convidar alguém?',it:'+ Vuoi invitare qualcuno?'};
+  const labels = {es:'− Ocultar',en:'− Hide',fr:"− Masquer"};
+  const showLabels = {es:'+ ¿Quieres invitar a alguien más?',en:'+ Want to invite someone?',fr:"+ Inviter quelqu'un d'autre?"};
   if (btn) btn.textContent = isOpen ? (labels[LANG]||labels.es) : (showLabels[LANG]||showLabels.es);
 };
 
@@ -1784,7 +1693,7 @@ function prefillGroup() {
 }
 
 let G = {
-  roomCode:'', playerName:'', isHost:false,
+  roomCo, playerName:'', isHost:false,
   selectedCats:['Nombre','Apellido','Ciudad','País','Animal','Objeto','Fruta','Color'],
   selectedTheme:'🎲 Clásico',
   easyLetters:true,
@@ -1872,7 +1781,7 @@ window.shellHelpOpen = function() {
   const title    = document.getElementById('help-panel-title');
   const closeBtn = document.getElementById('help-panel-close');
   if (title) title.textContent = t('rulesTitle');
-  const closeLabels = {es:'Cerrar',en:'Close',fr:'Fermer',de:'Schließen',pt:'Fechar',it:'Chiudi'};
+  const closeLabels = {es:'Cerrar',en:'Close',fr:'Fermer'};
   if (closeBtn) closeBtn.textContent = closeLabels[LANG] || closeLabels.es;
   const isDailyScreen = ['daily-play','daily-result'].includes(G.screen);
   if (body) {
@@ -1922,7 +1831,6 @@ const DAILY_CATS = {
   es: ['País','Ciudad','Animal','Fruta','Color','Profesión','Objeto','Comida/Plato','Deporte','Instrumento musical','Nombre de persona','Medio de transporte','Árbol','Flor','Prenda de ropa','Ave/Pájaro','Cosa que encuentras en la cocina'],
   en: ['Country','City','Animal','Fruit','Colour','Profession','Object','Food/Dish','Sport','Musical instrument','Person name','Means of transport','Tree','Flower','Clothing item','Bird','Thing you find in the kitchen'],
   fr: ['Pays','Ville','Animal','Fruit','Couleur','Profession','Objet','Aliment/Plat','Sport','Instrument de musique','Prénom','Moyen de transport','Arbre','Fleur','Vêtement','Oiseau','Cosa en la cocina (FR)'],
-  it: ['Paese','Città','Animale','Frutto','Colore','Professione','Oggetto','Cibo/Piatto','Sport','Strumento musicale','Nome di persona','Mezzo di trasporto','Albero','Fiore','Capo di abbigliamento','Uccello','Cosa che si trova in cucina'],
 };
 
 // Get today's date key YYYY-MM-DD
@@ -2290,14 +2198,14 @@ window.dailySubmit = async function() {
 // Build system + user prompts for daily validation
 function dailyBuildPromptWithWord(word, category, letter) {
   const [sys, _] = dailyBuildPrompt(category, letter);
-  const langNames = {es:'Spanish',en:'English',fr:'French',it:'Italian'};
+  const langNames = {es:'Spanish',en:'English',fr:'French'};
   const gameLang = langNames[LANG] || 'Spanish';
   const userPrompt = `${gameLang} word game. Letter: "${letter}". Category: "${category}". Answer: "${word}". Does the answer start with "${letter}" and genuinely belong to the category? Reply ONE word only: VALIDO, INVALIDO, or DUDOSO.`;
   return [sys, userPrompt];
 }
 
 function dailyBuildPrompt(category, letter) {
-  const langNames = {es:'Spanish',en:'English',fr:'French',it:'Italian'};
+  const langNames = {es:'Spanish',en:'English',fr:'French'};
   const gameLang = langNames[LANG] || 'Spanish';
   const systemPrompt = `You are a fair and balanced judge of a ${gameLang}-language word game. Rules: (1) Ignore accents and tildes — Ramon=Ramón is fine. (2) Accept borderline, regional, informal, and less common but genuinely real answers. Reject made-up or unverifiable answers. (3) Brands are international — accept in any language if well-known. All other answers must be in ${gameLang}. (4) Spelling must be correct (accents/tildes excepted) — misspelled words are INVALIDO. (5) VALIDO for real correctly-spelled answers even if uncommon. INVALIDO for clearly wrong, made-up, or misspelled answers. DUDOSO when genuinely uncertain whether something exists.`;
   const userPrompt = gameLang + ' word game. Letter: "' + letter + '". Category: "' + category + '". Does the answer start with "' + letter + '" and genuinely belong to the category? Reply ONE word only: VALIDO, INVALIDO, or DUDOSO.';
@@ -2590,14 +2498,6 @@ const DAILY_LABELS = {
     noResults: 'Pas encore de résultats', errorLb: 'Erreur de chargement',
     speedLabel: 'vitesse', baseLabel: 'base', origLabel: 'originalité', sep: '· · ·',
   },
-  it: {
-    yourAnswers: 'le tue risposte', leaderboard: 'classifica del giorno',
-    lbNote: 'classifica in tempo reale', backHome: '← Torna alla home',
-    dailySubmitBtn: 'Stop! →', dailyPlayLabel: 'Sfida del giorno',
-    refreshBtn: '↻ aggiorna', validating: 'Convalida…',
-    noResults: 'Nessun risultato ancora', errorLb: 'Errore di caricamento',
-    speedLabel: 'velocità', baseLabel: 'base', origLabel: 'originalità', sep: '· · ·',
-  },
 };
 
 function dl() { return DAILY_LABELS[LANG] || DAILY_LABELS.es; }
@@ -2626,7 +2526,7 @@ window.toggleLobbyConfig = function() {
 // ── Daily challenge helpers ────────────────────────────
 function getDailyDateString() {
   const now = new Date();
-  const localeMap = { es:'es-ES', en:'en-GB', fr:'fr-FR', de:'de-DE', pt:'pt-BR', it:'it-IT' };
+  const localeMap = { es:'es-ES', en:'en-GB', fr:'fr-FR' };
   const locale = localeMap[LANG] || 'es-ES';
   // Day + month name, no year
   const day = now.getDate();
@@ -2641,7 +2541,7 @@ function getDailyDateString() {
     return month.charAt(0).toUpperCase() + month.slice(1) + ' ' + day + suffix;
   } else {
     // es, fr, it: "2 de septiembre" / "2 septembre" / "2 settembre"
-    const ofWord = { es:' de ', fr:' ', it:' ' };
+    const ofWord = { es:' de ', fr:' ' };
     return day + (ofWord[LANG]||' de ') + month;
   }
 }
@@ -2655,14 +2555,11 @@ function updateDailyButtonDate() {
   const key = getDailyKey();
   const played = !!localStorage.getItem('alto_daily_' + key);
 
-  const labels = { es:'Reto diario', en:'Daily challenge', fr:'Défi du jour', it:'Sfida del giorno' };
+  const labels = { es:'Reto diario', en:'Daily challenge', fr:'Défi du jour' };
   const doneLabels = {
     es:'✅ Ya jugaste hoy · Ver puntuación',
     en:'✅ Already played · See score',
-    fr:'✅ Déjà joué · Voir le score',
-    de:'✅ Bereits gespielt · Ergebnis sehen',
-    pt:'✅ Já jogaste hoje · Ver pontuação',
-    it:'✅ Già giocato · Vedi punteggio'
+    fr:'✅ Déjà joué · Voir le score'
   };
 
   const label = labels[LANG] || labels.es;
@@ -3242,7 +3139,7 @@ function clearGuestDictResults() {
 }
 
 // ── Dictionary / Wikipedia lookup ────────────────
-const WIKI_LANG = { es:'es', en:'en', fr:'fr', it:'it' };
+const WIKI_LANG = { es:'es', en:'en', fr:'fr' };
 
 // Fast fetch with timeout
 async function fetchWT(url, ms=4000) {
@@ -3505,7 +3402,7 @@ window.askAI = async (word, category, letter, key) => {
   result.className = 'ai-result';
   result.innerHTML = '';
 
-  const langNames = {es:'Spanish',en:'English',fr:'French',it:'Italian'};
+  const langNames = {es:'Spanish',en:'English',fr:'French'};
   const gameLang = langNames[LANG] || 'Spanish';
   const spellingRule = G_aiSpelling
     ? '(6) Minor spelling mistakes and phonetic spellings are acceptable as long as the intended word is clear.'
@@ -3565,9 +3462,9 @@ window.askAI = async (word, category, letter, key) => {
 
     const icon = cls === 'valid' ? '✅' : cls === 'invalid' ? '❌' : '🤔';
     const labelMap = {
-      valid:   {es:'¡El robot cree que es válido!',   en:'Robot thinks it\'s valid!',      fr:'Le robot pense que c\'est valide!', de:'Roboter meint: gültig!',       pt:'O robô acha que é válido!',    it:'Il robot pensa che sia valido!'},
-      invalid: {es:'¡El robot cree que es inválido!', en:'Robot thinks it\'s invalid!',    fr:'Le robot pense que c\'est invalide!', de:'Roboter meint: ungültig!',    pt:'O robô acha que é inválido!',  it:'Il robot pensa che sia invalido!'},
-      unsure:  {es:'¡El robot no está seguro!',       en:'Robot is not sure!',              fr:'Le robot n\'est pas sûr!',         de:'Roboter ist unsicher!',        pt:'O robô não tem certeza!',      it:'Il robot non è sicuro!'}
+      valid:   {es:'¡El robot cree que es válido!',   en:'Robot thinks it\'s valid!',      fr:'Le robot pense que c\'est valide!'},
+      invalid: {es:'¡El robot cree que es inválido!', en:'Robot thinks it\'s invalid!',    fr:'Le robot pense que c\'est invalide!'},
+      unsure:  {es:'¡El robot no está seguro!',       en:'Robot is not sure!',              fr:'Le robot n\'est pas sûr!'}
     };
     const label = (labelMap[cls]||labelMap.unsure)[LANG] || (labelMap[cls]||labelMap.unsure).es;
     const aiHtml = '🤖 ' + label;
@@ -3663,7 +3560,7 @@ function applyQuickJoinLang() {
   const tagline = document.getElementById('qj-tagline');
   if (tagline) tagline.textContent = t('tagline');
   const invited = document.getElementById('qj-invited');
-  if (invited) invited.textContent = {es:'¡Te han invitado a jugar!',en:"You've been invited to play!",fr:'Tu as été invité à jouer!',de:'Du wurdest eingeladen zu spielen!',pt:'Foste convidado a jogar!',it:'Sei stato invitato a giocare!'}[LANG] || '¡Te han invitado a jugar!';
+  if (invited) invited.textContent = {es:'¡Te han invitado a jugar!',en:"You've been invited to play!",fr:'Tu as été invité à jouer!'}[LANG] || '¡Te han invitado a jugar!';
   const nameLbl = document.getElementById('qj-name-lbl');
   if (nameLbl) nameLbl.textContent = t('yourName');
   const qjName = document.getElementById('qj-name');
@@ -3671,7 +3568,7 @@ function applyQuickJoinLang() {
   const emojiLbl = document.getElementById('qj-emoji-lbl');
   if (emojiLbl) emojiLbl.textContent = t('chooseEmoji') + ' ';
   const btn = document.getElementById('qj-btn');
-  if (btn) btn.textContent = {es:'¡Unirse a la sala! →',en:'Join the room! →',fr:'Rejoindre la salle! →',de:'Raum beitreten! →',pt:'Entrar na sala! →',it:'Unisciti alla stanza! →'}[LANG] || '¡Unirse a la sala! →';
+  if (btn) btn.textContent = {es:'¡Unirse a la sala! →',en:'Join the room! →',fr:'Rejoindre la salle! →'}[LANG] || '¡Unirse a la sala! →';
   const codeLabel = document.getElementById('qj-code-label');
   if (codeLabel) { const span = codeLabel.querySelector('span'); if (span) codeLabel.firstChild.textContent = t('qjCodeLabel') + ' '; }
 }
@@ -3694,8 +3591,8 @@ window.setValidationMode = (mode) => {
   const sub1 = document.getElementById('lbl-validate-sub1');
   const sub2 = document.getElementById('lbl-validate-sub2');
   if (mode === 'democratic') {
-    const s1 = {es:'👍👎 votar · 📖 Wikipedia · 🤖 IA', en:'👍👎 vote · 📖 Wikipedia · 🤖 AI', fr:'👍👎 voter · 📖 Wikipedia · 🤖 IA', de:'👍👎 abstimmen · 📖 Wikipedia · 🤖 KI', pt:'👍👎 votar · 📖 Wikipedia · 🤖 IA', it:'👍👎 vota · 📖 Wikipedia · 🤖 IA'}[LANG] || '👍👎 votar · 📖 Wikipedia · 🤖 IA';
-    const s2 = {es:'única = 100 pts · repetida = 50 pts · anulada = 0 pts', en:'unique = 100 pts · duplicate = 50 pts · invalid = 0 pts', fr:'unique = 100 pts · doublon = 50 pts · annulé = 0 pts', de:'einmalig = 100 Pkt · doppelt = 50 Pkt · ungültig = 0 Pkt', pt:'única = 100 pts · repetida = 50 pts · anulada = 0 pts', it:'unica = 100 pts · ripetuta = 50 pts · annullata = 0 pts'}[LANG] || 'única = 100 pts · repetida = 50 pts · anulada = 0 pts';
+    const s1 = {es:'👍👎 votar · 📖 Wikipedia · 🤖 IA', en:'👍👎 vote · 📖 Wikipedia · 🤖 AI', fr:'👍👎 voter · 📖 Wikipedia · 🤖 IA'}[LANG] || '👍👎 votar · 📖 Wikipedia · 🤖 IA';
+    const s2 = {es:'única = 100 pts · repetida = 50 pts · anulada = 0 pts', en:'unique = 100 pts · duplicate = 50 pts · invalid = 0 pts', fr:'unique = 100 pts · doublon = 50 pts · annulé = 0 pts'}[LANG] || 'única = 100 pts · repetida = 50 pts · anulada = 0 pts';
     if (sub1) sub1.textContent = s1;
     if (sub2) sub2.textContent = s2;
   } else {
@@ -3742,9 +3639,9 @@ function renderVotes(key, votes, mode, players, isHost) {
   let democraticResult = '';
   if (mode === 'democratic' && total > 0) {
     const majority = Math.floor(totalPlayers / 2) + 1;
-    const lblValid   = {es:'Válido',  en:'Valid',   fr:'Valide', de:'Gültig',   pt:'Válida',  it:'Valida' }[LANG]  || 'Válido';
-    const lblInvalid = {es:'Inválido',en:'Invalid', fr:'Invalide',de:'Ungültig',pt:'Inválida',it:'Invalida'}[LANG] || 'Inválido';
-    const lblTie     = {es:'Empate',  en:'Tie',     fr:'Égalité', de:'Unentschieden',pt:'Empate',it:'Pareggio'}[LANG] || 'Empate';
+    const lblValid   = {es:'Válido',  en:'Valid',   fr:'Valide'}[LANG]  || 'Válido';
+    const lblInvalid = {es:'Inválido',en:'Invalid', fr:'Invalide'}[LANG] || 'Inválido';
+    const lblTie     = {es:'Empate',  en:'Tie',     fr:'Égalité'}[LANG] || 'Empate';
     if (ups >= majority) democraticResult = '<span class="democratic-result valid">✅</span>';
     else if (downs >= majority) democraticResult = '<span class="democratic-result invalid">❌</span>';
     else if (total >= totalPlayers) democraticResult = '<span class="democratic-result tie">🤝</span>';
@@ -4546,7 +4443,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260908.14</div>
+  <div style="font-size:9px;opacity:0.5">v260908.15</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
@@ -4566,7 +4463,6 @@ tryRestore();
       <option value="es">🇪🇸 ES</option>
       <option value="en">🇬🇧 EN</option>
       <option value="fr">🇫🇷 FR</option>
-      <option value="it">🇮🇹 IT</option>
     </select>
     <!-- AI toggle -->
     <label style="color:#eee;font-size:10px;display:flex;align-items:center;gap:3px;cursor:pointer">
