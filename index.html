@@ -1911,7 +1911,8 @@ window.startDailyChallenge = function() {
     // Page was refreshed mid-game — reconstruct state
     try {
       const ipd = JSON.parse(inProgressData);
-      if (ipd.key === key && ipd.lang === LANG) {
+      const _expectedSetup = getDailySetup();
+      if (ipd.key === key && ipd.lang === LANG && ipd.letter === _expectedSetup.letter) {
         const elapsed = Math.floor((Date.now() - ipd.startTimestamp) / 1000);
         const remaining = Math.max(0, (ipd.totalSecs || 90) - elapsed);
         if (remaining > 0) {
@@ -1960,7 +1961,8 @@ window.startDailyChallenge = function() {
           G_daily.secsRemaining = 0; G_daily.totalSecs = ipd.totalSecs || 90;
           G_daily.submitted = false;
           localStorage.removeItem(inProgressKey);
-          dailySubmit();
+          // Delay to ensure Firebase module is fully initialised
+          setTimeout(() => dailySubmit(), 800);
           return;
         }
       }
@@ -1998,6 +2000,13 @@ window.startDailyChallenge = function() {
     }, 1000);
     return;
   }
+
+  // Clean up stale in-progress keys from previous days
+  Object.keys(localStorage).forEach(k => {
+    if (k.startsWith('alto_daily_inprogress_') && k !== 'alto_daily_inprogress_' + key) {
+      localStorage.removeItem(k);
+    }
+  });
 
   const setup = getDailySetup();
   G_daily.letter = setup.letter;
@@ -2160,10 +2169,12 @@ window.dailySubmit = async function() {
   const totalSecs = G_daily.totalSecs;
   const speedMultiplier = 1.0 + (secsLeft / totalSecs); // 1.0–2.0
   let validCount = 0;
+  let unsureCount = 0;
   G_daily.categories.forEach((cat, i) => {
     if (G_daily.answers[i] && aiResults[i] === 'valid') validCount++;
+    if (G_daily.answers[i] && aiResults[i] === 'unsure') unsureCount++;
   });
-  const baseScore = validCount * 10;
+  const baseScore = (validCount * 10) + (unsureCount * 5);
   const totalScore = Math.round(baseScore * speedMultiplier);
 
   // Resolve player name
@@ -4503,7 +4514,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260905.37</div>
+  <div style="font-size:9px;opacity:0.5">v260905.38</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
