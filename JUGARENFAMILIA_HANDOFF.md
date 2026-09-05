@@ -362,4 +362,6 @@ Typography overhaul: 6-slot system, Special Elite for UI chrome, Caveat for cont
 - All console.log removed (console.warn/error kept)
 - letter-spacing removed from .lbl and button (was non-decorative, against spec)
 
-**Last version deployed: v260905.76**
+- Defined missing CSS variables --success, --success-bg, --danger, --danger-bg in :root (were missing, causing black/transparent on vote buttons, AI results, democratic badges, daily pts)
+
+**Last version deployed: v260905.78**
