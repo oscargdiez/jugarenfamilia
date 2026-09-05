@@ -65,7 +65,7 @@ body {
   );
   overflow-y: scroll;
 }
-.page { max-width: 720px; margin: 0 auto; padding: 2rem 1.25rem 2rem; overflow: visible; }
+.page { max-width: 720px; margin: 0 auto; padding: 2rem 1.25rem 5rem; overflow: visible; }
 
 /* ── Typography ── */
 .caveat { font-family: 'Caveat', cursive; }
@@ -296,7 +296,7 @@ body.screen-home #shell-logo, body.screen-welcome #shell-logo { visibility: hidd
 body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex !important; position: absolute; left: 1.25rem; }
 
 /* Offset page content so it doesn't hide under shell header */
-.page { max-width: 720px; margin: 0 auto; padding: 2rem 1.25rem 2rem; overflow: visible; padding-top: calc(1rem + 50px); }
+.page { max-width: 720px; margin: 0 auto; padding: 2rem 1.25rem 5rem; overflow: visible; padding-top: calc(1rem + 50px); }
 
 /* ── Answer rows ── */
 .ans-grid { display: grid; gap: 4px; }
@@ -421,7 +421,8 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
 }
 
 /* ── Footer brand ── */
-.brand-footer { text-align: center; margin-top: 1rem; font-family: 'Special Elite', monospace; font-size:11px; color: var(--ink-muted); letter-spacing: 2px; }
+.brand-footer { text-align: center; margin-top: 2rem; font-family: 'Special Elite', monospace; font-size:11px; color: var(--ink-muted); letter-spacing: 2px; }
+body.screen-home .page, body.screen-welcome .page { padding-bottom: 2rem; }
 
 /* ── Group name dropdown ── */
 .group-suggestions { position: absolute; top: 100%; left: 0; right: 0; background: #f7f3e8; border: 1.5px solid var(--border-strong); border-top: none; border-radius: 0 0 4px 4px; z-index: 10; }
@@ -4512,7 +4513,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260905.61-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v260905.62-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
