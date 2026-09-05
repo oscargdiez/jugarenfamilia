@@ -70,14 +70,14 @@ body {
 /* ── Typography ── */
 .caveat { font-family: 'Special Elite', monospace; }
 h1 { font-family: 'Special Elite', monospace; font-size: 32px; font-weight: 700; color: var(--ink); margin-bottom: 2px; }
-.sub { font-family: 'Special Elite', monospace; font-size: 16px; color: var(--ink-sec); margin-bottom: 1.5rem; letter-spacing: 1px; }
+.sub { font-family: 'Special Elite', monospace; font-size: 16px; color: var(--ink-sec); margin-bottom: 1.5rem; }
 
 /* ── Logo ── */
 .logo-wrap { text-align: center; margin-bottom: 1.5rem; padding-top: 0.5rem; }
-.logo-main { font-family: 'Caveat', cursive; font-size: 79px; font-weight: 700; color: var(--red); line-height: 1; display: block; }
+.logo-main { font-family: 'Caveat', cursive; font-size: 79px; font-weight: 700; color: var(--red); display: block; }
 .logo-rule { width: 110px; height: 3px; background: var(--red); margin: 4px auto 6px; border-radius: 2px; }
-.logo-sub { font-family: 'Special Elite', monospace; font-size: 11px; color: var(--ink-sec); letter-spacing: 4px; }
-.logo-tag { font-family: 'Caveat', cursive; font-size: 15px; color: var(--ink-muted); margin-top: 4px; font-style: italic; }
+.logo-sub { font-family: 'Special Elite', monospace; font-size: 12px; color: var(--ink-sec); }
+.logo-tag { font-family: 'Caveat', cursive; font-size: 16px; color: var(--ink-muted); margin-top: 4px; font-style: italic; }
 
 /* ── Cards ── */
 .card {
@@ -100,10 +100,9 @@ h1 { font-family: 'Special Elite', monospace; font-size: 32px; font-weight: 700;
 /* ── Labels ── */
 .lbl {
   font-family: 'Special Elite', monospace;
-  font-size: 20px;
+  font-size: 22px;
   color: var(--ink-sec);
   margin-bottom: 6px;
-  letter-spacing: 0.5px;
 }
 
 /* ── Inputs ── */
@@ -129,7 +128,7 @@ textarea { resize: vertical; border: 1.5px solid var(--border); border-radius: v
 button {
   cursor: pointer;
   font-family: 'Special Elite', monospace;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
   border-radius: var(--radius);
   padding: 10px 20px;
@@ -137,7 +136,6 @@ button {
   background: transparent;
   color: var(--ink);
   transition: background .12s, opacity .12s;
-  letter-spacing: 0.5px;
 }
 button:hover { background: var(--paper-dark); }
 button:active { opacity: .8; }
@@ -153,10 +151,9 @@ button.stop-btn {
   background: var(--red);
   color: var(--paper);
   border-color: var(--red-dark);
-  font-size: 28px;
+  font-size: 26px;
   font-weight: 700;
   padding: 16px;
-  letter-spacing: 6px;
   margin-top: 12px;
 }
 button.stop-btn:hover { background: var(--red-dark); }
@@ -172,10 +169,8 @@ button.stop-btn:hover { background: var(--red-dark); }
   font-size: 56px;
   font-weight: 700;
   color: var(--red);
-  letter-spacing: 12px;
   text-align: center;
   padding: 0.5rem 0;
-  line-height: 1;
 }
 
 /* ── Big letter ── */
@@ -185,7 +180,6 @@ button.stop-btn:hover { background: var(--red-dark); }
   font-weight: 700;
   color: var(--red);
   text-align: center;
-  line-height: 1;
   padding: 0.25rem 0;
 }
 
@@ -198,7 +192,6 @@ button.stop-btn:hover { background: var(--red-dark); }
   text-align: left;
   display: inline-block;
   vertical-align: middle;
-  line-height: 1;
   position: relative;
   top: 6px;
 }
@@ -223,12 +216,12 @@ button.stop-btn:hover { background: var(--red-dark); }
 }
 #shell-logo {
   font-family: 'Special Elite', monospace; font-size: 26px; font-weight: 700;
-  color: var(--red); line-height: 1; text-decoration: none;
+  color: var(--red); text-decoration: none;
   cursor: pointer; border: none; background: none; padding: 0;
 }
 #shell-center {
   display: flex; align-items: center; gap: 8px;
-  font-family: 'Special Elite', monospace; font-size: 15px; color: var(--ink-sec);
+  font-family: 'Special Elite', monospace; font-size: 16px; color: var(--ink-sec);
   flex: 1; justify-content: center; min-width: 0; overflow: hidden;
   align-self: stretch;
 }
@@ -236,27 +229,27 @@ button.stop-btn:hover { background: var(--red-dark); }
   font-family: 'Special Elite', monospace; font-size: 22px; font-weight: 700;
   color: var(--red); background: var(--red-light);
   border: 1.5px solid var(--red); border-radius: 6px;
-  padding: 0px 8px; line-height: 1.4; display: none;
+  padding: 0px 8px; display: none;
 }
 #shell-round-info {
-  font-family: 'Special Elite', monospace; font-size: 15px; color: var(--ink-sec);
+  font-family: 'Special Elite', monospace; font-size: 16px; color: var(--ink-sec);
   display: none;
 }
 #shell-right {
   display: flex; align-items: center; gap: 6px; justify-content: flex-end;
 }
 #shell-room-pill {
-  font-family: 'Special Elite', monospace; font-size: 11px;
+  font-family: 'Special Elite', monospace; font-size: 12px;
   color: var(--ink-sec); background: var(--paper-dark);
   border: 1.5px solid var(--border); border-radius: 20px;
   padding: 3px 10px; display: none;
-  white-space: nowrap; letter-spacing: 1px;
+  white-space: nowrap;
 }
 #shell-help-btn {
-  font-size: 15px; padding: 3px 9px;
+  font-size: 16px; padding: 3px 9px;
   border: 1.5px solid var(--border-strong); border-radius: 4px;
   background: transparent; color: var(--ink-sec); cursor: pointer;
-  font-family: 'Special Elite', monospace; line-height: 1.3; letter-spacing: 0;
+  font-family: 'Special Elite', monospace;
 }
 #shell-help-btn:hover { background: var(--paper-dark); color: var(--ink); }
 
@@ -280,15 +273,14 @@ button.stop-btn:hover { background: var(--red-dark); }
   font-family: 'Special Elite', monospace; font-size: 26px; font-weight: 700; color: var(--ink);
 }
 #help-panel-close {
-  font-family: 'Special Elite', monospace; font-size: 13px;
+  font-family: 'Special Elite', monospace; font-size: 12px;
   padding: 5px 12px; border: 1.5px solid var(--border-strong);
   border-radius: 4px; background: transparent; color: var(--ink-sec); cursor: pointer;
-  letter-spacing: 1px;
 }
 
 /* Shell flags — sit at content left edge on home/welcome */
 #shell-flags { display: none; align-items: center; gap: 2px; }
-#shell-flags .lang-btn { font-size: 15px; padding: 2px 3px; border: 1.5px solid transparent; background: transparent; cursor: pointer; border-radius: 4px; opacity: 0.5; }
+#shell-flags .lang-btn { font-size: 16px; padding: 2px 3px; border: 1.5px solid transparent; background: transparent; cursor: pointer; border-radius: 4px; opacity: 0.5; }
 #shell-flags .lang-btn.active { opacity: 1; background: var(--paper-dark); border-color: var(--border-strong); }
 
 /* Hide shell logo on home/welcome — space reserved but invisible */
@@ -302,7 +294,7 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
 /* ── Answer rows ── */
 .ans-grid { display: grid; gap: 4px; }
 .ans-row { display: flex; align-items: flex-end; gap: 10px; padding-bottom: 2px; }
-.ans-lbl { font-family: 'Special Elite', monospace; font-size: 20px; color: var(--ink-sec); min-width: 90px; width: 110px; flex-shrink: 0; padding-bottom: 6px; }
+.ans-lbl { font-family: 'Special Elite', monospace; font-size: 22px; color: var(--ink-sec); min-width: 90px; width: 110px; flex-shrink: 0; padding-bottom: 6px; }
 .ans-inp { flex: 1; font-family: 'Special Elite', monospace; font-size: 26px; }
 
 /* ── Players ── */
@@ -310,7 +302,7 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
 .chip {
   display: flex; align-items: center; gap: 5px;
   padding: 4px 12px; border-radius: 20px;
-  font-family: 'Special Elite', monospace; font-size: 15px;
+  font-family: 'Special Elite', monospace; font-size: 16px;
   background: var(--paper-dark); border: 1.5px solid var(--border);
 }
 .chip.ok { background: var(--green-light); border-color: var(--green-border); color: var(--green); }
@@ -319,18 +311,18 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
 /* ── Themes ── */
 .themes { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px,1fr)); gap: 6px; margin-bottom: 10px; }
 .theme-btn {
-  padding: 7px 4px; font-family: 'Special Elite', monospace; font-size: 14px;
+  padding: 7px 4px; font-family: 'Special Elite', monospace; font-size: 16px;
   text-align: center; border-radius: var(--radius);
   border: 1.5px solid var(--border); background: var(--paper-dark);
   cursor: pointer; transition: all .15s; color: var(--ink);
 }
 .theme-btn.active { border-color: var(--red); background: var(--red-light); color: var(--red); font-weight: 700; }
 .cat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px,1fr)); gap: 6px; }
-.cat-lbl { display: flex; align-items: center; gap: 7px; font-family: 'Special Elite', monospace; font-size: 15px; color: var(--ink-sec); }
+.cat-lbl { display: flex; align-items: center; gap: 7px; font-family: 'Special Elite', monospace; font-size: 16px; color: var(--ink-sec); }
 
 /* ── Range ── */
 .range-row { display: flex; gap: 10px; align-items: center; }
-.range-val { font-family: 'Special Elite', monospace; font-size: 18px; font-weight: 700; min-width: 28px; text-align: right; color: var(--red); }
+.range-val { font-family: 'Special Elite', monospace; font-size: 16px; font-weight: 700; min-width: 28px; text-align: right; color: var(--red); }
 
 /* ── Share box ── */
 .share-box {
@@ -339,13 +331,13 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
   border: 1.5px dashed var(--border-strong);
   border-radius: var(--radius); padding: 8px 12px; margin-top: 8px;
 }
-.share-url { font-family: 'Special Elite', monospace; font-size: 11px; color: var(--red); word-break: break-all; }
+.share-url { font-family: 'Special Elite', monospace; font-size: 12px; color: var(--red); word-break: break-all; }
 
 /* ── Scores ── */
 .score-row {
   display: flex; justify-content: space-between; align-items: center;
   padding: 10px 0; border-bottom: 1px dashed var(--border);
-  font-family: 'Special Elite', monospace; font-size: 18px;
+  font-family: 'Special Elite', monospace; font-size: 16px;
 }
 .score-row:last-child { border-bottom: none; }
 .pts { color: var(--red); font-weight: 700; }
@@ -363,21 +355,21 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
 .val-entry.democratic-draw { background: #fef6e4; }
 .val-entry.invalid .ans-disp { text-decoration: line-through; color: var(--ink-muted); }
 .val-entry.invalid .pts-badge { text-decoration: line-through; color: var(--ink-muted); }
-.ans-disp { flex: 1; min-width: 0; font-family: 'Special Elite', monospace; font-size: 24px; overflow-wrap: break-word; word-break: break-word; hyphens: auto; }
-.pts-badge { font-family: 'Special Elite', monospace; font-size: 13px; color: var(--red); font-weight: 700; flex-shrink: 0; }
-.inv-btn { font-size: 17px; width: 32px; height: 32px; border-radius: var(--radius); border: 1.5px solid var(--red); background: transparent; color: var(--red); cursor: pointer; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; padding: 0; line-height: 1; }
+.ans-disp { flex: 1; min-width: 0; font-family: 'Special Elite', monospace; font-size: 22px; overflow-wrap: break-word; word-break: break-word; hyphens: auto; }
+.pts-badge { font-family: 'Special Elite', monospace; font-size: 12px; color: var(--red); font-weight: 700; flex-shrink: 0; }
+.inv-btn { font-size: 16px; width: 32px; height: 32px; border-radius: var(--radius); border: 1.5px solid var(--red); background: transparent; color: var(--red); cursor: pointer; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; padding: 0; }
 .inv-btn:hover { background: var(--red-light); border-color: var(--red); color: var(--red); }
 .val-entry.invalid .inv-btn { border-color: var(--red); color: var(--red); background: var(--red-light); }
-.val-name { font-family: 'Special Elite', monospace; font-size: 20px; color: var(--ink-sec); width: 100px; flex-shrink: 0; }
+.val-name { font-family: 'Special Elite', monospace; font-size: 22px; color: var(--ink-sec); width: 100px; flex-shrink: 0; }
 
 /* ── Leaderboard ── */
-.lb-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px dashed var(--border); font-family: 'Special Elite', monospace; font-size: 17px; }
+.lb-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px dashed var(--border); font-family: 'Special Elite', monospace; font-size: 16px; }
 .lb-row:last-child { border-bottom: none; }
-.lb-stats { display: flex; gap: 10px; font-size: 14px; color: var(--ink-sec); }
+.lb-stats { display: flex; gap: 10px; font-size: 16px; color: var(--ink-sec); }
 .lb-pts { color: var(--red); font-weight: 700; }
 
 /* ── Wait ── */
-.wait { font-family: 'Special Elite', monospace; font-size: 17px; color: var(--ink-sec); text-align: center; padding: 1.5rem 0; }
+.wait { font-family: 'Special Elite', monospace; font-size: 16px; color: var(--ink-sec); text-align: center; padding: 1.5rem 0; }
 
 /* ── Winner ── */
 .winner { font-family: 'Special Elite', monospace; font-size: 22px; text-align: center; padding: .5rem 0 1rem; color: var(--red); }
@@ -400,7 +392,6 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
   pointer-events: none;
   font-family: 'Special Elite', monospace;
   font-size: 36px;
-  line-height: 1;
   color: var(--red);
   animation: timerFloat 1.8s linear forwards;
   z-index: 996;
@@ -417,26 +408,26 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
   display: inline-block;
   border: 2px solid var(--red); border-radius: 4px;
   padding: 2px 8px; font-family: 'Special Elite', monospace;
-  font-size: 9px; color: var(--red); opacity: 0.5;
+  font-size: 12px; color: var(--red); opacity: 0.5;
   transform: rotate(-3deg); margin-left: 8px; vertical-align: middle;
 }
 
 /* ── Footer brand ── */
-.brand-footer { text-align: center; margin-top: 2rem; font-family: 'Special Elite', monospace; font-size: 10px; color: var(--ink-muted); letter-spacing: 2px; }
+.brand-footer { text-align: center; margin-top: 2rem; font-family: 'Special Elite', monospace; font-size: 12px; color: var(--ink-muted); }
 
 /* ── Group name dropdown ── */
 .group-suggestions { position: absolute; top: 100%; left: 0; right: 0; background: #f7f3e8; border: 1.5px solid var(--border-strong); border-top: none; border-radius: 0 0 4px 4px; z-index: 10; }
-.group-suggestion { padding: 8px 12px; font-family: 'Special Elite', monospace; font-size: 17px; color: var(--ink); cursor: pointer; border-bottom: 1px dashed var(--border); }
+.group-suggestion { padding: 8px 12px; font-family: 'Special Elite', monospace; font-size: 16px; color: var(--ink); cursor: pointer; border-bottom: 1px dashed var(--border); }
 .group-suggestion:last-child { border-bottom: none; }
 .group-suggestion:hover { background: var(--paper-dark); }
 .group-input-wrap { position: relative; }
 
 /* ── Dictionary lookup ── */
-.dict-btn { font-size: 15px; width: 32px; height: 32px; border-radius: var(--radius); border: 1.5px solid var(--border-strong); background: transparent; color: var(--ink-sec); cursor: pointer; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; padding: 0; line-height: 1; }
+.dict-btn { font-size: 16px; width: 32px; height: 32px; border-radius: var(--radius); border: 1.5px solid var(--border-strong); background: transparent; color: var(--ink-sec); cursor: pointer; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; padding: 0; }
 .dict-btn:hover { background: var(--accent-bg); border-color: var(--accent); color: var(--accent); }
-.dict-result { margin-top: 8px; padding: 8px 10px; background: var(--paper-dark); border-left: 3px solid var(--border-strong); border-radius: 0 var(--radius) var(--radius) 0; font-family: 'Special Elite', monospace; font-size: 15px; color: var(--ink-sec); line-height: 1.5; display: none; }
+.dict-result { margin-top: 8px; padding: 8px 10px; background: var(--paper-dark); border-left: 3px solid var(--border-strong); border-radius: 0 var(--radius) var(--radius) 0; font-family: 'Special Elite', monospace; font-size: 16px; color: var(--ink-sec); display: none; }
 .dict-result.show { display: block; }
-.dict-result .dict-word { font-size: 17px; font-weight: 700; color: var(--ink); margin-bottom: 4px; }
+.dict-result .dict-word { font-size: 16px; font-weight: 700; color: var(--ink); margin-bottom: 4px; }
 .dict-result .dict-loading { color: var(--ink-muted); font-style: italic; }
 .dict-result .dict-error { color: var(--danger); font-style: italic; }
 
@@ -444,7 +435,7 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
 /* ── Daily Challenge ── */
 #s-daily-play .daily-letter-badge {
   font-family: 'Special Elite', monospace; font-size: 80px; font-weight: 700;
-  color: var(--red); text-align: center; line-height: 1; margin: 0.5rem 0 1rem;
+  color: var(--red); text-align: center; margin: 0.5rem 0 1rem;
 }
 .daily-cat-row {
   display: flex; align-items: center; gap: 10px;
@@ -452,7 +443,7 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
 }
 .daily-cat-row:last-child { border-bottom: none; }
 .daily-cat-label {
-  font-family: 'Special Elite', monospace; font-size: 20px; color: var(--ink-sec);
+  font-family: 'Special Elite', monospace; font-size: 22px; color: var(--ink-sec);
   min-width: 100px; width: 120px; flex-shrink: 0;
 }
 .daily-cat-input {
@@ -475,26 +466,26 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
 }
 .daily-result-row:last-child { border-bottom: none; }
 .daily-result-cat { font-family: 'Special Elite', monospace; font-size: 16px; color: var(--ink-sec); width: 105px; flex-shrink: 0; }
-.daily-result-word { font-family: 'Special Elite', monospace; font-size: 20px; color: var(--ink); flex: 1; }
+.daily-result-word { font-family: 'Special Elite', monospace; font-size: 22px; color: var(--ink); flex: 1; }
 .daily-result-pts { font-family: 'Special Elite', monospace; font-size: 12px; color: var(--red); flex-shrink: 0; }
-.daily-result-ai { font-size: 14px; flex-shrink: 0; }
+.daily-result-ai { font-size: 16px; flex-shrink: 0; }
 .daily-lb-row {
   display: flex; align-items: center; gap: 8px;
   padding: 7px 10px; border-radius: var(--radius); margin-bottom: 4px;
   background: var(--paper-dark);
 }
-.daily-lb-rank { font-family: 'Special Elite', monospace; font-size: 13px; color: var(--ink-muted); width: 24px; flex-shrink: 0; }
-.daily-lb-name { font-family: 'Special Elite', monospace; font-size: 17px; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.daily-lb-score { font-family: 'Special Elite', monospace; font-size: 13px; color: var(--red); flex-shrink: 0; }
-.daily-lb-orig { font-family: 'Special Elite', monospace; font-size: 11px; color: var(--ink-muted); flex-shrink: 0; margin-left: 2px; }
-.daily-lb-speed { font-family: 'Special Elite', monospace; font-size: 11px; color: var(--ink-muted); flex-shrink: 0; margin-left: 4px; }
-.daily-lb-sep { text-align: center; font-family: 'Special Elite', monospace; font-size: 11px; color: var(--ink-muted); padding: 4px 0; letter-spacing: 2px; }
-.daily-lb-lang-btn { padding: 2px 3px; border: 1.5px solid transparent; background: transparent; cursor: pointer; border-radius: 4px; opacity: 0.45; line-height: 1; vertical-align: middle; }
+.daily-lb-rank { font-family: 'Special Elite', monospace; font-size: 12px; color: var(--ink-muted); width: 24px; flex-shrink: 0; }
+.daily-lb-name { font-family: 'Special Elite', monospace; font-size: 16px; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.daily-lb-score { font-family: 'Special Elite', monospace; font-size: 12px; color: var(--red); flex-shrink: 0; }
+.daily-lb-orig { font-family: 'Special Elite', monospace; font-size: 12px; color: var(--ink-muted); flex-shrink: 0; margin-left: 2px; }
+.daily-lb-speed { font-family: 'Special Elite', monospace; font-size: 12px; color: var(--ink-muted); flex-shrink: 0; margin-left: 4px; }
+.daily-lb-sep { text-align: center; font-family: 'Special Elite', monospace; font-size: 12px; color: var(--ink-muted); padding: 4px 0; }
+.daily-lb-lang-btn { padding: 2px 3px; border: 1.5px solid transparent; background: transparent; cursor: pointer; border-radius: 4px; opacity: 0.45; vertical-align: middle; }
 .daily-lb-lang-btn.active { opacity: 1; background: var(--paper-dark); border-color: var(--border-strong); }
 .daily-lb-row.daily-lb-me { background: var(--red-light); border: 1.5px solid var(--red); }
 .daily-lb-row { cursor: pointer; }
 .daily-lb-row.expanded { border-radius: var(--radius) var(--radius) 0 0; margin-bottom: 0; }
-.daily-lb-chevron { font-size: 10px; color: var(--ink-muted); transition: transform 0.2s; flex-shrink: 0; }
+.daily-lb-chevron { font-size: 12px; color: var(--ink-muted); transition: transform 0.2s; flex-shrink: 0; }
 .daily-lb-row.expanded .daily-lb-chevron { transform: rotate(90deg); }
 .daily-lb-answers {
   display: none; background: var(--paper);
@@ -508,13 +499,13 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
   padding: 3px 0; border-bottom: 1px dashed var(--border); gap: 8px;
 }
 .daily-lb-answer-row:last-child { border-bottom: none; }
-.daily-lb-answer-cat { font-family: 'Special Elite', monospace; font-size: 13px; color: var(--ink-muted); flex-shrink: 0; }
-.daily-lb-answer-val { font-family: 'Special Elite', monospace; font-size: 17px; color: var(--ink); flex: 1; text-align: left; }
+.daily-lb-answer-cat { font-family: 'Special Elite', monospace; font-size: 12px; color: var(--ink-muted); flex-shrink: 0; }
+.daily-lb-answer-val { font-family: 'Special Elite', monospace; font-size: 16px; color: var(--ink); flex: 1; text-align: left; }
 .daily-lb-answer-val.empty { color: var(--ink-muted); font-style: italic; font-size: 12px; }
-.daily-lb-answer-ai { font-size: 13px; flex-shrink: 0; min-width: 18px; text-align: center; }
-.daily-lb-answer-pts { font-family: 'Special Elite', monospace; font-size: 11px; color: var(--success); flex-shrink: 0; min-width: 24px; text-align: right; }
+.daily-lb-answer-ai { font-size: 12px; flex-shrink: 0; min-width: 18px; text-align: center; }
+.daily-lb-answer-pts { font-family: 'Special Elite', monospace; font-size: 12px; color: var(--success); flex-shrink: 0; min-width: 24px; text-align: right; }
 .daily-lb-answer-pts.zero { color: var(--ink-muted); }
-.daily-result-orig { font-family: 'Special Elite', monospace; font-size: 11px; color: var(--ink-muted); flex-shrink: 0; }
+.daily-result-orig { font-family: 'Special Elite', monospace; font-size: 12px; color: var(--ink-muted); flex-shrink: 0; }
 .daily-already-played { text-align: center; padding: 1.5rem 0; }
 .daily-already-score { font-family: 'Special Elite', monospace; font-size: 48px; font-weight: 700; color: var(--red); }
 
@@ -549,7 +540,6 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
 #countdown-number {
   font-family: 'Special Elite', monospace;
   font-size: clamp(120px, 35vw, 220px);
-  line-height: 1;
   color: var(--red);
   animation: cdPop 1s ease-out;
   animation-fill-mode: both;
@@ -564,12 +554,11 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
   font-family: 'Special Elite', monospace;
   font-size: 22px;
   color: var(--ink-muted);
-  letter-spacing: 2px;
   margin-top: 8px;
 }
 /* ── Confetti ── */
 .confetti-stage { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 998; overflow: hidden; }
-.confetti-piece { position: absolute; top: -20px; font-size: 18px; animation: confettiFall linear forwards; }
+.confetti-piece { position: absolute; top: -20px; font-size: 16px; animation: confettiFall linear forwards; }
 @keyframes confettiFall {
   0%   { transform: translateY(0) rotate(0deg) scale(1); opacity: 1; }
   80%  { opacity: 1; }
@@ -592,25 +581,25 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
 /* ── Per-entry reactions & voting ── */
 .entry-reactions { display: flex; align-items: center; gap: 3px; flex-wrap: wrap; margin-top: 3px; padding-top: 3px; }
 .entry-emoji-strip { display: flex; gap: 2px; align-items: center; }
-.entry-emoji-btn { font-size: 13px; padding: 3px 3px; border-radius: 4px; border: none; background: transparent; cursor: pointer; opacity: 0.4; transition: all .1s; line-height: 1; display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; }
+.entry-emoji-btn { font-size: 12px; padding: 3px 3px; border-radius: 4px; border: none; background: transparent; cursor: pointer; opacity: 0.4; transition: all .1s; display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; }
 .entry-emoji-btn:hover { opacity: 1; transform: scale(1.15); }
 .entry-emoji-btn.active { opacity: 1; background: var(--paper-dark); }
-.vote-btn { font-size: 14px; height: 32px; padding: 0 8px; border-radius: var(--radius); border: 1.5px solid var(--border); background: transparent; cursor: pointer; font-family: monospace; display: inline-flex; align-items: center; gap: 3px; transition: all .1s; }
+.vote-btn { font-size: 16px; height: 32px; padding: 0 8px; border-radius: var(--radius); border: 1.5px solid var(--border); background: transparent; cursor: pointer; font-family: monospace; display: inline-flex; align-items: center; gap: 3px; transition: all .1s; }
 .vote-btn:hover { background: var(--paper-dark); }
 .vote-btn.thumbs-up.voted { background: var(--success-bg); border-color: var(--success); color: var(--success); }
 .vote-btn.thumbs-down.voted { background: var(--danger-bg); border-color: var(--danger); color: var(--danger); }
-.vote-count { font-size: 10px; font-weight: 700; }
-.democratic-badge { font-size: 10px; font-family: 'Special Elite', monospace; color: var(--ink-muted); padding: 1px 5px; border-radius: 3px; border: 1px solid var(--border); }
-.democratic-result { font-size: 18px; font-weight: 700; padding: 2px 4px; border-radius: var(--radius); }
+.vote-count { font-size: 12px; font-weight: 700; }
+.democratic-badge { font-size: 12px; font-family: 'Special Elite', monospace; color: var(--ink-muted); padding: 1px 5px; border-radius: 3px; border: 1px solid var(--border); }
+.democratic-result { font-size: 16px; font-weight: 700; padding: 2px 4px; border-radius: var(--radius); }
 .democratic-result.valid { background: var(--success-bg); color: var(--success); }
 .democratic-result.invalid { background: var(--danger-bg); color: var(--danger); }
 .democratic-result.tie { background: var(--paper-dark); color: var(--ink-sec); }
 
 /* ── AI validation ── */
-.ai-btn { font-size: 15px; width: 32px; height: 32px; border-radius: var(--radius); border: 1.5px solid var(--border-strong); background: transparent; color: var(--ink-sec); cursor: pointer; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; padding: 0; line-height: 1; }
+.ai-btn { font-size: 16px; width: 32px; height: 32px; border-radius: var(--radius); border: 1.5px solid var(--border-strong); background: transparent; color: var(--ink-sec); cursor: pointer; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; padding: 0; }
 .ai-btn:hover { background: var(--paper-dark); }
 .ai-btn.loading { opacity: 0.6; cursor: wait; }
-.ai-result { margin-top: 6px; padding: 6px 10px; border-radius: var(--radius); font-family: 'Special Elite', monospace; font-size: 15px; line-height: 1.4; display: none; }
+.ai-result { margin-top: 6px; padding: 6px 10px; border-radius: var(--radius); font-family: 'Special Elite', monospace; font-size: 16px; display: none; }
 .ai-result.show { display: block; }
 .ai-result.valid { background: var(--success-bg); border-left: 3px solid var(--success); color: var(--success); }
 .ai-result.invalid { background: var(--danger-bg); border-left: 3px solid var(--danger); color: var(--danger); }
@@ -619,8 +608,8 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
 /* ── Reactions ── */
 .reactions-stage { position: fixed; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; z-index: 9999; overflow: visible; }
 .reaction-float { position: fixed; bottom: 80px; display: flex; flex-direction: column; align-items: center; gap: 3px; pointer-events: none; animation: entryFloat 3s linear forwards; transform-origin: center bottom; }
-.reaction-float .r-emoji { font-size: 22px; line-height: 1; }
-.reaction-float .r-name { font-family: 'Special Elite', monospace; font-size: 9px; color: var(--ink-sec); background: rgba(247,243,232,0.92); padding: 1px 5px; border-radius: 4px; white-space: nowrap; }
+.reaction-float .r-emoji { font-size: 22px; }
+.reaction-float .r-name { font-family: 'Special Elite', monospace; font-size: 12px; color: var(--ink-sec); background: rgba(247,243,232,0.92); padding: 1px 5px; border-radius: 4px; white-space: nowrap; }
 @keyframes entryFloat {
   0%   { transform: translateY(0) scale(1); opacity: 1; }
   70%  { transform: translateY(-260px) scale(1.1); opacity: 1; }
@@ -630,63 +619,62 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
 /* ── Guest lobby ── */
 .guest-confirmed { text-align: center; padding: 1rem 0; }
 .guest-confirmed .gc-emoji { font-size: 52px; margin-bottom: 6px; }
-.guest-confirmed .gc-name { font-family: 'Special Elite', monospace; font-size: 28px; font-weight: 700; color: var(--ink); }
-.guest-confirmed .gc-status { font-family: 'Special Elite', monospace; font-size: 13px; color: var(--success); margin-top: 4px; letter-spacing: 1px; }
-.invite-toggle { width: 100%; background: transparent; border: 1px dashed var(--border-strong); color: var(--ink-muted); font-family: 'Special Elite', monospace; font-size: 12px; padding: 8px; border-radius: var(--radius); cursor: pointer; margin-top: 8px; letter-spacing: 1px; }
+.guest-confirmed .gc-name { font-family: 'Special Elite', monospace; font-size: 26px; font-weight: 700; color: var(--ink); }
+.guest-confirmed .gc-status { font-family: 'Special Elite', monospace; font-size: 12px; color: var(--success); margin-top: 4px; }
+.invite-toggle { width: 100%; background: transparent; border: 1px dashed var(--border-strong); color: var(--ink-muted); font-family: 'Special Elite', monospace; font-size: 12px; padding: 8px; border-radius: var(--radius); cursor: pointer; margin-top: 8px; }
 .invite-toggle:hover { background: var(--paper-dark); }
 .invite-box { display: none; margin-top: 8px; }
 .invite-box.open { display: block; }
 
 /* ── Welcome back ── */
 .welcome-avatar { font-size: 48px; text-align: center; margin-bottom: 8px; }
-.welcome-name { font-family: 'Special Elite', monospace; font-size: 28px; font-weight: 700; text-align: center; color: var(--ink); margin-bottom: 4px; }
-.welcome-group { font-family: 'Special Elite', monospace; font-size: 12px; text-align: center; color: var(--ink-muted); margin-bottom: 20px; letter-spacing: 1px; }
+.welcome-name { font-family: 'Special Elite', monospace; font-size: 26px; font-weight: 700; text-align: center; color: var(--ink); margin-bottom: 4px; }
+.welcome-group { font-family: 'Special Elite', monospace; font-size: 12px; text-align: center; color: var(--ink-muted); margin-bottom: 20px; }
 
 /* ── Help ── */
 .help-section { margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px dashed var(--border); }
 .help-section:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-.help-title { font-family: 'Special Elite', monospace; font-size: 18px; font-weight: 700; color: var(--ink); margin-bottom: 6px; }
-.help-text { font-family: 'Special Elite', monospace; font-size: 13px; color: var(--ink-sec); line-height: 1.6; }
+.help-title { font-family: 'Special Elite', monospace; font-size: 16px; font-weight: 700; color: var(--ink); margin-bottom: 6px; }
+.help-text { font-family: 'Special Elite', monospace; font-size: 12px; color: var(--ink-sec); }
 .help-text li { margin-left: 16px; margin-bottom: 3px; }
 
 /* ── Rules ── */
-.rules-toggle { width: 100%; background: transparent; border: 1.5px dashed var(--border-strong); color: var(--ink-sec); font-size: 15px; padding: 10px; margin-bottom: 10px; font-family: 'Special Elite', monospace; letter-spacing: 1px; }
+.rules-toggle { width: 100%; background: transparent; border: 1.5px dashed var(--border-strong); color: var(--ink-sec); font-size: 16px; padding: 10px; margin-bottom: 10px; font-family: 'Special Elite', monospace; }
 .rules-toggle:hover { background: var(--paper-dark); }
 .rules-box { display: none; background: rgba(255,255,255,0.7); border: 1.5px solid var(--border); border-radius: 4px; padding: 1rem 1.25rem; margin-bottom: 1rem; border-left: 3px solid var(--red); }
 .rules-box.open { display: block; }
 .rules-step { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 12px; }
-.rules-icon { font-size: 24px; flex-shrink: 0; line-height: 1.3; }
-.rules-text { font-family: 'Special Elite', monospace; font-size: 17px; color: var(--ink); line-height: 1.4; }
+.rules-icon { font-size: 22px; flex-shrink: 0; }
+.rules-text { font-family: 'Special Elite', monospace; font-size: 16px; color: var(--ink); }
 .rules-scoring { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border-strong); }
 .rules-score-row { display: flex; justify-content: space-between; font-family: 'Special Elite', monospace; font-size: 16px; padding: 3px 0; }
 .rules-pts { color: var(--red); font-weight: 700; }
 
 /* ── Language picker ── */
 .lang-bar { display: flex; justify-content: flex-end; gap: 4px; margin-bottom: 1rem; }
-.lang-btn { font-size: 18px; padding: 4px 6px; border: 1.5px solid transparent; background: transparent; cursor: pointer; border-radius: 4px; opacity: 0.5; }
+.lang-btn { font-size: 16px; padding: 4px 6px; border: 1.5px solid transparent; background: transparent; cursor: pointer; border-radius: 4px; opacity: 0.5; }
 .lang-btn.active { opacity: 1; background: var(--paper-dark); border-color: var(--border-strong); }
 
 /* ── WhatsApp button ── */
-.wa-btn { width: 100%; background: #25D366; color: white; border-color: #1da851; font-size: 18px; padding: 12px; margin-top: 8px; border-radius: var(--radius); display: flex; align-items: center; justify-content: center; gap: 8px; }
+.wa-btn { width: 100%; background: #25D366; color: white; border-color: #1da851; font-size: 16px; padding: 12px; margin-top: 8px; border-radius: var(--radius); display: flex; align-items: center; justify-content: center; gap: 8px; }
 .wa-btn:hover { background: #1da851; }
 
 /* ── Emoji picker ── */
 .emoji-grid { display: grid; grid-template-columns: repeat(8,1fr); gap: 4px; margin-top: 8px; }
-.emoji-opt { font-size: 24px; text-align: center; padding: 6px 2px; border-radius: 6px; cursor: pointer; border: 2px solid transparent; box-sizing: border-box; }
+.emoji-opt { font-size: 22px; text-align: center; padding: 6px 2px; border-radius: 6px; cursor: pointer; border: 2px solid transparent; box-sizing: border-box; }
 .emoji-opt:hover { background: #f0efe9; border-color: #b8a890; }
 .emoji-opt.selected { border: 3px solid #c0392b; background: #fdf0ee; box-shadow: 0 0 0 2px #c0392b; }
-.emoji-display { font-size: 28px; display: inline-block; margin-left: 8px; vertical-align: middle; }
+.emoji-display { font-size: 26px; display: inline-block; margin-left: 8px; vertical-align: middle; }
 
 /* ── Leave link ── */
 .leave-link { text-align: center; margin-top: 1rem; }
-.leave-link button { font-size: 13px; color: var(--ink-muted); border: none; background: none; padding: 4px; font-family: 'Special Elite', monospace; }
+.leave-link button { font-size: 12px; color: var(--ink-muted); border: none; background: none; padding: 4px; font-family: 'Special Elite', monospace; }
 
 /* ── Config toggle ── */
 .config-toggle {
   width: 100%; background: transparent; border: 1.5px dashed var(--border-strong);
-  color: var(--ink-sec); font-family: 'Special Elite', monospace; font-size: 13px;
-  padding: 10px; border-radius: var(--radius); cursor: pointer;
-  letter-spacing: 1px; display: flex; align-items: center; justify-content: center; gap: 6px;
+  color: var(--ink-sec); font-family: 'Special Elite', monospace; font-size: 12px;
+  padding: 10px; border-radius: var(--radius); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
 }
 .config-toggle:hover { background: var(--paper-dark); }
 .config-body { display: none; margin-top: 8px; }
@@ -695,7 +683,7 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
 /* ── Styled leave button ── */
 .btn-leave-room {
   width: 100%; background: transparent; border: 1.5px solid var(--border);
-  color: var(--ink-sec); font-family: 'Special Elite', monospace; font-size: 17px;
+  color: var(--ink-sec); font-family: 'Special Elite', monospace; font-size: 16px;
   padding: 11px; border-radius: var(--radius); cursor: pointer; margin-top: 8px;
   display: flex; align-items: center; justify-content: center; gap: 6px;
 }
@@ -780,11 +768,11 @@ document.addEventListener('DOMContentLoaded', function() {
   <div class="card">
     <p class="lbl" id="qj-invited">¡Te han invitado a jugar!</p>
     <p class="lbl" id="qj-name-lbl" style="margin-top:12px">tu nombre</p>
-    <input type="text" id="qj-name" placeholder="María..." maxlength="20" autocomplete="nickname" inputmode="text" style="width:100%;margin-bottom:14px;font-size:18px">
+    <input type="text" id="qj-name" placeholder="María..." maxlength="20" autocomplete="nickname" inputmode="text" style="width:100%;margin-bottom:14px;font-size: 16px">
     <p class="lbl" id="qj-emoji-lbl">elige tu emoji <span class="emoji-display" id="qj-selected-emoji">🎲</span></p>
     <div class="emoji-grid" id="qj-emoji-grid"></div>
-    <button class="pri" onclick="quickJoin()" style="width:100%;font-size:20px;padding:14px;margin-top:14px" id="qj-btn">¡Unirse a la sala! →</button>
-    <p style="text-align:center;margin-top:12px;font-size:12px;font-family:'Special Elite',monospace;color:var(--ink-muted)" id="qj-code-label">sala: <span id="qj-room-code"></span></p>
+    <button class="pri" onclick="quickJoin()" style="width:100%;font-size: 22px;padding:14px;margin-top:14px" id="qj-btn">¡Unirse a la sala! →</button>
+    <p style="text-align:center;margin-top:12px;font-size: 12px;font-family:'Special Elite',monospace;color:var(--ink-muted)" id="qj-code-label">sala: <span id="qj-room-code"></span></p>
   </div>
 </div>
 
@@ -798,14 +786,14 @@ document.addEventListener('DOMContentLoaded', function() {
   </div>
   <div class="card">
     <p class="lbl" id="lbl-your-name">tu nombre</p>
-    <input type="text" id="inp-name" placeholder="María..." maxlength="20" autocomplete="nickname" inputmode="text" style="margin-bottom:14px;font-size:18px" oninput="localStorage.setItem('alto_name', this.value.trim())">
+    <input type="text" id="inp-name" placeholder="María..." maxlength="20" autocomplete="nickname" inputmode="text" style="margin-bottom:14px;font-size: 16px" oninput="localStorage.setItem('alto_name', this.value.trim())">
     <p class="lbl" id="lbl-choose-emoji">elige tu emoji <span class="emoji-display" id="selected-emoji">🎲</span></p>
     <div class="emoji-grid" id="emoji-grid"></div>
     <div style="margin-top:14px;display:flex;flex-direction:column;gap:8px">
-      <button class="pri" onclick="createRoom()" style="width:100%;font-size:20px;padding:14px" id="btn-create">Crear sala →</button>
-      <div style="font-family:'Special Elite',monospace;font-size:10px;color:var(--ink-muted);text-align:center;letter-spacing:1px;margin:-2px 0 2px" id="lbl-create-sub">MULTIJUGADOR · CON FAMILIA Y AMIGOS</div>
-      <button onclick="startDailyChallenge()" style="width:100%;font-size:18px;padding:12px;border-color:var(--border-strong)" id="btn-daily">📅 <span id="btn-daily-text">Reto diario · cargando…</span></button>
-      <div style="font-family:'Special Elite',monospace;font-size:10px;color:var(--ink-muted);text-align:center;letter-spacing:1px;margin:-2px 0 2px" id="lbl-daily-sub">TÚ CONTRA EL MUNDO · UN RETO POR DÍA</div>
+      <button class="pri" onclick="createRoom()" style="width:100%;font-size: 22px;padding:14px" id="btn-create">Crear sala →</button>
+      <div style="font-family:'Special Elite',monospace;font-size: 12px;color:var(--ink-muted);text-align:center;margin:-2px 0 2px" id="lbl-create-sub">MULTIJUGADOR · CON FAMILIA Y AMIGOS</div>
+      <button onclick="startDailyChallenge()" style="width:100%;font-size: 16px;padding:12px;border-color:var(--border-strong)" id="btn-daily">📅 <span id="btn-daily-text">Reto diario · cargando…</span></button>
+      <div style="font-family:'Special Elite',monospace;font-size: 12px;color:var(--ink-muted);text-align:center;margin:-2px 0 2px" id="lbl-daily-sub">TÚ CONTRA EL MUNDO · UN RETO POR DÍA</div>
     </div>
   </div>
 
@@ -826,8 +814,8 @@ document.addEventListener('DOMContentLoaded', function() {
     <div class="welcome-group" id="wb-group"></div>
     <p class="lbl" id="lbl-wb-emoji" style="margin-top:12px">elige tu emoji <span class="emoji-display" id="selected-emoji-wb">🎲</span></p>
     <div class="emoji-grid" id="emoji-grid-wb"></div>
-    <button class="pri" onclick="continueSession()" style="width:100%;font-size:20px;padding:12px;margin-top:12px;margin-bottom:8px" id="wb-continue">Continuar →</button>
-    <button onclick="startFresh()" style="width:100%;font-size:16px" id="btn-not-me">No soy yo — cambiar</button>
+    <button class="pri" onclick="continueSession()" style="width:100%;font-size: 22px;padding:12px;margin-top:12px;margin-bottom:8px" id="wb-continue">Continuar →</button>
+    <button onclick="startFresh()" style="width:100%;font-size: 16px" id="btn-not-me">No soy yo — cambiar</button>
   </div>
 </div>
 
@@ -841,7 +829,7 @@ document.addEventListener('DOMContentLoaded', function() {
     <div class="room-code" id="lob-code">----</div>
     <div class="share-box">
       <span class="share-url" id="share-url"></span>
-      <button onclick="copyLink()" style="font-size:13px;padding:5px 10px;flex-shrink:0;font-family:'Special Elite',monospace" id="btn-copy">Copiar</button>
+      <button onclick="copyLink()" style="font-size: 12px;padding:5px 10px;flex-shrink:0;font-family:'Special Elite',monospace" id="btn-copy">Copiar</button>
     </div>
     <button class="wa-btn" onclick="shareWhatsApp()" id="btn-wa">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
@@ -859,10 +847,10 @@ document.addEventListener('DOMContentLoaded', function() {
     <button class="invite-toggle" onclick="toggleInvite()" id="invite-toggle-btn">+ ¿Quieres invitar a alguien más?</button>
     <div class="invite-box" id="invite-box">
       <div style="display:flex;gap:8px;align-items:center;margin:8px 0">
-        <span id="share-url-guest" style="font-family:'Special Elite',monospace;font-size:12px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
-        <button onclick="copyLinkGuest()" style="font-size:12px;padding:4px 8px;flex-shrink:0;font-family:'Special Elite',monospace">Copiar</button>
+        <span id="share-url-guest" style="font-family:'Special Elite',monospace;font-size: 12px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
+        <button onclick="copyLinkGuest()" style="font-size: 12px;padding:4px 8px;flex-shrink:0;font-family:'Special Elite',monospace">Copiar</button>
       </div>
-      <button class="wa-btn" onclick="shareWhatsApp()" style="font-size:15px;padding:10px">
+      <button class="wa-btn" onclick="shareWhatsApp()" style="font-size: 16px;padding:10px">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
         <span>Compartir por WhatsApp</span>
       </button>
@@ -879,13 +867,13 @@ document.addEventListener('DOMContentLoaded', function() {
   <div id="host-panel" style="display:none">
     <div class="card">
       <p class="lbl" id="lbl-group-name">nombre del grupo</p>
-      <p style="font-family:'Special Elite',monospace;font-size:11px;color:var(--ink-muted);margin-bottom:8px" id="lbl-group-hint">familia, amigos, trabajo... como queráis</p>
+      <p style="font-family:'Special Elite',monospace;font-size: 12px;color:var(--ink-muted);margin-bottom:8px" id="lbl-group-hint">familia, amigos, trabajo... como queráis</p>
       <div class="group-input-wrap">
-        <input type="text" id="inp-group" placeholder="Los García, Amigos del cole..." maxlength="30" autocomplete="off" inputmode="text" data-form-type="other" oninput="onGroupInput()" onblur="hideGroupSuggestions()" style="font-size:18px">
+        <input type="text" id="inp-group" placeholder="Los García, Amigos del cole..." maxlength="30" autocomplete="off" inputmode="text" data-form-type="other" oninput="onGroupInput()" onblur="hideGroupSuggestions()" style="font-size: 16px">
         <div class="group-suggestions" id="group-suggestions" style="display:none"></div>
       </div>
     </div>
-    <button class="pri" onclick="startGame()" style="width:100%;font-size:22px;padding:14px" id="btn-start">¡Comenzar! →</button>
+    <button class="pri" onclick="startGame()" style="width:100%;font-size: 22px;padding:14px" id="btn-start">¡Comenzar! →</button>
     <button class="btn-leave-room" onclick="leaveGame()" id="btn-leave">← <span id="btn-leave-text">Salir de la sala</span></button>
     <button class="config-toggle" id="btn-config-toggle" onclick="toggleLobbyConfig()" style="margin-top:12px">
       <span id="config-toggle-icon">▼</span>&nbsp;<span id="btn-config-label">⚙️ Configuración</span>
@@ -904,7 +892,7 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
       </div>
       <div class="card">
-        <p class="lbl">letras fáciles <span style="font-size:11px;opacity:.7" id="lbl-easy-hint">(sin K, Ñ, Q, U, W, X, Y, Z)</span></p>
+        <p class="lbl">letras fáciles <span style="font-size: 12px;opacity:.7" id="lbl-easy-hint">(sin K, Ñ, Q, U, W, X, Y, Z)</span></p>
         <label class="cat-lbl">
           <input type="checkbox" id="easy-letters" checked onchange="toggleEasyLetters(this.checked)">
           <span id="lbl-easy-letters">solo letras fáciles</span>
@@ -927,18 +915,18 @@ document.addEventListener('DOMContentLoaded', function() {
         <div style="margin-top:16px;border-top:1px dashed var(--border);padding-top:12px">
           <p class="lbl" style="margin-bottom:6px" id="lbl-validation-mode">🗳️ Modo de validación</p>
           <div style="display:flex;gap:6px;margin-bottom:14px">
-            <button id="mode-host" onclick="setValidationMode('host')" style="font-size:12px;padding:4px 10px;border-radius:20px;border:1.5px solid #c0392b;background:#fdf0ee;cursor:pointer">👑 Normal</button>
-            <button id="mode-democratic" onclick="setValidationMode('democratic')" style="font-size:12px;padding:4px 10px;border-radius:20px;border:1.5px solid var(--border-strong);background:var(--paper-dark);cursor:pointer">🗳️ Democrático</button>
+            <button id="mode-host" onclick="setValidationMode('host')" style="font-size: 12px;padding:4px 10px;border-radius:20px;border:1.5px solid #c0392b;background:#fdf0ee;cursor:pointer">👑 Normal</button>
+            <button id="mode-democratic" onclick="setValidationMode('democratic')" style="font-size: 12px;padding:4px 10px;border-radius:20px;border:1.5px solid var(--border-strong);background:var(--paper-dark);cursor:pointer">🗳️ Democrático</button>
           </div>
           <p class="lbl" id="lbl-ai-validation" style="margin-bottom:6px"><span id="lbl-ai-validation-text">🤖 Asistente IA</span></p>
           <div style="display:flex;gap:6px;margin-bottom:8px">
-            <button id="ai-relajado" onclick="setAIStrictness('relajado')" style="font-size:12px;padding:4px 10px;border-radius:20px;border:1.5px solid #c0392b;background:#fdf0ee;cursor:pointer">🟢 Relajada</button>
-            <button id="ai-estricto" onclick="setAIStrictness('estricto')" style="font-size:12px;padding:4px 10px;border-radius:20px;border:1.5px solid var(--border-strong);background:var(--paper-dark);cursor:pointer">🔴 Estricta</button>
+            <button id="ai-relajado" onclick="setAIStrictness('relajado')" style="font-size: 12px;padding:4px 10px;border-radius:20px;border:1.5px solid #c0392b;background:#fdf0ee;cursor:pointer">🟢 Relajada</button>
+            <button id="ai-estricto" onclick="setAIStrictness('estricto')" style="font-size: 12px;padding:4px 10px;border-radius:20px;border:1.5px solid var(--border-strong);background:var(--paper-dark);cursor:pointer">🔴 Estricta</button>
           </div>
           <p class="lbl" style="margin-bottom:4px"><span id="lbl-ai-spelling-text">✏️ Permitir faltas de ortografía</span></p>
           <div style="display:flex;gap:6px">
-            <button id="ai-spelling-no" onclick="setAISpelling(false)" style="font-size:12px;padding:4px 10px;border-radius:20px;border:1.5px solid #c0392b;background:#fdf0ee;cursor:pointer"><span id="lbl-ai-no">No</span></button>
-            <button id="ai-spelling-si" onclick="setAISpelling(true)" style="font-size:12px;padding:4px 10px;border-radius:20px;border:1.5px solid var(--border-strong);background:var(--paper-dark);cursor:pointer"><span id="lbl-ai-yes">Sí</span></button>
+            <button id="ai-spelling-no" onclick="setAISpelling(false)" style="font-size: 12px;padding:4px 10px;border-radius:20px;border:1.5px solid #c0392b;background:#fdf0ee;cursor:pointer"><span id="lbl-ai-no">No</span></button>
+            <button id="ai-spelling-si" onclick="setAISpelling(true)" style="font-size: 12px;padding:4px 10px;border-radius:20px;border:1.5px solid var(--border-strong);background:var(--paper-dark);cursor:pointer"><span id="lbl-ai-yes">Sí</span></button>
           </div>
         </div>
       </div>
@@ -955,25 +943,25 @@ document.addEventListener('DOMContentLoaded', function() {
 <div id="s-daily-play" class="screen">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
     <span class="lbl" id="daily-play-label">Reto diario</span>
-    <span style="font-family:'Special Elite',monospace;font-size:12px;color:var(--ink-muted)" id="daily-play-date"></span>
+    <span style="font-family:'Special Elite',monospace;font-size: 12px;color:var(--ink-muted)" id="daily-play-date"></span>
   </div>
   <div class="daily-timer-bar"><div class="daily-timer-bar-fill" id="daily-timer-fill" style="width:100%"></div></div>
   <div style="text-align:center">
     <div class="daily-letter-badge" id="daily-letter-display">A</div>
   </div>
   <div class="card" id="daily-inputs-card"></div>
-  <button class="pri" onclick="this.disabled=true;dailySubmit()" style="width:100%;font-size:20px;padding:14px;margin-top:12px" id="btn-daily-submit">¡Alto! →</button>
+  <button class="pri" onclick="this.disabled=true;dailySubmit()" style="width:100%;font-size: 22px;padding:14px;margin-top:12px" id="btn-daily-submit">¡Alto! →</button>
 </div>
 
 <!-- ══ DAILY RESULT ══ -->
 <div id="s-daily-result" class="screen">
   <h1 style="font-family:'Special Elite', monospace;font-size:32px;font-weight:700;margin-bottom:4px" id="daily-result-title">Reto diario</h1>
-  <p style="font-family:'Special Elite',monospace;font-size:11px;color:var(--ink-muted);margin-bottom:1rem" id="daily-result-date"></p>
+  <p style="font-family:'Special Elite',monospace;font-size: 12px;color:var(--ink-muted);margin-bottom:1rem" id="daily-result-date"></p>
 
   <div class="card" style="margin-bottom:1rem">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
       <span class="lbl" id="lbl-daily-your-answers">tus respuestas</span>
-      <span style="font-family:'Special Elite',monospace;font-size:18px;color:var(--red)" id="daily-total-score">0 pts</span>
+      <span style="font-family:'Special Elite',monospace;font-size: 16px;color:var(--red)" id="daily-total-score">0 pts</span>
     </div>
     <div id="daily-answers-list"></div>
   </div>
@@ -989,11 +977,11 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
     <div id="daily-lb-list"></div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
-      <button onclick="refreshDailyOriginality()" style="font-family:'Special Elite',monospace;font-size:10px;padding:3px 8px;border:1px solid var(--border);border-radius:4px;background:transparent;cursor:pointer;color:var(--ink-sec)" id="btn-daily-refresh">↻ actualizar</button>
+      <button onclick="refreshDailyOriginality()" style="font-family:'Special Elite',monospace;font-size: 12px;padding:3px 8px;border:1px solid var(--border);border-radius:4px;background:transparent;cursor:pointer;color:var(--ink-sec)" id="btn-daily-refresh">↻ actualizar</button>
     </div>
   </div>
 
-  <button onclick="show('home')" style="width:100%;font-size:18px;padding:12px;margin-top:12px;border:1.5px solid var(--border);border-radius:var(--radius);background:transparent;font-family:'Special Elite', monospace;cursor:pointer" id="btn-daily-home">← Volver al inicio</button>
+  <button onclick="show('home')" style="width:100%;font-size: 16px;padding:12px;margin-top:12px;border:1.5px solid var(--border);border-radius:var(--radius);background:transparent;font-family:'Special Elite', monospace;cursor:pointer" id="btn-daily-home">← Volver al inicio</button>
 </div>
 
 <!-- ══ PLAYING ══ -->
@@ -1017,7 +1005,7 @@ document.addEventListener('DOMContentLoaded', function() {
   <h1 id="lbl-validate-title">Revisar</h1>
   <p class="sub" style="margin-bottom:2px"><span id="lbl-validate-sub1">📖 buscar en Wikipedia &nbsp;·&nbsp; ✕ anular</span></p>
   <p class="sub" id="lbl-validate-sub2">única = 100 pts &nbsp;·&nbsp; repetida = 50 pts &nbsp;·&nbsp; anulada = 0 pts</p>
-  <div id="stop-caller-banner" style="display:none;text-align:center;font-family:'Special Elite',monospace;font-size:13px;color:var(--ink-sec);margin-bottom:8px;padding:6px 10px;background:var(--paper-dark);border-radius:var(--radius);border:1px dashed var(--border)"></div>
+  <div id="stop-caller-banner" style="display:none;text-align:center;font-family:'Special Elite',monospace;font-size: 12px;color:var(--ink-sec);margin-bottom:8px;padding:6px 10px;background:var(--paper-dark);border-radius:var(--radius);border:1px dashed var(--border)"></div>
   <div id="val-content"></div>
   <button class="pri" onclick="finishValidation()" style="width:100%;margin-top:8px" id="btn-calculate">Calcular puntajes →</button>
 </div>
@@ -1025,7 +1013,7 @@ document.addEventListener('DOMContentLoaded', function() {
 <!-- ══ WAITING (guests) ══ -->
 <div id="s-waiting" class="screen">
   <h1 id="lbl-submitted">Respuestas enviadas</h1>
-  <p style="font-family:'Special Elite', monospace;font-size:22px;color:var(--ink-sec);text-align:center;margin-bottom:1rem;letter-spacing:0.5px" id="lbl-host-reviewing">el anfitrión está revisando</p>
+  <p style="font-family:'Special Elite', monospace;font-size: 22px;color:var(--ink-sec);text-align:center;margin-bottom:1rem;" id="lbl-host-reviewing">el anfitrión está revisando</p>
   <div class="pencil-wait">
     <div class="pencil-icon">✏️</div>
     <div class="pencil-dots"><span>•</span><span>•</span><span>•</span></div>
@@ -1035,7 +1023,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <!-- ══ SCORES ══ -->
 <div id="s-scores" class="screen" style="padding-top:1px">
-  <h1><span id="lbl-scores-title">Puntuación</span> <span id="sc-badge" style="font-size:16px;font-weight:400;color:var(--ink-sec);font-family:'Special Elite',monospace"></span></h1>
+  <h1><span id="lbl-scores-title">Puntuación</span> <span id="sc-badge" style="font-size: 16px;font-weight:400;color:var(--ink-sec);font-family:'Special Elite',monospace"></span></h1>
   <div class="card" id="sc-list"></div>
   <div class="btn-row" style="margin-top:10px" id="sc-btns"></div>
 </div>
@@ -1045,8 +1033,8 @@ document.addEventListener('DOMContentLoaded', function() {
   <h1 id="lbl-leaderboard-title">Marcador</h1>
   <p class="sub" id="lb-group-name"></p>
   <div style="display:flex;gap:8px;margin-bottom:12px">
-    <button id="btn-lb-group" onclick="lbTab('group')" style="flex:1;font-size:15px;padding:8px">Mi grupo</button>
-    <button id="btn-lb-global" onclick="lbTab('global')" style="flex:1;font-size:15px;padding:8px">Mundial</button>
+    <button id="btn-lb-group" onclick="lbTab('group')" style="flex:1;font-size: 16px;padding:8px">Mi grupo</button>
+    <button id="btn-lb-global" onclick="lbTab('global')" style="flex:1;font-size: 16px;padding:8px">Mundial</button>
   </div>
   <div class="card" id="lb-list"><p class="wait">Cargando…</p></div>
   <button onclick="show('final')" style="width:100%;margin-top:8px" id="btn-lb-back">← volver</button>
@@ -1376,7 +1364,7 @@ function rulesHTML() {
       <div class="rules-score-row"><span>${r.d}</span><span class="rules-pts">50 pts</span></div>
       <div class="rules-score-row"><span>${r.e}</span><span class="rules-pts">0 pts</span></div>
     </div>
-    <div style="margin-top:10px;padding:8px 10px;background:var(--paper-dark);border-radius:var(--radius);font-family:'Special Elite',monospace;font-size:12px;color:var(--ink-sec);line-height:1.5">${r.penalty}</div>`;
+    <div style="margin-top:10px;padding:8px 10px;background:var(--paper-dark);border-radius:var(--radius);font-family:'Special Elite',monospace;font-size: 12px;color:var(--ink-sec);">${r.penalty}</div>`;
 }
 
 window.toggleRules = () => {
@@ -2332,7 +2320,7 @@ async function showDailyResult(answers, baseScore, totalScore, aiResults, secsLe
 
   // Speed summary
   const mult = speedMultiplier ? speedMultiplier.toFixed(2) : '1.00';
-  list.innerHTML += `<div style="text-align:right;font-family:'Special Elite',monospace;font-size:11px;color:var(--ink-muted);padding-top:6px">
+  list.innerHTML += `<div style="text-align:right;font-family:'Special Elite',monospace;font-size: 12px;color:var(--ink-muted);padding-top:6px">
     ⚡ ×${mult} velocidad &nbsp;|&nbsp; base ${baseScore*10} pts → <strong>${totalScore*10} pts</strong>
   </div>`;
 
@@ -2355,16 +2343,16 @@ async function loadDailyLeaderboard(key, lbLang) {
   const lbEl = document.getElementById('daily-lb-list');
   if (!lbEl) return;
   const l = (typeof DAILY_LABELS !== 'undefined' ? DAILY_LABELS[LANG] : null) || { noResults: 'Sin resultados aún', errorLb: 'Error cargando clasificación' };
-  lbEl.innerHTML = `<div style="font-family:'Special Elite',monospace;font-size:11px;color:var(--ink-muted);text-align:center;padding:8px">cargando…</div>`;
+  lbEl.innerHTML = `<div style="font-family:'Special Elite',monospace;font-size: 12px;color:var(--ink-muted);text-align:center;padding:8px">cargando…</div>`;
   try {
     const snap = await get(ref(db, 'daily/' + key + '/' + lbLang + '/scores'));
-    if (!snap.exists()) { lbEl.innerHTML = `<div style="text-align:center;opacity:0.5;font-size:13px">${l.noResults}</div>`; return; }
+    if (!snap.exists()) { lbEl.innerHTML = `<div style="text-align:center;opacity:0.5;font-size: 12px">${l.noResults}</div>`; return; }
     const allScores = snap.val();
     renderLeaderboard(allScores);
     if (lbLang === LANG) computeAndUpdateOriginality(allScores, key);
   } catch(e) {
     console.warn('Leaderboard load failed:', e);
-    lbEl.innerHTML = `<div style="text-align:center;opacity:0.5;font-size:13px">${l.errorLb}</div>`;
+    lbEl.innerHTML = `<div style="text-align:center;opacity:0.5;font-size: 12px">${l.errorLb}</div>`;
   }
 }
 
@@ -2789,7 +2777,7 @@ function enterLobby(room) {
 
 function renderPlayers(players, langs={}) {
   document.getElementById('lob-players').innerHTML =
-    Object.entries(players).map(([n,emoji]) => `<div class="chip ok"><span style="font-size:16px">${emoji||'🎲'}</span>${n}</div>`).join('');
+    Object.entries(players).map(([n,emoji]) => `<div class="chip ok"><span style="font-size: 16px">${emoji||'🎲'}</span>${n}</div>`).join('');
 }
 
 function buildThemePicker() {
@@ -3283,7 +3271,7 @@ window.lookupWord = async (word, key) => {
       const titles = searchData[1] || [];
       const suggestion = titles.find(t => normalize(t) !== normalize(word));
       if (suggestion) {
-        const html = `<span class="dict-error">${t('notFoundWord')} "<strong>${word}</strong>"</span><br><span style="font-size:13px;color:var(--ink-sec)">${t('didYouMean')} <button onclick="lookupWord('${suggestion}','${key}')" style="font-family:'Special Elite', monospace;font-size:15px;color:var(--red);border:none;background:none;cursor:pointer;padding:0;text-decoration:underline">${suggestion}</button>?</span>`;
+        const html = `<span class="dict-error">${t('notFoundWord')} "<strong>${word}</strong>"</span><br><span style="font-size: 12px;color:var(--ink-sec)">${t('didYouMean')} <button onclick="lookupWord('${suggestion}','${key}')" style="font-family:'Special Elite', monospace;font-size: 16px;color:var(--red);border:none;background:none;cursor:pointer;padding:0;text-decoration:underline">${suggestion}</button>?</span>`;
         resultEl.innerHTML = html;
         update(roomRef(G.roomCode), {dictLookup: {word, key, result: html, source: 'suggest'}});
         return;
@@ -3330,7 +3318,7 @@ window.lookupWordGuest = async (word, key) => {
       const titles = searchData[1] || [];
       const suggestion = titles.find(t => normalize(t) !== normalize(word));
       if (suggestion) {
-        resultEl.innerHTML = `<span class="dict-error">${t('notFoundWord')} "<strong>${word}</strong>"</span><br><span style="font-size:13px;color:var(--ink-sec)">${t('didYouMean')} <button onclick="lookupWordGuest('${suggestion}','${key}')" style="font-family:'Special Elite', monospace;font-size:15px;color:var(--red);border:none;background:none;cursor:pointer;padding:0;text-decoration:underline">${suggestion}</button>?</span>`;
+        resultEl.innerHTML = `<span class="dict-error">${t('notFoundWord')} "<strong>${word}</strong>"</span><br><span style="font-size: 12px;color:var(--ink-sec)">${t('didYouMean')} <button onclick="lookupWordGuest('${suggestion}','${key}')" style="font-family:'Special Elite', monospace;font-size: 16px;color:var(--red);border:none;background:none;cursor:pointer;padding:0;text-decoration:underline">${suggestion}</button>?</span>`;
         return;
       }
     }
@@ -3546,7 +3534,7 @@ window.askAI = async (word, category, letter, key) => {
   } catch(e) {
     const isTimeout = e.name === 'TimeoutError' || e.name === 'AbortError';
     result.innerHTML = isTimeout
-      ? `⏳ IA lenta… <button onclick="askAI('${word.replace(/'/g,"\'")}','${category}','${letter}','${key}')" style="font-size:11px;padding:2px 6px;margin-left:4px;border-radius:4px;border:1px solid var(--border);cursor:pointer;background:var(--paper-dark)">Reintentar</button>`
+      ? `⏳ IA lenta… <button onclick="askAI('${word.replace(/'/g,"\'")}','${category}','${letter}','${key}')" style="font-size: 12px;padding:2px 6px;margin-left:4px;border-radius:4px;border:1px solid var(--border);cursor:pointer;background:var(--paper-dark)">Reintentar</button>`
       : '⚠️ ' + (e.message || 'IA no disponible');
     result.className = 'ai-result show unsure';
     btn.textContent = '🤖';
@@ -3738,7 +3726,7 @@ function renderEntryEmojis(key, entryReactions, isHost) {
   const strip = ENTRY_EMOJIS.map(e => {
     const count = counts[e] || 0;
     const active = G_myEntryEmojis[key + '_' + e];
-    return `<button class="entry-emoji-btn${active ? ' active' : ''}" onclick="reactToEntry('${key}','${e}')">${e}${count > 0 ? `<sup style="font-size:9px">${count}</sup>` : ''}</button>`;
+    return `<button class="entry-emoji-btn${active ? ' active' : ''}" onclick="reactToEntry('${key}','${e}')">${e}${count > 0 ? `<sup style="font-size: 12px">${count}</sup>` : ''}</button>`;
   }).join('');
 
   return `<div class="entry-emoji-strip">${strip}</div>`;
@@ -3946,7 +3934,7 @@ function showScores(room) {
     const isLast = room.currentRound >= room.rounds;
     if (!isLast) btns += `<button class="pri" onclick="nextRound()" style="flex:1">${t('nextRound')}</button>`;
     btns += `<button onclick="endGame()" style="flex:1">${t('endGame')}</button>`;
-    btns += `<button onclick="goBackToValidation()" style="flex:1;font-size:13px;color:var(--ink-sec)">← ${t('review')}</button>`;
+    btns += `<button onclick="goBackToValidation()" style="flex:1;font-size: 12px;color:var(--ink-sec)">← ${t('review')}</button>`;
   } else {
     btns = `<p class="wait" style="padding:.5rem 0 0">${t('hostWait')}</p>`;
   }
@@ -4058,7 +4046,7 @@ async function renderLb() {
     document.getElementById('lb-list').innerHTML = sorted.map(([key,d],i) => {
       const winRate = d.games ? Math.round((d.wins/d.games)*100) : 0;
       return `<div class="lb-row">
-        <span>${MEDALS[i]||'  '} ${d.emoji||'🎲'} ${d.name||key} <span style="font-size:12px;color:var(--ink-muted)">${d.group?'('+d.group+')':''}</span></span>
+        <span>${MEDALS[i]||'  '} ${d.emoji||'🎲'} ${d.name||key} <span style="font-size: 12px;color:var(--ink-muted)">${d.group?'('+d.group+')':''}</span></span>
         <div class="lb-stats">
           <span>🏆 ${d.wins||0}</span>
           <span>🎮 ${d.games||0}</span>
@@ -4358,7 +4346,7 @@ window.dbg = function dbg(screen) {
       const sb = document.querySelector('.stop-btn');
       if (sb) sb.style.display = 'none';
       const stopBanner = document.createElement('div');
-      stopBanner.style.cssText = 'text-align:center;font-family:Special Elite,monospace;font-size:14px;color:var(--red);padding:10px;';
+      stopBanner.style.cssText = 'text-align:center;font-family:Special Elite,monospace;font-size: 16px;color:var(--red);padding:10px;';
       stopBanner.textContent = '🛑 Carlos llamó al ¡Alto!';
       document.getElementById('ans-inputs').appendChild(stopBanner);
       break;
@@ -4511,41 +4499,41 @@ document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active',
 try { const s=JSON.parse(localStorage.getItem('alto_session')||'{}'); if(s.name) document.getElementById('inp-name').value=s.name; } catch(e){}
 tryRestore();
 </script>
-<footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
+<footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size: 12px;color:#b0a090;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260905.41-tmp</div>
+  <div style="font-size: 12px;opacity:0.5">v260905.42-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
 <!-- ══ DEBUG BAR (hidden until __debug__ login) ══ -->
-<div id="debug-bar" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:99999;background:#1a1a2e;border-top:2px solid #e94560;padding:6px 8px;font-family:monospace;font-size:11px;">
+<div id="debug-bar" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:99999;background:#1a1a2e;border-top:2px solid #e94560;padding:6px 8px;font-family:monospace;font-size: 12px;">
   <!-- Header -->
   <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px">
     <span style="color:#e94560;font-weight:bold;flex-shrink:0">⚗️ DEBUG</span>
-    <span style="color:#aaa;font-size:10px">tap a screen to jump to it</span>
-    <button onclick="document.getElementById('debug-bar').style.display='none'" style="margin-left:auto;background:transparent;border:1px solid #555;color:#aaa;padding:1px 6px;border-radius:3px;cursor:pointer;font-size:10px">✕</button>
+    <span style="color:#aaa;font-size: 12px">tap a screen to jump to it</span>
+    <button onclick="document.getElementById('debug-bar').style.display='none'" style="margin-left:auto;background:transparent;border:1px solid #555;color:#aaa;padding:1px 6px;border-radius:3px;cursor:pointer;font-size: 12px">✕</button>
   </div>
   <!-- Controls row -->
   <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:6px;padding-bottom:6px;border-bottom:1px solid #2a2a4a">
-    <span style="color:#888;font-size:10px;flex-shrink:0">OPTS:</span>
+    <span style="color:#888;font-size: 12px;flex-shrink:0">OPTS:</span>
     <!-- Language -->
-    <select id="dbg-lang" onchange="dbgSetLang(this.value)" style="background:#16213e;border:1px solid #555;color:#eee;padding:2px 4px;border-radius:3px;font-size:10px;font-family:monospace">
+    <select id="dbg-lang" onchange="dbgSetLang(this.value)" style="background:#16213e;border:1px solid #555;color:#eee;padding:2px 4px;border-radius:3px;font-size: 12px;font-family:monospace">
       <option value="es">🇪🇸 ES</option>
       <option value="en">🇬🇧 EN</option>
       <option value="fr">🇫🇷 FR</option>
     </select>
     <!-- AI toggle -->
-    <label style="color:#eee;font-size:10px;display:flex;align-items:center;gap:3px;cursor:pointer">
+    <label style="color:#eee;font-size: 12px;display:flex;align-items:center;gap:3px;cursor:pointer">
       <input type="checkbox" id="dbg-ai" onchange="dbgSetAI(this.checked)" checked style="cursor:pointer">
       🤖 AI
     </label>
     <!-- Long word toggle -->
-    <label style="color:#eee;font-size:10px;display:flex;align-items:center;gap:3px;cursor:pointer">
+    <label style="color:#eee;font-size: 12px;display:flex;align-items:center;gap:3px;cursor:pointer">
       <input type="checkbox" id="dbg-longword" onchange="dbgSetLongWord(this.checked)" style="cursor:pointer">
       📏 Long word
     </label>
     <!-- Democratic mode toggle -->
-    <label style="color:#eee;font-size:10px;display:flex;align-items:center;gap:3px;cursor:pointer">
+    <label style="color:#eee;font-size: 12px;display:flex;align-items:center;gap:3px;cursor:pointer">
       <input type="checkbox" id="dbg-demo" onchange="dbgSetDemocratic(this.checked)" style="cursor:pointer">
       🗳️ Democratic
     </label>
@@ -4573,7 +4561,7 @@ tryRestore();
 <style>
 .dbtn {
   background:#16213e;border:1px solid #e94560;color:#eee;padding:4px 8px;
-  border-radius:4px;cursor:pointer;font-size:10px;font-family:monospace;white-space:nowrap;
+  border-radius:4px;cursor:pointer;font-size: 12px;font-family:monospace;white-space:nowrap;
 }
 .dbtn:active { background:#e94560; }
 </style>
