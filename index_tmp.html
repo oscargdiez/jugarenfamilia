@@ -73,7 +73,7 @@ h1 { font-family: 'Caveat', cursive; font-size: 32px; font-weight: 700; color: v
 .sub { font-family: 'Special Elite', monospace; font-size: 16px; color: var(--ink-sec); margin-bottom: 1.5rem; letter-spacing: 1px; }
 
 /* ── Logo ── */
-.logo-wrap { text-align: center; margin-bottom: 1.5rem; padding-top: 0.5rem; }
+.logo-wrap { text-align: center; margin-bottom: 1rem; padding-top: 0.25rem; }
 .logo-main { font-family: 'Caveat', cursive; font-size: 80px; font-weight: 700; color: var(--red); line-height: 1; display: block; }
 .logo-rule { width: 110px; height: 3px; background: var(--red); margin: 4px auto 6px; border-radius: 2px; }
 .logo-sub { font-family: 'Special Elite', monospace; font-size:11px; color: var(--ink-sec); letter-spacing: 4px; }
@@ -96,6 +96,7 @@ h1 { font-family: 'Caveat', cursive; font-size: 32px; font-weight: 700; color: v
   background: var(--red);
   border-radius: 4px 0 0 4px;
 }
+body.screen-home .card, body.screen-welcome .card { padding-top: 0.75rem; padding-bottom: 0.75rem; }
 
 /* ── Labels ── */
 .lbl {
@@ -295,7 +296,7 @@ body.screen-home #shell-logo, body.screen-welcome #shell-logo { visibility: hidd
 body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex !important; position: absolute; left: 1.25rem; }
 
 /* Offset page content so it doesn't hide under shell header */
-.page { max-width: 720px; margin: 0 auto; padding: 2rem 1.25rem 5rem; overflow: visible; padding-top: calc(2rem + 50px); }
+.page { max-width: 720px; margin: 0 auto; padding: 2rem 1.25rem 5rem; overflow: visible; padding-top: calc(1rem + 50px); }
 
 /* ── Answer rows ── */
 .ans-grid { display: grid; gap: 4px; }
@@ -669,8 +670,8 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
 .wa-btn:hover { background: #1da851; }
 
 /* ── Emoji picker ── */
-.emoji-grid { display: grid; grid-template-columns: repeat(8,1fr); gap: 4px; margin-top: 8px; }
-.emoji-opt { font-size: 24px; text-align: center; padding: 6px 2px; border-radius: 6px; cursor: pointer; border: 2px solid transparent; box-sizing: border-box; }
+.emoji-grid { display: grid; grid-template-columns: repeat(8,1fr); gap: 2px; margin-top: 6px; }
+.emoji-opt { font-size: 24px; text-align: center; padding: 3px 2px; border-radius: 6px; cursor: pointer; border: 2px solid transparent; box-sizing: border-box; }
 .emoji-opt:hover { background: #f0efe9; border-color: #b8a890; }
 .emoji-opt.selected { border: 3px solid #c0392b; background: #fdf0ee; box-shadow: 0 0 0 2px #c0392b; }
 .emoji-display { font-size: 28px; display: inline-block; margin-left: 8px; vertical-align: middle; }
@@ -797,7 +798,7 @@ document.addEventListener('DOMContentLoaded', function() {
   <div class="card">
     <p class="lbl" id="lbl-your-name">tu nombre</p>
     <input type="text" id="inp-name" placeholder="María..." maxlength="20" autocomplete="nickname" inputmode="text" style="margin-bottom:14px" oninput="localStorage.setItem('alto_name', this.value.trim())">
-    <p class="lbl" id="lbl-choose-emoji">elige tu emoji <span class="emoji-display" id="selected-emoji">🎲</span></p>
+    <p class="lbl" id="lbl-choose-emoji" style="display:none">elige tu emoji <span class="emoji-display" id="selected-emoji">🎲</span></p>
     <div class="emoji-grid" id="emoji-grid"></div>
     <div style="margin-top:14px;display:flex;flex-direction:column;gap:8px">
       <button class="pri" onclick="createRoom()" style="width:100%;font-size:20px;padding:14px" id="btn-create">Crear sala →</button>
@@ -822,7 +823,7 @@ document.addEventListener('DOMContentLoaded', function() {
     <div class="welcome-avatar" id="wb-emoji">🎲</div>
     <div class="welcome-name" id="wb-name" style="font-family:'Caveat',cursive;font-size:26px;font-weight:700">María</div>
     <div class="welcome-group" id="wb-group"></div>
-    <p class="lbl" id="lbl-wb-emoji" style="margin-top:12px">elige tu emoji <span class="emoji-display" id="selected-emoji-wb">🎲</span></p>
+    <p class="lbl" id="lbl-wb-emoji" style="display:none;margin-top:12px">elige tu emoji <span class="emoji-display" id="selected-emoji-wb">🎲</span></p>
     <div class="emoji-grid" id="emoji-grid-wb"></div>
     <button class="pri" onclick="continueSession()" style="width:100%;font-size:20px;padding:12px;margin-top:12px;margin-bottom:8px" id="wb-continue">Continuar →</button>
     <button onclick="startFresh()" style="width:100%;font-size: 16px" id="btn-not-me">No soy yo — cambiar</button>
@@ -4511,7 +4512,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260905.59-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v260905.60-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
