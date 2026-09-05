@@ -3099,6 +3099,21 @@ function buildValidationHTML(room, invalidMap) {
 
 function showValidation(room) {
   show('validate');
+  // Stop caller banner
+  const _scBanner = document.getElementById('stop-caller-banner');
+  if (_scBanner) {
+    const _caller = room.stopCaller || '';
+    const _timeUp = room.timerRanOut;
+    if (_caller || _timeUp) {
+      const _msg = _timeUp
+        ? t('timerRanOut')
+        : t('stopCallerMsg').replace('{name}', _caller);
+      _scBanner.textContent = '🛑 ' + _msg;
+      _scBanner.style.display = 'block';
+    } else {
+      _scBanner.style.display = 'none';
+    }
+  }
   G.invalidAnswers = {};
   if (room.aiEnabled !== undefined) { G_aiEnabled = room.aiEnabled; window.setAIEnabled(room.aiEnabled); } else { window.setAIEnabled(true); }
   if (room.aiStrictness) { G_aiStrictness = room.aiStrictness; window.setAIStrictness(room.aiStrictness); }
@@ -3148,6 +3163,21 @@ function showValidation(room) {
 
 function showGuestValidation(room) {
   show('waiting');
+  // Stop caller banner
+  const _scBanner = document.getElementById('stop-caller-banner');
+  if (_scBanner) {
+    const _caller = room.stopCaller || '';
+    const _timeUp = room.timerRanOut;
+    if (_caller || _timeUp) {
+      const _msg = _timeUp
+        ? t('timerRanOut')
+        : t('stopCallerMsg').replace('{name}', _caller);
+      _scBanner.textContent = '🛑 ' + _msg;
+      _scBanner.style.display = 'block';
+    } else {
+      _scBanner.style.display = 'none';
+    }
+  }
   document.getElementById('guest-val-content').innerHTML = buildValidationHTML(room, {});
 }
 
@@ -4473,7 +4503,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260905.34-tmp</div>
+  <div style="font-size:9px;opacity:0.5">v260905.35-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
