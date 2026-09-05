@@ -779,8 +779,8 @@ document.addEventListener('DOMContentLoaded', function() {
   </div>
   <div class="card">
     <p class="lbl" id="qj-invited">¡Te han invitado a jugar!</p>
-    <p class="lbl" id="qj-name-lbl" style="margin-top:12px">tu nombre</p>
-    <input type="text" id="qj-name" placeholder="María..." maxlength="20" autocomplete="nickname" inputmode="text" style="width:100%;margin-bottom:14px">
+    <p class="lbl" id="qj-name-lbl" style="margin-top:12px;display:none">tu nombre</p>
+    <input type="text" id="qj-name" placeholder="Nombre..." maxlength="20" autocomplete="nickname" inputmode="text" style="width:100%;margin-bottom:14px">
     <p class="lbl" id="qj-emoji-lbl">elige tu emoji <span class="emoji-display" id="qj-selected-emoji">🎲</span></p>
     <div class="emoji-grid" id="qj-emoji-grid"></div>
     <button class="pri" onclick="quickJoin()" style="width:100%;font-size:20px;padding:14px;margin-top:14px" id="qj-btn">¡Unirse a la sala! →</button>
@@ -797,7 +797,7 @@ document.addEventListener('DOMContentLoaded', function() {
     <div class="logo-tag">el juego de siempre, con los de siempre</div>
   </div>
   <div class="card">
-    <p class="lbl" id="lbl-your-name">tu nombre</p>
+    <p class="lbl" id="lbl-your-name" style="display:none">tu nombre</p>
     <input type="text" id="inp-name" placeholder="María..." maxlength="20" autocomplete="nickname" inputmode="text" style="margin-bottom:14px" oninput="localStorage.setItem('alto_name', this.value.trim())">
     <p class="lbl" id="lbl-choose-emoji" style="display:none">elige tu emoji <span class="emoji-display" id="selected-emoji">🎲</span></p>
     <div class="emoji-grid" id="emoji-grid"></div>
@@ -1151,7 +1151,7 @@ const LANG_FLAGS = {es:'🇪🇸', en:'🇬🇧', fr:'🇫🇷'};
 const T = {
   es: {
     tagline: 'el juego de siempre, con los de siempre',
-    yourName: 'tu nombre', namePlaceholder: 'María...',
+    yourName: 'tu nombre', namePlaceholder: 'Nombre...',
     chooseEmoji: 'elige tu emoji',
     createRoom: 'Crear sala', join: 'Unirse',
     roomCode: 'código de sala',
@@ -1208,7 +1208,7 @@ const T = {
   },
   en: {
     tagline: 'the classic game, with the people you love',
-    yourName: 'your name', namePlaceholder: 'Maria...',
+    yourName: 'your name', namePlaceholder: 'Name...',
     chooseEmoji: 'choose your emoji',
     createRoom: 'Create room', join: 'Join',
     roomCode: 'room code',
@@ -1265,7 +1265,7 @@ const T = {
   },
   fr: {
     tagline: "le jeu de toujours, avec ceux qu'on aime",
-    yourName: 'ton prénom', namePlaceholder: 'Marie...',
+    yourName: 'ton prénom', namePlaceholder: 'Prénom...',
     chooseEmoji: 'choisis ton emoji',
     createRoom: 'Créer une salle', join: 'Rejoindre',
     roomCode: 'code de la salle',
@@ -4515,7 +4515,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260905.66-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v260905.67-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
