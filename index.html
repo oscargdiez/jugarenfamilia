@@ -2450,11 +2450,11 @@ async function computeAndUpdateOriginality(allScores, key) {
   let originality = 0;
 
   G_daily.categories.forEach((cat, i) => {
-    const myAnswer = (myData.answers[i] || '').trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+    const myAnswer = normalize(myData.answers[i] || '');
     if (!myAnswer || G_daily.aiResults[i] !== 'valid') return;
     // Check if any other player gave the same answer for this category
     const isUnique = !otherEntries.some(e => {
-      const theirAnswer = (e.answers?.[i] || '').trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+      const theirAnswer = normalize(e.answers?.[i] || '');
       return theirAnswer === myAnswer;
     });
     if (isUnique) {
@@ -4503,7 +4503,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260905.36</div>
+  <div style="font-size:9px;opacity:0.5">v260905.37</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
