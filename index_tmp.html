@@ -1025,6 +1025,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <!-- ══ WAITING (guests) ══ -->
 <div id="s-waiting" class="screen">
+  <div id="stop-caller-banner-guest" style="display:none;text-align:center;font-family:'Special Elite',monospace;font-size:13px;color:var(--ink-sec);margin-bottom:8px;padding:6px 10px;background:var(--paper-dark);border-radius:var(--radius);border:1px dashed var(--border)"></div>
   <h1 id="lbl-submitted">Respuestas enviadas</h1>
   <p style="font-family:'Caveat',cursive;font-size:26px;color:var(--ink-sec);text-align:center;margin-bottom:1rem;letter-spacing:0.5px" id="lbl-host-reviewing">el anfitrión está revisando</p>
   <div class="pencil-wait">
@@ -3176,7 +3177,7 @@ function showValidation(room) {
 function showGuestValidation(room) {
   show('waiting');
   // Stop caller banner
-  const _scBanner = document.getElementById('stop-caller-banner');
+  const _scBanner = document.getElementById('stop-caller-banner-guest');
   if (_scBanner) {
     const _caller = room.stopCaller || '';
     const _timeUp = room.timerRanOut;
@@ -4406,6 +4407,8 @@ window.dbg = function dbg(screen) {
       G.isHost = false;
       const waitRoom = dbgFakeRoom({ validationMode: 'host' });
       show('waiting');
+      const bannerGuest = document.getElementById('stop-caller-banner-guest');
+      if (bannerGuest) { bannerGuest.textContent = '🦊 Carlos llamó al ¡Alto!'; bannerGuest.style.display = 'block'; }
       document.getElementById('guest-val-content').innerHTML = buildValidationHTML(waitRoom, DBG.invalidAnswers, false);
       // Simulate AI result visible to guest
       setTimeout(() => {
@@ -4515,7 +4518,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260905.69-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v260905.70-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
