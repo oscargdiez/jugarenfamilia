@@ -489,6 +489,8 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
 .daily-lb-orig { font-family: 'Special Elite', monospace; font-size: 11px; color: var(--ink-muted); flex-shrink: 0; margin-left: 2px; }
 .daily-lb-speed { font-family: 'Special Elite', monospace; font-size: 11px; color: var(--ink-muted); flex-shrink: 0; margin-left: 4px; }
 .daily-lb-sep { text-align: center; font-family: 'Special Elite', monospace; font-size: 11px; color: var(--ink-muted); padding: 4px 0; letter-spacing: 2px; }
+.daily-lb-lang-btn { padding: 2px 3px; border: 1.5px solid transparent; background: transparent; cursor: pointer; border-radius: 4px; opacity: 0.45; line-height: 1; vertical-align: middle; }
+.daily-lb-lang-btn.active { opacity: 1; background: var(--paper-dark); border-color: var(--border-strong); }
 .daily-lb-row.daily-lb-me { background: var(--red-light); border: 1.5px solid var(--red); }
 .daily-lb-row { cursor: pointer; }
 .daily-lb-row.expanded { border-radius: var(--radius) var(--radius) 0 0; margin-bottom: 0; }
@@ -710,8 +712,8 @@ document.addEventListener('DOMContentLoaded', function() {
     pt: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 30" width="28" height="19"'+S+'><rect width="44" height="30" fill="#009C3B"/><polygon points="22,3 41,15 22,27 3,15" fill="#FEDF00"/><circle cx="22" cy="15" r="7" fill="#002776"/></svg>',
     it: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 30" width="28" height="19"'+S+'><rect width="44" height="30" fill="#CE2B37"/><rect width="29.5" height="30" fill="white"/><rect width="14.5" height="30" fill="#009246"/></svg>',
   };
-  document.querySelectorAll('.lang-btn, #shell-flags .lang-btn').forEach(function(btn) {
-    var m = (btn.getAttribute('onclick')||'').match(/setLang\('([a-z]+)'\)/);
+  document.querySelectorAll('.lang-btn, #shell-flags .lang-btn, .daily-lb-lang-btn').forEach(function(btn) {
+    var m = (btn.getAttribute('onclick')||'').match(/(?:setLang|switchDailyLbLang)\('([a-z]+)'\)/);
     if (m && FLAGS[m[1]]) {
       btn.innerHTML = FLAGS[m[1]];
       btn.style.padding = '2px 3px';
@@ -977,7 +979,14 @@ document.addEventListener('DOMContentLoaded', function() {
   </div>
 
   <div class="card">
-    <p class="lbl" id="lbl-daily-leaderboard" style="margin-bottom:8px">clasificación del día</p>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <p class="lbl" id="lbl-daily-leaderboard" style="margin:0">clasificación del día</p>
+      <div id="daily-lb-lang-btns" style="display:flex;gap:4px;align-items:center">
+        <button class="daily-lb-lang-btn active" data-lang="es" onclick="switchDailyLbLang('es')" title="Español">🇪🇸</button>
+        <button class="daily-lb-lang-btn" data-lang="en" onclick="switchDailyLbLang('en')" title="English">🇬🇧</button>
+        <button class="daily-lb-lang-btn" data-lang="fr" onclick="switchDailyLbLang('fr')" title="Français">🇫🇷</button>
+      </div>
+    </div>
     <div id="daily-lb-list"></div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
       <button onclick="refreshDailyOriginality()" style="font-family:'Special Elite',monospace;font-size:10px;padding:3px 8px;border:1px solid var(--border);border-radius:4px;background:transparent;cursor:pointer;color:var(--ink-sec)" id="btn-daily-refresh">↻ actualizar</button>
@@ -2325,15 +2334,17 @@ async function showDailyResult(answers, baseScore, totalScore, aiResults, secsLe
   if (dateEl) dateEl.textContent = dateStr;
 
   show('daily-result');
+  document.querySelectorAll('.daily-lb-lang-btn').forEach(b => b.classList.toggle('active', b.dataset.lang === LANG));
   loadDailyLeaderboard(getDailyKey());
 }
 
-async function loadDailyLeaderboard(key) {
+async function loadDailyLeaderboard(key, lbLang) {
+  lbLang = lbLang || LANG;
   const lbEl = document.getElementById('daily-lb-list');
   if (!lbEl) return;
   lbEl.innerHTML = `<div style="font-family:'Special Elite',monospace;font-size:11px;color:var(--ink-muted);text-align:center;padding:8px">cargando…</div>`;
   try {
-    const snap = await get(ref(db, 'daily/' + key + '/' + LANG + '/scores'));
+    const snap = await get(ref(db, 'daily/' + key + '/' + lbLang + '/scores'));
     if (!snap.exists()) { lbEl.innerHTML = '<div style="text-align:center;opacity:0.5;font-size:13px">Sin resultados aún</div>'; return; }
     const allScores = snap.val();
     renderLeaderboard(allScores);
@@ -2466,6 +2477,11 @@ async function computeAndUpdateOriginality(allScores, key) {
 }
 
 // Manual refresh button
+window.switchDailyLbLang = function(lang) {
+  document.querySelectorAll(".daily-lb-lang-btn").forEach(b => b.classList.toggle("active", b.dataset.lang === lang));
+  loadDailyLeaderboard(getDailyKey(), lang);
+};
+
 window.refreshDailyOriginality = async function() {
   const btn = document.getElementById('btn-daily-refresh');
   if (btn) { btn.textContent = '↻ …'; btn.disabled = true; }
@@ -4450,7 +4466,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260905.21</div>
+  <div style="font-size:9px;opacity:0.5">v260905.22</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
