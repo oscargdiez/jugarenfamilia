@@ -65,7 +65,7 @@ body {
   );
   overflow-y: scroll;
 }
-.page { max-width: 560px; margin: 0 auto; padding: 2rem 1.25rem 5rem; overflow: visible; }
+.page { max-width: 720px; margin: 0 auto; padding: 2rem 1.25rem 5rem; overflow: visible; }
 
 /* ── Typography ── */
 .caveat { font-family: 'Caveat', cursive; }
@@ -114,7 +114,7 @@ input[type=text], textarea {
   border-bottom: 2px solid var(--border-strong);
   padding: 6px 2px;
   font-family: 'Caveat', cursive;
-  font-size: 20px;
+  font-size: 26px;
   color: var(--ink);
   outline: none;
   transition: border-color .15s;
@@ -217,7 +217,7 @@ button.stop-btn:hover { background: var(--red-dark); }
   height: 50px;
 }
 #shell-header-inner {
-  max-width: 560px; margin: 0 auto;
+  max-width: 720px; margin: 0 auto;
   display: grid; grid-template-columns: 80px 1fr 80px; align-items: center;
   padding: 0 1.25rem; height: 100%; position: relative;
 }
@@ -270,7 +270,7 @@ button.stop-btn:hover { background: var(--red-dark); }
 #help-panel {
   flex: 1; overflow-y: auto;
   padding: 1.25rem 1.25rem 3rem;
-  max-width: 560px; width: 100%; margin: 0 auto;
+  max-width: 720px; width: 100%; margin: 0 auto;
 }
 #help-panel-header {
   display: flex; justify-content: space-between; align-items: center;
@@ -297,13 +297,13 @@ body.screen-home #shell-logo, body.screen-welcome #shell-logo { visibility: hidd
 body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex !important; position: absolute; left: 1.25rem; }
 
 /* Offset page content so it doesn't hide under shell header */
-.page { max-width: 560px; margin: 0 auto; padding: 2rem 1.25rem 5rem; overflow: visible; padding-top: calc(2rem + 50px); }
+.page { max-width: 720px; margin: 0 auto; padding: 2rem 1.25rem 5rem; overflow: visible; padding-top: calc(2rem + 50px); }
 
 /* ── Answer rows ── */
 .ans-grid { display: grid; gap: 4px; }
 .ans-row { display: flex; align-items: flex-end; gap: 10px; padding-bottom: 2px; }
-.ans-lbl { font-family: 'Caveat', cursive; font-size: 14px; color: var(--ink-sec); width: 95px; flex-shrink: 0; padding-bottom: 6px; }
-.ans-inp { flex: 1; }
+.ans-lbl { font-family: 'Caveat', cursive; font-size: 20px; color: var(--ink-sec); min-width: 90px; width: 110px; flex-shrink: 0; padding-bottom: 6px; }
+.ans-inp { flex: 1; font-family: 'Caveat', cursive; font-size: 26px; }
 
 /* ── Players ── */
 .chips { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -363,12 +363,12 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
 .val-entry.democratic-draw { background: #fef6e4; }
 .val-entry.invalid .ans-disp { text-decoration: line-through; color: var(--ink-muted); }
 .val-entry.invalid .pts-badge { text-decoration: line-through; color: var(--ink-muted); }
-.ans-disp { flex: 1; min-width: 0; font-family: 'Caveat', cursive; font-size: 20px; overflow-wrap: break-word; word-break: break-word; hyphens: auto; }
+.ans-disp { flex: 1; min-width: 0; font-family: 'Caveat', cursive; font-size: 24px; overflow-wrap: break-word; word-break: break-word; hyphens: auto; }
 .pts-badge { font-family: 'Special Elite', monospace; font-size: 13px; color: var(--red); font-weight: 700; flex-shrink: 0; }
 .inv-btn { font-size: 17px; width: 32px; height: 32px; border-radius: var(--radius); border: 1.5px solid var(--red); background: transparent; color: var(--red); cursor: pointer; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; padding: 0; line-height: 1; }
 .inv-btn:hover { background: var(--red-light); border-color: var(--red); color: var(--red); }
 .val-entry.invalid .inv-btn { border-color: var(--red); color: var(--red); background: var(--red-light); }
-.val-name { font-family: 'Caveat', cursive; font-size: 16px; color: var(--ink-sec); width: 90px; flex-shrink: 0; }
+.val-name { font-family: 'Caveat', cursive; font-size: 20px; color: var(--ink-sec); width: 100px; flex-shrink: 0; }
 
 /* ── Leaderboard ── */
 .lb-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px dashed var(--border); font-family: 'Caveat', cursive; font-size: 17px; }
@@ -452,12 +452,12 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
 }
 .daily-cat-row:last-child { border-bottom: none; }
 .daily-cat-label {
-  font-family: 'Caveat', cursive; font-size: 17px; color: var(--ink-sec);
-  width: 110px; flex-shrink: 0;
+  font-family: 'Caveat', cursive; font-size: 20px; color: var(--ink-sec);
+  min-width: 100px; width: 120px; flex-shrink: 0;
 }
 .daily-cat-input {
   flex: 1; border: none; border-bottom: 2px solid var(--border);
-  background: transparent; font-family: 'Caveat', cursive; font-size: 18px;
+  background: transparent; font-family: 'Caveat', cursive; font-size: 26px;
   color: var(--ink); padding: 2px 4px; outline: none;
 }
 .daily-cat-input:focus { border-bottom-color: var(--red); }
@@ -474,8 +474,8 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
   padding: 8px 0; border-bottom: 1px solid var(--border); flex-wrap: wrap;
 }
 .daily-result-row:last-child { border-bottom: none; }
-.daily-result-cat { font-family: 'Caveat', cursive; font-size: 15px; color: var(--ink-sec); width: 100px; flex-shrink: 0; }
-.daily-result-word { font-family: 'Caveat', cursive; font-size: 18px; color: var(--ink); flex: 1; }
+.daily-result-cat { font-family: 'Caveat', cursive; font-size: 16px; color: var(--ink-sec); width: 105px; flex-shrink: 0; }
+.daily-result-word { font-family: 'Caveat', cursive; font-size: 20px; color: var(--ink); flex: 1; }
 .daily-result-pts { font-family: 'Special Elite', monospace; font-size: 12px; color: var(--red); flex-shrink: 0; }
 .daily-result-ai { font-size: 14px; flex-shrink: 0; }
 .daily-lb-row {
@@ -508,8 +508,8 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
   padding: 3px 0; border-bottom: 1px dashed var(--border); gap: 8px;
 }
 .daily-lb-answer-row:last-child { border-bottom: none; }
-.daily-lb-answer-cat { font-family: 'Special Elite', monospace; font-size: 11px; color: var(--ink-muted); flex-shrink: 0; }
-.daily-lb-answer-val { font-family: 'Caveat', cursive; font-size: 15px; color: var(--ink); flex: 1; text-align: left; }
+.daily-lb-answer-cat { font-family: 'Special Elite', monospace; font-size: 13px; color: var(--ink-muted); flex-shrink: 0; }
+.daily-lb-answer-val { font-family: 'Caveat', cursive; font-size: 17px; color: var(--ink); flex: 1; text-align: left; }
 .daily-lb-answer-val.empty { color: var(--ink-muted); font-style: italic; font-size: 12px; }
 .daily-lb-answer-ai { font-size: 13px; flex-shrink: 0; min-width: 18px; text-align: center; }
 .daily-lb-answer-pts { font-family: 'Special Elite', monospace; font-size: 11px; color: var(--success); flex-shrink: 0; min-width: 24px; text-align: right; }
@@ -780,7 +780,7 @@ document.addEventListener('DOMContentLoaded', function() {
   <div class="card">
     <p class="lbl" id="qj-invited">¡Te han invitado a jugar!</p>
     <p class="lbl" id="qj-name-lbl" style="margin-top:12px">tu nombre</p>
-    <input type="text" id="qj-name" placeholder="María..." maxlength="20" autocomplete="nickname" inputmode="text" style="width:100%;margin-bottom:14px">
+    <input type="text" id="qj-name" placeholder="María..." maxlength="20" autocomplete="nickname" inputmode="text" style="width:100%;margin-bottom:14px;font-size:18px">
     <p class="lbl" id="qj-emoji-lbl">elige tu emoji <span class="emoji-display" id="qj-selected-emoji">🎲</span></p>
     <div class="emoji-grid" id="qj-emoji-grid"></div>
     <button class="pri" onclick="quickJoin()" style="width:100%;font-size:20px;padding:14px;margin-top:14px" id="qj-btn">¡Unirse a la sala! →</button>
@@ -798,7 +798,7 @@ document.addEventListener('DOMContentLoaded', function() {
   </div>
   <div class="card">
     <p class="lbl" id="lbl-your-name">tu nombre</p>
-    <input type="text" id="inp-name" placeholder="María..." maxlength="20" autocomplete="nickname" inputmode="text" style="margin-bottom:14px" oninput="localStorage.setItem('alto_name', this.value.trim())">
+    <input type="text" id="inp-name" placeholder="María..." maxlength="20" autocomplete="nickname" inputmode="text" style="margin-bottom:14px;font-size:18px" oninput="localStorage.setItem('alto_name', this.value.trim())">
     <p class="lbl" id="lbl-choose-emoji">elige tu emoji <span class="emoji-display" id="selected-emoji">🎲</span></p>
     <div class="emoji-grid" id="emoji-grid"></div>
     <div style="margin-top:14px;display:flex;flex-direction:column;gap:8px">
@@ -881,7 +881,7 @@ document.addEventListener('DOMContentLoaded', function() {
       <p class="lbl" id="lbl-group-name">nombre del grupo</p>
       <p style="font-family:'Special Elite',monospace;font-size:11px;color:var(--ink-muted);margin-bottom:8px" id="lbl-group-hint">familia, amigos, trabajo... como queráis</p>
       <div class="group-input-wrap">
-        <input type="text" id="inp-group" placeholder="Los García, Amigos del cole..." maxlength="30" autocomplete="off" inputmode="text" data-form-type="other" oninput="onGroupInput()" onblur="hideGroupSuggestions()">
+        <input type="text" id="inp-group" placeholder="Los García, Amigos del cole..." maxlength="30" autocomplete="off" inputmode="text" data-form-type="other" oninput="onGroupInput()" onblur="hideGroupSuggestions()" style="font-size:18px">
         <div class="group-suggestions" id="group-suggestions" style="display:none"></div>
       </div>
     </div>
@@ -3099,6 +3099,21 @@ function buildValidationHTML(room, invalidMap) {
 
 function showValidation(room) {
   show('validate');
+  // Stop caller banner
+  const _scBanner = document.getElementById('stop-caller-banner');
+  if (_scBanner) {
+    const _caller = room.stopCaller || '';
+    const _timeUp = room.timerRanOut;
+    if (_caller || _timeUp) {
+      const _msg = _timeUp
+        ? t('timerRanOut')
+        : t('stopCallerMsg').replace('{name}', _caller);
+      _scBanner.textContent = '🛑 ' + _msg;
+      _scBanner.style.display = 'block';
+    } else {
+      _scBanner.style.display = 'none';
+    }
+  }
   G.invalidAnswers = {};
   if (room.aiEnabled !== undefined) { G_aiEnabled = room.aiEnabled; window.setAIEnabled(room.aiEnabled); } else { window.setAIEnabled(true); }
   if (room.aiStrictness) { G_aiStrictness = room.aiStrictness; window.setAIStrictness(room.aiStrictness); }
@@ -3148,6 +3163,21 @@ function showValidation(room) {
 
 function showGuestValidation(room) {
   show('waiting');
+  // Stop caller banner
+  const _scBanner = document.getElementById('stop-caller-banner');
+  if (_scBanner) {
+    const _caller = room.stopCaller || '';
+    const _timeUp = room.timerRanOut;
+    if (_caller || _timeUp) {
+      const _msg = _timeUp
+        ? t('timerRanOut')
+        : t('stopCallerMsg').replace('{name}', _caller);
+      _scBanner.textContent = '🛑 ' + _msg;
+      _scBanner.style.display = 'block';
+    } else {
+      _scBanner.style.display = 'none';
+    }
+  }
   document.getElementById('guest-val-content').innerHTML = buildValidationHTML(room, {});
 }
 
@@ -4473,7 +4503,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260905.28</div>
+  <div style="font-size:9px;opacity:0.5">v260905.36</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
