@@ -103,7 +103,6 @@ h1 { font-family: 'Caveat', cursive; font-size: 32px; font-weight: 700; color: v
   font-size: 20px;
   color: var(--ink-sec);
   margin-bottom: 6px;
-  letter-spacing: 0.5px;
 }
 
 /* ── Inputs ── */
@@ -137,7 +136,6 @@ button {
   background: transparent;
   color: var(--ink);
   transition: background .12s, opacity .12s;
-  letter-spacing: 0.5px;
 }
 button:hover { background: var(--paper-dark); }
 button:active { opacity: .8; }
@@ -794,7 +792,7 @@ document.addEventListener('DOMContentLoaded', function() {
     <span class="logo-main">¡Alto!</span>
     <div class="logo-rule"></div>
     <div class="logo-sub">JUGARENFAMILIA.ES</div>
-    <div class="logo-tag" id="welcome-logo-tag">el juego de siempre, con los de siempre</div>
+    <div class="logo-tag">el juego de siempre, con los de siempre</div>
   </div>
   <div class="card">
     <p class="lbl" id="lbl-your-name">tu nombre</p>
@@ -818,7 +816,7 @@ document.addEventListener('DOMContentLoaded', function() {
     <span class="logo-main">¡Alto!</span>
     <div class="logo-rule"></div>
     <div class="logo-sub">JUGARENFAMILIA.ES</div>
-    <div class="logo-tag" id="welcome-logo-tag">el juego de siempre, con los de siempre</div>
+    <div class="logo-tag">el juego de siempre, con los de siempre</div>
   </div>
   <div class="card">
     <div class="welcome-avatar" id="wb-emoji">🎲</div>
@@ -948,10 +946,7 @@ document.addEventListener('DOMContentLoaded', function() {
   <!-- Guest panel -->
   <div id="guest-panel" style="display:none">
     <p class="wait" id="lbl-guest-wait">✏️ Esperando al anfitrión…</p>
-    <button class="btn-leave-room" onclick="leaveGame()" id="btn-leave">← <span id="btn-leave-text">Salir de la sala</span></button>
-  </div>
-</div>
-<!-- ══ DAILY PLAY ══ -->
+    <button class="btn-leave-room" onclick="leaveGame()" id="btn-leave-guest">← <span id="btn-leave-text-guest">Salir de la sala</span></button>
 <div id="s-daily-play" class="screen">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
     <span class="lbl" id="daily-play-label">Reto diario</span>
@@ -1509,6 +1504,8 @@ window.applyLang = function() {
   s('btn-start', t('start'));
   s('btn-leave', t('leaveRoom'));
   s('btn-leave-text', t('leaveRoom2') || t('leaveRoom'));
+  s('btn-leave-guest', t('leaveRoom'));
+  s('btn-leave-text-guest', t('leaveRoom2') || t('leaveRoom'));
   s('btn-config-label', t('configLabel'));
   s('gc-status', t('gcInside'));
   s('lbl-validation-mode', '🗳️ ' + {'es':'Modo de validación','en':'Validation mode','fr':'Mode de validation'}[LANG]);
@@ -2258,7 +2255,6 @@ async function dailyAICallModel(word, category, letter, model, systemPrompt, pro
     const combined = (msg.content?.trim() || msg.reasoning?.trim() || '');
     const text = combined.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
     const norm = text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z]/g, ' ').trim();
-    console.log('[Daily AI]', model.split('/')[1], word, '→', norm.slice(0,20));
     if (/\binvalid(o)?\b/.test(norm)) return 'invalid';
     if (/\bvalid(o)?\b/.test(norm)) return 'valid';
     if (/\byes\b|\bcorrect\b|\bsi\b|\bcorrecto\b/.test(norm)) return 'valid';
@@ -2283,8 +2279,6 @@ async function dailyAIValidate(word, category, letter) {
     dailyAICallModel(word, category, letter, MODELS[1], systemPrompt, userPrompt),
   ]);
 
-  console.log('[Daily consensus]', word, '→', r1, r2);
-
   // If they agree — done
   if (r1 === r2) return r1;
 
@@ -2293,9 +2287,7 @@ async function dailyAIValidate(word, category, letter) {
   if (r2 === 'unsure') return r1;
 
   // Split (valid vs invalid) — call tiebreaker
-  console.log('[Daily tiebreaker]', word, '→ calling model 3');
   const r3 = await dailyAICallModel(word, category, letter, MODELS[2], systemPrompt, userPrompt);
-  console.log('[Daily tiebreaker]', word, '→', r3);
 
   // Majority vote
   const votes = [r1, r2, r3];
@@ -4519,7 +4511,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260905.58-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v260905.59-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
