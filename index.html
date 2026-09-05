@@ -2342,7 +2342,7 @@ async function loadDailyLeaderboard(key, lbLang) {
   lbLang = lbLang || LANG;
   const lbEl = document.getElementById('daily-lb-list');
   if (!lbEl) return;
-  const l = DAILY_LABELS[LANG] || DAILY_LABELS.es;
+  const l = (typeof DAILY_LABELS !== 'undefined' ? DAILY_LABELS[LANG] : null) || { noResults: 'Sin resultados aún', errorLb: 'Error cargando clasificación' };
   lbEl.innerHTML = `<div style="font-family:'Special Elite',monospace;font-size:11px;color:var(--ink-muted);text-align:center;padding:8px">cargando…</div>`;
   try {
     const snap = await get(ref(db, 'daily/' + key + '/' + lbLang + '/scores'));
@@ -4468,7 +4468,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260905.23</div>
+  <div style="font-size:9px;opacity:0.5">v260905.24</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
