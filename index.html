@@ -1771,6 +1771,16 @@ window.shellLogoClick = function() {
     leaveGame();
     return;
   }
+  if (G.screen === 'countdown') {
+    // Cancel daily countdown — game hasn't started yet, go home cleanly
+    clearInterval(G_countdownInterval);
+    const overlay = document.getElementById('countdown-overlay');
+    if (overlay) overlay.classList.remove('open');
+    G_daily.submitted = false;
+    G_daily.key = '';
+    show('home');
+    return;
+  }
   if (['daily-play','daily-result'].includes(G.screen)) {
     clearInterval(G_daily.timerInterval);
     setUrgencyPulse(false);
@@ -4513,7 +4523,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260905.40</div>
+  <div style="font-size:9px;opacity:0.5">v260905.41</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
