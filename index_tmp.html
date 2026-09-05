@@ -881,7 +881,7 @@ document.addEventListener('DOMContentLoaded', function() {
       <p class="lbl" id="lbl-group-name">nombre del grupo</p>
       <p style="font-family:'Special Elite',monospace;font-size:11px;color:var(--ink-muted);margin-bottom:8px" id="lbl-group-hint">familia, amigos, trabajo... como queráis</p>
       <div class="group-input-wrap">
-        <input type="text" id="inp-group" placeholder="Los García, Amigos del cole..." maxlength="30" autocomplete="off" inputmode="text" data-form-type="other" oninput="onGroupInput()" onblur="hideGroupSuggestions()" style="font-family:'Special Elite',monospace;font-size: 16px" style="font-size: 16px">
+        <input type="text" id="inp-group" placeholder="Los García, Amigos del cole..." maxlength="30" autocomplete="off" inputmode="text" data-form-type="other" oninput="onGroupInput()" onblur="hideGroupSuggestions()">
         <div class="group-suggestions" id="group-suggestions" style="display:none"></div>
       </div>
     </div>
@@ -904,8 +904,8 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
       </div>
       <div class="card">
-        <p class="lbl">letras fáciles <span style="font-size:11px;opacity:.7" id="lbl-easy-hint">(sin K, Ñ, Q, U, W, X, Y, Z)</span></p>
-        <label class="cat-lbl">
+        <p class="lbl" style="display:none">letras fáciles <span style="font-size:11px;opacity:.7" id="lbl-easy-hint">(sin K, Ñ, Q, U, W, X, Y, Z)</span></p>
+        <label class="cat-lbl" style="display:none">
           <input type="checkbox" id="easy-letters" checked onchange="toggleEasyLetters(this.checked)">
           <span id="lbl-easy-letters">solo letras fáciles</span>
         </label>
@@ -4519,7 +4519,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260905.56-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v260905.58-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
