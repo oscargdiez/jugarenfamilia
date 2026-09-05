@@ -101,7 +101,7 @@ Double-click `D:\09_ALTO\rollback.bat` and pick the commit hash.
 ## ⚠️ CRITICAL RULES FOR CLAUDE
 
 **Version bump on every deploy** — update the footer version string.
-Format: `vYYMMDD.NN` (e.g. `v260905.49`). Staging gets `-tmp` suffix.
+Format: `vYYMMDD.NN` (e.g. `v260905.76`). Staging gets `-tmp` suffix.
 State the version clearly when presenting deploy files.
 
 **Check with user BEFORE building anything. Deploy immediately after building without asking.**
@@ -122,11 +122,18 @@ A single syntax error in the `<script type="module">` block kills ALL buttons an
 ### 4. Non-module scripts are safe
 SVG flags and other non-module `<script>` tags in `<head>` are completely isolated.
 
+### 5. applyLang wipes child elements ← LEARNED IN SESSION 10
+`s(id, text)` uses `textContent` which destroys child spans. When an element contains both text AND a child span (e.g. solo hint, group hint, pencil emoji), use `innerHTML` in applyLang instead, or rebuild the full innerHTML including the span. Never use `s()` on elements with child spans.
+
+### 6. str_replace context — READ ENOUGH LINES
+When using str_replace near closing tags, always read enough context (10+ lines) to include the closing `</div>` tags. Accidentally eating closing divs breaks ALL subsequent screens silently. Always verify screen IDs are present after structural edits: `grep -c 'id="s-' file.html` should return 12.
+
 **Mandatory pre-deploy checklist:**
 - Version string updated ✅
 - File size < 300KB ✅
 - Init block present (`buildEmojiGrid`, `tryRestore`) ✅
 - No `-tmp` in version string for production ✅
+- All 12 screen IDs present (`grep -c 'id="s-'` = 12) ✅
 
 **Always start from the uploaded working file** — never from a local copy that may have drifted.
 **First thing every session — make a backup:** `cp index_tmp.html index_tmp_backup_sN.html` before any edits.
@@ -143,14 +150,14 @@ Two fonts, six slots. **Do not add new sizes outside these slots.**
 | sm | Special Elite | 13px | Standard labels, scores, badges, secondary UI |
 | md | Special Elite | 16px | Section headers, screen titles, name input |
 | body | Caveat | 20px | Player names, secondary content, `.lbl` labels |
-| primary | Caveat | 26px | Answers, gameplay text, answer inputs |
+| primary | Caveat | 26px | Answers, gameplay text, answer inputs, name fields |
 | hero | Caveat | 32px+ | Timer numbers, letter display, room code |
 
 **Role assignment:**
 - **Special Elite** → all UI chrome (labels, scores, buttons, navigation, metadata, category labels in leaderboard)
 - **Caveat** → all player-generated content + category labels in playing/result screens
 
-**Letter-spacing:** only on decorative all-caps elements (JUGARENFAMILIA.ES, SIN REGISTRO footer, MULTIJUGADOR label, stop button, room code). Default everywhere else.
+**Letter-spacing:** only on decorative all-caps elements (JUGARENFAMILIA.ES, SIN REGISTRO footer, MULTIJUGADOR label, stop button, room code). Default everywhere else — NOT on `.lbl` or `button`.
 
 **Note:** Caveat has a smaller x-height than Special Elite, so Caveat 20px looks visually smaller than Special Elite 16px at the same pixel size. This is expected and fine.
 
@@ -163,7 +170,8 @@ Two fonts, six slots. **Do not add new sizes outside these slots.**
 - Session restore / welcome-back screen with emoji picker
 - Collision-safe room code generation (`genUniqueCode()`)
 - Room auto-deleted from Firebase 60s after game ends (leaderboard data preserved)
-- Letter selection (easy pool, language-aware: EN keeps K, ES/FR drop it)
+- Letter selection (easy pool only — hard letters option hidden, always easy)
+- Language-aware easy pool: EN keeps K, ES/FR drop it (`LETTERS_EASY` object)
 - Correct remaining timer for rejoiners (`roundStartTime` saved in Firebase)
 - Answer submission, ¡Alto! button, stop penalty (configurable)
 - Accent-insensitive duplicate detection (`normalize()`)
@@ -171,12 +179,20 @@ Two fonts, six slots. **Do not add new sizes outside these slots.**
 ### Validation Screen (host)
 - 📖 Wikipedia lookup (host + guests, language-aware, did-you-mean suggestions)
 - 🤖 AI validation via Cloudflare Worker → OpenRouter (fallback chain, 20s timeout)
+- AI result shows coloured verdict word: green=válido, red=inválido, amber=no sé (all 3 langs)
+- Validate subtitle: "🤖 Asistente IA" + red ✕ for cancel
 - Automatic validation ON by default, Estricta by default
 - 👍👎 Per-entry voting with live counts
 - 😂🔥👏 Per-entry emoji reactions
-- 🛑 Stop caller banner at top of validation screen (now shows in real game, all modes)
+- 🛑 Stop caller banner: shows on host validate screen AND guest waiting screen
 - 🗳️ Democratic mode (majority vote auto-invalidates)
 - ← Revisar: undo scoring
+
+### Guest Waiting Screen
+- Title "Esperando..." / "Waiting..." / "En attente..." (same style as host "Revisar")
+- "el anfitrión está revisando ✏️" with bouncing pencil inline (25px gap from text)
+- Stop caller banner shown below the text
+- Guest sees full validation content below (read-only)
 
 ### Daily Challenge
 - Letter + 6 categories picked deterministically from date seed
@@ -189,7 +205,6 @@ Two fonts, six slots. **Do not add new sizes outside these slots.**
 - Daily leaderboard with lang switcher (ES/EN/FR flags)
 - Originality bonus: +5pts (shown as +50) if answer unique among all players
 - Accent-insensitive originality check (ratón = raton)
-- Firebase stores `langs` per player for future use; `LANG_FLAGS` const preserved
 - Letter validity sanity check on in-progress restore
 - Stale in-progress keys from previous days cleaned up on fresh start
 - Double-submit race guard (`_submitting` flag)
@@ -197,18 +212,21 @@ Two fonts, six slots. **Do not add new sizes outside these slots.**
 
 ### UX/Polish
 - Fixed shell layout: logo (left), letter+round+timer (center), room+? (right)
-- Logo click goes home on ALL screens: quickjoin→home, final→home, leaderboard→confirm+leave, daily-play/result→home, lobby→leaveGame
+- Logo click goes home on ALL screens
 - Floating timer numbers (spawn from edges, accelerate as time runs out)
 - SVG flags — identical on Windows, iOS, Android, Mac
-- WhatsApp share button
-- 720px max-width (was 560px) for desktop comfort
-- Language flags removed from player chips/scoreboards (lang stored in Firebase for future use)
-- "clasificación en tiempo real" label removed (leaderboard is manual-refresh, not real-time)
+- WhatsApp share: icon-only button on same row as link + copy button (lobby host + guest)
+- 720px max-width for desktop comfort
+- Solo hint in lobby: "jugadores (¡mejor con más!)" — disappears when 2nd player joins
+- Name placeholder: "Nombre..." / "Name..." / "Prénom..." (no "tu nombre" label)
+- Group name hint inline: "nombre del grupo (familia, amigos...)" on one line
+- Easy letters option hidden from settings (always on, re-exposable by removing display:none)
 
 ### Languages
-- 🇪🇸 ES 🇬🇧 EN 🇫🇷 FR (Italian, German, Portuguese dropped in Session 8)
+- 🇪🇸 ES 🇬🇧 EN 🇫🇷 FR
 - Full UI + categories + themes + rules translated
 - **Rule for new features:** always add translations for all 3 languages immediately
+- `soloHint`, `waitingTitle` added in Session 10
 
 ### Debug Mode
 - Type `__debug__` as player name → debug bar at bottom
@@ -220,12 +238,22 @@ Two fonts, six slots. **Do not add new sizes outside these slots.**
 ## 🐛 Known Issues / Watch List
 
 - OpenRouter free tier models rotate without warning — if AI breaks, check openrouter.ai logs
-- Daily challenge: "clasificación en tiempo real" label removed but refresh is still manual
+- Session restore on same device/browser: host and guest share localStorage, so testing both roles in same browser will confuse restore. Works correctly on separate devices.
 - Font sizes: Caveat x-height smaller than Special Elite — visually looks different at same px
 
 ---
 
 ## 🗺 Flagged for Future
+
+### Automatic AI Multiplayer Mode
+- Add a third validation mode alongside Normal and Democratic: fully automatic AI validation
+- Round ends → AI validates all answers → scores shown, no host review step
+- Makes solo-in-multiplayer viable
+- "unsure" edge case: lean valid, lean invalid, or show just those for human review (TBD)
+
+### Solo Play Warning (built Session 10)
+- Already built: solo hint shows in lobby when only 1 player
+- Future: when automatic AI mode is added, single-player in multiplayer becomes a proper solo mode
 
 ### Player Identity System (designed, not built)
 - **Concept:** name is unique (first-come-first-served), email is proof of ownership, emoji is cosmetic
@@ -234,20 +262,14 @@ Two fonts, six slots. **Do not add new sizes outside these slots.**
 - **Why email not device ID:** travels across devices naturally, truly unique
 - **Implementation:** `playerKey` in Firebase switches from `name_timestamp_random` to email hash
 
-### Category System Overhaul (PRIORITY for Session 10)
+### Category System Overhaul (PRIORITY for Session 11)
 - 40 categories defined across 12 groups with valid-letter strings per language
 - JSON table ready in chat "+++ ALTO CATEGORY TABLE"
 - Picker needs: letter-aware (only show categories valid for today's letter in all 3 langs), group-aware (max 1 per group per day), 6 categories per day
 - Current `DAILY_CATS` flat array to be replaced
 - EN easy letters include K (ES/FR don't) — already in `LETTERS_EASY` object
-- Always use easy letter pool (drop hard letters option)
+- Always use easy letter pool (already enforced — hard letters option hidden)
 - Category names in EN and FR still need translating before implementation
-
-### Typography — Future Audit
-- 25 distinct font sizes existed before Session 9 — reduced to 6-slot system
-- Some elements still have non-standard sizes (17px icon buttons, 24px emoji, 28px stop button) — documented as intentional exceptions
-- Full letter-spacing audit: some elements may still have leftover spacing from before the sweep
-- `line-height` overrides removed globally — may need selective restoration if text feels cramped
 
 ### iOS Layout Refactor
 - Replace `position:fixed` shell with true fixed layout using `html, body { height:100%; overflow:hidden }` + inner scrollable content div
@@ -258,22 +280,21 @@ Two fonts, six slots. **Do not add new sizes outside these slots.**
 - Democratic mode: minimum 2 players guard
 - Language as lobby setting (currently global)
 - Emoji picker: SVG/Twemoji treatment for consistency across platforms
-- `final` screen logo click: goes home cleanly (built Session 9)
 
 ---
 
 ## 🗺 Roadmap
 
-1. Player identity system (email-based, no registration)
-2. Category system overhaul (letter-aware + group-aware daily picker)
-3. Google login
-4. WhatsApp deep link invites
-5. 🎵 Background soundtrack
-6. 🔔 Sound effects
-7. Letter reveal animation
-8. 🎮 Solo practice mode
-9. Public rooms / Tournaments
-10. Cloudflare Workers backend (hides API keys, private repo)
+1. Category system overhaul (letter-aware + group-aware daily picker)
+2. Player identity system (email-based, no registration)
+3. Automatic AI multiplayer mode
+4. Google login
+5. WhatsApp deep link invites
+6. 🎵 Background soundtrack
+7. 🔔 Sound effects
+8. Letter reveal animation
+9. 🎮 Solo practice mode
+10. Public rooms / Tournaments
 
 ---
 
@@ -305,31 +326,40 @@ Floating timer numbers. Round timer bug fix. Validation row overhaul. Guest AI b
 **Last version: v260908.17**
 
 ### Session 9 (Sep 5)
-**Daily challenge improvements:**
-- AI icons (✅❌🤔) + pts per answer in leaderboard expanded panel (bug fix: was using wrong case)
-- Speed multiplier ⚡×1.34 shown on leaderboard rows
-- Daily scores displayed ×10 (100pts/answer) — Firebase unchanged, display-only
-- Originality check fixed: accent-insensitive (`normalize()` instead of broken regex)
-- Categories saved to Firebase on submit — immune to category changes breaking old results
-- Lang switcher (ES/EN/FR SVG flags) on daily leaderboard — view any language's scores
-- "clasificación en tiempo real" label removed
-- Fixed leaderboard crash on malformed Firebase entries (missing `name` field)
-- Fixed DAILY_LABELS reference before definition crash
-- 4 daily challenge bugs fixed: unsure=5pts, letter sanity check on restore, delayed autosubmit (Firebase init), stale in-progress cleanup
-- Double-submit race guard + playerKey collision prevention
+Daily challenge improvements: AI icons + pts in leaderboard, speed multiplier display, scores ×10, originality check fix, categories saved to Firebase, lang switcher on daily leaderboard, 4 bug fixes, double-submit guard, playerKey collision prevention.
+Multiplayer: language flags removed from chips, stop caller banner fixed, logo click all screens.
+Typography overhaul: 6-slot system, Special Elite for UI chrome, Caveat for content, 720px max-width.
+**Last version: v260905.49**
 
-**Multiplayer improvements:**
-- Language flags removed from player chips and scoreboards (data kept in Firebase)
-- Stop caller banner now shows in real game (was debug-only bug)
-- Logo click works on all screens (quickjoin, final, leaderboard, daily-countdown)
+### Session 10 (Sep 6)
+**UX & Polish:**
+- Solo hint in lobby: "jugadores (¡mejor con más!)" disappears when 2nd player joins
+- Name inputs fixed to Caveat 26px (was 16px override); placeholder "Nombre/Name/Prénom"; "tu nombre" label removed from home, welcome, quickjoin
+- Group name input: Caveat 26px (was Special Elite 16px); hint inline on same line in parentheses
+- WhatsApp button: icon-only, separate from copy button, on same row as URL display
+- Easy letters option hidden from settings (always on by default)
+- Home/welcome screen compacted: tighter logo gap (`calc(50px+4px)`), smaller emoji grid gaps, reduced card padding on home/welcome only
+- "elige tu emoji" label hidden (grid is self-explanatory)
 
-**Typography overhaul:**
-- 6-slot system: SE 11/13/16px + Caveat 20/26/32px
-- Special Elite for all UI chrome; Caveat for content and category labels (except daily leaderboard expanded panel uses SE for categories)
-- val-name (player name on validation screen) more muted (opacity 0.6)
-- 720px max-width (was 560px)
-- Letter-spacing removed globally except decorative all-caps elements
-- Logo tagline stays Caveat 15px (intentional exception)
-- Name input: Caveat 20px (intentional — Caveat x-height looks smaller than SE but is correct)
+**Waiting screen overhaul:**
+- "Esperando..." / "Waiting..." / "En attente..." title at top (same style as "Revisar")
+- "el anfitrión está revisando ✏️" — pencil inline with 25px gap, original rotation animation
+- Stop caller banner moved below the text
+- "Respuestas enviadas" label removed
 
-**Last version deployed: v260905.49**
+**Validation screen:**
+- "🤖 IA" → "🤖 Asistente IA" / "AI Assistant" / "Assistant IA" in subtitle
+- ✕ cancel rendered in red
+- AI result verdict word coloured in-place: green=válido, red=inválido, amber=no sé (all 3 langs)
+
+**Bug fixes:**
+- Stop caller banner now shows for guests (was host-only — banner element was only in s-validate, added stop-caller-banner-guest to s-waiting)
+- Fixed broken HTML: str_replace ate closing divs + s-daily-play opening tag when deduping btn-leave ID
+- applyLang: switched elements with child spans to innerHTML to prevent span wipeout
+
+**Code audit:**
+- Duplicate IDs removed: welcome-logo-tag (×2), btn-leave/btn-leave-text (host vs guest panels now distinct)
+- All console.log removed (console.warn/error kept)
+- letter-spacing removed from .lbl and button (was non-decorative, against spec)
+
+**Last version deployed: v260905.76**

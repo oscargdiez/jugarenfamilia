@@ -73,7 +73,7 @@ h1 { font-family: 'Caveat', cursive; font-size: 32px; font-weight: 700; color: v
 .sub { font-family: 'Special Elite', monospace; font-size: 16px; color: var(--ink-sec); margin-bottom: 1.5rem; letter-spacing: 1px; }
 
 /* ── Logo ── */
-.logo-wrap { text-align: center; margin-bottom: 1.5rem; padding-top: 0.5rem; }
+.logo-wrap { text-align: center; margin-bottom: 1rem; padding-top: 0.25rem; }
 .logo-main { font-family: 'Caveat', cursive; font-size: 80px; font-weight: 700; color: var(--red); line-height: 1; display: block; }
 .logo-rule { width: 110px; height: 3px; background: var(--red); margin: 4px auto 6px; border-radius: 2px; }
 .logo-sub { font-family: 'Special Elite', monospace; font-size:11px; color: var(--ink-sec); letter-spacing: 4px; }
@@ -96,6 +96,7 @@ h1 { font-family: 'Caveat', cursive; font-size: 32px; font-weight: 700; color: v
   background: var(--red);
   border-radius: 4px 0 0 4px;
 }
+body.screen-home .card, body.screen-welcome .card { padding-top: 0.75rem; padding-bottom: 0.75rem; }
 
 /* ── Labels ── */
 .lbl {
@@ -103,7 +104,6 @@ h1 { font-family: 'Caveat', cursive; font-size: 32px; font-weight: 700; color: v
   font-size: 20px;
   color: var(--ink-sec);
   margin-bottom: 6px;
-  letter-spacing: 0.5px;
 }
 
 /* ── Inputs ── */
@@ -137,7 +137,6 @@ button {
   background: transparent;
   color: var(--ink);
   transition: background .12s, opacity .12s;
-  letter-spacing: 0.5px;
 }
 button:hover { background: var(--paper-dark); }
 button:active { opacity: .8; }
@@ -297,7 +296,7 @@ body.screen-home #shell-logo, body.screen-welcome #shell-logo { visibility: hidd
 body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex !important; position: absolute; left: 1.25rem; }
 
 /* Offset page content so it doesn't hide under shell header */
-.page { max-width: 720px; margin: 0 auto; padding: 2rem 1.25rem 5rem; overflow: visible; padding-top: calc(2rem + 50px); }
+.page { max-width: 720px; margin: 0 auto; padding: 2rem 1.25rem 5rem; overflow: visible; padding-top: calc(50px + 4px); }
 
 /* ── Answer rows ── */
 .ans-grid { display: grid; gap: 4px; }
@@ -339,7 +338,7 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
   border: 1.5px dashed var(--border-strong);
   border-radius: var(--radius); padding: 8px 12px; margin-top: 8px;
 }
-.share-url { font-family: 'Special Elite', monospace; font-size:11px; color: var(--red); word-break: break-all; }
+.share-url { font-family: 'Special Elite', monospace; font-size:11px; color: var(--red); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; }
 
 /* ── Scores ── */
 .score-row {
@@ -423,6 +422,7 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
 
 /* ── Footer brand ── */
 .brand-footer { text-align: center; margin-top: 2rem; font-family: 'Special Elite', monospace; font-size:11px; color: var(--ink-muted); letter-spacing: 2px; }
+body.screen-home .page, body.screen-welcome .page { padding-bottom: 2rem; }
 
 /* ── Group name dropdown ── */
 .group-suggestions { position: absolute; top: 100%; left: 0; right: 0; background: #f7f3e8; border: 1.5px solid var(--border-strong); border-top: none; border-radius: 0 0 4px 4px; z-index: 10; }
@@ -577,17 +577,8 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
 }
 
 /* ── Pencil waiting animation ── */
-.pencil-wait { text-align: center; padding: 1.5rem 0 1rem; }
-.pencil-icon { font-size: 56px; display: inline-block; animation: pencilBounce 1s ease-in-out infinite; transform-origin: bottom center; }
-@keyframes pencilBounce {
-  0%, 100% { transform: rotate(-15deg) translateY(0); }
-  50%       { transform: rotate(15deg) translateY(-8px); }
-}
-.pencil-dots { font-family: 'Caveat', cursive; font-size:26px; color: var(--ink-sec); margin-top: 8px; }
-.pencil-dots span { animation: dotPulse 1.4s ease-in-out infinite; display: inline-block; }
-.pencil-dots span:nth-child(2) { animation-delay: 0.2s; }
-.pencil-dots span:nth-child(3) { animation-delay: 0.4s; }
-@keyframes dotPulse { 0%, 80%, 100% { opacity: 0.2; } 40% { opacity: 1; } }
+
+@keyframes pencilBounce { 0%, 100% { transform: rotate(-15deg) translateY(0); } 50% { transform: rotate(15deg) translateY(-8px); } }
 
 /* ── Per-entry reactions & voting ── */
 .entry-reactions { display: flex; align-items: center; gap: 3px; flex-wrap: wrap; margin-top: 3px; padding-top: 3px; }
@@ -667,12 +658,12 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
 .lang-btn.active { opacity: 1; background: var(--paper-dark); border-color: var(--border-strong); }
 
 /* ── WhatsApp button ── */
-.wa-btn { width: 100%; background: #25D366; color: white; border-color: #1da851; font-size: 16px; padding: 12px; margin-top: 8px; border-radius: var(--radius); display: flex; align-items: center; justify-content: center; gap: 8px; }
+.wa-btn { background: #25D366; color: white; border-color: #1da851; padding: 8px 10px; border-radius: var(--radius); display: flex; align-items: center; justify-content: center; gap: 8px; }
 .wa-btn:hover { background: #1da851; }
 
 /* ── Emoji picker ── */
-.emoji-grid { display: grid; grid-template-columns: repeat(8,1fr); gap: 4px; margin-top: 8px; }
-.emoji-opt { font-size: 24px; text-align: center; padding: 6px 2px; border-radius: 6px; cursor: pointer; border: 2px solid transparent; box-sizing: border-box; }
+.emoji-grid { display: grid; grid-template-columns: repeat(8,1fr); gap: 2px; margin-top: 6px; }
+.emoji-opt { font-size: 24px; text-align: center; padding: 3px 2px; border-radius: 6px; cursor: pointer; border: 2px solid transparent; box-sizing: border-box; }
 .emoji-opt:hover { background: #f0efe9; border-color: #b8a890; }
 .emoji-opt.selected { border: 3px solid #c0392b; background: #fdf0ee; box-shadow: 0 0 0 2px #c0392b; }
 .emoji-display { font-size: 28px; display: inline-block; margin-left: 8px; vertical-align: middle; }
@@ -779,8 +770,8 @@ document.addEventListener('DOMContentLoaded', function() {
   </div>
   <div class="card">
     <p class="lbl" id="qj-invited">¡Te han invitado a jugar!</p>
-    <p class="lbl" id="qj-name-lbl" style="margin-top:12px">tu nombre</p>
-    <input type="text" id="qj-name" placeholder="María..." maxlength="20" autocomplete="nickname" inputmode="text" style="width:100%;margin-bottom:14px">
+    <p class="lbl" id="qj-name-lbl" style="margin-top:12px;display:none">tu nombre</p>
+    <input type="text" id="qj-name" placeholder="Nombre..." maxlength="20" autocomplete="nickname" inputmode="text" style="width:100%;margin-bottom:14px">
     <p class="lbl" id="qj-emoji-lbl">elige tu emoji <span class="emoji-display" id="qj-selected-emoji">🎲</span></p>
     <div class="emoji-grid" id="qj-emoji-grid"></div>
     <button class="pri" onclick="quickJoin()" style="width:100%;font-size:20px;padding:14px;margin-top:14px" id="qj-btn">¡Unirse a la sala! →</button>
@@ -794,12 +785,12 @@ document.addEventListener('DOMContentLoaded', function() {
     <span class="logo-main">¡Alto!</span>
     <div class="logo-rule"></div>
     <div class="logo-sub">JUGARENFAMILIA.ES</div>
-    <div class="logo-tag" id="welcome-logo-tag">el juego de siempre, con los de siempre</div>
+    <div class="logo-tag">el juego de siempre, con los de siempre</div>
   </div>
   <div class="card">
-    <p class="lbl" id="lbl-your-name">tu nombre</p>
+    <p class="lbl" id="lbl-your-name" style="display:none">tu nombre</p>
     <input type="text" id="inp-name" placeholder="María..." maxlength="20" autocomplete="nickname" inputmode="text" style="margin-bottom:14px" oninput="localStorage.setItem('alto_name', this.value.trim())">
-    <p class="lbl" id="lbl-choose-emoji">elige tu emoji <span class="emoji-display" id="selected-emoji">🎲</span></p>
+    <p class="lbl" id="lbl-choose-emoji" style="display:none">elige tu emoji <span class="emoji-display" id="selected-emoji">🎲</span></p>
     <div class="emoji-grid" id="emoji-grid"></div>
     <div style="margin-top:14px;display:flex;flex-direction:column;gap:8px">
       <button class="pri" onclick="createRoom()" style="width:100%;font-size:20px;padding:14px" id="btn-create">Crear sala →</button>
@@ -818,13 +809,13 @@ document.addEventListener('DOMContentLoaded', function() {
     <span class="logo-main">¡Alto!</span>
     <div class="logo-rule"></div>
     <div class="logo-sub">JUGARENFAMILIA.ES</div>
-    <div class="logo-tag" id="welcome-logo-tag">el juego de siempre, con los de siempre</div>
+    <div class="logo-tag">el juego de siempre, con los de siempre</div>
   </div>
   <div class="card">
     <div class="welcome-avatar" id="wb-emoji">🎲</div>
     <div class="welcome-name" id="wb-name" style="font-family:'Caveat',cursive;font-size:26px;font-weight:700">María</div>
     <div class="welcome-group" id="wb-group"></div>
-    <p class="lbl" id="lbl-wb-emoji" style="margin-top:12px">elige tu emoji <span class="emoji-display" id="selected-emoji-wb">🎲</span></p>
+    <p class="lbl" id="lbl-wb-emoji" style="display:none;margin-top:12px">elige tu emoji <span class="emoji-display" id="selected-emoji-wb">🎲</span></p>
     <div class="emoji-grid" id="emoji-grid-wb"></div>
     <button class="pri" onclick="continueSession()" style="width:100%;font-size:20px;padding:12px;margin-top:12px;margin-bottom:8px" id="wb-continue">Continuar →</button>
     <button onclick="startFresh()" style="width:100%;font-size: 16px" id="btn-not-me">No soy yo — cambiar</button>
@@ -841,12 +832,13 @@ document.addEventListener('DOMContentLoaded', function() {
     <div class="room-code" id="lob-code">----</div>
     <div class="share-box">
       <span class="share-url" id="share-url"></span>
-      <button onclick="copyLink()" style="font-size:13px;padding:5px 10px;flex-shrink:0;font-family:'Special Elite',monospace" id="btn-copy">Copiar</button>
     </div>
-    <button class="wa-btn" onclick="shareWhatsApp()" id="btn-wa">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-      <span id="wa-text">Compartir por WhatsApp</span>
-    </button>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button onclick="copyLink()" style="flex:1;font-size:13px;padding:8px;font-family:'Special Elite',monospace" id="btn-copy">📋 <span id="btn-copy-text">Copiar enlace</span></button>
+      <button class="wa-btn" onclick="shareWhatsApp()" id="btn-wa" style="flex-shrink:0;padding:8px 12px">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      </button>
+    </div>
   </div>
 
   <!-- Guest: confirmation + collapsible invite -->
@@ -858,14 +850,15 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
     <button class="invite-toggle" onclick="toggleInvite()" id="invite-toggle-btn">+ ¿Quieres invitar a alguien más?</button>
     <div class="invite-box" id="invite-box">
-      <div style="display:flex;gap:8px;align-items:center;margin:8px 0">
-        <span id="share-url-guest" style="font-family:'Special Elite',monospace;font-size:11px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
-        <button onclick="copyLinkGuest()" style="font-size:11px;padding:4px 8px;flex-shrink:0;font-family:'Special Elite',monospace">Copiar</button>
+      <div style="background:var(--paper-dark);border:1.5px dashed var(--border-strong);border-radius:var(--radius);padding:8px 12px;margin:8px 0;font-family:'Special Elite',monospace;font-size:11px;color:var(--red);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+        <span id="share-url-guest"></span>
       </div>
-      <button class="wa-btn" onclick="shareWhatsApp()" style="font-size: 13px;padding:10px">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-        <span>Compartir por WhatsApp</span>
-      </button>
+      <div style="display:flex;gap:8px">
+        <button onclick="copyLinkGuest()" style="flex:1;font-size:13px;padding:8px;font-family:'Special Elite',monospace">📋 Copiar</button>
+        <button class="wa-btn" onclick="shareWhatsApp()" style="flex-shrink:0;padding:8px 12px">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        </button>
+      </div>
     </div>
   </div>
 
@@ -878,8 +871,7 @@ document.addEventListener('DOMContentLoaded', function() {
   <!-- Host panel -->
   <div id="host-panel" style="display:none">
     <div class="card">
-      <p class="lbl" id="lbl-group-name">nombre del grupo</p>
-      <p style="font-family:'Special Elite',monospace;font-size:11px;color:var(--ink-muted);margin-bottom:8px" id="lbl-group-hint">familia, amigos, trabajo... como queráis</p>
+      <p class="lbl" id="lbl-group-name">nombre del grupo <span id="lbl-group-hint">(familia, amigos, trabajo... como queráis)</span></p>
       <div class="group-input-wrap">
         <input type="text" id="inp-group" placeholder="Los García, Amigos del cole..." maxlength="30" autocomplete="off" inputmode="text" data-form-type="other" oninput="onGroupInput()" onblur="hideGroupSuggestions()">
         <div class="group-suggestions" id="group-suggestions" style="display:none"></div>
@@ -948,7 +940,7 @@ document.addEventListener('DOMContentLoaded', function() {
   <!-- Guest panel -->
   <div id="guest-panel" style="display:none">
     <p class="wait" id="lbl-guest-wait">✏️ Esperando al anfitrión…</p>
-    <button class="btn-leave-room" onclick="leaveGame()" id="btn-leave">← <span id="btn-leave-text">Salir de la sala</span></button>
+    <button class="btn-leave-room" onclick="leaveGame()" id="btn-leave-guest">← <span id="btn-leave-text-guest">Salir de la sala</span></button>
   </div>
 </div>
 <!-- ══ DAILY PLAY ══ -->
@@ -1024,12 +1016,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <!-- ══ WAITING (guests) ══ -->
 <div id="s-waiting" class="screen">
-  <h1 id="lbl-submitted">Respuestas enviadas</h1>
-  <p style="font-family:'Caveat',cursive;font-size:26px;color:var(--ink-sec);text-align:center;margin-bottom:1rem;letter-spacing:0.5px" id="lbl-host-reviewing">el anfitrión está revisando</p>
-  <div class="pencil-wait">
-    <div class="pencil-icon">✏️</div>
-    <div class="pencil-dots"><span>•</span><span>•</span><span>•</span></div>
-  </div>
+  <h1 id="lbl-waiting-title">Esperando...</h1>
+  <p style="font-family:'Caveat',cursive;font-size:26px;color:var(--ink-sec);text-align:center;margin-bottom:0.75rem" id="lbl-host-reviewing">el anfitrión está revisando <span style="display:inline-block;animation:pencilBounce 1s ease-in-out infinite;font-size:24px;vertical-align:middle;margin-left:25px">✏️</span></p>
+  <div id="stop-caller-banner-guest" style="display:none;text-align:center;font-family:'Special Elite',monospace;font-size:13px;color:var(--ink-sec);margin-bottom:8px;padding:6px 10px;background:var(--paper-dark);border-radius:var(--radius);border:1px dashed var(--border)"></div>
   <div id="guest-val-content"></div>
 </div>
 
@@ -1150,7 +1139,7 @@ const LANG_FLAGS = {es:'🇪🇸', en:'🇬🇧', fr:'🇫🇷'};
 const T = {
   es: {
     tagline: 'el juego de siempre, con los de siempre',
-    yourName: 'tu nombre', namePlaceholder: 'María...',
+    yourName: 'tu nombre', namePlaceholder: 'Nombre...',
     chooseEmoji: 'elige tu emoji',
     createRoom: 'Crear sala', join: 'Unirse',
     roomCode: 'código de sala',
@@ -1193,7 +1182,7 @@ const T = {
     toastCats: 'Selecciona al menos una categoría',
     toastFreeCats: 'Escribe al menos 2 categorías',
     toastHostOnly: 'Solo el anfitrión puede reiniciar',
-    continueBtn: 'Continuar →', notMe: 'No soy yo — cambiar', groupHint2: 'familia, amigos, trabajo... como queráis', easyHint: '(sin K, Ñ, Q, U, W, X, Y, Z)', validate: 'Revisar', validateSub1: '📖 Wikipedia · 🤖 IA · ✕ anular', validateSub2: 'única = 100 pts · repetida = 50 pts · anulada = 0 pts', submitted2: 'Respuestas enviadas', hostReviewing2: 'el anfitrión está revisando', leaderboardBack: '← volver', loading: 'Cargando…', final2: '¡Fin del juego!', searching: 'Buscando...', hostSearching: 'El anfitrión está buscando...', rndLabel: 'ronda', of: 'de', freeCatLabel: 'escreve as tuas categorias (uma por linha)', freeCatPlaceholder: 'Jogadores do Barça\nFilmes de terror\nCoisas na cozinha', freeCatLabel: 'escribe tus categorías (una por línea)', freeCatPlaceholder: 'Jugadores del Barça\nPelículas de terror\nCosas en la cocina', of: 'de', freeCatLabel: 'escreve as tuas categorias (uma por linha)', freeCatPlaceholder: 'Jogadores do Barça\nFilmes de terror\nCoisas na cozinha', freeCatLabel: 'escribe tus categorías (una por línea)', freeCatPlaceholder: 'Jugadores del Barça\nPelículas de terror\nCosas en la cocina', letterLabel: 'letra', calculate: 'Calcular puntuación →', stopCallerMsg: '{name} llamó al ¡Alto!', timerRanOut: 'se acabó el tiempo', scoresTitle: 'Puntuación', lbTitle: 'Marcador',
+    continueBtn: 'Continuar →', notMe: 'No soy yo — cambiar', groupHint2: 'familia, amigos, trabajo... como queráis', easyHint: '(sin K, Ñ, Q, U, W, X, Y, Z)', validate: 'Revisar', validateSub1: '📖 Wikipedia · 🤖 Asistente IA · <span style="color:var(--red)">✕</span> anular', validateSub2: 'única = 100 pts · repetida = 50 pts · anulada = 0 pts', submitted2: 'Respuestas enviadas', waitingTitle: 'Esperando...', hostReviewing2: 'el anfitrión está revisando', leaderboardBack: '← volver', loading: 'Cargando…', final2: '¡Fin del juego!', searching: 'Buscando...', hostSearching: 'El anfitrión está buscando...', rndLabel: 'ronda', of: 'de', freeCatLabel: 'escreve as tuas categorias (uma por linha)', freeCatPlaceholder: 'Jogadores do Barça\nFilmes de terror\nCoisas na cozinha', freeCatLabel: 'escribe tus categorías (una por línea)', freeCatPlaceholder: 'Jugadores del Barça\nPelículas de terror\nCosas en la cocina', of: 'de', freeCatLabel: 'escreve as tuas categorias (uma por linha)', freeCatPlaceholder: 'Jogadores do Barça\nFilmes de terror\nCoisas na cozinha', freeCatLabel: 'escribe tus categorías (una por línea)', freeCatPlaceholder: 'Jugadores del Barça\nPelículas de terror\nCosas en la cocina', letterLabel: 'letra', calculate: 'Calcular puntuación →', stopCallerMsg: '{name} llamó al ¡Alto!', timerRanOut: 'se acabó el tiempo', scoresTitle: 'Puntuación', lbTitle: 'Marcador',
     invited: '¡Te han invitado a jugar!', rulesBtn: '¿Cómo se juega?', expBtn: '⚗️ FUNCIONES EXPERIMENTALES', aiValidation: '🤖 Asistente IA', aiRelajado: '🟢 Relajada', aiEstricto: '🔴 Estricta', aiSpelling: '✏️ Permitir faltas de ortografía', aiYes: 'Sí', aiNo: 'No', modeHost: '👑 Normal', modeDemocratic: '🗳️ Democrático', invalidated: 'anulada', winnerLine: '{emoji} {name} gana con {pts} puntos!', wrongPwd: '❌ Contraseña incorrecta', expActivated: '⚗️ Funciones experimentales activadas', qjCodeLabel: 'sala:', gcInside: '✅ ESTÁS DENTRO', inviteMore: '+ ¿Quieres invitar a alguien más?', getReady: 'PREPARADOS',
     toastBack: 'Volviendo como', notFoundWord: '📭 No se encontró', didYouMean: '¿Quisiste decir', noDefinition: '📭 Sin definición para',
     waMsg: '¡Juega conmigo al ¡Alto! 🎮 Únete aquí:',
@@ -1207,7 +1196,7 @@ const T = {
   },
   en: {
     tagline: 'the classic game, with the people you love',
-    yourName: 'your name', namePlaceholder: 'Maria...',
+    yourName: 'your name', namePlaceholder: 'Name...',
     chooseEmoji: 'choose your emoji',
     createRoom: 'Create room', join: 'Join',
     roomCode: 'room code',
@@ -1250,7 +1239,7 @@ const T = {
     toastCats: 'Select at least one category',
     toastFreeCats: 'Enter at least 2 categories',
     toastHostOnly: 'Only the host can restart',
-    continueBtn: 'Continue →', notMe: "That's not me — change", groupHint2: 'family, friends, work... whatever you like', easyHint: '(no Q, U, W, X, Y, Z)', validate: 'Review', validateSub1: '📖 Wikipedia · 🤖 AI · ✕ invalidate', validateSub2: 'unique = 100 pts · duplicate = 50 pts · invalid = 0 pts', submitted2: 'Answers submitted', hostReviewing2: 'host is reviewing', leaderboardBack: '← back', loading: 'Loading…', final2: 'Game over!', searching: 'Searching...', hostSearching: 'Host is searching...', rndLabel: 'round', of: 'di', freeCatLabel: 'scrivi le tue categorie (una per riga)', freeCatPlaceholder: 'Giocatori del Barça\nFilm horror\nCose in cucina', of: 'of', freeCatLabel: 'write your categories (one per line)', freeCatPlaceholder: 'Football players\nHorror films\nThings in the kitchen', letterLabel: 'letter', calculate: 'Calculate scores →', stopCallerMsg: '{name} called Stop!', timerRanOut: 'time ran out', scoresTitle: 'Scores', lbTitle: 'Leaderboard',
+    continueBtn: 'Continue →', notMe: "That's not me — change", groupHint2: 'family, friends, work... whatever you like', easyHint: '(no Q, U, W, X, Y, Z)', validate: 'Review', validateSub1: '📖 Wikipedia · 🤖 AI Assistant · <span style="color:var(--red)">✕</span> invalidate', validateSub2: 'unique = 100 pts · duplicate = 50 pts · invalid = 0 pts', submitted2: 'Answers submitted', waitingTitle: 'Waiting...', hostReviewing2: 'host is reviewing', leaderboardBack: '← back', loading: 'Loading…', final2: 'Game over!', searching: 'Searching...', hostSearching: 'Host is searching...', rndLabel: 'round', of: 'di', freeCatLabel: 'scrivi le tue categorie (una per riga)', freeCatPlaceholder: 'Giocatori del Barça\nFilm horror\nCose in cucina', of: 'of', freeCatLabel: 'write your categories (one per line)', freeCatPlaceholder: 'Football players\nHorror films\nThings in the kitchen', letterLabel: 'letter', calculate: 'Calculate scores →', stopCallerMsg: '{name} called Stop!', timerRanOut: 'time ran out', scoresTitle: 'Scores', lbTitle: 'Leaderboard',
     invited: "You've been invited to play!", rulesBtn: 'How to play?', expBtn: '⚗️ EXPERIMENTAL FEATURES', aiValidation: '🤖 AI Assistant', aiRelajado: '🟢 Relaxed', aiEstricto: '🔴 Strict', aiSpelling: '✏️ Allow spelling mistakes', aiYes: 'Yes', aiNo: 'No', modeHost: '👑 Normal', modeDemocratic: '🗳️ Democratic', invalidated: 'invalid', winnerLine: '{emoji} {name} wins with {pts} points!', wrongPwd: '❌ Wrong password', expActivated: '⚗️ Experimental features activated', qjCodeLabel: 'room:', gcInside: "✅ YOU'RE IN", inviteMore: '+ Want to invite someone?', getReady: 'GET READY',
     toastBack: 'Rejoining as', notFoundWord: '📭 Not found', didYouMean: 'Did you mean', noDefinition: '📭 No definition for',
     waMsg: 'Play Stop! with me 🎮 Join here:',
@@ -1264,7 +1253,7 @@ const T = {
   },
   fr: {
     tagline: "le jeu de toujours, avec ceux qu'on aime",
-    yourName: 'ton prénom', namePlaceholder: 'Marie...',
+    yourName: 'ton prénom', namePlaceholder: 'Prénom...',
     chooseEmoji: 'choisis ton emoji',
     createRoom: 'Créer une salle', join: 'Rejoindre',
     roomCode: 'code de la salle',
@@ -1307,7 +1296,7 @@ const T = {
     toastCats: 'Sélectionne au moins une catégorie',
     toastFreeCats: 'Entre au moins 2 catégories',
     toastHostOnly: "Seul l'hôte peut recommencer",
-    continueBtn: 'Continuer →', notMe: "Ce n'est pas moi — changer", groupHint2: 'famille, amis, travail... comme vous voulez', easyHint: '(sans K, Q, U, W, X, Y, Z)', validate: 'Vérifier', validateSub1: '📖 Wikipedia · 🤖 IA · ✕ annuler', validateSub2: 'unique = 100 pts · doublon = 50 pts · annulé = 0 pts', submitted2: 'Réponses envoyées', hostReviewing2: "l'hôte vérifie", leaderboardBack: '← retour', loading: 'Chargement…', final2: 'Fin de partie!', searching: 'Recherche...', hostSearching: "L'hôte cherche...", rndLabel: 'manche', of: 'sur', freeCatLabel: 'écris tes catégories (une par ligne)', freeCatPlaceholder: 'Joueurs du Barça\nFilms d\'horreur\nChoses dans la cuisine', letterLabel: 'lettre', calculate: 'Calculer les scores →', stopCallerMsg: '{name} a crié Stop !', timerRanOut: 'temps écoulé', scoresTitle: 'Scores', lbTitle: 'Classement',
+    continueBtn: 'Continuer →', notMe: "Ce n'est pas moi — changer", groupHint2: 'famille, amis, travail... comme vous voulez', easyHint: '(sans K, Q, U, W, X, Y, Z)', validate: 'Vérifier', validateSub1: '📖 Wikipedia · 🤖 Assistant IA · <span style="color:var(--red)">✕</span> annuler', validateSub2: 'unique = 100 pts · doublon = 50 pts · annulé = 0 pts', submitted2: 'Réponses envoyées', waitingTitle: 'En attente...', hostReviewing2: "l'hôte vérifie", leaderboardBack: '← retour', loading: 'Chargement…', final2: 'Fin de partie!', searching: 'Recherche...', hostSearching: "L'hôte cherche...", rndLabel: 'manche', of: 'sur', freeCatLabel: 'écris tes catégories (une par ligne)', freeCatPlaceholder: 'Joueurs du Barça\nFilms d\'horreur\nChoses dans la cuisine', letterLabel: 'lettre', calculate: 'Calculer les scores →', stopCallerMsg: '{name} a crié Stop !', timerRanOut: 'temps écoulé', scoresTitle: 'Scores', lbTitle: 'Classement',
     invited: 'Tu as été invité à jouer!', rulesBtn: 'Comment jouer?', expBtn: '⚗️ FONCTIONS EXPÉRIMENTALES', aiValidation: '🤖 Assistant IA', aiRelajado: '🟢 Détendue', aiEstricto: '🔴 Stricte', aiSpelling: '✏️ Autoriser les fautes d\'orthographe', aiYes: 'Oui', aiNo: 'Non', modeHost: '👑 Normal', modeDemocratic: '🗳️ Démocratique', invalidated: 'annulée', winnerLine: '{emoji} {name} gagne avec {pts} points!', wrongPwd: '❌ Mot de passe incorrect', expActivated: '⚗️ Fonctions expérimentales activées', qjCodeLabel: 'salle:', gcInside: '✅ VOUS ÊTES DEDANS', inviteMore: "+ Inviter quelqu'un d'autre?", getReady: 'PRÊTS',
     toastBack: 'Reconnexion en tant que', notFoundWord: '📭 Introuvable', didYouMean: 'Vouliez-vous dire', noDefinition: '📭 Aucune définition pour',
     waMsg: 'Joue au Stop! avec moi 🎮 Rejoins ici:',
@@ -1494,11 +1483,9 @@ window.applyLang = function() {
   s('lbl-wb-emoji', t('chooseEmoji') + ' ');
   // Lobby
   s('lbl-share-code', t('shareCode'));
-  s('btn-copy', t('copyLink'));
-  s('wa-text', t('wa'));
+  s('btn-copy-text', t('copyLink'));
   { const el = document.getElementById('lbl-players'); if (el) { const hint = document.getElementById('lbl-solo-hint'); const hintHTML = hint ? hint.outerHTML : ''; el.innerHTML = t('players') + ' ' + hintHTML; } }
-  s('lbl-group-name', t('groupName'));
-  s('lbl-group-hint', t('groupHint2'));
+  { const el = document.getElementById('lbl-group-name'); if (el) { const hint = document.getElementById('lbl-group-hint'); const hintHTML = hint ? hint.outerHTML : ''; el.innerHTML = t('groupName') + ' ' + hintHTML; const h = document.getElementById('lbl-group-hint'); if (h) h.textContent = '(' + t('groupHint2') + ')'; } }
   s('inp-group', null, t('groupPlaceholder'));
   s('lbl-theme', t('theme'));
   s('lbl-easy-letters', t('easyLetters'));
@@ -1509,6 +1496,8 @@ window.applyLang = function() {
   s('btn-start', t('start'));
   s('btn-leave', t('leaveRoom'));
   s('btn-leave-text', t('leaveRoom2') || t('leaveRoom'));
+  s('btn-leave-guest', t('leaveRoom'));
+  s('btn-leave-text-guest', t('leaveRoom2') || t('leaveRoom'));
   s('btn-config-label', t('configLabel'));
   s('gc-status', t('gcInside'));
   s('lbl-validation-mode', '🗳️ ' + {'es':'Modo de validación','en':'Validation mode','fr':'Mode de validation'}[LANG]);
@@ -1532,12 +1521,13 @@ window.applyLang = function() {
   const stopBtn = document.querySelector('.stop-btn'); if(stopBtn) stopBtn.textContent = t('stop');
   // Validate
   s('lbl-validate-title', t('validate'));
-  s('lbl-validate-sub1', t('validateSub1'));
+  { const el = document.getElementById('lbl-validate-sub1'); if (el) el.innerHTML = t('validateSub1'); }
   s('lbl-validate-sub2', t('validateSub2'));
+  s('lbl-waiting-title', t('waitingTitle'));
   s('btn-calculate', t('calculate'));
   // Waiting
   s('lbl-submitted', t('submitted2'));
-  s('lbl-host-reviewing', t('hostReviewing2'));
+  { const el = document.getElementById('lbl-host-reviewing'); if (el) el.innerHTML = t('hostReviewing2') + ' <span style="display:inline-block;animation:pencilBounce 1s ease-in-out infinite;transform-origin:bottom center;font-size:24px;vertical-align:middle;margin-left:25px">✏️</span>'; }
   // Scores
   s('lbl-scores-title', t('scoresTitle'));
   // Leaderboard
@@ -2258,7 +2248,6 @@ async function dailyAICallModel(word, category, letter, model, systemPrompt, pro
     const combined = (msg.content?.trim() || msg.reasoning?.trim() || '');
     const text = combined.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
     const norm = text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z]/g, ' ').trim();
-    console.log('[Daily AI]', model.split('/')[1], word, '→', norm.slice(0,20));
     if (/\binvalid(o)?\b/.test(norm)) return 'invalid';
     if (/\bvalid(o)?\b/.test(norm)) return 'valid';
     if (/\byes\b|\bcorrect\b|\bsi\b|\bcorrecto\b/.test(norm)) return 'valid';
@@ -2283,8 +2272,6 @@ async function dailyAIValidate(word, category, letter) {
     dailyAICallModel(word, category, letter, MODELS[1], systemPrompt, userPrompt),
   ]);
 
-  console.log('[Daily consensus]', word, '→', r1, r2);
-
   // If they agree — done
   if (r1 === r2) return r1;
 
@@ -2293,9 +2280,7 @@ async function dailyAIValidate(word, category, letter) {
   if (r2 === 'unsure') return r1;
 
   // Split (valid vs invalid) — call tiebreaker
-  console.log('[Daily tiebreaker]', word, '→ calling model 3');
   const r3 = await dailyAICallModel(word, category, letter, MODELS[2], systemPrompt, userPrompt);
-  console.log('[Daily tiebreaker]', word, '→', r3);
 
   // Majority vote
   const votes = [r1, r2, r3];
@@ -3180,7 +3165,7 @@ function showValidation(room) {
 function showGuestValidation(room) {
   show('waiting');
   // Stop caller banner
-  const _scBanner = document.getElementById('stop-caller-banner');
+  const _scBanner = document.getElementById('stop-caller-banner-guest');
   if (_scBanner) {
     const _caller = room.stopCaller || '';
     const _timeUp = room.timerRanOut;
@@ -3542,8 +3527,17 @@ window.askAI = async (word, category, letter, key) => {
       invalid: {es:'¡El robot cree que es inválido!', en:'Robot thinks it\'s invalid!',    fr:'Le robot pense que c\'est invalide!'},
       unsure:  {es:'¡El robot no está seguro!',       en:'Robot is not sure!',              fr:'Le robot n\'est pas sûr!'}
     };
+    const colorMap = { valid: 'var(--success)', invalid: 'var(--red)', unsure: '#f39c12' };
+    const verdictMap = {
+      valid:   {es:'válido',   en:'valid',   fr:'valide'},
+      invalid: {es:'inválido', en:'invalid', fr:'invalide'},
+      unsure:  {es:'seguro',   en:'sure',    fr:'sûr'}
+    };
     const label = (labelMap[cls]||labelMap.unsure)[LANG] || (labelMap[cls]||labelMap.unsure).es;
-    const aiHtml = '🤖 ' + label;
+    const color = colorMap[cls] || colorMap.unsure;
+    const verdict = (verdictMap[cls]||verdictMap.unsure)[LANG] || (verdictMap[cls]||verdictMap.unsure).es;
+    const coloredLabel = label.replace(verdict, `<span style="font-weight:700;color:${color}">${verdict}</span>`);
+    const aiHtml = `🤖 ${coloredLabel}`;
     result.innerHTML = aiHtml;
     // Broadcast to guests via Firebase
     update(roomRef(G.roomCode), { [`aiResults/${key}`]: { html: aiHtml, cls, key } });
@@ -4410,6 +4404,8 @@ window.dbg = function dbg(screen) {
       G.isHost = false;
       const waitRoom = dbgFakeRoom({ validationMode: 'host' });
       show('waiting');
+      const bannerGuest = document.getElementById('stop-caller-banner-guest');
+      if (bannerGuest) { bannerGuest.textContent = '🦊 Carlos llamó al ¡Alto!'; bannerGuest.style.display = 'block'; }
       document.getElementById('guest-val-content').innerHTML = buildValidationHTML(waitRoom, DBG.invalidAnswers, false);
       // Simulate AI result visible to guest
       setTimeout(() => {
@@ -4519,7 +4515,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260905.58</div>
+  <div style="font-size: 11px;opacity:0.5">v260905.76</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
