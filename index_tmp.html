@@ -452,12 +452,12 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
 }
 .daily-cat-row:last-child { border-bottom: none; }
 .daily-cat-label {
-  font-family: 'Caveat', cursive; font-size: 17px; color: var(--ink-sec);
-  width: 110px; flex-shrink: 0;
+  font-family: 'Caveat', cursive; font-size: 19px; color: var(--ink-sec);
+  width: 120px; flex-shrink: 0;
 }
 .daily-cat-input {
   flex: 1; border: none; border-bottom: 2px solid var(--border);
-  background: transparent; font-family: 'Caveat', cursive; font-size: 18px;
+  background: transparent; font-family: 'Caveat', cursive; font-size: 22px;
   color: var(--ink); padding: 2px 4px; outline: none;
 }
 .daily-cat-input:focus { border-bottom-color: var(--red); }
@@ -474,8 +474,8 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
   padding: 8px 0; border-bottom: 1px solid var(--border); flex-wrap: wrap;
 }
 .daily-result-row:last-child { border-bottom: none; }
-.daily-result-cat { font-family: 'Caveat', cursive; font-size: 15px; color: var(--ink-sec); width: 100px; flex-shrink: 0; }
-.daily-result-word { font-family: 'Caveat', cursive; font-size: 18px; color: var(--ink); flex: 1; }
+.daily-result-cat { font-family: 'Caveat', cursive; font-size: 16px; color: var(--ink-sec); width: 105px; flex-shrink: 0; }
+.daily-result-word { font-family: 'Caveat', cursive; font-size: 20px; color: var(--ink); flex: 1; }
 .daily-result-pts { font-family: 'Special Elite', monospace; font-size: 12px; color: var(--red); flex-shrink: 0; }
 .daily-result-ai { font-size: 14px; flex-shrink: 0; }
 .daily-lb-row {
@@ -487,7 +487,10 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
 .daily-lb-name { font-family: 'Caveat', cursive; font-size: 17px; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .daily-lb-score { font-family: 'Special Elite', monospace; font-size: 13px; color: var(--red); flex-shrink: 0; }
 .daily-lb-orig { font-family: 'Special Elite', monospace; font-size: 11px; color: var(--ink-muted); flex-shrink: 0; margin-left: 2px; }
+.daily-lb-speed { font-family: 'Special Elite', monospace; font-size: 11px; color: var(--ink-muted); flex-shrink: 0; margin-left: 4px; }
 .daily-lb-sep { text-align: center; font-family: 'Special Elite', monospace; font-size: 11px; color: var(--ink-muted); padding: 4px 0; letter-spacing: 2px; }
+.daily-lb-lang-btn { padding: 2px 3px; border: 1.5px solid transparent; background: transparent; cursor: pointer; border-radius: 4px; opacity: 0.45; line-height: 1; vertical-align: middle; }
+.daily-lb-lang-btn.active { opacity: 1; background: var(--paper-dark); border-color: var(--border-strong); }
 .daily-lb-row.daily-lb-me { background: var(--red-light); border: 1.5px solid var(--red); }
 .daily-lb-row { cursor: pointer; }
 .daily-lb-row.expanded { border-radius: var(--radius) var(--radius) 0 0; margin-bottom: 0; }
@@ -505,9 +508,12 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
   padding: 3px 0; border-bottom: 1px dashed var(--border); gap: 8px;
 }
 .daily-lb-answer-row:last-child { border-bottom: none; }
-.daily-lb-answer-cat { font-family: 'Special Elite', monospace; font-size: 11px; color: var(--ink-muted); flex-shrink: 0; }
-.daily-lb-answer-val { font-family: 'Caveat', cursive; font-size: 15px; color: var(--ink); text-align: right; }
+.daily-lb-answer-cat { font-family: 'Special Elite', monospace; font-size: 13px; color: var(--ink-muted); flex-shrink: 0; }
+.daily-lb-answer-val { font-family: 'Caveat', cursive; font-size: 17px; color: var(--ink); flex: 1; text-align: left; }
 .daily-lb-answer-val.empty { color: var(--ink-muted); font-style: italic; font-size: 12px; }
+.daily-lb-answer-ai { font-size: 13px; flex-shrink: 0; min-width: 18px; text-align: center; }
+.daily-lb-answer-pts { font-family: 'Special Elite', monospace; font-size: 11px; color: var(--success); flex-shrink: 0; min-width: 24px; text-align: right; }
+.daily-lb-answer-pts.zero { color: var(--ink-muted); }
 .daily-result-orig { font-family: 'Special Elite', monospace; font-size: 11px; color: var(--ink-muted); flex-shrink: 0; }
 .daily-already-played { text-align: center; padding: 1.5rem 0; }
 .daily-already-score { font-family: 'Caveat', cursive; font-size: 48px; font-weight: 700; color: var(--red); }
@@ -706,8 +712,8 @@ document.addEventListener('DOMContentLoaded', function() {
     pt: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 30" width="28" height="19"'+S+'><rect width="44" height="30" fill="#009C3B"/><polygon points="22,3 41,15 22,27 3,15" fill="#FEDF00"/><circle cx="22" cy="15" r="7" fill="#002776"/></svg>',
     it: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 30" width="28" height="19"'+S+'><rect width="44" height="30" fill="#CE2B37"/><rect width="29.5" height="30" fill="white"/><rect width="14.5" height="30" fill="#009246"/></svg>',
   };
-  document.querySelectorAll('.lang-btn, #shell-flags .lang-btn').forEach(function(btn) {
-    var m = (btn.getAttribute('onclick')||'').match(/setLang\('([a-z]+)'\)/);
+  document.querySelectorAll('.lang-btn, #shell-flags .lang-btn, .daily-lb-lang-btn').forEach(function(btn) {
+    var m = (btn.getAttribute('onclick')||'').match(/(?:setLang|switchDailyLbLang)\('([a-z]+)'\)/);
     if (m && FLAGS[m[1]]) {
       btn.innerHTML = FLAGS[m[1]];
       btn.style.padding = '2px 3px';
@@ -730,9 +736,6 @@ document.addEventListener('DOMContentLoaded', function() {
         <button class="lang-btn active" onclick="setLang('es')" title="Español">🇪🇸</button>
         <button class="lang-btn" onclick="setLang('en')" title="English">🇬🇧</button>
         <button class="lang-btn" onclick="setLang('fr')" title="Français">🇫🇷</button>
-        <button class="lang-btn" onclick="setLang('de')" title="Deutsch">🇩🇪</button>
-        <button class="lang-btn" onclick="setLang('pt')" title="Português">🇧🇷</button>
-        <button class="lang-btn" onclick="setLang('it')" title="Italiano">🇮🇹</button>
       </div>
     </div>
     <div id="shell-center">
@@ -976,10 +979,16 @@ document.addEventListener('DOMContentLoaded', function() {
   </div>
 
   <div class="card">
-    <p class="lbl" id="lbl-daily-leaderboard" style="margin-bottom:8px">clasificación del día</p>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <p class="lbl" id="lbl-daily-leaderboard" style="margin:0">clasificación del día</p>
+      <div id="daily-lb-lang-btns" style="display:flex;gap:4px;align-items:center">
+        <button class="daily-lb-lang-btn active" data-lang="es" onclick="switchDailyLbLang('es')" title="Español">🇪🇸</button>
+        <button class="daily-lb-lang-btn" data-lang="en" onclick="switchDailyLbLang('en')" title="English">🇬🇧</button>
+        <button class="daily-lb-lang-btn" data-lang="fr" onclick="switchDailyLbLang('fr')" title="Français">🇫🇷</button>
+      </div>
+    </div>
     <div id="daily-lb-list"></div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
-      <p style="font-family:'Special Elite',monospace;font-size:10px;color:var(--ink-muted)" id="daily-lb-note">clasificación en tiempo real</p>
       <button onclick="refreshDailyOriginality()" style="font-family:'Special Elite',monospace;font-size:10px;padding:3px 8px;border:1px solid var(--border);border-radius:4px;background:transparent;cursor:pointer;color:var(--ink-sec)" id="btn-daily-refresh">↻ actualizar</button>
     </div>
   </div>
@@ -1077,9 +1086,6 @@ const LETTERS_FULL = {
   es: 'ABCDEFGHIJKLMNÑOPQRSTUVWXYZ'.split(''),
   en: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split(''),
   fr: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split(''),
-  de: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split(''),
-  pt: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split(''),
-  it: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split(''),
 };
 
 // Easy letters per language — drops letters that are genuinely hard for that language
@@ -1087,9 +1093,6 @@ const LETTERS_EASY = {
   es: 'ABCDEFGHIJLMNOPRSTV'.split(''),         // drop K Ñ Q U W X Y Z
   en: 'ABCDEFGHIJKLMNOPRSTV'.split(''),         // drop Q U W X Y Z (keep K)
   fr: 'ABCDEFGHIJLMNOPRSTV'.split(''),          // drop K Q U W X Y Z
-  de: 'ABCDEFGHIJKLMNOPRSTUVW'.split(''),       // drop Q X Y Z (keep K W — very common in German)
-  pt: 'ABCDEFGHIJLMNOPRSTV'.split(''),          // drop K Q U W X Y Z
-  it: 'ABCDEFGHILMNOPRSTV'.split(''),           // drop J K Q U W X Y Z (Italian barely uses them)
 };
 
 const THEMES_ALL = {
@@ -1126,48 +1129,12 @@ const THEMES_ALL = {
     '✏️ Catégories': null,
     '✍️ Libre':      'free',
   },
-  de: {
-    '🎲 Klassisch':  ['Vorname','Nachname','Stadt','Land','Tier','Objekt','Frucht','Farbe'],
-    '🌍 Geografie':  ['Stadt','Land','Hauptstadt','Fluss','Berg','Kontinent','Meer','Insel'],
-    '🎵 Musik':      ['Sänger','Lied','Band','Instrument','Genre','Album','Festival','Tanz'],
-    '🎬 Film & TV':  ['Film','Serie','Schauspieler','Schauspielerin','Regisseur','Figur','Sender','Preis'],
-    '🍽️ Essen':      ['Gericht','Frucht','Gemüse','Getränk','Dessert','Gewürz','Restaurant','Land'],
-    '🌱 Natur':      ['Tier','Pflanze','Insekt','Vogel','Baum','Blume','Meer','Berg'],
-    '⚽ Sport':      ['Sport','Mannschaft','Spieler','Land','Stadion','Pokal','Marke','Liga'],
-    '✏️ Kategorien': null,
-    '✍️ Frei':       'free',
-  },
-  pt: {
-    '🎲 Clássico':   ['Nome','Apelido','Cidade','País','Animal','Objeto','Fruta','Cor'],
-    '🌍 Geografia':  ['Cidade','País','Capital','Rio','Montanha','Continente','Mar','Ilha'],
-    '🎵 Música':     ['Cantor','Canção','Banda','Instrumento','Género','Álbum','Festival','Dança'],
-    '🎬 Cinema':     ['Filme','Série','Ator','Atriz','Realizador','Personagem','Canal','Prémio'],
-    '🍽️ Gastronomia':['Prato','Fruta','Legume','Bebida','Sobremesa','Especiaria','Restaurante','País'],
-    '🌱 Natureza':   ['Animal','Planta','Inseto','Ave','Árvore','Flor','Mar','Montanha'],
-    '⚽ Desporto':   ['Desporto','Equipa','Jogador','País','Estádio','Troféu','Marca','Liga'],
-    '✏️ Categorias': null,
-    '✍️ Livre':      'free',
-  },
-  it: {
-    '🎲 Classico':   ['Nome','Cognome','Città','Paese','Animale','Objeto','Frutto','Colore'],
-    '🌍 Geografia':  ['Città','Paese','Capitale','Fiume','Montagna','Continente','Mare','Isola'],
-    '🎵 Musica':     ['Cantante','Canzone','Banda','Strumento','Genere','Album','Festival','Ballo'],
-    '🎬 Cinema':     ['Film','Serie','Attore','Attrice','Regista','Personaggio','Canale','Premio'],
-    '🍽️ Cucina':     ['Piatto','Frutto','Verdura','Bevanda','Dolce','Spezia','Ristorante','Paese'],
-    '🌱 Natura':     ['Animale','Pianta','Insetto','Uccello','Albero','Fiore','Mare','Montagna'],
-    '⚽ Sport':      ['Sport','Squadra','Giocatore','Paese','Stadio','Trofeo','Marca','Lega'],
-    '✏️ Categorie':  null,
-    '✍️ Libero':     'free',
-  },
 };
 
 const CUSTOM_CATS_ALL = {
   es: ['Nombre','Apellido','Ciudad','País','Animal','Objeto','Fruta','Color','Flor','Profesión','Comida','Marca','Deporte','Película'],
   en: ['Name','Surname','City','Country','Animal','Object','Fruit','Colour','Flower','Profession','Food','Brand','Sport','Film'],
   fr: ['Prénom','Nom','Ville','Pays','Animal','Objet','Fruit','Couleur','Fleur','Profession','Nourriture','Marque','Sport','Film'],
-  de: ['Vorname','Nachname','Stadt','Land','Tier','Objekt','Frucht','Farbe','Blume','Beruf','Essen','Marke','Sport','Film'],
-  pt: ['Nome','Apelido','Cidade','País','Animal','Objeto','Fruta','Cor','Flor','Profissão','Comida','Marca','Desporto','Filme'],
-  it: ['Nome','Cognome','Città','Paese','Animale','Objeto','Frutto','Colore','Fiore','Professione','Cibo','Marca','Sport','Film'],
 };
 
 function getThemes() { return THEMES_ALL[LANG] || THEMES_ALL.es; }
@@ -1177,7 +1144,7 @@ function getCustomCats() { return CUSTOM_CATS_ALL[LANG] || CUSTOM_CATS_ALL.es; }
 const THEMES = new Proxy({}, { get: (_, k) => getThemes()[k] });
 const CUSTOM_CATS = new Proxy([], { get: (_, k) => (getCustomCats())[k] });
 const MEDALS = ['🥇','🥈','🥉'];
-const LANG_FLAGS = {es:'🇪🇸', en:'🇬🇧', fr:'🇫🇷', de:'🇩🇪', pt:'🇧🇷', it:'🇮🇹'};
+const LANG_FLAGS = {es:'🇪🇸', en:'🇬🇧', fr:'🇫🇷'};
 
 // ── Translations ──────────────────────────────────
 const T = {
@@ -1352,177 +1319,6 @@ const T = {
     shellLeaveYes: 'Quitter', shellLeaveNo: 'Continuer',
     toastRoomCopied: 'Lien copié!',
   },
-  de: {
-    tagline: 'das Spiel von damals, mit den Liebsten',
-    yourName: 'dein Name', namePlaceholder: 'Maria...',
-    chooseEmoji: 'wähle dein Emoji',
-    createRoom: 'Raum erstellen', join: 'Beitreten',
-    roomCode: 'Raumcode',
-    enter: 'Beitreten',
-    noReg: 'KEINE ANMELDUNG · KEIN DOWNLOAD · KOSTENLOS',
-    shareCode: 'teile diesen Code mit deiner Gruppe',
-    copyLink: 'Kopieren', wa: 'Per WhatsApp teilen',
-    players: 'Spieler', host: 'Du bist der Gastgeber',
-    waiting: '✏️ Warte auf den Gastgeber…',
-    groupName: 'Gruppenname',
-    groupHint: 'Familie, Freunde, Kollegen... wie ihr wollt',
-    groupPlaceholder: 'Die Müllers, Schulfreunde...',
-    theme: 'Thema', easyLetters: 'nur einfache Buchstaben',
-    rounds: 'Runden', seconds: 'Sekunden pro Runde',
-    penalty: 'Stop! Strafe für ungültige Antworten',
-    start: 'Starten! →',
-    guestWait: '✏️ Warte auf den Gastgeber…',
-    letter: 'Buchstabe', round: 'Runde', of: 'von', freeCatLabel: 'Schreib deine Kategorien (eine pro Zeile)', freeCatPlaceholder: 'Fußballspieler\nHorrorfilme\nDinge in der Küche',
-    stop: '¡ A L T O !',
-    review: 'Überprüfen',
-    reviewSub: '✕ zum Annullieren · einzigartig = 100 · doppelt = 50 · ungültig = 0',
-    calculate: 'Punkte berechnen →', stopCallerMsg: '{name} hat Stop gerufen!', timerRanOut: 'Zeit abgelaufen',
-    submitted: 'Antworten gesendet',
-    hostReviewing: 'der Gastgeber prüft die Antworten',
-    scores: 'Punkte', nextRound: 'Nächste Runde →',
-    endGame: 'Spiel beenden', hostWait: 'Warte auf den Gastgeber…',
-    leaderboard: 'Bestenliste', myGroup: 'Meine Gruppe', world: 'Weltweit',
-    worldSub: 'die besten Spieler der Welt',
-    noGroup: 'Gruppenname setzen um die Bestenliste zu sehen',
-    noGroupGlobal: 'Noch keine Spiele registriert.',
-    noGroupLocal: 'Noch keine Spiele für diese Gruppe.',
-    endGame2: 'Spiel vorbei!', playAgain: 'Nochmal spielen',
-    leaveRoom: 'Raum verlassen',
-    wins: 'Siege', games: 'Spiele',
-    toastCopied: 'Link kopiert!', toastNoGroup: 'Kein Gruppenname',
-    toastPenalty: 'verliert', toastPenaltySuffix: 'Pkt',
-    toastName: 'Bitte zuerst deinen Namen eingeben',
-    toastCode: 'Code muss 4 Buchstaben haben',
-    toastNotFound: 'Raum nicht gefunden. Code prüfen.',
-    toastCats: 'Mindestens eine Kategorie auswählen',
-    toastFreeCats: 'Mindestens 2 Kategorien eingeben',
-    toastHostOnly: 'Nur der Gastgeber kann neu starten',
-    continueBtn: 'Weiter →', notMe: 'Das bin ich nicht — ändern', groupHint2: 'Familie, Freunde, Arbeit... wie ihr wollt', easyHint: '(ohne Q, X, Y, Z)', validate: 'Überprüfen', validateSub1: '📖 Wikipedia · 🤖 KI · ✕ ungültig', validateSub2: 'einmalig = 100 Pkt · doppelt = 50 Pkt · ungültig = 0 Pkt', submitted2: 'Antworten gesendet', hostReviewing2: 'Gastgeber prüft', leaderboardBack: '← zurück', loading: 'Laden…', final2: 'Spiel vorbei!', searching: 'Suche...', hostSearching: 'Gastgeber sucht...', rndLabel: 'Runde', of: 'von', freeCatLabel: 'Schreib deine Kategorien (eine pro Zeile)', freeCatPlaceholder: 'Fußballspieler\nHorrorfilme\nDinge in der Küche', letterLabel: 'Buchstabe', calculate: 'Punkte berechnen →', stopCallerMsg: '{name} hat Stop gerufen!', timerRanOut: 'Zeit abgelaufen', scoresTitle: 'Punkte', lbTitle: 'Bestenliste',
-    invited: 'Du wurdest eingeladen zu spielen!', rulesBtn: 'Wie spielt man?', expBtn: '⚗️ EXPERIMENTELLE FUNKTIONEN', aiValidation: '🤖 KI-Assistent', aiRelajado: '🟢 Locker', aiEstricto: '🔴 Streng', aiSpelling: '✏️ Rechtschreibfehler erlauben', aiYes: 'Ja', aiNo: 'Nein', modeHost: '👑 Normal', modeDemocratic: '🗳️ Demokratisch', invalidated: 'ungültig', winnerLine: '{emoji} {name} gewinnt mit {pts} Punkten!', wrongPwd: '❌ Falsches Passwort', expActivated: '⚗️ Experimentelle Funktionen aktiviert', qjCodeLabel: 'Raum:', gcInside: '✅ DU BIST DRIN', inviteMore: '+ Jemanden einladen?', getReady: 'BEREIT',
-    toastBack: 'Wiederbeitritt als', notFoundWord: '📭 Nicht gefunden', didYouMean: 'Meinten Sie', noDefinition: '📭 Keine Definition fuer',
-    waMsg: 'Spiel Stop! mit mir 🎮 Tritt hier bei:',
-    createSub: 'MEHRSPIELER · MIT FAMILIE UND FREUNDEN', configLabel: '⚙️ Einstellungen', leaveRoom2: 'Raum verlassen',
-    dailySub: 'DU GEGEN DIE WELT · EINE AUFGABE PRO TAG',
-    rulesTitle: 'Spielregeln',
-    shellLeave: 'Spiel verlassen?',
-    shellLeaveConfirm: 'Du verlierst deinen Fortschritt in dieser Runde.',
-    shellLeaveYes: 'Verlassen', shellLeaveNo: 'Weiterspielen',
-    toastRoomCopied: 'Link kopiert!',
-  },
-  pt: {
-    tagline: 'o jogo de sempre, com quem mais importa',
-    yourName: 'teu nome', namePlaceholder: 'Maria...',
-    chooseEmoji: 'escolhe o teu emoji',
-    createRoom: 'Criar sala', join: 'Entrar',
-    roomCode: 'código da sala',
-    enter: 'Entrar',
-    noReg: 'SEM REGISTRO · SEM DOWNLOAD · GRÁTIS',
-    shareCode: 'partilha este código com o teu grupo',
-    copyLink: 'Copiar', wa: 'Partilhar no WhatsApp',
-    players: 'jogadores', host: 'És o anfitrião',
-    waiting: '✏️ À espera do anfitrião…',
-    groupName: 'nome do grupo',
-    groupHint: 'família, amigos, colegas... como quiserem',
-    groupPlaceholder: 'Os Silva, Amigos da escola...',
-    theme: 'tema', easyLetters: 'só letras fáceis',
-    rounds: 'rondas', seconds: 'segundos por ronda',
-    penalty: 'penalização Stop! inválido',
-    start: 'Começar! →',
-    guestWait: '✏️ À espera do anfitrião…',
-    letter: 'letra', round: 'ronda', of: 'de', freeCatLabel: 'escreve as tuas categorias (uma por linha)', freeCatPlaceholder: 'Jogadores do Barça\nFilmes de terror\nCoisas na cozinha', freeCatLabel: 'escribe tus categorías (una por línea)', freeCatPlaceholder: 'Jugadores del Barça\nPelículas de terror\nCosas en la cocina',
-    stop: '¡ A L T O !',
-    review: 'Rever',
-    reviewSub: '✕ para anular · única = 100 · repetida = 50 · anulada = 0',
-    calculate: 'Calcular pontuações →', stopCallerMsg: '{name} chamou o Stop!', timerRanOut: 'tempo esgotado',
-    submitted: 'Respostas enviadas',
-    hostReviewing: 'o anfitrião está a rever',
-    scores: 'Pontuações', nextRound: 'Próxima ronda →',
-    endGame: 'Terminar', hostWait: 'À espera do anfitrião…',
-    leaderboard: 'Classificação', myGroup: 'O meu grupo', world: 'Mundial',
-    worldSub: 'os melhores jogadores do mundo',
-    noGroup: 'define um nome de grupo para ver a classificação',
-    noGroupGlobal: 'Ainda não há jogos registados.',
-    noGroupLocal: 'Ainda não há jogos para este grupo.',
-    endGame2: 'Fim do jogo!', playAgain: 'Jogar de novo',
-    leaveRoom: 'sair da sala',
-    wins: 'vitórias', games: 'jogos',
-    toastCopied: 'Link copiado!', toastNoGroup: 'Sem nome de grupo',
-    toastPenalty: 'perde', toastPenaltySuffix: 'pts',
-    toastName: 'Escreve o teu nome primeiro',
-    toastCode: 'O código deve ter 4 letras',
-    toastNotFound: 'Sala não encontrada. Verifica o código.',
-    toastCats: 'Seleciona pelo menos uma categoria',
-    toastFreeCats: 'Escreve pelo menos 2 categorias',
-    toastHostOnly: 'Só o anfitrião pode reiniciar',
-    continueBtn: 'Continuar →', notMe: 'Não sou eu — mudar', groupHint2: 'família, amigos, trabalho... como quiserem', easyHint: '(sem K, Q, U, W, X, Y, Z)', validate: 'Rever', validateSub1: '📖 Wikipedia · 🤖 IA · ✕ anular', validateSub2: 'única = 100 pts · repetida = 50 pts · anulada = 0 pts', submitted2: 'Respostas enviadas', hostReviewing2: 'anfitrião a rever', leaderboardBack: '← voltar', loading: 'A carregar…', final2: 'Fim do jogo!', searching: 'A pesquisar...', hostSearching: 'Anfitrião a pesquisar...', rndLabel: 'ronda', of: 'de', freeCatLabel: 'escreve as tuas categorias (uma por linha)', freeCatPlaceholder: 'Jogadores do Barça\nFilmes de terror\nCoisas na cozinha', freeCatLabel: 'escribe tus categorías (una por línea)', freeCatPlaceholder: 'Jugadores del Barça\nPelículas de terror\nCosas en la cocina', of: 'de', freeCatLabel: 'escreve as tuas categorias (uma por linha)', freeCatPlaceholder: 'Jogadores do Barça\nFilmes de terror\nCoisas na cozinha', freeCatLabel: 'escribe tus categorías (una por línea)', freeCatPlaceholder: 'Jugadores del Barça\nPelículas de terror\nCosas en la cocina', letterLabel: 'letra', calculate: 'Calcular pontuações →', stopCallerMsg: '{name} chamou o Stop!', timerRanOut: 'tempo esgotado', scoresTitle: 'Pontuações', lbTitle: 'Classificação',
-    invited: 'Foste convidado a jogar!', rulesBtn: 'Como se joga?', expBtn: '⚗️ FUNÇÕES EXPERIMENTAIS', aiValidation: '🤖 Assistente IA', aiRelajado: '🟢 Relaxada', aiEstricto: '🔴 Estrita', aiSpelling: '✏️ Permitir erros ortográficos', aiYes: 'Sim', aiNo: 'Não', modeHost: '👑 Normal', modeDemocratic: '🗳️ Democrático', invalidated: 'anulada', winnerLine: '{emoji} {name} ganha com {pts} pontos!', wrongPwd: '❌ Palavra-passe incorreta', expActivated: '⚗️ Funções experimentais ativadas', qjCodeLabel: 'sala:', gcInside: '✅ ESTÁS DENTRO', inviteMore: '+ Queres convidar alguém?', getReady: 'PREPARADOS',
-    toastBack: 'A voltar como', notFoundWord: '📭 Nao encontrado', didYouMean: 'Quiseste dizer', noDefinition: '📭 Sem definicao para',
-    waMsg: 'Joga Stop! comigo 🎮 Junta-te aqui:',
-    createSub: 'MULTIJOGADOR · COM FAMÍLIA E AMIGOS', configLabel: '⚙️ Configuração', leaveRoom2: 'Sair da sala',
-    dailySub: 'TU CONTRA O MUNDO · UM DESAFIO POR DIA',
-    rulesTitle: 'Regras do jogo',
-    shellLeave: 'Sair do jogo?',
-    shellLeaveConfirm: 'Vais perder o teu progresso nesta ronda.',
-    shellLeaveYes: 'Sair', shellLeaveNo: 'Continuar a jogar',
-    toastRoomCopied: 'Link copiado!',
-  },
-  it: {
-    tagline: 'il gioco di sempre, con chi vuoi bene',
-    yourName: 'il tuo nome', namePlaceholder: 'Maria...',
-    chooseEmoji: 'scegli la tua emoji',
-    createRoom: 'Crea stanza', join: 'Unisciti',
-    roomCode: 'codice stanza',
-    enter: 'Entra',
-    noReg: 'SENZA REGISTRAZIONE · SENZA DOWNLOAD · GRATIS',
-    shareCode: 'condividi questo codice con il tuo gruppo',
-    copyLink: 'Copia', wa: 'Condividi su WhatsApp',
-    players: 'giocatori', host: "Sei l'host",
-    waiting: "✏️ In attesa dell'host…",
-    groupName: 'nome del gruppo',
-    groupHint: 'famiglia, amici, colleghi... come volete',
-    groupPlaceholder: 'I Rossi, Amici del liceo...',
-    theme: 'tema', easyLetters: 'solo lettere facili',
-    rounds: 'round', seconds: 'secondi per round',
-    penalty: 'penalità Stop! non valido',
-    start: 'Inizia! →',
-    guestWait: "✏️ In attesa dell'host…",
-    letter: 'lettera', round: 'round', of: 'di', freeCatLabel: 'scrivi le tue categorie (una per riga)', freeCatPlaceholder: 'Giocatori del Barça\nFilm horror\nCose in cucina',
-    stop: '¡ A L T O !',
-    review: 'Revisione',
-    reviewSub: '✕ per annullare · unica = 100 · ripetuta = 50 · annullata = 0',
-    calculate: 'Calcola i punteggi →', stopCallerMsg: '{name} ha chiamato Stop!', timerRanOut: 'tempo scaduto',
-    submitted: 'Risposte inviate',
-    hostReviewing: "l'host sta revisionando",
-    scores: 'Punteggi', nextRound: 'Round successivo →',
-    endGame: 'Fine partita', hostWait: "In attesa dell'host…",
-    leaderboard: 'Classifica', myGroup: 'Il mio gruppo', world: 'Mondiale',
-    worldSub: 'i migliori giocatori del mondo',
-    noGroup: 'imposta un nome gruppo per vedere la classifica',
-    noGroupGlobal: 'Nessuna partita registrata.',
-    noGroupLocal: 'Nessuna partita per questo gruppo.',
-    endGame2: 'Fine del gioco!', playAgain: 'Gioca ancora',
-    leaveRoom: 'esci dalla stanza',
-    wins: 'vittorie', games: 'partite',
-    toastCopied: 'Link copiato!', toastNoGroup: 'Nessun nome gruppo',
-    toastPenalty: 'perde', toastPenaltySuffix: 'pt',
-    toastName: 'Scrivi prima il tuo nome',
-    toastCode: 'Il codice deve avere 4 lettere',
-    toastNotFound: 'Stanza non trovata. Controlla il codice.',
-    toastCats: 'Seleziona almeno una categoria',
-    toastFreeCats: 'Inserisci almeno 2 categorie',
-    toastHostOnly: "Solo l'host può ricominciare",
-    continueBtn: 'Continua →', notMe: 'Non sono io — cambia', groupHint2: 'famiglia, amici, lavoro... come volete', easyHint: '(senza J, K, Q, U, W, X, Y, Z)', validate: 'Revisione', validateSub1: '📖 Wikipedia · 🤖 IA · ✕ annulla', validateSub2: 'unica = 100 pts · ripetuta = 50 pts · annullata = 0 pts', submitted2: 'Risposte inviate', hostReviewing2: "l'host sta revisionando", leaderboardBack: '← indietro', loading: 'Caricamento…', final2: 'Fine del gioco!', searching: 'Ricerca...', hostSearching: "L'host sta cercando...", rndLabel: 'round', of: 'di', freeCatLabel: 'scrivi le tue categorie (una per riga)', freeCatPlaceholder: 'Giocatori del Barça\nFilm horror\nCose in cucina', of: 'of', freeCatLabel: 'write your categories (one per line)', freeCatPlaceholder: 'Football players\nHorror films\nThings in the kitchen', letterLabel: 'lettera', calculate: 'Calcola i punteggi →', stopCallerMsg: '{name} ha chiamato Stop!', timerRanOut: 'tempo scaduto', scoresTitle: 'Punteggi', lbTitle: 'Classifica',
-    invited: 'Sei stato invitato a giocare!', rulesBtn: 'Come si gioca?', expBtn: '⚗️ FUNZIONI SPERIMENTALI', aiValidation: '🤖 Assistente IA', aiRelajado: '🟢 Rilassata', aiEstricto: '🔴 Rigorosa', aiSpelling: '✏️ Permettere errori ortografici', aiYes: 'Sì', aiNo: 'No', modeHost: '👑 Normale', modeDemocratic: '🗳️ Democratico', invalidated: 'annullata', winnerLine: '{emoji} {name} vince con {pts} punti!', wrongPwd: '❌ Password errata', expActivated: '⚗️ Funzioni sperimentali attivate', qjCodeLabel: 'stanza:', gcInside: '✅ SEI DENTRO', inviteMore: '+ Vuoi invitare qualcuno?', getReady: 'PRONTI',
-    toastBack: 'Riconnessione come', notFoundWord: '📭 Non trovato', didYouMean: 'Intendevi', noDefinition: '📭 Nessuna definizione per',
-    waMsg: 'Gioca a Stop! con me 🎮 Unisciti qui:',
-    createSub: 'MULTIGIOCATORE · CON FAMIGLIA E AMICI', configLabel: '⚙️ Impostazioni', leaveRoom2: 'Esci dalla stanza',
-    dailySub: 'TU CONTRO IL MONDO · UNA SFIDA AL GIORNO',
-    rulesTitle: 'Regole del gioco',
-    shellLeave: 'Uscire dal gioco?',
-    shellLeaveConfirm: 'Perderai i progressi in questo round.',
-    shellLeaveYes: 'Esci', shellLeaveNo: 'Continua a giocare',
-    toastRoomCopied: 'Link copiato!',
-  },
 };
 
 let LANG = localStorage.getItem('alto_lang') || 'es';
@@ -1548,9 +1344,6 @@ function dailyRulesHTML() {
     es: { h: 'Reto diario', r1: 'Una letra y 6 categorías fijas, iguales para todo el mundo cada día', r2: 'Rellena todas las categorías con palabras que empiecen por esa letra — ¡lo más rápido posible!', r3: 'El asistente IA valida cada respuesta — en el reto diario su decisión es definitiva', s: 'Puntuación:', u: 'Respuesta válida', spd: 'Bonus por velocidad', orig: 'Bonus por originalidad (respuesta única entre todos)', e: 'Respuesta inválida o en blanco' },
     en: { h: 'Daily challenge', r1: 'One letter and 6 fixed categories, the same for everyone each day', r2: 'Fill all categories with words starting with that letter — as fast as you can!', r3: 'The AI assistant validates each answer — in the daily challenge its decision is final', s: 'Scoring:', u: 'Valid answer', spd: 'Speed bonus', orig: 'Originality bonus (unique answer among all players)', e: 'Invalid or blank answer' },
     fr: { h: 'Défi du jour', r1: 'Une lettre et 6 catégories fixes, identiques pour tout le monde chaque jour', r2: 'Remplis toutes les catégories avec des mots commençant par cette lettre — le plus vite possible!', r3: "L'assistant IA valide chaque réponse — dans le défi du jour sa décision est définitive", s: 'Points:', u: 'Réponse valide', spd: 'Bonus de vitesse', orig: "Bonus d'originalité (réponse unique parmi tous les joueurs)", e: 'Réponse invalide ou vide' },
-    de: { h: 'Tagesrätsel', r1: 'Ein Buchstabe und 6 feste Kategorien, täglich für alle gleich', r2: 'Fülle alle Kategorien mit Wörtern aus die mit diesem Buchstaben beginnen — so schnell wie möglich!', r3: 'Der KI-Assistent validiert jede Antwort — beim Tagesrätsel ist seine Entscheidung endgültig', s: 'Punkte:', u: 'Gültige Antwort', spd: 'Geschwindigkeitsbonus', orig: 'Originalitätsbonus (einmalige Antwort unter allen Spielern)', e: 'Ungültige oder leere Antwort' },
-    pt: { h: 'Desafio diário', r1: 'Uma letra e 6 categorias fixas, iguais para toda a gente cada dia', r2: 'Preenche todas as categorias com palavras que comecem por essa letra — o mais rápido possível!', r3: 'O assistente IA valida cada resposta — no desafio diário a sua decisão é definitiva', s: 'Pontuação:', u: 'Resposta válida', spd: 'Bónus de velocidade', orig: 'Bónus de originalidade (resposta única entre todos os jogadores)', e: 'Resposta inválida ou em branco' },
-    it: { h: 'Sfida del giorno', r1: 'Una lettera e 6 categorie fisse, uguali per tutti ogni giorno', r2: 'Riempi tutte le categorie con parole che iniziano con quella lettera — il più veloce possibile!', r3: "L'assistente IA convalida ogni risposta — nella sfida del giorno la sua decisione è definitiva", s: 'Punteggio:', u: 'Risposta valida', spd: 'Bonus velocità', orig: 'Bonus originalità (risposta unica tra tutti i giocatori)', e: 'Risposta non valida o vuota' },
   };
   const r = d[LANG] || d.es;
   return `
@@ -1571,9 +1364,6 @@ function rulesHTML() {
     es: { h: 'Reglas del juego', r1: 'Se elige una letra al azar para cada ronda', r2: 'Rellena todas las categorías con palabras que empiecen por esa letra — ¡lo más rápido posible!', r3: 'El primero en terminar pulsa ¡Alto! para terminar la ronda', s: 'Puntuación:', u: 'Respuesta única', d: 'Respuesta repetida', e: 'Sin respuesta', penalty: '⚠️ Si pulsas ¡Alto! y todas tus respuestas son inválidas, pierdes puntos como penalización.' },
     en: { h: 'How to play', r1: 'A random letter is chosen for each round', r2: 'Fill all categories with words starting with that letter — as fast as you can!', r3: 'The first to finish taps Stop! to end the round', s: 'Scoring:', u: 'Unique answer', d: 'Duplicate answer', e: 'No answer', penalty: '⚠️ If you tap Stop! and all your answers are invalid, you lose points as a penalty.' },
     fr: { h: 'Règles du jeu', r1: 'Une lettre aléatoire est choisie pour chaque manche', r2: 'Remplis toutes les catégories avec des mots commençant par cette lettre — le plus vite possible!', r3: 'Le premier à finir appuie sur Stop! pour terminer la manche', s: 'Points:', u: 'Réponse unique', d: 'Réponse en double', e: 'Sans réponse', penalty: "⚠️ Si tu appuies sur Stop! et que toutes tes réponses sont invalides, tu perds des points en pénalité." },
-    de: { h: 'Spielregeln', r1: 'Für jede Runde wird ein zufälliger Buchstabe gewählt', r2: 'Fülle alle Kategorien mit Wörtern aus die mit diesem Buchstaben beginnen — so schnell wie möglich!', r3: 'Der Erste der fertig ist drückt Stop! um die Runde zu beenden', s: 'Punkte:', u: 'Einmalige Antwort', d: 'Doppelte Antwort', e: 'Keine Antwort', penalty: '⚠️ Wenn du Stop! drückst und alle deine Antworten ungültig sind, verlierst du Punkte als Strafe.' },
-    pt: { h: 'Regras do jogo', r1: 'É escolhida uma letra aleatória para cada ronda', r2: 'Preenche todas as categorias com palavras que comecem por essa letra — o mais rápido possível!', r3: 'O primeiro a terminar prime ¡Alto! para terminar a ronda', s: 'Pontuação:', u: 'Resposta única', d: 'Resposta repetida', e: 'Sem resposta', penalty: '⚠️ Se premires ¡Alto! e todas as tuas respostas forem inválidas, perdes pontos como penalização.' },
-    it: { h: 'Regole del gioco', r1: 'Viene scelta una lettera casuale per ogni round', r2: 'Riempi tutte le categorie con parole che iniziano con quella lettera — il più veloce possibile!', r3: 'Il primo a finire preme Stop! per terminare il round', s: 'Punteggio:', u: 'Risposta unica', d: 'Risposta ripetuta', e: 'Senza risposta', penalty: '⚠️ Se premi Stop! e tutte le tue risposte sono invalide, perdi punti come penalità.' },
   };
   const r = rules[LANG] || rules.es;
   return `
@@ -1597,7 +1387,7 @@ window.toggleRules = () => {
 };
 
 window.updateRulesBtn = function() {
-  const labels = {es:'¿Cómo se juega?',en:'How to play?',fr:'Comment jouer?',de:'Wie spielt man?',pt:'Como se joga?',it:'Come si gioca?'};
+  const labels = {es:'¿Cómo se juega?',en:'How to play?',fr:'Comment jouer?'};
   const btn = document.getElementById('rules-btn');
   if (!btn) return;
   const isOpen = document.getElementById('rules-box').classList.contains('open');
@@ -1653,51 +1443,6 @@ function helpHTML() {
       t5: '🎮 Groupe',
       b5: "L'hôte tape un nom de groupe (ex. 'Les Dupont'). Vos parties et victoires sont sauvegardées sous ce nom. Utilisez toujours le même pour accumuler l'historique!",
       btnLabel: '▲ ❓ Aide — fonctions avancées',
-    },
-    de: {
-      t1: '🔍 Antworten überprüfen',
-      b1: 'Nach jeder Runde überprüft der Gastgeber alle Antworten:',
-      l1: ['📖 Definition auf Wikipedia nachschlagen', '🤖 KI-Assistent befragen — sein Urteil ist ein Hinweis, der Gastgeber entscheidet', '👍👎 Spieler stimmen über jede Antwort ab', '✕ Der Gastgeber kann eine Antwort manuell ungültig machen'],
-      t2: '🗳️ Demokratischer Modus',
-      b2: 'Statt dass der Gastgeber alleine entscheidet, stimmen die Spieler 👍👎. Wenn die Mehrheit dagegen stimmt, wird die Antwort automatisch ungültig.',
-      t3: '🤖 KI-Assistent',
-      b3: 'Der Gastgeber aktiviert den KI-Assistenten. Sein Urteil ist ein Hinweis — der Gastgeber hat immer das letzte Wort.',
-      l3: ['🟢 Locker — Grenzfälle und kreative Antworten akzeptiert', '🔴 Streng — nur klare und eindeutige Antworten akzeptiert', '✏️ Rechtschreibfehler — aktivieren wenn ihr nachsichtiger mit der Schreibweise sein wollt'],
-      t4: '🏆 Bestenliste',
-      b4: 'Ihre Gruppe sammelt Siege über alle Spiele hinweg. Die globale Bestenliste vergleicht Sie mit Spielern weltweit.',
-      t5: '🎮 Gruppe',
-      b5: 'Der Gastgeber gibt einen Gruppennamen ein (z.B. "Die Müllers"). Ihre Spiele und Siege werden unter diesem Namen gespeichert. Benutzen Sie immer denselben!',
-      btnLabel: '▲ ❓ Hilfe — erweiterte Funktionen',
-    },
-    pt: {
-      t1: '🔍 Rever respostas',
-      b1: 'Depois de cada ronda o anfitrião revê todas as respostas:',
-      l1: ['📖 Procura a definição na Wikipedia', '🤖 Consulta o assistente IA — a sua opinião é orientativa, o anfitrião decide', '👍👎 Os jogadores votam em cada resposta', '✕ O anfitrião pode anular uma resposta manualmente'],
-      t2: '🗳️ Modo democrático',
-      b2: 'Em vez do anfitrião decidir sozinho, os jogadores votam 👍👎. Se a maioria votar contra, a resposta é automaticamente anulada.',
-      t3: '🤖 Assistente IA',
-      b3: 'O anfitrião ativa o assistente IA. A sua opinião é orientativa — o anfitrião tem sempre a última palavra.',
-      l3: ['🟢 Relaxada — respostas criativas e borderline aceites', '🔴 Estrita — apenas respostas claras e indiscutíveis aceites', '✏️ Erros ortográficos — ativa se quiserem ser mais permissivos com a escrita'],
-      t4: '🏆 Classificação',
-      b4: 'O teu grupo acumula vitórias em todas as partidas. A classificação global compara-te com jogadores de todo o mundo.',
-      t5: '🎮 Grupo',
-      b5: 'O anfitrião escreve um nome de grupo (ex. "Os Silva"). As tuas partidas e vitórias ficam guardadas sob esse nome. Usa sempre o mesmo para acumular histórico!',
-      btnLabel: '▲ ❓ Ajuda — funções avançadas',
-    },
-    it: {
-      t1: '🔍 Rivedere le risposte',
-      b1: "Dopo ogni round l'host rivede tutte le risposte:",
-      l1: ["📖 Cerca la definizione su Wikipedia", "🤖 Consulta l'assistente IA — il suo parere è indicativo, l'host decide", "👍👎 I giocatori votano ogni risposta", "✕ L'host può annullare una risposta manualmente"],
-      t2: '🗳️ Modalità democratica',
-      b2: "Invece che l'host decida da solo, i giocatori votano 👍👎. Se la maggioranza vota contro, la risposta viene automaticamente annullata.",
-      t3: '🤖 Assistente IA',
-      b3: "L'host attiva l'assistente IA. Il suo parere è indicativo — l'host ha sempre l'ultima parola.",
-      l3: ['🟢 Rilassata — risposte creative e borderline accettate', '🔴 Rigorosa — solo risposte chiare e indiscutibili accettate', '✏️ Errori ortografici — attiva se volete essere più permissivi con la scrittura'],
-      t4: '🏆 Classifica',
-      b4: 'Il tuo gruppo accumula vittorie in tutte le partite. La classifica globale ti confronta con giocatori di tutto il mondo.',
-      t5: '🎮 Gruppo',
-      b5: "L'host scrive un nome gruppo (es. 'I Rossi'). Le tue partite e vittorie vengono salvate sotto quel nome. Usa sempre lo stesso per accumulare storia!",
-      btnLabel: '▲ ❓ Aiuto — funzioni avanzate',
     },
   };
   const d = h[LANG] || h.es;
@@ -1766,7 +1511,7 @@ window.applyLang = function() {
   s('btn-leave-text', t('leaveRoom2') || t('leaveRoom'));
   s('btn-config-label', t('configLabel'));
   s('gc-status', t('gcInside'));
-  s('lbl-validation-mode', '🗳️ ' + {'es':'Modo de validación','en':'Validation mode','fr':'Mode de validation','de':'Abstimmungsmodus','pt':'Modo de validação','it':'Modalità di convalida'}[LANG]);
+  s('lbl-validation-mode', '🗳️ ' + {'es':'Modo de validación','en':'Validation mode','fr':'Mode de validation'}[LANG]);
   s('mode-host', t('modeHost'));
   s('mode-democratic', t('modeDemocratic'));
   s('lbl-ai-validation-text', t('aiValidation'));
@@ -1816,14 +1561,14 @@ window.applyLang = function() {
   updateRulesBtn();
   // Guest confirmed status
   const gcStatus = document.getElementById('gc-status');
-  if (gcStatus) gcStatus.textContent = {es:'✅ ESTÁS DENTRO',en:'✅ YOU\'RE IN',fr:'✅ TU ES DEDANS',de:'✅ DU BIST DABEI',pt:'✅ ESTÁS DENTRO',it:'✅ SEI DENTRO'}[LANG] || '✅ ESTÁS DENTRO';
+  if (gcStatus) gcStatus.textContent = {es:'✅ ESTÁS DENTRO',en:'✅ YOU\'RE IN',fr:'✅ TU ES DEDANS'}[LANG] || '✅ ESTÁS DENTRO';
   // Invite toggle label
   const invBtn = document.getElementById('invite-toggle-btn');
   const invBox = document.getElementById('invite-box');
   if (invBtn && invBox) {
     const isOpen = invBox.classList.contains('open');
-    const labels = {es:'− Ocultar',en:'− Hide',fr:"− Masquer",de:'− Ausblenden',pt:'− Ocultar',it:'− Nascondi'};
-    const showLabels = {es:t('inviteMore'),en:t('inviteMore'),fr:t('inviteMore'),de:t('inviteMore'),pt:t('inviteMore'),it:t('inviteMore')};
+    const labels = {es:'− Ocultar',en:'− Hide',fr:"− Masquer"};
+    const showLabels = {es:t('inviteMore'),en:t('inviteMore'),fr:t('inviteMore')};
     invBtn.textContent = isOpen ? (labels[LANG]||labels.es) : (showLabels[LANG]||showLabels.es);
   }
   applyQuickJoinLang();
@@ -1850,8 +1595,8 @@ window.toggleInvite = () => {
   const guestUrl = document.getElementById('share-url-guest');
   const hostUrl = document.getElementById('share-url');
   if (guestUrl && hostUrl) guestUrl.textContent = hostUrl.textContent;
-  const labels = {es:'− Ocultar',en:'− Hide',fr:"− Masquer",de:'− Ausblenden',pt:'− Ocultar',it:'− Nascondi'};
-  const showLabels = {es:'+ ¿Quieres invitar a alguien más?',en:'+ Want to invite someone?',fr:"+ Inviter quelqu'un d'autre?",de:'+ Jemanden einladen?',pt:'+ Quer convidar alguém?',it:'+ Vuoi invitare qualcuno?'};
+  const labels = {es:'− Ocultar',en:'− Hide',fr:"− Masquer"};
+  const showLabels = {es:'+ ¿Quieres invitar a alguien más?',en:'+ Want to invite someone?',fr:"+ Inviter quelqu'un d'autre?",de:'+ Jemanden einladen?',pt:'+ Quer convidar alguém?'};
   if (btn) btn.textContent = isOpen ? (labels[LANG]||labels.es) : (showLabels[LANG]||showLabels.es);
 };
 
@@ -2048,7 +1793,7 @@ window.shellHelpOpen = function() {
   const title    = document.getElementById('help-panel-title');
   const closeBtn = document.getElementById('help-panel-close');
   if (title) title.textContent = t('rulesTitle');
-  const closeLabels = {es:'Cerrar',en:'Close',fr:'Fermer',de:'Schließen',pt:'Fechar',it:'Chiudi'};
+  const closeLabels = {es:'Cerrar',en:'Close',fr:'Fermer'};
   if (closeBtn) closeBtn.textContent = closeLabels[LANG] || closeLabels.es;
   const isDailyScreen = ['daily-play','daily-result'].includes(G.screen);
   if (body) {
@@ -2095,12 +1840,9 @@ function mulberry32(seed) {
 const DAILY_CONSENSUS = false;
 
 const DAILY_CATS = {
-  es: ['País','Ciudad','Animal','Fruta','Color','Profesión','Objeto','Comida/Plato','Deporte','Instrumento musical','Marca comercial','Animal marino','Árbol','Flor','Insecto','Pez','Ave/Pájaro'],
-  en: ['Country','City','Animal','Fruit','Colour','Profession','Object','Food/Dish','Sport','Musical instrument','Brand','Sea animal','Tree','Flower','Insect','Fish','Bird'],
-  fr: ['Pays','Ville','Animal','Fruit','Couleur','Profession','Objet','Aliment/Plat','Sport','Instrument de musique','Marque','Animal marin','Arbre','Fleur','Insecte','Poisson','Oiseau'],
-  de: ['Land','Stadt','Tier','Frucht','Farbe','Beruf','Gegenstand','Essen/Gericht','Sport','Musikinstrument','Marke','Meerestier','Baum','Blume','Insekt','Fisch','Vogel'],
-  pt: ['País','Cidade','Animal','Fruta','Cor','Profissão','Objeto','Comida/Prato','Desporto','Instrumento musical','Marca','Animal marinho','Árvore','Flor','Inseto','Peixe','Ave/Pássaro'],
-  it: ['Paese','Città','Animale','Frutto','Colore','Professione','Oggetto','Cibo/Piatto','Sport','Strumento musicale','Marca','Animale marino','Albero','Fiore','Insetto','Pesce','Uccello'],
+  es: ['País','Ciudad','Animal','Fruta','Color','Profesión','Objeto','Comida/Plato','Deporte','Instrumento musical','Nombre de persona','Medio de transporte','Árbol','Flor','Prenda de ropa','Ave/Pájaro','Cosa que encuentras en la cocina'],
+  en: ['Country','City','Animal','Fruit','Colour','Profession','Object','Food/Dish','Sport','Musical instrument','Person name','Means of transport','Tree','Flower','Clothing item','Bird','Thing you find in the kitchen'],
+  fr: ['Pays','Ville','Animal','Fruit','Couleur','Profession','Objet','Aliment/Plat','Sport','Instrument de musique','Prénom','Moyen de transport','Arbre','Fleur','Vêtement','Oiseau','Cosa en la cocina (FR)'],
 };
 
 // Get today's date key YYYY-MM-DD
@@ -2385,6 +2127,7 @@ window.dailySubmit = async function() {
   }
   G_daily.submitted = true;
   clearInterval(G_daily.timerInterval);
+  setTimerBubble(0, false);
   setUrgencyPulse(false);
   // Clear in-progress save
   localStorage.removeItem('alto_daily_inprogress_' + G_daily.key);
@@ -2457,6 +2200,7 @@ window.dailySubmit = async function() {
       baseScore, totalScore, originality: 0,
       answers: answersObj,
       aiResults: aiResults,
+      categories: G_daily.categories || [],
       timestamp: Date.now()
     });
     G_daily.playerKey = playerKey;
@@ -2468,14 +2212,14 @@ window.dailySubmit = async function() {
 // Build system + user prompts for daily validation
 function dailyBuildPromptWithWord(word, category, letter) {
   const [sys, _] = dailyBuildPrompt(category, letter);
-  const langNames = {es:'Spanish',en:'English',fr:'French',de:'German',pt:'Portuguese',it:'Italian'};
+  const langNames = {es:'Spanish',en:'English',fr:'French'};
   const gameLang = langNames[LANG] || 'Spanish';
   const userPrompt = `${gameLang} word game. Letter: "${letter}". Category: "${category}". Answer: "${word}". Does the answer start with "${letter}" and genuinely belong to the category? Reply ONE word only: VALIDO, INVALIDO, or DUDOSO.`;
   return [sys, userPrompt];
 }
 
 function dailyBuildPrompt(category, letter) {
-  const langNames = {es:'Spanish',en:'English',fr:'French',de:'German',pt:'Portuguese',it:'Italian'};
+  const langNames = {es:'Spanish',en:'English',fr:'French'};
   const gameLang = langNames[LANG] || 'Spanish';
   const systemPrompt = `You are a fair and balanced judge of a ${gameLang}-language word game. Rules: (1) Ignore accents and tildes — Ramon=Ramón is fine. (2) Accept borderline, regional, informal, and less common but genuinely real answers. Reject made-up or unverifiable answers. (3) Brands are international — accept in any language if well-known. All other answers must be in ${gameLang}. (4) Spelling must be correct (accents/tildes excepted) — misspelled words are INVALIDO. (5) VALIDO for real correctly-spelled answers even if uncommon. INVALIDO for clearly wrong, made-up, or misspelled answers. DUDOSO when genuinely uncertain whether something exists.`;
   const userPrompt = gameLang + ' word game. Letter: "' + letter + '". Category: "' + category + '". Does the answer start with "' + letter + '" and genuinely belong to the category? Reply ONE word only: VALIDO, INVALIDO, or DUDOSO.';
@@ -2485,13 +2229,10 @@ function dailyBuildPrompt(category, letter) {
 // Call a single specific model and return 'valid'|'invalid'|'unsure'
 async function dailyAICallModel(word, category, letter, model, systemPrompt, prompt) {
   try {
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    const response = await fetch('https://api.oscar-g-diez.workers.dev/', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${OPENROUTER_KEY}`,
-        'HTTP-Referer': 'https://jugarenfamilia.es',
-        'X-Title': 'JugarEnFamilia'
       },
       signal: AbortSignal.timeout(20000),
       body: JSON.stringify({
@@ -2595,21 +2336,25 @@ async function showDailyResult(answers, baseScore, totalScore, aiResults, secsLe
   if (dateEl) dateEl.textContent = dateStr;
 
   show('daily-result');
+  document.querySelectorAll('.daily-lb-lang-btn').forEach(b => b.classList.toggle('active', b.dataset.lang === LANG));
   loadDailyLeaderboard(getDailyKey());
 }
 
-async function loadDailyLeaderboard(key) {
+async function loadDailyLeaderboard(key, lbLang) {
+  lbLang = lbLang || LANG;
   const lbEl = document.getElementById('daily-lb-list');
   if (!lbEl) return;
+  const l = (typeof DAILY_LABELS !== 'undefined' ? DAILY_LABELS[LANG] : null) || { noResults: 'Sin resultados aún', errorLb: 'Error cargando clasificación' };
   lbEl.innerHTML = `<div style="font-family:'Special Elite',monospace;font-size:11px;color:var(--ink-muted);text-align:center;padding:8px">cargando…</div>`;
   try {
-    const snap = await get(ref(db, 'daily/' + key + '/' + LANG + '/scores'));
-    if (!snap.exists()) { lbEl.innerHTML = '<div style="text-align:center;opacity:0.5;font-size:13px">Sin resultados aún</div>'; return; }
+    const snap = await get(ref(db, 'daily/' + key + '/' + lbLang + '/scores'));
+    if (!snap.exists()) { lbEl.innerHTML = `<div style="text-align:center;opacity:0.5;font-size:13px">${l.noResults}</div>`; return; }
     const allScores = snap.val();
     renderLeaderboard(allScores);
-    computeAndUpdateOriginality(allScores, key);
+    if (lbLang === LANG) computeAndUpdateOriginality(allScores, key);
   } catch(e) {
-    lbEl.innerHTML = '<div style="text-align:center;opacity:0.5;font-size:13px">Error cargando clasificación</div>';
+    console.warn('Leaderboard load failed:', e);
+    lbEl.innerHTML = `<div style="text-align:center;opacity:0.5;font-size:13px">${l.errorLb}</div>`;
   }
 }
 
@@ -2617,13 +2362,14 @@ function renderLeaderboard(allScores) {
   const lbEl = document.getElementById('daily-lb-list');
   if (!lbEl) return;
   const myName = G_daily.displayName || ((G.playerName || '') + ' ' + (G.playerEmoji || ''));
-  // Normalise entries — handle old schema (score) and new (totalScore)
+  // Normalise entries — handle old schema (score) and new (totalScore), filter out malformed entries
   const entries = Object.values(allScores)
+    .filter(e => e && e.name)
     .map(e => ({ ...e, totalScore: e.totalScore ?? e.score ?? 0 }))
     .sort((a,b) => b.totalScore - a.totalScore);
   const medals = ['🥇','🥈','🥉'];
   const top10 = entries.slice(0, 10);
-  const myIdx = entries.findIndex(e => e.name.trim() === myName.trim());
+  const myIdx = entries.findIndex(e => (e.name||'').trim() === myName.trim());
   const isInTop10 = myIdx >= 0 && myIdx < 10;
 
   // Ensure categories are available even when leaderboard viewed after session
@@ -2631,28 +2377,39 @@ function renderLeaderboard(allScores) {
     try { const s = getDailySetup(); G_daily.categories = getDailyCatNames(s.indices); } catch(e) {}
   }
   const cats = G_daily.categories || [];
+  function speedTag(e) {
+    if (!e.baseScore || !e.totalScore || e.baseScore === e.totalScore) return '';
+    const mult = (e.totalScore / e.baseScore).toFixed(2);
+    return `<span class="daily-lb-speed">⚡×${mult}</span>`;
+  }
   function buildAnswerPanel(e, idx) {
-    if (!e.answers || !cats.length) return '';
-    const rows = cats.map((cat, i) => {
+    if (!e.answers) return '';
+    const panelCats = (e.categories && e.categories.length) ? e.categories : cats;
+    if (!panelCats.length) return '';
+    const rows = panelCats.map((cat, i) => {
       const val = e.answers[i] || '';
       const ai = e.aiResults ? e.aiResults[i] : null;
-      const aiIcon = ai === 'VALIDO' ? ' ✅' : ai === 'INVALIDO' ? ' ❌' : '';
+      const aiIcon = ai === 'valid' ? '✅' : ai === 'invalid' ? '❌' : ai === 'unsure' ? '🤔' : '';
+      const pts = !val ? '' : ai === 'valid' ? '+10' : ai === 'invalid' ? '0' : ai === 'unsure' ? '?' : '';
+      const ptsHtml = pts ? `<span class="daily-lb-answer-pts${ai === 'invalid' ? ' zero' : ''}">${pts}</span>` : '';
       return `<div class="daily-lb-answer-row">
         <span class="daily-lb-answer-cat">${cat}</span>
-        <span class="daily-lb-answer-val${val ? '' : ' empty'}">${val || '—'}${aiIcon}</span>
+        <span class="daily-lb-answer-val${val ? '' : ' empty'}">${val || '—'}</span>
+        <span class="daily-lb-answer-ai">${aiIcon}</span>
+        ${ptsHtml}
       </div>`;
     }).join('');
     return `<div class="daily-lb-answers" id="daily-ans-${idx}">${rows}</div>`;
   }
 
   let html = top10.map((e, i) => {
-    const isMe = e.name.trim() === myName.trim();
+    const isMe = (e.name||'').trim() === myName.trim();
     const orig = e.originality > 0 ? `<span class="daily-lb-orig">+${e.originality}✨</span>` : '';
     return `<div class="daily-lb-row${isMe ? ' daily-lb-me' : ''}" id="daily-row-${i}" onclick="toggleDailyAnswers(${i})">
       <span class="daily-lb-rank">${medals[i] || (i+1)}</span>
       <span class="daily-lb-name">${e.name}</span>
       <span class="daily-lb-score">${e.totalScore} pts</span>
-      ${orig}<span class="daily-lb-chevron">▶</span>
+      ${speedTag(e)}${orig}<span class="daily-lb-chevron">▶</span>
     </div>${buildAnswerPanel(e, i)}`;
   }).join('');
 
@@ -2666,7 +2423,7 @@ function renderLeaderboard(allScores) {
       <span class="daily-lb-rank">${myIdx+1}</span>
       <span class="daily-lb-name">${me.name}</span>
       <span class="daily-lb-score">${me.totalScore} pts</span>
-      ${orig}<span class="daily-lb-chevron">▶</span>
+      ${speedTag(me)}${orig}<span class="daily-lb-chevron">▶</span>
     </div>${buildAnswerPanel(me, 'me')}`;
   }
 
@@ -2684,12 +2441,12 @@ window.toggleDailyAnswers = function(idx) {
 async function computeAndUpdateOriginality(allScores, key) {
   // For each of my valid answers, check if it's unique among all players
   const myName = G_daily.displayName || ((G.playerName || '') + ' ' + (G.playerEmoji || ''));
-  const myEntry = Object.entries(allScores).find(([k,v]) => v.name.trim() === myName.trim());
+  const myEntry = Object.entries(allScores).find(([k,v]) => v.name && v.name.trim() === myName.trim());
   if (!myEntry) return;
   const [myKey, myData] = myEntry;
   if (!myData.answers) return;
 
-  const otherEntries = Object.values(allScores).filter(e => e.name.trim() !== myName.trim());
+  const otherEntries = Object.values(allScores).filter(e => e.name && e.name.trim() !== myName.trim());
   let originality = 0;
 
   G_daily.categories.forEach((cat, i) => {
@@ -2727,6 +2484,11 @@ async function computeAndUpdateOriginality(allScores, key) {
 }
 
 // Manual refresh button
+window.switchDailyLbLang = function(lang) {
+  document.querySelectorAll(".daily-lb-lang-btn").forEach(b => b.classList.toggle("active", b.dataset.lang === lang));
+  loadDailyLeaderboard(getDailyKey(), lang);
+};
+
 window.refreshDailyOriginality = async function() {
   const btn = document.getElementById('btn-daily-refresh');
   if (btn) { btn.textContent = '↻ …'; btn.disabled = true; }
@@ -2746,7 +2508,7 @@ window.refreshDailyOriginality = async function() {
 const DAILY_LABELS = {
   es: {
     yourAnswers: 'tus respuestas', leaderboard: 'clasificación del día',
-    lbNote: 'clasificación en tiempo real', backHome: '← Volver al inicio',
+    backHome: '← Volver al inicio',
     dailySubmitBtn: '¡Alto! →', dailyPlayLabel: 'Reto diario',
     refreshBtn: '↻ actualizar', validating: 'Validando…',
     noResults: 'Sin resultados aún', errorLb: 'Error cargando clasificación',
@@ -2754,7 +2516,7 @@ const DAILY_LABELS = {
   },
   en: {
     yourAnswers: 'your answers', leaderboard: "today's leaderboard",
-    lbNote: 'leaderboard updates in real time', backHome: '← Back to home',
+    backHome: '← Back to home',
     dailySubmitBtn: 'Stop! →', dailyPlayLabel: 'Daily challenge',
     refreshBtn: '↻ refresh', validating: 'Validating…',
     noResults: 'No results yet', errorLb: 'Error loading leaderboard',
@@ -2762,35 +2524,11 @@ const DAILY_LABELS = {
   },
   fr: {
     yourAnswers: 'tes réponses', leaderboard: 'classement du jour',
-    lbNote: 'classement en temps réel', backHome: '← Retour',
+    backHome: '← Retour',
     dailySubmitBtn: 'Stop! →', dailyPlayLabel: 'Défi du jour',
     refreshBtn: '↻ actualiser', validating: 'Validation…',
     noResults: 'Pas encore de résultats', errorLb: 'Erreur de chargement',
     speedLabel: 'vitesse', baseLabel: 'base', origLabel: 'originalité', sep: '· · ·',
-  },
-  de: {
-    yourAnswers: 'deine Antworten', leaderboard: 'Tagesrangliste',
-    lbNote: 'Rangliste in Echtzeit', backHome: '← Zurück',
-    dailySubmitBtn: 'Stop! →', dailyPlayLabel: 'Tagesrätsel',
-    refreshBtn: '↻ aktualisieren', validating: 'Wird geprüft…',
-    noResults: 'Noch keine Ergebnisse', errorLb: 'Fehler beim Laden',
-    speedLabel: 'Tempo', baseLabel: 'Basis', origLabel: 'Originalität', sep: '· · ·',
-  },
-  pt: {
-    yourAnswers: 'as tuas respostas', leaderboard: 'classificação do dia',
-    lbNote: 'classificação em tempo real', backHome: '← Voltar',
-    dailySubmitBtn: 'Alto! →', dailyPlayLabel: 'Desafio diário',
-    refreshBtn: '↻ atualizar', validating: 'A validar…',
-    noResults: 'Sem resultados ainda', errorLb: 'Erro ao carregar',
-    speedLabel: 'velocidade', baseLabel: 'base', origLabel: 'originalidade', sep: '· · ·',
-  },
-  it: {
-    yourAnswers: 'le tue risposte', leaderboard: 'classifica del giorno',
-    lbNote: 'classifica in tempo reale', backHome: '← Torna alla home',
-    dailySubmitBtn: 'Stop! →', dailyPlayLabel: 'Sfida del giorno',
-    refreshBtn: '↻ aggiorna', validating: 'Convalida…',
-    noResults: 'Nessun risultato ancora', errorLb: 'Errore di caricamento',
-    speedLabel: 'velocità', baseLabel: 'base', origLabel: 'originalità', sep: '· · ·',
   },
 };
 
@@ -2801,7 +2539,7 @@ function applyDailyLang() {
   const s2 = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
   s2('lbl-daily-your-answers', l.yourAnswers);
   s2('lbl-daily-leaderboard', l.leaderboard);
-  s2('daily-lb-note', l.lbNote);
+
   s2('btn-daily-home', l.backHome);
   s2('btn-daily-submit', l.dailySubmitBtn);
   s2('daily-play-label', l.dailyPlayLabel);
@@ -2820,7 +2558,7 @@ window.toggleLobbyConfig = function() {
 // ── Daily challenge helpers ────────────────────────────
 function getDailyDateString() {
   const now = new Date();
-  const localeMap = { es:'es-ES', en:'en-GB', fr:'fr-FR', de:'de-DE', pt:'pt-BR', it:'it-IT' };
+  const localeMap = { es:'es-ES', en:'en-GB', fr:'fr-FR' };
   const locale = localeMap[LANG] || 'es-ES';
   // Day + month name, no year
   const day = now.getDate();
@@ -2833,11 +2571,9 @@ function getDailyDateString() {
     const suffix = s[(v-20)%10] || s[v] || s[0];
     // Capitalise month
     return month.charAt(0).toUpperCase() + month.slice(1) + ' ' + day + suffix;
-  } else if (LANG === 'de') {
-    return day + '. ' + month.charAt(0).toUpperCase() + month.slice(1);
   } else {
-    // es, fr, pt, it: "2 de septiembre" / "2 septembre" / "2 settembre"
-    const ofWord = { es:' de ', fr:' ', pt:' de ', it:' ', de:'. ' };
+    // es, fr, it: "2 de septiembre" / "2 septembre" / "2 settembre"
+    const ofWord = { es:' de ', fr:' ' };
     return day + (ofWord[LANG]||' de ') + month;
   }
 }
@@ -2851,14 +2587,13 @@ function updateDailyButtonDate() {
   const key = getDailyKey();
   const played = !!localStorage.getItem('alto_daily_' + key);
 
-  const labels = { es:'Reto diario', en:'Daily challenge', fr:'Défi du jour', de:'Tagesrätsel', pt:'Desafio diário', it:'Sfida del giorno' };
+  const labels = { es:'Reto diario', en:'Daily challenge', fr:'Défi du jour' };
   const doneLabels = {
     es:'✅ Ya jugaste hoy · Ver puntuación',
     en:'✅ Already played · See score',
     fr:'✅ Déjà joué · Voir le score',
     de:'✅ Bereits gespielt · Ergebnis sehen',
-    pt:'✅ Já jogaste hoje · Ver pontuação',
-    it:'✅ Già giocato · Vedi punteggio'
+    pt:'✅ Já jogaste hoje · Ver pontuação'
   };
 
   const label = labels[LANG] || labels.es;
@@ -3044,7 +2779,7 @@ function enterLobby(room) {
 
 function renderPlayers(players, langs={}) {
   document.getElementById('lob-players').innerHTML =
-    Object.entries(players).map(([n,emoji]) => `<div class="chip ok"><span style="font-size:16px">${emoji||'🎲'}</span>${n}${langs[n]?' <span style="font-size:10px;opacity:0.7">'+( LANG_FLAGS[langs[n]]||'')+'</span>':''}</div>`).join('');
+    Object.entries(players).map(([n,emoji]) => `<div class="chip ok"><span style="font-size:16px">${emoji||'🎲'}</span>${n}</div>`).join('');
 }
 
 function buildThemePicker() {
@@ -3438,7 +3173,7 @@ function clearGuestDictResults() {
 }
 
 // ── Dictionary / Wikipedia lookup ────────────────
-const WIKI_LANG = { es:'es', en:'en', fr:'fr', de:'de', pt:'pt', it:'it' };
+const WIKI_LANG = { es:'es', en:'en', fr:'fr' };
 
 // Fast fetch with timeout
 async function fetchWT(url, ms=4000) {
@@ -3644,7 +3379,6 @@ function stopConfetti() {
 
 
 // ── AI Validation ─────────────────────────────────────
-const OPENROUTER_KEY = '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';
 let G_aiEnabled = true; // ON by default
 let G_aiStrictness = 'estricto'; // 'relajado' or 'estricto'
 let G_aiSpelling = false; // false = no spelling mistakes allowed
@@ -3701,7 +3435,7 @@ window.askAI = async (word, category, letter, key) => {
   result.className = 'ai-result';
   result.innerHTML = '';
 
-  const langNames = {es:'Spanish',en:'English',fr:'French',de:'German',pt:'Portuguese',it:'Italian'};
+  const langNames = {es:'Spanish',en:'English',fr:'French'};
   const gameLang = langNames[LANG] || 'Spanish';
   const spellingRule = G_aiSpelling
     ? '(6) Minor spelling mistakes and phonetic spellings are acceptable as long as the intended word is clear.'
@@ -3714,14 +3448,11 @@ window.askAI = async (word, category, letter, key) => {
 
   try {
     const response = await fetch(
-      'https://openrouter.ai/api/v1/chat/completions',
+      'https://api.oscar-g-diez.workers.dev/',
       {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${OPENROUTER_KEY}`,
-          'HTTP-Referer': 'https://jugarenfamilia.es',
-          'X-Title': 'JugarEnFamilia'
         },
         signal: AbortSignal.timeout(12000),
         body: JSON.stringify({
@@ -3761,9 +3492,9 @@ window.askAI = async (word, category, letter, key) => {
 
     const icon = cls === 'valid' ? '✅' : cls === 'invalid' ? '❌' : '🤔';
     const labelMap = {
-      valid:   {es:'¡El robot cree que es válido!',   en:'Robot thinks it\'s valid!',      fr:'Le robot pense que c\'est valide!', de:'Roboter meint: gültig!',       pt:'O robô acha que é válido!',    it:'Il robot pensa che sia valido!'},
-      invalid: {es:'¡El robot cree que es inválido!', en:'Robot thinks it\'s invalid!',    fr:'Le robot pense que c\'est invalide!', de:'Roboter meint: ungültig!',    pt:'O robô acha que é inválido!',  it:'Il robot pensa che sia invalido!'},
-      unsure:  {es:'¡El robot no está seguro!',       en:'Robot is not sure!',              fr:'Le robot n\'est pas sûr!',         de:'Roboter ist unsicher!',        pt:'O robô não tem certeza!',      it:'Il robot non è sicuro!'}
+      valid:   {es:'¡El robot cree que es válido!',   en:'Robot thinks it\'s valid!',      fr:'Le robot pense que c\'est valide!'},
+      invalid: {es:'¡El robot cree que es inválido!', en:'Robot thinks it\'s invalid!',    fr:'Le robot pense que c\'est invalide!'},
+      unsure:  {es:'¡El robot no está seguro!',       en:'Robot is not sure!',              fr:'Le robot n\'est pas sûr!'}
     };
     const label = (labelMap[cls]||labelMap.unsure)[LANG] || (labelMap[cls]||labelMap.unsure).es;
     const aiHtml = '🤖 ' + label;
@@ -3859,7 +3590,7 @@ function applyQuickJoinLang() {
   const tagline = document.getElementById('qj-tagline');
   if (tagline) tagline.textContent = t('tagline');
   const invited = document.getElementById('qj-invited');
-  if (invited) invited.textContent = {es:'¡Te han invitado a jugar!',en:"You've been invited to play!",fr:'Tu as été invité à jouer!',de:'Du wurdest eingeladen zu spielen!',pt:'Foste convidado a jogar!',it:'Sei stato invitato a giocare!'}[LANG] || '¡Te han invitado a jugar!';
+  if (invited) invited.textContent = {es:'¡Te han invitado a jugar!',en:"You've been invited to play!",fr:'Tu as été invité à jouer!'}[LANG] || '¡Te han invitado a jugar!';
   const nameLbl = document.getElementById('qj-name-lbl');
   if (nameLbl) nameLbl.textContent = t('yourName');
   const qjName = document.getElementById('qj-name');
@@ -3867,7 +3598,7 @@ function applyQuickJoinLang() {
   const emojiLbl = document.getElementById('qj-emoji-lbl');
   if (emojiLbl) emojiLbl.textContent = t('chooseEmoji') + ' ';
   const btn = document.getElementById('qj-btn');
-  if (btn) btn.textContent = {es:'¡Unirse a la sala! →',en:'Join the room! →',fr:'Rejoindre la salle! →',de:'Raum beitreten! →',pt:'Entrar na sala! →',it:'Unisciti alla stanza! →'}[LANG] || '¡Unirse a la sala! →';
+  if (btn) btn.textContent = {es:'¡Unirse a la sala! →',en:'Join the room! →',fr:'Rejoindre la salle! →'}[LANG] || '¡Unirse a la sala! →';
   const codeLabel = document.getElementById('qj-code-label');
   if (codeLabel) { const span = codeLabel.querySelector('span'); if (span) codeLabel.firstChild.textContent = t('qjCodeLabel') + ' '; }
 }
@@ -3890,8 +3621,8 @@ window.setValidationMode = (mode) => {
   const sub1 = document.getElementById('lbl-validate-sub1');
   const sub2 = document.getElementById('lbl-validate-sub2');
   if (mode === 'democratic') {
-    const s1 = {es:'👍👎 votar · 📖 Wikipedia · 🤖 IA', en:'👍👎 vote · 📖 Wikipedia · 🤖 AI', fr:'👍👎 voter · 📖 Wikipedia · 🤖 IA', de:'👍👎 abstimmen · 📖 Wikipedia · 🤖 KI', pt:'👍👎 votar · 📖 Wikipedia · 🤖 IA', it:'👍👎 vota · 📖 Wikipedia · 🤖 IA'}[LANG] || '👍👎 votar · 📖 Wikipedia · 🤖 IA';
-    const s2 = {es:'única = 100 pts · repetida = 50 pts · anulada = 0 pts', en:'unique = 100 pts · duplicate = 50 pts · invalid = 0 pts', fr:'unique = 100 pts · doublon = 50 pts · annulé = 0 pts', de:'einmalig = 100 Pkt · doppelt = 50 Pkt · ungültig = 0 Pkt', pt:'única = 100 pts · repetida = 50 pts · anulada = 0 pts', it:'unica = 100 pts · ripetuta = 50 pts · annullata = 0 pts'}[LANG] || 'única = 100 pts · repetida = 50 pts · anulada = 0 pts';
+    const s1 = {es:'👍👎 votar · 📖 Wikipedia · 🤖 IA', en:'👍👎 vote · 📖 Wikipedia · 🤖 AI', fr:'👍👎 voter · 📖 Wikipedia · 🤖 IA'}[LANG] || '👍👎 votar · 📖 Wikipedia · 🤖 IA';
+    const s2 = {es:'única = 100 pts · repetida = 50 pts · anulada = 0 pts', en:'unique = 100 pts · duplicate = 50 pts · invalid = 0 pts', fr:'unique = 100 pts · doublon = 50 pts · annulé = 0 pts'}[LANG] || 'única = 100 pts · repetida = 50 pts · anulada = 0 pts';
     if (sub1) sub1.textContent = s1;
     if (sub2) sub2.textContent = s2;
   } else {
@@ -3938,9 +3669,9 @@ function renderVotes(key, votes, mode, players, isHost) {
   let democraticResult = '';
   if (mode === 'democratic' && total > 0) {
     const majority = Math.floor(totalPlayers / 2) + 1;
-    const lblValid   = {es:'Válido',  en:'Valid',   fr:'Valide', de:'Gültig',   pt:'Válida',  it:'Valida' }[LANG]  || 'Válido';
-    const lblInvalid = {es:'Inválido',en:'Invalid', fr:'Invalide',de:'Ungültig',pt:'Inválida',it:'Invalida'}[LANG] || 'Inválido';
-    const lblTie     = {es:'Empate',  en:'Tie',     fr:'Égalité', de:'Unentschieden',pt:'Empate',it:'Pareggio'}[LANG] || 'Empate';
+    const lblValid   = {es:'Válido',  en:'Valid',   fr:'Valide'}[LANG]  || 'Válido';
+    const lblInvalid = {es:'Inválido',en:'Invalid', fr:'Invalide'}[LANG] || 'Inválido';
+    const lblTie     = {es:'Empate',  en:'Tie',     fr:'Égalité'}[LANG] || 'Empate';
     if (ups >= majority) democraticResult = '<span class="democratic-result valid">✅</span>';
     else if (downs >= majority) democraticResult = '<span class="democratic-result invalid">❌</span>';
     else if (total >= totalPlayers) democraticResult = '<span class="democratic-result tie">🤝</span>';
@@ -4168,7 +3899,7 @@ function showScores(room) {
   const players = room.players||{};
   const langs = room.langs||{};
   document.getElementById('sc-list').innerHTML = sorted.map(([n,pts],i) =>
-    `<div class="score-row"><span>${MEDALS[i]||''} ${players[n]||'🎲'} ${n}${langs[n]?' '+(LANG_FLAGS[langs[n]]||''):''}</span><span class="pts">${pts} pts</span></div>`
+    `<div class="score-row"><span>${MEDALS[i]||''} ${players[n]||'🎲'} ${n}</span><span class="pts">${pts} pts</span></div>`
   ).join('');
   let btns = '';
   if (G.isHost) {
@@ -4332,7 +4063,7 @@ function showFinal(room) {
   const fPlayers = room.players||{};
   const fLangs = room.langs||{};
   document.getElementById('final-list').innerHTML = sorted.map(([n,pts],i) =>
-    `<div class="score-row"><span>${MEDALS[i]||''} ${fPlayers[n]||'🎲'} ${n}${fLangs[n]?' '+(LANG_FLAGS[fLangs[n]]||''):''}</span><span class="pts">${pts} pts</span></div>`
+    `<div class="score-row"><span>${MEDALS[i]||''} ${fPlayers[n]||'🎲'} ${n}</span><span class="pts">${pts} pts</span></div>`
   ).join('');
 }
 
@@ -4742,7 +4473,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260908.42-tmp</div>
+  <div style="font-size:9px;opacity:0.5">v260905.28-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
@@ -4762,9 +4493,6 @@ tryRestore();
       <option value="es">🇪🇸 ES</option>
       <option value="en">🇬🇧 EN</option>
       <option value="fr">🇫🇷 FR</option>
-      <option value="de">🇩🇪 DE</option>
-      <option value="pt">🇧🇷 PT</option>
-      <option value="it">🇮🇹 IT</option>
     </select>
     <!-- AI toggle -->
     <label style="color:#eee;font-size:10px;display:flex;align-items:center;gap:3px;cursor:pointer">
