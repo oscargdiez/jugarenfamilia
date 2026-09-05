@@ -77,7 +77,7 @@ h1 { font-family: 'Caveat', cursive; font-size: 32px; font-weight: 700; color: v
 .logo-main { font-family: 'Caveat', cursive; font-size: 80px; font-weight: 700; color: var(--red); line-height: 1; display: block; }
 .logo-rule { width: 110px; height: 3px; background: var(--red); margin: 4px auto 6px; border-radius: 2px; }
 .logo-sub { font-family: 'Special Elite', monospace; font-size:11px; color: var(--ink-sec); letter-spacing: 4px; }
-.logo-tag { font-family: 'Caveat', cursive; font-size:20px; color: var(--ink-muted); margin-top: 4px; font-style: italic; }
+.logo-tag { font-family: 'Caveat', cursive; font-size: 15px; color: var(--ink-muted); margin-top: 4px; font-style: italic; }
 
 /* ── Cards ── */
 .card {
@@ -302,7 +302,7 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
 /* ── Answer rows ── */
 .ans-grid { display: grid; gap: 4px; }
 .ans-row { display: flex; align-items: flex-end; gap: 10px; padding-bottom: 2px; }
-.ans-lbl { font-family: 'Caveat', cursive; font-size:20px; color: var(--ink-sec); min-width: 90px; width: 110px; flex-shrink: 0; padding-bottom: 6px; }
+.ans-lbl { font-family: 'Special Elite', monospace; font-size: 13px; color: var(--ink-sec); min-width: 90px; width: 110px; flex-shrink: 0; padding-bottom: 6px; }
 .ans-inp { flex: 1; font-family: 'Caveat', cursive; font-size:26px; }
 
 /* ── Players ── */
@@ -368,7 +368,7 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
 .inv-btn { font-size: 17px; width: 32px; height: 32px; border-radius: var(--radius); border: 1.5px solid var(--red); background: transparent; color: var(--red); cursor: pointer; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; padding: 0; line-height: 1; }
 .inv-btn:hover { background: var(--red-light); border-color: var(--red); color: var(--red); }
 .val-entry.invalid .inv-btn { border-color: var(--red); color: var(--red); background: var(--red-light); }
-.val-name { font-family: 'Caveat', cursive; font-size:20px; color: var(--ink-sec); width: 100px; flex-shrink: 0; }
+.val-name { font-family: 'Caveat', cursive; font-size:20px; color: var(--ink-muted); opacity: 0.6; width: 100px; flex-shrink: 0; }
 
 /* ── Leaderboard ── */
 .lb-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px dashed var(--border); font-family: 'Caveat', cursive; font-size:20px; }
@@ -452,8 +452,8 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
 }
 .daily-cat-row:last-child { border-bottom: none; }
 .daily-cat-label {
-  font-family: 'Caveat', cursive; font-size:20px; color: var(--ink-sec);
-  min-width: 100px; width: 120px; flex-shrink: 0;
+  font-family: 'Special Elite', monospace; font-size: 13px; color: var(--ink-sec);
+  min-width: 90px; width: 110px; flex-shrink: 0;
 }
 .daily-cat-input {
   flex: 1; border: none; border-bottom: 2px solid var(--border);
@@ -474,7 +474,7 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
   padding: 8px 0; border-bottom: 1px solid var(--border); flex-wrap: wrap;
 }
 .daily-result-row:last-child { border-bottom: none; }
-.daily-result-cat { font-family: 'Caveat', cursive; font-size:20px; color: var(--ink-sec); width: 105px; flex-shrink: 0; }
+.daily-result-cat { font-family: 'Special Elite', monospace; font-size: 13px; color: var(--ink-sec); width: 105px; flex-shrink: 0; }
 .daily-result-word { font-family: 'Caveat', cursive; font-size:20px; color: var(--ink); flex: 1; }
 .daily-result-pts { font-family: 'Special Elite', monospace; font-size:11px; color: var(--red); flex-shrink: 0; }
 .daily-result-ai { font-size: 13px; flex-shrink: 0; }
@@ -4513,7 +4513,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260905.41-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v260905.43-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
