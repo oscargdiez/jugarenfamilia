@@ -2756,7 +2756,7 @@ function enterLobby(room) {
 
 function renderPlayers(players, langs={}) {
   document.getElementById('lob-players').innerHTML =
-    Object.entries(players).map(([n,emoji]) => `<div class="chip ok"><span style="font-size:16px">${emoji||'🎲'}</span>${n}${langs[n]?' <span style="font-size:10px;opacity:0.7">'+( LANG_FLAGS[langs[n]]||'')+'</span>':''}</div>`).join('');
+    Object.entries(players).map(([n,emoji]) => `<div class="chip ok"><span style="font-size:16px">${emoji||'🎲'}</span>${n}</div>`).join('');
 }
 
 function buildThemePicker() {
@@ -3876,7 +3876,7 @@ function showScores(room) {
   const players = room.players||{};
   const langs = room.langs||{};
   document.getElementById('sc-list').innerHTML = sorted.map(([n,pts],i) =>
-    `<div class="score-row"><span>${MEDALS[i]||''} ${players[n]||'🎲'} ${n}${langs[n]?' '+(LANG_FLAGS[langs[n]]||''):''}</span><span class="pts">${pts} pts</span></div>`
+    `<div class="score-row"><span>${MEDALS[i]||''} ${players[n]||'🎲'} ${n}</span><span class="pts">${pts} pts</span></div>`
   ).join('');
   let btns = '';
   if (G.isHost) {
@@ -4040,7 +4040,7 @@ function showFinal(room) {
   const fPlayers = room.players||{};
   const fLangs = room.langs||{};
   document.getElementById('final-list').innerHTML = sorted.map(([n,pts],i) =>
-    `<div class="score-row"><span>${MEDALS[i]||''} ${fPlayers[n]||'🎲'} ${n}${fLangs[n]?' '+(LANG_FLAGS[fLangs[n]]||''):''}</span><span class="pts">${pts} pts</span></div>`
+    `<div class="score-row"><span>${MEDALS[i]||''} ${fPlayers[n]||'🎲'} ${n}</span><span class="pts">${pts} pts</span></div>`
   ).join('');
 }
 
@@ -4450,7 +4450,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260905.20</div>
+  <div style="font-size:9px;opacity:0.5">v260905.21</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
