@@ -3527,8 +3527,20 @@ window.askAI = async (word, category, letter, key) => {
       invalid: {es:'¡El robot cree que es inválido!', en:'Robot thinks it\'s invalid!',    fr:'Le robot pense que c\'est invalide!'},
       unsure:  {es:'¡El robot no está seguro!',       en:'Robot is not sure!',              fr:'Le robot n\'est pas sûr!'}
     };
+    const colorMap = {
+      valid:   'var(--success)',
+      invalid: 'var(--red)',
+      unsure:  '#f39c12'
+    };
     const label = (labelMap[cls]||labelMap.unsure)[LANG] || (labelMap[cls]||labelMap.unsure).es;
-    const aiHtml = '🤖 ' + label;
+    const color = colorMap[cls] || colorMap.unsure;
+    const verdictMap = {
+      valid:   {es:'válido',   en:'valid',   fr:'valide'},
+      invalid: {es:'inválido', en:'invalid', fr:'invalide'},
+      unsure:  {es:'no sé',   en:'unsure',  fr:'incertain'}
+    };
+    const verdict = (verdictMap[cls]||verdictMap.unsure)[LANG] || (verdictMap[cls]||verdictMap.unsure).es;
+    const aiHtml = `🤖 ${label} → <span style="font-weight:700;color:${color}">${verdict}</span>`;
     result.innerHTML = aiHtml;
     // Broadcast to guests via Firebase
     update(roomRef(G.roomCode), { [`aiResults/${key}`]: { html: aiHtml, cls, key } });
@@ -4506,7 +4518,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260905.73-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v260905.74-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
