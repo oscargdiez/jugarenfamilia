@@ -277,6 +277,7 @@ Two fonts, six slots. **Do not add new sizes outside these slots.**
 - Big refactor — do in staging first
 
 ### Other
+- Historical daily leaderboard: data already stored in Firebase at `daily/{date}/{lang}/scores/` permanently — could surface per-day archive, all-time ranking, streak tracking, personal history. Best built after player identity system so aggregation is reliable.
 - Democratic mode: minimum 2 players guard
 - Language as lobby setting (currently global)
 - Emoji picker: SVG/Twemoji treatment for consistency across platforms
