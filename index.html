@@ -2309,7 +2309,7 @@ async function showDailyResult(answers, baseScore, totalScore, aiResults, secsLe
   list.innerHTML = cats.map((cat, i) => {
     const word = answers[i] || '';
     const res = aiResults[i] || (word ? 'unsure' : 'empty');
-    const base = (word && res === 'valid') ? 10 : 0;
+    const base = (word && res === 'valid') ? 100 : (word && res === 'unsure') ? 50 : 0;
     return `<div class="daily-result-row" id="daily-row-${i}">
       <span class="daily-result-cat">${cat}</span>
       <span class="daily-result-word">${word || '<span style="opacity:0.4">—</span>'}</span>
@@ -2460,7 +2460,7 @@ async function computeAndUpdateOriginality(allScores, key) {
       originality += 5;
       // Update UI badge on answer row
       const origEl = document.getElementById('daily-orig-' + i);
-      if (origEl) origEl.textContent = '+5✨';
+      if (origEl) origEl.textContent = '+50✨';
     }
   });
 
@@ -4519,7 +4519,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260905.78</div>
+  <div style="font-size: 11px;opacity:0.5">v260905.79</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
