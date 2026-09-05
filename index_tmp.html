@@ -1017,7 +1017,7 @@ document.addEventListener('DOMContentLoaded', function() {
 <!-- ══ WAITING (guests) ══ -->
 <div id="s-waiting" class="screen">
   <h1 id="lbl-waiting-title">Esperando...</h1>
-  <p style="font-family:'Caveat',cursive;font-size:26px;color:var(--ink-sec);text-align:center;margin-bottom:0.75rem" id="lbl-host-reviewing">el anfitrión está revisando <span style="display:inline-block;animation:pencilBounce 1s ease-in-out infinite;font-size:24px;vertical-align:middle">✏️</span></p>
+  <p style="font-family:'Caveat',cursive;font-size:26px;color:var(--ink-sec);text-align:center;margin-bottom:0.75rem" id="lbl-host-reviewing">el anfitrión está revisando <span style="display:inline-block;animation:pencilBounce 1s ease-in-out infinite;font-size:24px;vertical-align:middle;margin-left:25px">✏️</span></p>
   <div id="stop-caller-banner-guest" style="display:none;text-align:center;font-family:'Special Elite',monospace;font-size:13px;color:var(--ink-sec);margin-bottom:8px;padding:6px 10px;background:var(--paper-dark);border-radius:var(--radius);border:1px dashed var(--border)"></div>
   <div id="guest-val-content"></div>
 </div>
@@ -1527,7 +1527,7 @@ window.applyLang = function() {
   s('btn-calculate', t('calculate'));
   // Waiting
   s('lbl-submitted', t('submitted2'));
-  { const el = document.getElementById('lbl-host-reviewing'); if (el) el.innerHTML = t('hostReviewing2') + ' <span style="display:inline-block;animation:pencilBounce 1s ease-in-out infinite;transform-origin:bottom center;font-size:24px;vertical-align:middle">✏️</span>'; }
+  { const el = document.getElementById('lbl-host-reviewing'); if (el) el.innerHTML = t('hostReviewing2') + ' <span style="display:inline-block;animation:pencilBounce 1s ease-in-out infinite;transform-origin:bottom center;font-size:24px;vertical-align:middle;margin-left:25px">✏️</span>'; }
   // Scores
   s('lbl-scores-title', t('scoresTitle'));
   // Leaderboard
@@ -4518,7 +4518,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260905.74-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v260905.75-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
