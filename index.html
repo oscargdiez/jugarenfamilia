@@ -2407,7 +2407,7 @@ function renderLeaderboard(allScores) {
     return `<div class="daily-lb-row${isMe ? ' daily-lb-me' : ''}" id="daily-row-${i}" onclick="toggleDailyAnswers(${i})">
       <span class="daily-lb-rank">${medals[i] || (i+1)}</span>
       <span class="daily-lb-name">${e.name}</span>
-      <span class="daily-lb-score">${e.totalScore} pts</span>
+      <span class="daily-lb-score">${e.totalScore*10} pts</span>
       ${speedTag(e)}${orig}<span class="daily-lb-chevron">▶</span>
     </div>${buildAnswerPanel(e, i)}`;
   }).join('');
@@ -2421,7 +2421,7 @@ function renderLeaderboard(allScores) {
     html += `<div class="daily-lb-row daily-lb-me" id="daily-row-me" onclick="toggleDailyAnswers('me')">
       <span class="daily-lb-rank">${myIdx+1}</span>
       <span class="daily-lb-name">${me.name}</span>
-      <span class="daily-lb-score">${me.totalScore} pts</span>
+      <span class="daily-lb-score">${me.totalScore*10} pts</span>
       ${speedTag(me)}${orig}<span class="daily-lb-chevron">▶</span>
     </div>${buildAnswerPanel(me, 'me')}`;
   }
@@ -4519,7 +4519,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260905.79</div>
+  <div style="font-size: 11px;opacity:0.5">v260905.80</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
