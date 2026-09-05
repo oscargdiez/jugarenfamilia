@@ -2333,12 +2333,12 @@ async function showDailyResult(answers, baseScore, totalScore, aiResults, secsLe
   // Speed summary
   const mult = speedMultiplier ? speedMultiplier.toFixed(2) : '1.00';
   list.innerHTML += `<div style="text-align:right;font-family:'Special Elite',monospace;font-size:11px;color:var(--ink-muted);padding-top:6px">
-    ⚡ ×${mult} velocidad &nbsp;|&nbsp; base ${baseScore} pts → <strong>${totalScore} pts</strong>
+    ⚡ ×${mult} velocidad &nbsp;|&nbsp; base ${baseScore*10} pts → <strong>${totalScore*10} pts</strong>
   </div>`;
 
   // Total score
   const totalEl = document.getElementById('daily-total-score');
-  if (totalEl) totalEl.textContent = totalScore + ' pts';
+  if (totalEl) totalEl.textContent = (totalScore*10) + ' pts';
 
   // Date header
   const dateStr = getDailyDateString();
@@ -2400,7 +2400,7 @@ function renderLeaderboard(allScores) {
       const val = e.answers[i] || '';
       const ai = e.aiResults ? e.aiResults[i] : null;
       const aiIcon = ai === 'valid' ? '✅' : ai === 'invalid' ? '❌' : ai === 'unsure' ? '🤔' : '';
-      const pts = !val ? '' : ai === 'valid' ? '+10' : ai === 'invalid' ? '0' : ai === 'unsure' ? '?' : '';
+      const pts = !val ? '' : ai === 'valid' ? '+100' : ai === 'invalid' ? '0' : ai === 'unsure' ? '+50' : '';
       const ptsHtml = pts ? `<span class="daily-lb-answer-pts${ai === 'invalid' ? ' zero' : ''}">${pts}</span>` : '';
       return `<div class="daily-lb-answer-row">
         <span class="daily-lb-answer-cat">${cat}</span>
@@ -2414,7 +2414,7 @@ function renderLeaderboard(allScores) {
 
   let html = top10.map((e, i) => {
     const isMe = (e.name||'').trim() === myName.trim();
-    const orig = e.originality > 0 ? `<span class="daily-lb-orig">+${e.originality}✨</span>` : '';
+    const orig = e.originality > 0 ? `<span class="daily-lb-orig">+${e.originality*10}✨</span>` : '';
     return `<div class="daily-lb-row${isMe ? ' daily-lb-me' : ''}" id="daily-row-${i}" onclick="toggleDailyAnswers(${i})">
       <span class="daily-lb-rank">${medals[i] || (i+1)}</span>
       <span class="daily-lb-name">${e.name}</span>
@@ -2426,7 +2426,7 @@ function renderLeaderboard(allScores) {
   // Show my row if outside top 10
   if (!isInTop10 && myIdx >= 0) {
     const me = entries[myIdx];
-    const orig = me.originality > 0 ? `<span class="daily-lb-orig">+${me.originality}✨</span>` : '';
+    const orig = me.originality > 0 ? `<span class="daily-lb-orig">+${me.originality*10}✨</span>` : '';
     const sepIdx = 'me';
     html += `<div class="daily-lb-sep">· · ·</div>`;
     html += `<div class="daily-lb-row daily-lb-me" id="daily-row-me" onclick="toggleDailyAnswers('me')">
@@ -2478,7 +2478,7 @@ async function computeAndUpdateOriginality(allScores, key) {
   // Update total score display
   const newTotal = G_daily.totalScore + originality;
   const totalEl = document.getElementById('daily-total-score');
-  if (totalEl) totalEl.textContent = newTotal + ' pts' + (originality > 0 ? ' +' + originality + '✨' : '');
+  if (totalEl) totalEl.textContent = (newTotal*10) + ' pts' + (originality > 0 ? ' +' + (originality*10) + '✨' : '');
 
   // Update Firebase if originality changed
   if (originality !== (myData.originality || 0)) {
@@ -4513,7 +4513,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260905.39</div>
+  <div style="font-size:9px;opacity:0.5">v260905.40</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
