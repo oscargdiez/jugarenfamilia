@@ -2437,12 +2437,12 @@ window.toggleDailyAnswers = function(idx) {
 async function computeAndUpdateOriginality(allScores, key) {
   // For each of my valid answers, check if it's unique among all players
   const myName = G_daily.displayName || ((G.playerName || '') + ' ' + (G.playerEmoji || ''));
-  const myEntry = Object.entries(allScores).find(([k,v]) => v.name.trim() === myName.trim());
+  const myEntry = Object.entries(allScores).find(([k,v]) => v.name && v.name.trim() === myName.trim());
   if (!myEntry) return;
   const [myKey, myData] = myEntry;
   if (!myData.answers) return;
 
-  const otherEntries = Object.values(allScores).filter(e => e.name.trim() !== myName.trim());
+  const otherEntries = Object.values(allScores).filter(e => e.name && e.name.trim() !== myName.trim());
   let originality = 0;
 
   G_daily.categories.forEach((cat, i) => {
@@ -4469,7 +4469,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260905.25</div>
+  <div style="font-size:9px;opacity:0.5">v260905.26</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
