@@ -2199,6 +2199,7 @@ window.dailySubmit = async function() {
       baseScore, totalScore, originality: 0,
       answers: answersObj,
       aiResults: aiResults,
+      categories: G_daily.categories || [],
       timestamp: Date.now()
     });
     G_daily.playerKey = playerKey;
@@ -2381,8 +2382,10 @@ function renderLeaderboard(allScores) {
     return `<span class="daily-lb-speed">⚡×${mult}</span>`;
   }
   function buildAnswerPanel(e, idx) {
-    if (!e.answers || !cats.length) return '';
-    const rows = cats.map((cat, i) => {
+    if (!e.answers) return '';
+    const panelCats = (e.categories && e.categories.length) ? e.categories : cats;
+    if (!panelCats.length) return '';
+    const rows = panelCats.map((cat, i) => {
       const val = e.answers[i] || '';
       const ai = e.aiResults ? e.aiResults[i] : null;
       const aiIcon = ai === 'valid' ? '✅' : ai === 'invalid' ? '❌' : ai === 'unsure' ? '🤔' : '';
@@ -4469,7 +4472,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260905.26</div>
+  <div style="font-size:9px;opacity:0.5">v260905.27</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
