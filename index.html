@@ -2360,13 +2360,14 @@ function renderLeaderboard(allScores) {
   const lbEl = document.getElementById('daily-lb-list');
   if (!lbEl) return;
   const myName = G_daily.displayName || ((G.playerName || '') + ' ' + (G.playerEmoji || ''));
-  // Normalise entries — handle old schema (score) and new (totalScore)
+  // Normalise entries — handle old schema (score) and new (totalScore), filter out malformed entries
   const entries = Object.values(allScores)
+    .filter(e => e && e.name)
     .map(e => ({ ...e, totalScore: e.totalScore ?? e.score ?? 0 }))
     .sort((a,b) => b.totalScore - a.totalScore);
   const medals = ['🥇','🥈','🥉'];
   const top10 = entries.slice(0, 10);
-  const myIdx = entries.findIndex(e => e.name.trim() === myName.trim());
+  const myIdx = entries.findIndex(e => (e.name||'').trim() === myName.trim());
   const isInTop10 = myIdx >= 0 && myIdx < 10;
 
   // Ensure categories are available even when leaderboard viewed after session
@@ -2398,7 +2399,7 @@ function renderLeaderboard(allScores) {
   }
 
   let html = top10.map((e, i) => {
-    const isMe = e.name.trim() === myName.trim();
+    const isMe = (e.name||'').trim() === myName.trim();
     const orig = e.originality > 0 ? `<span class="daily-lb-orig">+${e.originality}✨</span>` : '';
     return `<div class="daily-lb-row${isMe ? ' daily-lb-me' : ''}" id="daily-row-${i}" onclick="toggleDailyAnswers(${i})">
       <span class="daily-lb-rank">${medals[i] || (i+1)}</span>
@@ -4468,7 +4469,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260905.24</div>
+  <div style="font-size:9px;opacity:0.5">v260905.25</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
