@@ -76,7 +76,7 @@ h1 { font-family: 'Special Elite', monospace; font-size: 32px; font-weight: 700;
 .logo-wrap { text-align: center; margin-bottom: 1.5rem; padding-top: 0.5rem; }
 .logo-main { font-family: 'Caveat', cursive; font-size: 79px; font-weight: 700; color: var(--red); display: block; }
 .logo-rule { width: 110px; height: 3px; background: var(--red); margin: 4px auto 6px; border-radius: 2px; }
-.logo-sub { font-family: 'Special Elite', monospace; font-size: 12px; color: var(--ink-sec); }
+.logo-sub { font-family: 'Special Elite', monospace; font-size: 12px; color: var(--ink-sec); letter-spacing: 4px; }
 .logo-tag { font-family: 'Caveat', cursive; font-size: 14px; color: var(--ink-muted); margin-top: 4px; font-style: italic; }
 
 /* ── Cards ── */
@@ -413,7 +413,7 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
 }
 
 /* ── Footer brand ── */
-.brand-footer { text-align: center; margin-top: 2rem; font-family: 'Special Elite', monospace; font-size: 12px; color: var(--ink-muted); }
+.brand-footer { text-align: center; margin-top: 2rem; font-family: 'Special Elite', monospace; font-size: 12px; color: var(--ink-muted); letter-spacing: 2px; }
 
 /* ── Group name dropdown ── */
 .group-suggestions { position: absolute; top: 100%; left: 0; right: 0; background: #f7f3e8; border: 1.5px solid var(--border-strong); border-top: none; border-radius: 0 0 4px 4px; z-index: 10; }
@@ -479,7 +479,7 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
 .daily-lb-score { font-family: 'Special Elite', monospace; font-size: 12px; color: var(--red); flex-shrink: 0; }
 .daily-lb-orig { font-family: 'Special Elite', monospace; font-size: 12px; color: var(--ink-muted); flex-shrink: 0; margin-left: 2px; }
 .daily-lb-speed { font-family: 'Special Elite', monospace; font-size: 12px; color: var(--ink-muted); flex-shrink: 0; margin-left: 4px; }
-.daily-lb-sep { text-align: center; font-family: 'Special Elite', monospace; font-size: 12px; color: var(--ink-muted); padding: 4px 0; }
+.daily-lb-sep { text-align: center; font-family: 'Special Elite', monospace; font-size: 12px; color: var(--ink-muted); padding: 4px 0; letter-spacing: 2px; }
 .daily-lb-lang-btn { padding: 2px 3px; border: 1.5px solid transparent; background: transparent; cursor: pointer; border-radius: 4px; opacity: 0.45; vertical-align: middle; }
 .daily-lb-lang-btn.active { opacity: 1; background: var(--paper-dark); border-color: var(--border-strong); }
 .daily-lb-row.daily-lb-me { background: var(--red-light); border: 1.5px solid var(--red); }
@@ -791,9 +791,9 @@ document.addEventListener('DOMContentLoaded', function() {
     <div class="emoji-grid" id="emoji-grid"></div>
     <div style="margin-top:14px;display:flex;flex-direction:column;gap:8px">
       <button class="pri" onclick="createRoom()" style="width:100%;font-size: 20px;padding:14px" id="btn-create">Crear sala →</button>
-      <div style="font-family:'Special Elite',monospace;font-size: 12px;color:var(--ink-muted);text-align:center;margin:-2px 0 2px" id="lbl-create-sub">MULTIJUGADOR · CON FAMILIA Y AMIGOS</div>
+      <div style="font-family:'Special Elite',monospace;font-size: 12px;color:var(--ink-muted);text-align:center;letter-spacing:1px;margin:-2px 0 2px" id="lbl-create-sub">MULTIJUGADOR · CON FAMILIA Y AMIGOS</div>
       <button onclick="startDailyChallenge()" style="width:100%;font-size: 14px;padding:12px;border-color:var(--border-strong)" id="btn-daily">📅 <span id="btn-daily-text">Reto diario · cargando…</span></button>
-      <div style="font-family:'Special Elite',monospace;font-size: 12px;color:var(--ink-muted);text-align:center;margin:-2px 0 2px" id="lbl-daily-sub">TÚ CONTRA EL MUNDO · UN RETO POR DÍA</div>
+      <div style="font-family:'Special Elite',monospace;font-size: 12px;color:var(--ink-muted);text-align:center;letter-spacing:1px;margin:-2px 0 2px" id="lbl-daily-sub">TÚ CONTRA EL MUNDO · UN RETO POR DÍA</div>
     </div>
   </div>
 
@@ -4501,7 +4501,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size: 12px;color:#b0a090;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 12px;opacity:0.5">v260905.43-tmp</div>
+  <div style="font-size: 12px;opacity:0.5">v260905.44-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
