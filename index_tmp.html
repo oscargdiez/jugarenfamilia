@@ -876,8 +876,7 @@ document.addEventListener('DOMContentLoaded', function() {
   <!-- Host panel -->
   <div id="host-panel" style="display:none">
     <div class="card">
-      <p class="lbl" id="lbl-group-name">nombre del grupo</p>
-      <p style="font-family:'Special Elite',monospace;font-size:11px;color:var(--ink-muted);margin-bottom:8px" id="lbl-group-hint">familia, amigos, trabajo... como queráis</p>
+      <p class="lbl" id="lbl-group-name">nombre del grupo <span id="lbl-group-hint" style="font-size:11px;opacity:0.55;font-family:'Special Elite',monospace;font-weight:normal">(familia, amigos, trabajo... como queráis)</span></p>
       <div class="group-input-wrap">
         <input type="text" id="inp-group" placeholder="Los García, Amigos del cole..." maxlength="30" autocomplete="off" inputmode="text" data-form-type="other" oninput="onGroupInput()" onblur="hideGroupSuggestions()">
         <div class="group-suggestions" id="group-suggestions" style="display:none"></div>
@@ -1494,8 +1493,7 @@ window.applyLang = function() {
   s('lbl-share-code', t('shareCode'));
   s('btn-copy', t('copyLink'));
   { const el = document.getElementById('lbl-players'); if (el) { const hint = document.getElementById('lbl-solo-hint'); const hintHTML = hint ? hint.outerHTML : ''; el.innerHTML = t('players') + ' ' + hintHTML; } }
-  s('lbl-group-name', t('groupName'));
-  s('lbl-group-hint', t('groupHint2'));
+  { const el = document.getElementById('lbl-group-name'); if (el) { const hint = document.getElementById('lbl-group-hint'); const hintHTML = hint ? hint.outerHTML : ''; el.innerHTML = t('groupName') + ' ' + hintHTML; const h = document.getElementById('lbl-group-hint'); if (h) h.textContent = '(' + t('groupHint2') + ')'; } }
   s('inp-group', null, t('groupPlaceholder'));
   s('lbl-theme', t('theme'));
   s('lbl-easy-letters', t('easyLetters'));
@@ -4513,7 +4511,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260905.64-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v260905.65-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
