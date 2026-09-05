@@ -487,6 +487,7 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
 .daily-lb-name { font-family: 'Caveat', cursive; font-size: 17px; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .daily-lb-score { font-family: 'Special Elite', monospace; font-size: 13px; color: var(--red); flex-shrink: 0; }
 .daily-lb-orig { font-family: 'Special Elite', monospace; font-size: 11px; color: var(--ink-muted); flex-shrink: 0; margin-left: 2px; }
+.daily-lb-speed { font-family: 'Special Elite', monospace; font-size: 11px; color: var(--ink-muted); flex-shrink: 0; margin-left: 4px; }
 .daily-lb-sep { text-align: center; font-family: 'Special Elite', monospace; font-size: 11px; color: var(--ink-muted); padding: 4px 0; letter-spacing: 2px; }
 .daily-lb-row.daily-lb-me { background: var(--red-light); border: 1.5px solid var(--red); }
 .daily-lb-row { cursor: pointer; }
@@ -506,8 +507,11 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
 }
 .daily-lb-answer-row:last-child { border-bottom: none; }
 .daily-lb-answer-cat { font-family: 'Special Elite', monospace; font-size: 11px; color: var(--ink-muted); flex-shrink: 0; }
-.daily-lb-answer-val { font-family: 'Caveat', cursive; font-size: 15px; color: var(--ink); text-align: right; }
+.daily-lb-answer-val { font-family: 'Caveat', cursive; font-size: 15px; color: var(--ink); flex: 1; text-align: left; }
 .daily-lb-answer-val.empty { color: var(--ink-muted); font-style: italic; font-size: 12px; }
+.daily-lb-answer-ai { font-size: 13px; flex-shrink: 0; min-width: 18px; text-align: center; }
+.daily-lb-answer-pts { font-family: 'Special Elite', monospace; font-size: 11px; color: var(--success); flex-shrink: 0; min-width: 24px; text-align: right; }
+.daily-lb-answer-pts.zero { color: var(--ink-muted); }
 .daily-result-orig { font-family: 'Special Elite', monospace; font-size: 11px; color: var(--ink-muted); flex-shrink: 0; }
 .daily-already-played { text-align: center; padding: 1.5rem 0; }
 .daily-already-score { font-family: 'Caveat', cursive; font-size: 48px; font-weight: 700; color: var(--red); }
@@ -976,7 +980,6 @@ document.addEventListener('DOMContentLoaded', function() {
     <p class="lbl" id="lbl-daily-leaderboard" style="margin-bottom:8px">clasificación del día</p>
     <div id="daily-lb-list"></div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
-      <p style="font-family:'Special Elite',monospace;font-size:10px;color:var(--ink-muted)" id="daily-lb-note">clasificación en tiempo real</p>
       <button onclick="refreshDailyOriginality()" style="font-family:'Special Elite',monospace;font-size:10px;padding:3px 8px;border:1px solid var(--border);border-radius:4px;background:transparent;cursor:pointer;color:var(--ink-sec)" id="btn-daily-refresh">↻ actualizar</button>
     </div>
   </div>
@@ -2358,15 +2361,24 @@ function renderLeaderboard(allScores) {
     try { const s = getDailySetup(); G_daily.categories = getDailyCatNames(s.indices); } catch(e) {}
   }
   const cats = G_daily.categories || [];
+  function speedTag(e) {
+    if (!e.baseScore || !e.totalScore || e.baseScore === e.totalScore) return '';
+    const mult = (e.totalScore / e.baseScore).toFixed(2);
+    return `<span class="daily-lb-speed">⚡×${mult}</span>`;
+  }
   function buildAnswerPanel(e, idx) {
     if (!e.answers || !cats.length) return '';
     const rows = cats.map((cat, i) => {
       const val = e.answers[i] || '';
       const ai = e.aiResults ? e.aiResults[i] : null;
-      const aiIcon = ai === 'VALIDO' ? ' ✅' : ai === 'INVALIDO' ? ' ❌' : '';
+      const aiIcon = ai === 'valid' ? '✅' : ai === 'invalid' ? '❌' : ai === 'unsure' ? '🤔' : '';
+      const pts = !val ? '' : ai === 'valid' ? '+10' : ai === 'invalid' ? '0' : ai === 'unsure' ? '?' : '';
+      const ptsHtml = pts ? `<span class="daily-lb-answer-pts${ai === 'invalid' ? ' zero' : ''}">${pts}</span>` : '';
       return `<div class="daily-lb-answer-row">
         <span class="daily-lb-answer-cat">${cat}</span>
-        <span class="daily-lb-answer-val${val ? '' : ' empty'}">${val || '—'}${aiIcon}</span>
+        <span class="daily-lb-answer-val${val ? '' : ' empty'}">${val || '—'}</span>
+        <span class="daily-lb-answer-ai">${aiIcon}</span>
+        ${ptsHtml}
       </div>`;
     }).join('');
     return `<div class="daily-lb-answers" id="daily-ans-${idx}">${rows}</div>`;
@@ -2379,7 +2391,7 @@ function renderLeaderboard(allScores) {
       <span class="daily-lb-rank">${medals[i] || (i+1)}</span>
       <span class="daily-lb-name">${e.name}</span>
       <span class="daily-lb-score">${e.totalScore} pts</span>
-      ${orig}<span class="daily-lb-chevron">▶</span>
+      ${speedTag(e)}${orig}<span class="daily-lb-chevron">▶</span>
     </div>${buildAnswerPanel(e, i)}`;
   }).join('');
 
@@ -2393,7 +2405,7 @@ function renderLeaderboard(allScores) {
       <span class="daily-lb-rank">${myIdx+1}</span>
       <span class="daily-lb-name">${me.name}</span>
       <span class="daily-lb-score">${me.totalScore} pts</span>
-      ${orig}<span class="daily-lb-chevron">▶</span>
+      ${speedTag(me)}${orig}<span class="daily-lb-chevron">▶</span>
     </div>${buildAnswerPanel(me, 'me')}`;
   }
 
@@ -2473,7 +2485,7 @@ window.refreshDailyOriginality = async function() {
 const DAILY_LABELS = {
   es: {
     yourAnswers: 'tus respuestas', leaderboard: 'clasificación del día',
-    lbNote: 'clasificación en tiempo real', backHome: '← Volver al inicio',
+    backHome: '← Volver al inicio',
     dailySubmitBtn: '¡Alto! →', dailyPlayLabel: 'Reto diario',
     refreshBtn: '↻ actualizar', validating: 'Validando…',
     noResults: 'Sin resultados aún', errorLb: 'Error cargando clasificación',
@@ -2481,7 +2493,7 @@ const DAILY_LABELS = {
   },
   en: {
     yourAnswers: 'your answers', leaderboard: "today's leaderboard",
-    lbNote: 'leaderboard updates in real time', backHome: '← Back to home',
+    backHome: '← Back to home',
     dailySubmitBtn: 'Stop! →', dailyPlayLabel: 'Daily challenge',
     refreshBtn: '↻ refresh', validating: 'Validating…',
     noResults: 'No results yet', errorLb: 'Error loading leaderboard',
@@ -2489,7 +2501,7 @@ const DAILY_LABELS = {
   },
   fr: {
     yourAnswers: 'tes réponses', leaderboard: 'classement du jour',
-    lbNote: 'classement en temps réel', backHome: '← Retour',
+    backHome: '← Retour',
     dailySubmitBtn: 'Stop! →', dailyPlayLabel: 'Défi du jour',
     refreshBtn: '↻ actualiser', validating: 'Validation…',
     noResults: 'Pas encore de résultats', errorLb: 'Erreur de chargement',
@@ -2504,7 +2516,7 @@ function applyDailyLang() {
   const s2 = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
   s2('lbl-daily-your-answers', l.yourAnswers);
   s2('lbl-daily-leaderboard', l.leaderboard);
-  s2('daily-lb-note', l.lbNote);
+
   s2('btn-daily-home', l.backHome);
   s2('btn-daily-submit', l.dailySubmitBtn);
   s2('daily-play-label', l.dailyPlayLabel);
@@ -4438,7 +4450,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260908.17</div>
+  <div style="font-size:9px;opacity:0.5">v260905.20</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
