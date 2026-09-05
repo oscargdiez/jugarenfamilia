@@ -577,17 +577,8 @@ body.screen-home .page, body.screen-welcome .page { padding-bottom: 2rem; }
 }
 
 /* ── Pencil waiting animation ── */
-.pencil-wait { text-align: center; padding: 1.5rem 0 1rem; }
-.pencil-icon { font-size: 56px; display: inline-block; animation: pencilBounce 1s ease-in-out infinite; transform-origin: bottom center; }
-@keyframes pencilBounce {
-  0%, 100% { transform: rotate(-15deg) translateY(0); }
-  50%       { transform: rotate(15deg) translateY(-8px); }
-}
-.pencil-dots { font-family: 'Caveat', cursive; font-size:26px; color: var(--ink-sec); margin-top: 8px; }
-.pencil-dots span { animation: dotPulse 1.4s ease-in-out infinite; display: inline-block; }
-.pencil-dots span:nth-child(2) { animation-delay: 0.2s; }
-.pencil-dots span:nth-child(3) { animation-delay: 0.4s; }
-@keyframes dotPulse { 0%, 80%, 100% { opacity: 0.2; } 40% { opacity: 1; } }
+
+@keyframes pencilBounce { 0%, 100% { transform: rotate(-15deg) translateY(0); } 50% { transform: rotate(15deg) translateY(-8px); } }
 
 /* ── Per-entry reactions & voting ── */
 .entry-reactions { display: flex; align-items: center; gap: 3px; flex-wrap: wrap; margin-top: 3px; padding-top: 3px; }
@@ -1026,12 +1017,7 @@ document.addEventListener('DOMContentLoaded', function() {
 <!-- ══ WAITING (guests) ══ -->
 <div id="s-waiting" class="screen">
   <div id="stop-caller-banner-guest" style="display:none;text-align:center;font-family:'Special Elite',monospace;font-size:13px;color:var(--ink-sec);margin-bottom:8px;padding:6px 10px;background:var(--paper-dark);border-radius:var(--radius);border:1px dashed var(--border)"></div>
-  <h1 id="lbl-submitted">Respuestas enviadas</h1>
-  <p style="font-family:'Caveat',cursive;font-size:26px;color:var(--ink-sec);text-align:center;margin-bottom:1rem;letter-spacing:0.5px" id="lbl-host-reviewing">el anfitrión está revisando</p>
-  <div class="pencil-wait">
-    <div class="pencil-icon">✏️</div>
-    <div class="pencil-dots"><span>•</span><span>•</span><span>•</span></div>
-  </div>
+  <p style="font-family:'Caveat',cursive;font-size:26px;color:var(--ink-sec);text-align:center;margin-bottom:1.5rem" id="lbl-host-reviewing">el anfitrión está revisando <span style="display:inline-block;animation:pencilBounce 1s ease-in-out infinite;transform-origin:bottom center;font-size:24px;vertical-align:middle">✏️</span></p>
   <div id="guest-val-content"></div>
 </div>
 
@@ -4518,7 +4504,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260905.70-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v260905.71-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
