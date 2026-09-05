@@ -2342,15 +2342,17 @@ async function loadDailyLeaderboard(key, lbLang) {
   lbLang = lbLang || LANG;
   const lbEl = document.getElementById('daily-lb-list');
   if (!lbEl) return;
+  const l = DAILY_LABELS[LANG] || DAILY_LABELS.es;
   lbEl.innerHTML = `<div style="font-family:'Special Elite',monospace;font-size:11px;color:var(--ink-muted);text-align:center;padding:8px">cargando…</div>`;
   try {
     const snap = await get(ref(db, 'daily/' + key + '/' + lbLang + '/scores'));
-    if (!snap.exists()) { lbEl.innerHTML = '<div style="text-align:center;opacity:0.5;font-size:13px">Sin resultados aún</div>'; return; }
+    if (!snap.exists()) { lbEl.innerHTML = `<div style="text-align:center;opacity:0.5;font-size:13px">${l.noResults}</div>`; return; }
     const allScores = snap.val();
     renderLeaderboard(allScores);
-    computeAndUpdateOriginality(allScores, key);
+    if (lbLang === LANG) computeAndUpdateOriginality(allScores, key);
   } catch(e) {
-    lbEl.innerHTML = '<div style="text-align:center;opacity:0.5;font-size:13px">Error cargando clasificación</div>';
+    console.warn('Leaderboard load failed:', e);
+    lbEl.innerHTML = `<div style="text-align:center;opacity:0.5;font-size:13px">${l.errorLb}</div>`;
   }
 }
 
@@ -4466,7 +4468,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260905.22</div>
+  <div style="font-size:9px;opacity:0.5">v260905.23</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
