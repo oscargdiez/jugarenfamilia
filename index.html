@@ -2127,6 +2127,7 @@ window.dailySubmit = async function() {
   }
   G_daily.submitted = true;
   clearInterval(G_daily.timerInterval);
+  setTimerBubble(0, false);
   setUrgencyPulse(false);
   // Clear in-progress save
   localStorage.removeItem('alto_daily_inprogress_' + G_daily.key);
@@ -4472,7 +4473,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:10px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size:9px;opacity:0.5">v260905.27</div>
+  <div style="font-size:9px;opacity:0.5">v260905.28</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
