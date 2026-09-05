@@ -780,7 +780,7 @@ document.addEventListener('DOMContentLoaded', function() {
   <div class="card">
     <p class="lbl" id="qj-invited">¡Te han invitado a jugar!</p>
     <p class="lbl" id="qj-name-lbl" style="margin-top:12px">tu nombre</p>
-    <input type="text" id="qj-name" placeholder="María..." maxlength="20" autocomplete="nickname" inputmode="text" style="width:100%;margin-bottom:14px;font-size: 20px;font-family:'Caveat',cursive">
+    <input type="text" id="qj-name" placeholder="María..." maxlength="20" autocomplete="nickname" inputmode="text" style="width:100%;margin-bottom:14px">
     <p class="lbl" id="qj-emoji-lbl">elige tu emoji <span class="emoji-display" id="qj-selected-emoji">🎲</span></p>
     <div class="emoji-grid" id="qj-emoji-grid"></div>
     <button class="pri" onclick="quickJoin()" style="width:100%;font-size:20px;padding:14px;margin-top:14px" id="qj-btn">¡Unirse a la sala! →</button>
@@ -798,7 +798,7 @@ document.addEventListener('DOMContentLoaded', function() {
   </div>
   <div class="card">
     <p class="lbl" id="lbl-your-name">tu nombre</p>
-    <input type="text" id="inp-name" placeholder="María..." maxlength="20" autocomplete="nickname" inputmode="text" style="margin-bottom:14px;font-size: 20px;font-family:'Caveat',cursive" oninput="localStorage.setItem('alto_name', this.value.trim())">
+    <input type="text" id="inp-name" placeholder="María..." maxlength="20" autocomplete="nickname" inputmode="text" style="margin-bottom:14px" oninput="localStorage.setItem('alto_name', this.value.trim())">
     <p class="lbl" id="lbl-choose-emoji">elige tu emoji <span class="emoji-display" id="selected-emoji">🎲</span></p>
     <div class="emoji-grid" id="emoji-grid"></div>
     <div style="margin-top:14px;display:flex;flex-direction:column;gap:8px">
@@ -822,7 +822,7 @@ document.addEventListener('DOMContentLoaded', function() {
   </div>
   <div class="card">
     <div class="welcome-avatar" id="wb-emoji">🎲</div>
-    <div class="welcome-name" id="wb-name">María</div>
+    <div class="welcome-name" id="wb-name" style="font-family:'Caveat',cursive;font-size:26px;font-weight:700">María</div>
     <div class="welcome-group" id="wb-group"></div>
     <p class="lbl" id="lbl-wb-emoji" style="margin-top:12px">elige tu emoji <span class="emoji-display" id="selected-emoji-wb">🎲</span></p>
     <div class="emoji-grid" id="emoji-grid-wb"></div>
@@ -871,7 +871,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   <!-- Players -->
   <div class="card">
-    <p class="lbl" id="lbl-players">jugadores</p>
+    <p class="lbl" id="lbl-players">jugadores <span id="lbl-solo-hint" style="display:none"></span></p>
     <div class="chips" id="lob-players"></div>
   </div>
 
@@ -881,7 +881,7 @@ document.addEventListener('DOMContentLoaded', function() {
       <p class="lbl" id="lbl-group-name">nombre del grupo</p>
       <p style="font-family:'Special Elite',monospace;font-size:11px;color:var(--ink-muted);margin-bottom:8px" id="lbl-group-hint">familia, amigos, trabajo... como queráis</p>
       <div class="group-input-wrap">
-        <input type="text" id="inp-group" placeholder="Los García, Amigos del cole..." maxlength="30" autocomplete="off" inputmode="text" data-form-type="other" oninput="onGroupInput()" onblur="hideGroupSuggestions()" style="font-family:'Special Elite',monospace;font-size: 16px" style="font-size: 16px">
+        <input type="text" id="inp-group" placeholder="Los García, Amigos del cole..." maxlength="30" autocomplete="off" inputmode="text" data-form-type="other" oninput="onGroupInput()" onblur="hideGroupSuggestions()">
         <div class="group-suggestions" id="group-suggestions" style="display:none"></div>
       </div>
     </div>
@@ -904,8 +904,8 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
       </div>
       <div class="card">
-        <p class="lbl">letras fáciles <span style="font-size:11px;opacity:.7" id="lbl-easy-hint">(sin K, Ñ, Q, U, W, X, Y, Z)</span></p>
-        <label class="cat-lbl">
+        <p class="lbl" style="display:none">letras fáciles <span style="font-size:11px;opacity:.7" id="lbl-easy-hint">(sin K, Ñ, Q, U, W, X, Y, Z)</span></p>
+        <label class="cat-lbl" style="display:none">
           <input type="checkbox" id="easy-letters" checked onchange="toggleEasyLetters(this.checked)">
           <span id="lbl-easy-letters">solo letras fáciles</span>
         </label>
@@ -1158,7 +1158,7 @@ const T = {
     noReg: 'SIN REGISTRO · SIN DESCARGAS · GRATIS',
     shareCode: 'comparte el código con tu familia',
     copyLink: 'Copiar', wa: 'Compartir por WhatsApp',
-    players: 'jugadores', host: 'Eres el anfitrión',
+    players: 'jugadores', soloHint: '(¡mejor con más!)', host: 'Eres el anfitrión',
     waiting: '✏️ Esperando al anfitrión…',
     groupName: 'nombre del grupo',
     groupHint: 'familia, amigos, trabajo... como queráis',
@@ -1215,7 +1215,7 @@ const T = {
     noReg: 'NO SIGN UP · NO DOWNLOAD · FREE',
     shareCode: 'share this code with your group',
     copyLink: 'Copy', wa: 'Share on WhatsApp',
-    players: 'players', host: 'You are the host',
+    players: 'players', soloHint: '(better with more!)', host: 'You are the host',
     waiting: '✏️ Waiting for the host…',
     groupName: 'group name',
     groupHint: 'family, friends, colleagues... whatever you like',
@@ -1272,7 +1272,7 @@ const T = {
     noReg: 'SANS INSCRIPTION · SANS TÉLÉCHARGEMENT · GRATUIT',
     shareCode: 'partage ce code avec ton groupe',
     copyLink: 'Copier', wa: 'Partager sur WhatsApp',
-    players: 'joueurs', host: "Tu es l'hôte",
+    players: 'joueurs', soloHint: '(mieux à plusieurs!)', host: "Tu es l'hôte",
     waiting: "✏️ En attente de l'hôte…",
     groupName: 'nom du groupe',
     groupHint: 'famille, amis, collègues... comme vous voulez',
@@ -1496,7 +1496,7 @@ window.applyLang = function() {
   s('lbl-share-code', t('shareCode'));
   s('btn-copy', t('copyLink'));
   s('wa-text', t('wa'));
-  s('lbl-players', t('players'));
+  { const el = document.getElementById('lbl-players'); if (el) { const hint = document.getElementById('lbl-solo-hint'); const hintHTML = hint ? hint.outerHTML : ''; el.innerHTML = t('players') + ' ' + hintHTML; } }
   s('lbl-group-name', t('groupName'));
   s('lbl-group-hint', t('groupHint2'));
   s('inp-group', null, t('groupPlaceholder'));
@@ -1775,20 +1775,6 @@ window.shellLogoClick = function() {
     clearInterval(G_daily.timerInterval);
     setUrgencyPulse(false);
     show('home');
-    return;
-  }
-  if (G.screen === 'quickjoin') {
-    show('home');
-    return;
-  }
-  if (G.screen === 'final') {
-    show('home');
-    return;
-  }
-  if (G.screen === 'leaderboard') {
-    if (confirm(t('shellLeave') + '\n\n' + t('shellLeaveConfirm'))) {
-      leaveGame();
-    }
     return;
   }
   const inGame = ['playing','validate','waiting','scores'].includes(G.screen);
@@ -2804,6 +2790,12 @@ function enterLobby(room) {
 function renderPlayers(players, langs={}) {
   document.getElementById('lob-players').innerHTML =
     Object.entries(players).map(([n,emoji]) => `<div class="chip ok"><span style="font-size: 16px">${emoji||'🎲'}</span>${n}</div>`).join('');
+  const hint = document.getElementById('lbl-solo-hint');
+  if (hint) {
+    const solo = Object.keys(players).length < 2;
+    hint.textContent = solo ? t('soloHint') : '';
+    hint.style.display = solo ? 'inline' : 'none';
+  }
 }
 
 function buildThemePicker() {
@@ -4527,7 +4519,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260905.49</div>
+  <div style="font-size: 11px;opacity:0.5">v260905.58</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
