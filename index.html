@@ -2442,6 +2442,28 @@ window.toggleDailyAnswers = function(idx) {
   row.classList.toggle('expanded', open);
 };
 
+function reapplyOriginality() {
+  if (!G_daily.originality || G_daily.originality <= 0) return;
+  const originality = G_daily.originality;
+  // Re-apply per-answer badges for unique answers only
+  const _uniqueIdx = G_daily.uniqueIndices || [];
+  _uniqueIdx.forEach(i => {
+    const origEl = document.getElementById('daily-orig-' + i);
+    if (origEl) origEl.textContent = '+50✨';
+  });
+  // Re-apply header total
+  const newTotal = G_daily.totalWithOrig || (G_daily.totalScore + originality);
+  const totalEl = document.getElementById('daily-total-score');
+  if (totalEl) totalEl.textContent = (newTotal*10) + ' pts';
+  // Re-apply speed breakdown line
+  const summaryEl = document.getElementById('daily-speed-summary');
+  if (summaryEl) {
+    const _dlr = dl();
+    const mult = G_daily.totalScore && G_daily.baseScore ? (G_daily.totalScore / G_daily.baseScore).toFixed(2) : '1.00';
+    summaryEl.innerHTML = `${_dlr.baseLabel} ${G_daily.baseScore*10} pts ×${mult}⚡→ <strong>${G_daily.totalScore*10} pts</strong> +${originality*10} ${_dlr.origLabel}✨`;
+  }
+}
+
 async function computeAndUpdateOriginality(allScores, key) {
   // For each of my valid answers, check if it's unique among all players
   const myName = G_daily.displayName || ((G.playerName || '') + ' ' + (G.playerEmoji || ''));
@@ -2452,6 +2474,7 @@ async function computeAndUpdateOriginality(allScores, key) {
 
   const otherEntries = Object.values(allScores).filter(e => e.name && e.name.trim() !== myName.trim());
   let originality = 0;
+  const uniqueIndices = [];
 
   G_daily.categories.forEach((cat, i) => {
     const myAnswer = normalize(myData.answers[i] || '');
@@ -2463,23 +2486,23 @@ async function computeAndUpdateOriginality(allScores, key) {
     });
     if (isUnique) {
       originality += 5;
+      uniqueIndices.push(i);
       // Update UI badge on answer row
       const origEl = document.getElementById('daily-orig-' + i);
       if (origEl) origEl.textContent = '+50✨';
     }
   });
 
+  // Save to G_daily so reapplyOriginality() can use it on lang switch
+  G_daily.originality = originality;
+  G_daily.uniqueIndices = uniqueIndices;
+  G_daily.totalWithOrig = G_daily.totalScore + originality;
   // Update total score display
-  const newTotal = G_daily.totalScore + originality;
+  const newTotal = G_daily.totalWithOrig;
   const totalEl = document.getElementById('daily-total-score');
   if (totalEl) totalEl.textContent = (newTotal*10) + ' pts';
   // Update speed breakdown line with originality label
-  const summaryEl = document.getElementById('daily-speed-summary');
-  if (summaryEl && originality > 0) {
-    const _dl2 = dl();
-    const mult2 = G_daily.totalScore && G_daily.baseScore ? (G_daily.totalScore / G_daily.baseScore).toFixed(2) : '1.00';
-    summaryEl.innerHTML = `${_dl2.baseLabel} ${G_daily.baseScore*10} pts ×${mult2}⚡→ <strong>${G_daily.totalScore*10} pts</strong> +${originality*10} ${_dl2.origLabel}✨`;
-  }
+  reapplyOriginality();
 
   // Update Firebase if originality changed
   if (originality !== (myData.originality || 0)) {
@@ -2497,7 +2520,7 @@ async function computeAndUpdateOriginality(allScores, key) {
 // Manual refresh button
 window.switchDailyLbLang = function(lang) {
   document.querySelectorAll(".daily-lb-lang-btn").forEach(b => b.classList.toggle("active", b.dataset.lang === lang));
-  loadDailyLeaderboard(getDailyKey(), lang);
+  loadDailyLeaderboard(getDailyKey(), lang).then(() => reapplyOriginality());
 };
 
 window.refreshDailyOriginality = async function() {
@@ -4556,7 +4579,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260906.93</div>
+  <div style="font-size: 11px;opacity:0.5">v260906.94</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
