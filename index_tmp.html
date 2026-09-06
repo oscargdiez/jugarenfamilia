@@ -2164,50 +2164,10 @@ window.startDailyChallenge = function() {
   startDailyCountdown();
 };
 
-// Pause daily timer when tab is backgrounded, resume when visible again
-document.addEventListener('visibilitychange', () => {
-  if (!G_daily.timerInterval || G_daily.submitted) return;
-  if (document.hidden) {
-    // Tab hidden — record when we paused
-    G_daily._hiddenAt = Date.now();
-    clearInterval(G_daily.timerInterval);
-  } else {
-    // Tab visible again — adjust for time spent hidden
-    if (G_daily._hiddenAt) {
-      const hiddenSecs = Math.floor((Date.now() - G_daily._hiddenAt) / 1000);
-      G_daily.secsRemaining = Math.max(0, G_daily.secsRemaining - hiddenSecs);
-      G_daily._hiddenAt = null;
-    }
-    if (G_daily.submitted) return; // already submitted, don't restart
-    if (G_daily.secsRemaining <= 0) {
-      dailySubmit();
-    } else {
-      // Restart the interval — restore secsRemaining then start fresh countdown
-      clearInterval(G_daily.timerInterval);
-      G_daily.timerInterval = null;
-      G_daily.startTimestamp = Date.now() - ((G_daily.totalSecs - G_daily.secsRemaining) * 1000);
-      const ftTimer = document.getElementById('ft-timer');
-      if (ftTimer) ftTimer.textContent = G_daily.secsRemaining;
-      G_daily.timerInterval = setInterval(() => {
-        G_daily.secsRemaining--;
-        const pct = (G_daily.secsRemaining / G_daily.totalSecs) * 100;
-        const f = document.getElementById('daily-timer-fill');
-        if (f) { f.style.width = pct + '%'; f.style.background = G_daily.secsRemaining <= 15 ? '#c0392b' : 'var(--red)'; }
-        const ft = document.getElementById('ft-timer');
-        if (ft) { ft.textContent = G_daily.secsRemaining; if (G_daily.secsRemaining <= 10) ft.classList.add('urgent'); else ft.classList.remove('urgent'); }
-        if (G_daily.secsRemaining <= 10) setUrgencyPulse(true);
-        if (G_daily.secsRemaining <= 0) { clearInterval(G_daily.timerInterval); dailySubmit(); }
-      }, 1000);
-    }
-  }
-});
 
 function startDailyTimer() {
   G_daily.startTimestamp = Date.now();
   clearInterval(G_daily.timerInterval);
-  // Enable submit button
-  const submitBtn = document.getElementById('btn-daily-submit');
-  if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = (dl().dailySubmitBtn || '¡Alto! →'); }
   const fill = document.getElementById('daily-timer-fill');
   // Reset bar instantly without CSS transition
   if (fill) { fill.style.transition = 'none'; fill.style.width = '100%'; fill.style.background = 'var(--red)'; }
@@ -4778,7 +4738,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260906.102-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v260906.103-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
