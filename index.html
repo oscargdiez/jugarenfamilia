@@ -453,6 +453,7 @@ body.screen-home .page, body.screen-welcome .page { padding-bottom: 2rem; }
 .daily-cat-row {
   display: flex; align-items: center; gap: 10px;
   padding: 8px 0; border-bottom: 1px solid var(--border);
+  overflow: hidden;
 }
 .daily-cat-row:last-child { border-bottom: none; }
 .daily-cat-label {
@@ -460,7 +461,7 @@ body.screen-home .page, body.screen-welcome .page { padding-bottom: 2rem; }
   min-width: 100px; width: 120px; flex-shrink: 0;
 }
 .daily-cat-input {
-  flex: 1; border: none; border-bottom: 2px solid var(--border);
+  flex: 1; min-width: 0; border: none; border-bottom: 2px solid var(--border);
   background: transparent; font-family: 'Caveat', cursive; font-size:26px;
   color: var(--ink); padding: 2px 4px; outline: none;
 }
@@ -699,7 +700,7 @@ body.screen-home .page, body.screen-welcome .page { padding-bottom: 2rem; }
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   var S = ' style="display:block;border-radius:3px;border:0.5px solid rgba(0,0,0,0.15)"';
-  var FLAGS = {
+  window.FLAGS = {
     es: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 30" width="28" height="19"'+S+'><rect width="44" height="30" fill="#c60b1e"/><rect y="7.5" width="44" height="15" fill="#ffc400"/></svg>',
     en: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 30" width="28" height="19"'+S+'><rect width="44" height="30" fill="#012169"/><line x1="0" y1="0" x2="44" y2="30" stroke="white" stroke-width="7"/><line x1="44" y1="0" x2="0" y2="30" stroke="white" stroke-width="7"/><line x1="0" y1="0" x2="44" y2="30" stroke="#C8102E" stroke-width="4"/><line x1="44" y1="0" x2="0" y2="30" stroke="#C8102E" stroke-width="4"/><rect x="18" y="0" width="8" height="30" fill="white"/><rect x="0" y="11" width="44" height="8" fill="white"/><rect x="19.5" y="0" width="5" height="30" fill="#C8102E"/><rect x="0" y="12.5" width="44" height="5" fill="#C8102E"/></svg>',
     fr: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 30" width="28" height="19"'+S+'><rect width="44" height="30" fill="#ED2939"/><rect width="29.5" height="30" fill="white"/><rect width="14.5" height="30" fill="#002395"/></svg>',
@@ -1345,9 +1346,9 @@ function dailyRulesHTML() {
     <div class="rules-step"><span class="rules-icon">🤖</span><span class="rules-text">${r.r3}</span></div>
     <div class="rules-scoring">
       <div class="rules-score-row"><span>${r.s}</span></div>
-      <div class="rules-score-row"><span>${r.u}</span><span class="rules-pts">10 pts</span></div>
+      <div class="rules-score-row"><span>${r.u}</span><span class="rules-pts">100 pts</span></div>
       <div class="rules-score-row"><span>${r.spd}</span><span class="rules-pts">×1.0–2.0</span></div>
-      <div class="rules-score-row"><span>${r.orig}</span><span class="rules-pts">+5 pts</span></div>
+      <div class="rules-score-row"><span>${r.orig}</span><span class="rules-pts">+50 pts</span></div>
       <div class="rules-score-row"><span>${r.e}</span><span class="rules-pts">0 pts</span></div>
     </div>`;
 }
@@ -1395,7 +1396,7 @@ function helpHTML() {
     es: {
       t1: '🔍 Revisar respuestas',
       b1: 'Después de cada ronda el anfitrión revisa las respuestas:',
-      l1: ['📖 Busca la definición en Wikipedia', '🤖 Consulta al asistente Robot — su opinión es orientativa, el anfitrión decide', '👍👎 Los jugadores votan cada respuesta', '✕ El anfitrión puede anular una respuesta manualmente'],
+      l1: ['📖 Busca la definición en Wikipedia', '🤖 Consulta al asistente Robot — su opinión es orientativa, el anfitrión decide', '✕ El anfitrión puede anular una respuesta manualmente'],
       t2: '🗳️ Modo democrático',
       b2: 'En lugar de que el anfitrión decida solo, los jugadores votan con 👍👎. Si la mayoría vota en contra, la respuesta se anula automáticamente.',
       t3: '🤖 Asistente Robot',
@@ -1410,7 +1411,7 @@ function helpHTML() {
     en: {
       t1: '🔍 Reviewing answers',
       b1: 'After each round the host reviews all answers:',
-      l1: ['📖 Look up the definition on Wikipedia', '🤖 Ask the Robot assistant — its opinion is a guide, the host decides', '👍👎 Players vote on each answer', '✕ The host can manually invalidate an answer'],
+      l1: ['📖 Look up the definition on Wikipedia', '🤖 Ask the Robot assistant — its opinion is a guide, the host decides', '✕ The host can manually invalidate an answer'],
       t2: '🗳️ Democratic mode',
       b2: 'Instead of the host deciding alone, players vote 👍👎. If the majority votes against, the answer is automatically invalidated.',
       t3: '🤖 Robot Assistant',
@@ -1425,7 +1426,7 @@ function helpHTML() {
     fr: {
       t1: '🔍 Vérifier les réponses',
       b1: "Après chaque manche l'hôte vérifie toutes les réponses:",
-      l1: ["📖 Cherche la définition sur Wikipedia", "🤖 Consulte l'assistant Robot — son avis est indicatif, l'hôte décide", "👍👎 Les joueurs votent pour chaque réponse", "✕ L'hôte peut annuler une réponse manuellement"],
+      l1: ["📖 Cherche la définition sur Wikipedia", "🤖 Consulte l'assistant Robot — son avis est indicatif, l'hôte décide", "✕ L'hôte peut annuler une réponse manuellement"],
       t2: '🗳️ Mode démocratique',
       b2: "Au lieu que l'hôte décide seul, les joueurs votent 👍👎. Si la majorité vote contre, la réponse est automatiquement annulée.",
       t3: '🤖 Assistant Robot',
@@ -1837,10 +1838,80 @@ function mulberry32(seed) {
 // DAILY_CONSENSUS: set true to use 2-model consensus + tiebreaker, false for single model
 const DAILY_CONSENSUS = false;
 
-const DAILY_CATS = {
-  es: ['País','Ciudad','Animal','Fruta','Color','Profesión','Objeto','Comida/Plato','Deporte','Instrumento musical','Nombre de persona','Medio de transporte','Árbol','Flor','Prenda de ropa','Ave/Pájaro','Cosa que encuentras en la cocina'],
-  en: ['Country','City','Animal','Fruit','Colour','Profession','Object','Food/Dish','Sport','Musical instrument','Person name','Means of transport','Tree','Flower','Clothing item','Bird','Thing you find in the kitchen'],
-  fr: ['Pays','Ville','Animal','Fruit','Couleur','Profession','Objet','Aliment/Plat','Sport','Instrument de musique','Prénom','Moyen de transport','Arbre','Fleur','Vêtement','Oiseau','Cosa en la cocina (FR)'],
+const DAILY_CAT_DATA = {
+  "Mamífero": {group:"animales",es:"ABCDEFGHIJLMNOPRSTV",en:"ABCDEFGHIJKLMNOPRSTV",fr:"ABCDEFGHIJLMNOPRSTV",name_en:"Mammal",name_fr:"Mammifère"},
+  "Reptil": {group:"animales",es:"ABCGILMPSTV",en:"ABCGIKLMPSTV",fr:"ABCGILMPSTV",name_en:"Reptile",name_fr:"Reptile"},
+  "Ave": {group:"animales",es:"ABCEFGHIJLMOPRTV",en:"ABCDEFGHIJKLMNOPRSTV",fr:"ABCEFGHILMOPRTV",name_en:"Bird",name_fr:"Oiseau"},
+  "Pez": {group:"animales",es:"ABCDEFLMPRST",en:"ABCDEFGHLMPRST",fr:"ABCDEFGHLMPRST",name_en:"Fish",name_fr:"Poisson"},
+  "Insecto o arácnido": {group:"animales",es:"ACEGHLMPST",en:"ABCDEFGHLMPST",fr:"ACFGLMPST",name_en:"Insect or arachnid",name_fr:"Insecte ou arachnide"},
+  "País": {group:"geografia",es:"ABCDEFGHIJLMNOPRSTV",en:"ABCDEFGHIJKLMNOPRSTV",fr:"ABCDEFGHIJLMNOPRSTV",name_en:"Country",name_fr:"Pays"},
+  "Ciudad": {group:"geografia",es:"ABCDEFGHJLMNOPRSTV",en:"ABCDEFGHIJKLMNOPRSTV",fr:"ABCDEFGHIJLMNOPRSTV",name_en:"City",name_fr:"Ville"},
+  "Capital": {group:"geografia",es:"ABCDEILMNOPRSTV",en:"ABCDIJKLMNOPRSTV",fr:"ABCDIJLMNOPRSTV",name_en:"Capital city",name_fr:"Capitale"},
+  "País europeo": {group:"geografia",es:"ABCDEFGHILMNPRST",en:"ABCDEFGHILMNPRST",fr:"ABCDEFGHILMNPRST",name_en:"European country",name_fr:"Pays européen"},
+  "País americano": {group:"geografia",es:"ABCEGHJMNPRSTV",en:"ABCDEGHJMNPSTV",fr:"ABCEGHJMNPSTV",name_en:"American country",name_fr:"Pays américain"},
+  "Árbol": {group:"naturaleza",es:"ABCDEFHJLMNOPRST",en:"ABCEFHJLMOPRST",fr:"ABCDEFHLMNOPSTV",name_en:"Tree",name_fr:"Arbre"},
+  "Flor": {group:"naturaleza",es:"ABCDGHIJLMNOPRTV",en:"ABCDGHIJLMNOPRSTV",fr:"ABCDGHIJLMNOPRSTV",name_en:"Flower",name_fr:"Fleur"},
+  "Planta": {group:"naturaleza",es:"ABCHLMPRST",en:"ABCFHILMPRST",fr:"ABCFHILMPRST",name_en:"Plant",name_fr:"Plante"},
+  "Fruta": {group:"naturaleza",es:"ABCDFGHLMNOPS",en:"ABCDFGKLMNOPRST",fr:"ABCDFGLMNOPR",name_en:"Fruit",name_fr:"Fruit"},
+  "Verdura": {group:"comida",es:"ABCEGLMNPRT",en:"ABCEGKLMOPRST",fr:"ABCELMNOPRT",name_en:"Vegetable",name_fr:"Légume"},
+  "Especia": {group:"comida",es:"ACJLMNOPRSTV",en:"ABCDGJLMNOPRSTV",fr:"ABCGLMNOPRSTV",name_en:"Spice",name_fr:"Épice"},
+  "Plato típico": {group:"comida",es:"ABCEFGHJLMNPRST",en:"ABCDEFGHKLMOPRST",fr:"BCEFGMOPRSTV",name_en:"Traditional dish",name_fr:"Plat typique"},
+  "Bebida": {group:"comida",es:"ABCGHLMRSTV",en:"ABCGHJKLMOPSTV",fr:"ABCGJLOPRSTV",name_en:"Drink",name_fr:"Boisson"},
+  "Postre": {group:"comida",es:"ABCDFGHMNPST",en:"ABCDEFGIJMPST",fr:"BCEFGMPST",name_en:"Dessert",name_fr:"Dessert"},
+  "Película": {group:"entretenimiento",es:"ABCDEFGHIJLMNOPRSTV",en:"ABCDEFGHIJKLMNOPRSTV",fr:"ABCDEFGHIJLMNOPRSTV",name_en:"Film",name_fr:"Film"},
+  "Película animada": {group:"entretenimiento",es:"ABCDEFHILMPRST",en:"ABCDEFHILMPRST",fr:"ABCDEFHLMPRST",name_en:"Animated film",name_fr:"Film d'animation"},
+  "Serie de TV": {group:"entretenimiento",es:"BCDEFGHLMPST",en:"BCDFGHLMPST",fr:"BCDFGHLMPST",name_en:"TV series",name_fr:"Série TV"},
+  "Actor o actriz": {group:"entretenimiento",es:"ABCDGHJLMNPRST",en:"ABCDGHJKLMNPRST",fr:"ABCDGHJLMNPRST",name_en:"Actor or actress",name_fr:"Acteur ou actrice"},
+  "Cantante o banda famosa": {group:"arte_musica",es:"ABCDEFGHJLMNOPRSTV",en:"ABCDEFGHJKLMNOPRSTV",fr:"ABCDEFGHJLMNOPRSTV",name_en:"Singer or famous band",name_fr:"Chanteur ou groupe célèbre"},
+  "Compositor": {group:"arte_musica",es:"BCDHLMPRSTV",en:"BCDHLMPRSTV",fr:"BCDHLMPRSTV",name_en:"Composer",name_fr:"Compositeur"},
+  "Instrumento": {group:"arte_musica",es:"ABCFGLMOPSTV",en:"ABCDFGHKLMOPSTV",fr:"ABCFGHLMOPSTV",name_en:"Instrument",name_fr:"Instrument"},
+  "Baile o danza": {group:"arte_musica",es:"BCFHJLMPRSTV",en:"BCFHJLMPRSTV",fr:"BCFHJLMPRSTV",name_en:"Dance",name_fr:"Danse"},
+  "Pintor famoso": {group:"arte_musica",es:"BCDEFGMPRTV",en:"BCDEFGKMPRTV",fr:"BCDEFGMPRTV",name_en:"Famous painter",name_fr:"Peintre célèbre"},
+  "Figura histórica": {group:"historia_cultura",es:"ABCDEFGHIJLMNOPRSTV",en:"ABCDEFGHIJKLMNOPRSTV",fr:"ABCDEFGHIJLMNOPRSTV",name_en:"Historical figure",name_fr:"Personnage historique"},
+  "Escritor": {group:"historia_cultura",es:"ABCDEFGHJLMNOPRSTV",en:"ABCDEFGHJKLMNOPRSTV",fr:"ABCDEFGHJLMNOPRSTV",name_en:"Writer",name_fr:"Écrivain"},
+  "Científico": {group:"historia_cultura",es:"ABCDEFGHMNPT",en:"ABCDEFGHKMNPT",fr:"ABCDEFGHMNPT",name_en:"Scientist",name_fr:"Scientifique"},
+  "Criatura mítica": {group:"historia_cultura",es:"ABCDEFGHLMOPSTV",en:"BCDFGHKLMOPSTV",fr:"BCDFGHLMOPSTV",name_en:"Mythical creature",name_fr:"Créature mythique"},
+  "Superhéroe o villano": {group:"historia_cultura",es:"ABCDFGHIJLMPRSTV",en:"ABCDFGHIJLMPRSTV",fr:"ABCDFGHIJLMPRSTV",name_en:"Superhero or villain",name_fr:"Super-héros ou vilain"},
+  "Parte del cuerpo": {group:"ciencia",es:"BCDEFGHILMNOPRSTV",en:"ABCEFHKLMNPRST",fr:"BCDEFGHJLMNOPRSTV",name_en:"Body part",name_fr:"Partie du corps"},
+  "Planeta o astro": {group:"ciencia",es:"JMNPSTV",en:"EJMNPSV",fr:"JMNPSTV",name_en:"Planet or star",name_fr:"Planète ou astre"},
+  "Animal prehistórico": {group:"ciencia",es:"ABDIMPRTV",en:"ABDIMPRSTV",fr:"ABDIMPRSTV",name_en:"Prehistoric animal",name_fr:"Animal préhistorique"},
+  "Invento": {group:"ciencia",es:"ABCDEFGILMPRSTV",en:"ABCDEGILMPRSTV",fr:"ABCDEGILMPRSTV",name_en:"Invention",name_fr:"Invention"},
+  "Transporte": {group:"ciudad_urbanismo",es:"ABCHMPSTV",en:"ABCHKMSTV",fr:"ABCHMSTV",name_en:"Transport",name_fr:"Transport"},
+  "Tipo de edificio": {group:"ciudad_urbanismo",es:"ABCEFGHIMPRT",en:"ABCEFGHILMPST",fr:"ABCEFGHIMPST",name_en:"Type of building",name_fr:"Type de bâtiment"},
+  "Monumento": {group:"ciudad_urbanismo",es:"ACEMPST",en:"ACMPST",fr:"ACMPST",name_en:"Monument",name_fr:"Monument"},
+  "Tipo de tienda": {group:"ciudad_urbanismo",es:"CFLOPS",en:"BCFGLMOPS",fr:"BCFLMOPS",name_en:"Type of shop",name_fr:"Type de magasin"},
+  "Ropa": {group:"hogar_objetos",es:"ABCFGIJLMPSTV",en:"ABCDGHJKLMOPRSTV",fr:"ABCEGIJLMPRSTV",name_en:"Clothing",name_fr:"Vêtement"},
+  "Mueble": {group:"hogar_objetos",es:"ABCELMPSTV",en:"ABCDLMST",fr:"ABCDEFLMPSTV",name_en:"Furniture",name_fr:"Meuble"},
+  "Herramienta": {group:"hogar_objetos",es:"ABCLMNPST",en:"ACDHLMPRST",fr:"CHLMNPRST",name_en:"Tool",name_fr:"Outil"},
+  "Utensilio de cocina": {group:"hogar_objetos",es:"BCEFMOPRSTV",en:"BCFGKLMOPRST",fr:"BCFLMPRSTV",name_en:"Kitchen utensil",name_fr:"Ustensile de cuisine"},
+  "Objeto del hogar": {group:"hogar_objetos",es:"ABCEFLMPRSTV",en:"ABCDFHIKLMPRTV",fr:"ABCFLMPRSTV",name_en:"Household object",name_fr:"Objet du foyer"},
+  "Marca de coche": {group:"marcas",es:"ABCDFHJLMNOPRSTV",en:"ABCDFHJKLMNOPRSTV",fr:"ABCDFHJLMNOPRSTV",name_en:"Car brand",name_fr:"Marque de voiture"},
+  "Marca de ropa y deporte": {group:"marcas",es:"ABCDGHLNPRV",en:"ABCDGHKLNPRV",fr:"ABCDGHLNPRV",name_en:"Fashion or sports brand",name_fr:"Marque de sport ou mode"},
+  "Marca tecnológica": {group:"marcas",es:"ABCDGHILMNPS",en:"ABCDGHILMNPS",fr:"ABCDGHILMNPS",name_en:"Tech brand",name_fr:"Marque technologique"},
+  "Deporte": {group:"deporte",es:"ABCEFGHJLMNPRSTV",en:"ABCEFGHJKLMPRSTV",fr:"ABCEFGHJLMNPRSTV",name_en:"Sport",name_fr:"Sport"},
+  "Modalidad olímpica": {group:"deporte",es:"ABCEFGHJLMNPSTV",en:"ABCEFGJKMPRSTV",fr:"ABCEFGHJLMNPRSTV",name_en:"Olympic discipline",name_fr:"Discipline olympique"},
+  "Deportista": {group:"deporte",es:"AFJLMNPRST",en:"AFJKLMNPRST",fr:"AFJLMNPRST",name_en:"Athlete",name_fr:"Sportif"},
+  "Equipamiento deportivo": {group:"deporte",es:"ABCEGMPRSTV",en:"ABCGHMNPRST",fr:"ABCEGMPRST",name_en:"Sports equipment",name_fr:"Équipement sportif"},
+  "Nombre": {group:"identidad_sociedad",es:"ABCDEFGHIJLMNOPRSTV",en:"ABCDEFGHIJKLMNOPRSTV",fr:"ABCDEFGHIJLMNOPRSTV",name_en:"First name",name_fr:"Prénom"},
+  "Apellido famoso": {group:"identidad_sociedad",es:"ABCDEFGHIJLMNOPRSTV",en:"ABCDEFGHIJKLMNOPRSTV",fr:"ABCDEFGHIJLMNOPRSTV",name_en:"Famous surname",name_fr:"Nom de famille célèbre"},
+  "Profesión": {group:"identidad_sociedad",es:"ABCDEFIMPSTV",en:"ABCDEFJLMNPSTV",fr:"ABCDEFIJMNPSTV",name_en:"Profession",name_fr:"Profession"},
+  "Idioma": {group:"identidad_sociedad",es:"ACDEFGHIJLMNPRST",en:"ABCDEFGHIJKLMNPRST",fr:"ABCDEFGHIJLMNPRST",name_en:"Language",name_fr:"Langue"},
+  "Color": {group:"identidad_sociedad",es:"ABCEGLMNOPRTV",en:"ABCEGIKLMOPRSTV",fr:"ABCEGIJLMNOPRTV",name_en:"Colour",name_fr:"Couleur"},
+};
+// ── Themed day overrides ──────────────────────────────
+// Add entries keyed by YYYY-MM-DD to override the normal seed-based picker.
+// Each entry: { letter, theme:{es,en,fr}, categories:{es:[...],en:[...],fr:[...]} }
+// Categories must be valid display names (not keys) for each language.
+const DAILY_OVERRIDES = {
+  // '2026-10-31': {
+  //   letter: 'B',
+  //   theme: { es: '🎃 Halloween', en: '🎃 Halloween', fr: '🎃 Halloween' },
+  //   categories: {
+  //     es: ['Bruja', 'Bestia', 'Bebida terrorífica', 'Baile macabro', 'Bicho', 'Barco fantasma'],
+  //     en: ['Bat', 'Beast', 'Blood', 'Bone', 'Boggart', 'Burial'],
+  //     fr: ['Balai', 'Bête', 'Bourdon', 'Bizarre', 'Brouillard', 'Bougie'],
+  //   }
+  // },
 };
 
 // Get today's date key YYYY-MM-DD
@@ -1849,29 +1920,65 @@ function getDailyKey() {
   return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
 }
 
-// Get deterministic daily setup from date
+// Get deterministic daily setup — per language, per date
 function getDailySetup() {
   const key = getDailyKey();
-  const seed = parseInt(key.replace(/-/g,''));
-  const rng = mulberry32(seed);
-  // Pick letter from easy pool (language-independent — use ES easy set for consistency)
-  const easyPool = 'ABCDEFGHIJLMNOPRSTV'.split('');
-  const letter = easyPool[Math.floor(rng() * easyPool.length)];
-  // Pick 6 categories from pool (indices, same for all languages)
-  const indices = [];
-  const poolSize = 17;
-  while (indices.length < 6) {
-    const idx = Math.floor(rng() * poolSize);
-    if (!indices.includes(idx)) indices.push(idx);
+  // Check for themed day override
+  const ov = DAILY_OVERRIDES[key];
+  if (ov && ov.categories && ov.categories[LANG]) {
+    return { letter: ov.letter, categories: ov.categories[LANG], key, theme: (ov.theme || {})[LANG] || null };
   }
-  return { letter, indices, key };
+  const langOffset = {es: 0, en: 1, fr: 2}[LANG] || 0;
+  const seed = parseInt(key.replace(/-/g,'')) + langOffset;
+  const rng = mulberry32(seed);
+
+  // Pick letter from this language's easy pool
+  const easyPool = LETTERS_EASY[LANG] || LETTERS_EASY.es;
+  const letter = easyPool[Math.floor(rng() * easyPool.length)];
+
+  // Filter categories valid for this letter+lang
+  const valid = Object.entries(DAILY_CAT_DATA).filter(([_, d]) => d[LANG].includes(letter));
+
+  // Group them
+  const byGroup = {};
+  valid.forEach(([cat, d]) => {
+    if (!byGroup[d.group]) byGroup[d.group] = [];
+    byGroup[d.group].push(cat);
+  });
+
+  // Pick 1 per group randomly, then pick 6 total
+  const groupKeys = Object.keys(byGroup);
+  // Shuffle groups
+  for (let i = groupKeys.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [groupKeys[i], groupKeys[j]] = [groupKeys[j], groupKeys[i]];
+  }
+  // Pick one cat per group (shuffled within group too)
+  const candidates = [];
+  groupKeys.forEach(g => {
+    const arr = byGroup[g].slice();
+    const pick = arr[Math.floor(rng() * arr.length)];
+    candidates.push(pick);
+  });
+  // Shuffle candidates and take 6
+  for (let i = candidates.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [candidates[i], candidates[j]] = [candidates[j], candidates[i]];
+  }
+  const categories = candidates.slice(0, 6);
+
+  return { letter, categories, key };
 }
 
-// Get category names for current language
-function getDailyCatNames(indices) {
-  const pool = DAILY_CATS[LANG] || DAILY_CATS.es;
-  return indices.map(i => pool[i]);
+// Get display names for current language
+function getDailyCatNames(categories) {
+  return categories.map(cat => {
+    if (LANG === 'en') return DAILY_CAT_DATA[cat]?.name_en || cat;
+    if (LANG === 'fr') return DAILY_CAT_DATA[cat]?.name_fr || cat;
+    return cat; // ES — key is already Spanish
+  });
 }
+
 
 // Speed bonus: linear 0–10 pts based on time remaining
 function calcSpeedBonus(secsRemaining, totalSecs) {
@@ -1880,7 +1987,7 @@ function calcSpeedBonus(secsRemaining, totalSecs) {
 
 // Daily game state
 let G_daily = {
-  letter: '', indices: [], categories: [], key: '',
+  letter: '', categories: [], key: '',
   answers: {}, timerInterval: null, secsRemaining: 90, totalSecs: 90,
   submitted: false, aiResults: {}
 };
@@ -1889,7 +1996,7 @@ window.startDailyChallenge = function() {
   const key = getDailyKey();
   const _playerNameRaw = G.playerName || document.getElementById('inp-name')?.value?.trim() || '';
   const _debugMode = _playerNameRaw.includes('__debug__');
-  const stored = localStorage.getItem('alto_daily_' + key);
+  const stored = localStorage.getItem('alto_daily_' + key + '_' + LANG);
   if (stored && !_debugMode) {
     // Already played today — show result directly
     try {
@@ -1900,10 +2007,10 @@ window.startDailyChallenge = function() {
     } catch(e) {}
   }
   // In debug mode, clear stored result so we can replay
-  if (_debugMode && stored) localStorage.removeItem('alto_daily_' + key);
+  if (_debugMode && stored) localStorage.removeItem('alto_daily_' + key + '_' + LANG);
 
   // Check localStorage for in-progress game (handles page refresh)
-  const inProgressKey = 'alto_daily_inprogress_' + key;
+  const inProgressKey = 'alto_daily_inprogress_' + key + '_' + LANG;
   const inProgressData = localStorage.getItem(inProgressKey);
   if (inProgressData && !G_daily.key) {
     // Page was refreshed mid-game — reconstruct state
@@ -1911,13 +2018,12 @@ window.startDailyChallenge = function() {
       const ipd = JSON.parse(inProgressData);
       const _expectedSetup = getDailySetup();
       if (ipd.key === key && ipd.lang === LANG && ipd.letter === _expectedSetup.letter) {
-        const elapsed = Math.floor((Date.now() - ipd.startTimestamp) / 1000);
+        const elapsed = ipd.startTimestamp ? Math.floor((Date.now() - ipd.startTimestamp) / 1000) : 0;
         const remaining = Math.max(0, (ipd.totalSecs || 90) - elapsed);
         if (remaining > 0) {
           // Restore G_daily from saved state
           G_daily.key = ipd.key;
           G_daily.letter = ipd.letter;
-          G_daily.indices = ipd.indices;
           G_daily.categories = ipd.categories;
           G_daily.answers = ipd.answers || {};
           G_daily.startTimestamp = ipd.startTimestamp;
@@ -1933,7 +2039,7 @@ window.startDailyChallenge = function() {
           if (card) card.innerHTML = G_daily.categories.map((cat, i) =>
             `<div class="daily-cat-row"><span class="daily-cat-label">${cat}</span><input class="daily-cat-input" id="daily-inp-${i}" placeholder="${G_daily.letter}…" maxlength="40" autocomplete="off" inputmode="text" oninput="dailyCheckInput(${i}, this.value)" value="${(G_daily.answers[i]||'').replace(/"/g,'&quot;')}"></div>`
           ).join('');
-          G_daily.saveProgress = () => localStorage.setItem(inProgressKey, JSON.stringify({ key: G_daily.key, letter: G_daily.letter, indices: G_daily.indices, categories: G_daily.categories, answers: G_daily.answers, startTimestamp: G_daily.startTimestamp, totalSecs: G_daily.totalSecs, lang: LANG }));
+          G_daily.saveProgress = () => localStorage.setItem(inProgressKey, JSON.stringify({ key: G_daily.key, letter: G_daily.letter, categories: G_daily.categories, answers: G_daily.answers, startTimestamp: G_daily.startTimestamp, totalSecs: G_daily.totalSecs, lang: LANG }));
           show('daily-play');
           // Resume timer
           const fill2 = document.getElementById('daily-timer-fill');
@@ -1949,13 +2055,12 @@ window.startDailyChallenge = function() {
             const ft3 = document.getElementById('ft-timer');
             if (ft3) { ft3.textContent = G_daily.secsRemaining; if (G_daily.secsRemaining <= 10) ft3.classList.add('urgent'); else ft3.classList.remove('urgent'); }
             if (G_daily.secsRemaining <= 10) setUrgencyPulse(true);
-            if (G_daily.secsRemaining <= 0) dailySubmit();
+            if (G_daily.secsRemaining <= 0) { clearInterval(G_daily.timerInterval); dailySubmit(); }
           }, 1000);
           return;
         } else {
           // Time ran out while away — auto-submit with saved answers
-          G_daily.key = ipd.key; G_daily.letter = ipd.letter; G_daily.indices = ipd.indices;
-          G_daily.categories = ipd.categories; G_daily.answers = ipd.answers || {};
+          G_daily.key = ipd.key; G_daily.letter = ipd.letter; G_daily.categories = ipd.categories; G_daily.answers = ipd.answers || {};
           G_daily.secsRemaining = 0; G_daily.totalSecs = ipd.totalSecs || 90;
           G_daily.submitted = false;
           localStorage.removeItem(inProgressKey);
@@ -1994,21 +2099,20 @@ window.startDailyChallenge = function() {
       const ft = document.getElementById('ft-timer');
       if (ft) { ft.textContent = G_daily.secsRemaining; if (G_daily.secsRemaining <= 10) ft.classList.add('urgent'); else ft.classList.remove('urgent'); }
       if (G_daily.secsRemaining <= 10) setUrgencyPulse(true);
-      if (G_daily.secsRemaining <= 0) dailySubmit();
+      if (G_daily.secsRemaining <= 0) { clearInterval(G_daily.timerInterval); dailySubmit(); }
     }, 1000);
     return;
   }
 
   // Clean up stale in-progress keys from previous days
   Object.keys(localStorage).forEach(k => {
-    if (k.startsWith('alto_daily_inprogress_') && k !== 'alto_daily_inprogress_' + key) {
+    if (k.startsWith('alto_daily_inprogress_') && k !== 'alto_daily_inprogress_' + key + '_' + LANG) {
       localStorage.removeItem(k);
     }
   });
 
   const setup = getDailySetup();
   G_daily.letter = setup.letter;
-  G_daily.indices = setup.indices;
   G_daily.key = setup.key;
   G_daily.answers = {};
   G_daily.aiResults = {};
@@ -2016,7 +2120,14 @@ window.startDailyChallenge = function() {
   G_daily.secsRemaining = 90;
   G_daily.totalSecs = 90;
   G_daily.startTimestamp = null; // set when timer actually starts after countdown
-  G_daily.categories = getDailyCatNames(setup.indices);
+  G_daily.categories = getDailyCatNames(setup.categories);
+
+  // Apply theme override title if present
+  if (setup.theme) {
+    const s2 = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+    s2('daily-play-label', setup.theme);
+    s2('daily-result-title', setup.theme);
+  }
 
   // Build input UI
   const card = document.getElementById('daily-inputs-card');
@@ -2036,8 +2147,9 @@ window.startDailyChallenge = function() {
 
   // Save in-progress state to localStorage
   const _saveProgress = () => {
-    localStorage.setItem('alto_daily_inprogress_' + G_daily.key, JSON.stringify({
-      key: G_daily.key, letter: G_daily.letter, indices: G_daily.indices,
+    if (!G_daily.startTimestamp) return; // don't save until timer has started
+    localStorage.setItem('alto_daily_inprogress_' + G_daily.key + '_' + LANG, JSON.stringify({
+      key: G_daily.key, letter: G_daily.letter,
       categories: G_daily.categories, answers: G_daily.answers,
       startTimestamp: G_daily.startTimestamp, totalSecs: G_daily.totalSecs,
       lang: LANG,
@@ -2051,6 +2163,7 @@ window.startDailyChallenge = function() {
   // Countdown before timer starts
   startDailyCountdown();
 };
+
 
 function startDailyTimer() {
   G_daily.startTimestamp = Date.now();
@@ -2081,7 +2194,7 @@ function startDailyTimer() {
       else ft.classList.remove('urgent');
     }
     if (G_daily.secsRemaining <= 10) setUrgencyPulse(true);
-    if (G_daily.secsRemaining <= 0) dailySubmit();
+    if (G_daily.secsRemaining <= 0) { clearInterval(G_daily.timerInterval); dailySubmit(); }
   }, 1000);
 }
 
@@ -2136,7 +2249,7 @@ window.dailySubmit = async function() {
   setTimerBubble(0, false);
   setUrgencyPulse(false);
   // Clear in-progress save
-  localStorage.removeItem('alto_daily_inprogress_' + G_daily.key);
+  localStorage.removeItem('alto_daily_inprogress_' + G_daily.key + '_' + LANG);
   const submitBtn = document.getElementById('btn-daily-submit');
   if (submitBtn) { submitBtn.disabled = true; submitBtn.innerHTML = '<span class="spin-icon">↻</span> Validando…'; }
   // Disable all answer inputs so player can't edit during validation
@@ -2192,16 +2305,22 @@ window.dailySubmit = async function() {
     key: G_daily.key, lang: LANG,
     playerName: dailyPlayerName, playerEmoji: dailyPlayerEmoji
   };
-  localStorage.setItem('alto_daily_' + G_daily.key, JSON.stringify(saveData));
+  if (!dailyPlayerName.startsWith('__')) {
+    localStorage.setItem('alto_daily_' + G_daily.key + '_' + LANG, JSON.stringify(saveData));
+  }
 
   // Submit to Firebase — scoped by language
   // Store answers as object for originality computation
   const answersObj = {};
   G_daily.categories.forEach((cat, i) => { answersObj[i] = G_daily.answers[i] || ''; });
+  // Test mode: if name starts with __ skip Firebase write
+  const _isTestMode = dailyPlayerName.startsWith('__');
+
   try {
     const playerKey = dailyPlayerName.replace(/[.#$\[\]\/]/g,'_') + '_' + Date.now() + '_' + Math.floor(Math.random()*9999);
     G_daily.playerKey = playerKey;
-    G_daily.displayName = displayName;
+    G_daily.displayName = _isTestMode ? displayName + ' 🧪' : displayName;
+    if (!_isTestMode) {
     const dailyRef = ref(db, 'daily/' + G_daily.key + '/' + LANG + '/scores/' + playerKey);
     await set(dailyRef, {
       name: displayName,
@@ -2211,6 +2330,7 @@ window.dailySubmit = async function() {
       categories: G_daily.categories || [],
       timestamp: Date.now()
     });
+    } // end !_isTestMode
     G_daily.playerKey = playerKey;
   } catch(e) { console.warn('Daily Firebase write failed:', e); }
 
@@ -2301,7 +2421,7 @@ async function dailyAIValidate(word, category, letter) {
 async function showDailyResult(answers, baseScore, totalScore, aiResults, secsLeft, speedMultiplier) {
   const list = document.getElementById('daily-answers-list');
   const setup = getDailySetup();
-  const cats = getDailyCatNames(setup.indices);
+  const cats = getDailyCatNames(setup.categories);
   const aiIcon = { valid:'✅', invalid:'❌', unsure:'🤔', empty:'—' };
 
   // Store for originality recompute
@@ -2341,7 +2461,7 @@ async function showDailyResult(answers, baseScore, totalScore, aiResults, secsLe
 
   show('daily-result');
   document.querySelectorAll('.daily-lb-lang-btn').forEach(b => b.classList.toggle('active', b.dataset.lang === LANG));
-  loadDailyLeaderboard(getDailyKey());
+  loadDailyLeaderboard(getDailyKey()).then(() => reapplyOriginality());
 }
 
 async function loadDailyLeaderboard(key, lbLang) {
@@ -2378,7 +2498,7 @@ function renderLeaderboard(allScores) {
 
   // Ensure categories are available even when leaderboard viewed after session
   if (!G_daily.categories || !G_daily.categories.length) {
-    try { const s = getDailySetup(); G_daily.categories = getDailyCatNames(s.indices); } catch(e) {}
+    try { const s = getDailySetup(); G_daily.categories = getDailyCatNames(s.categories); } catch(e) {}
   }
   const cats = G_daily.categories || [];
   function speedTag(e) {
@@ -2386,21 +2506,58 @@ function renderLeaderboard(allScores) {
     const mult = (e.totalScore / e.baseScore).toFixed(2);
     return `<span class="daily-lb-speed">⚡×${mult}</span>`;
   }
+  // Pre-compute unique answers across all entries (for originality badges)
+  function computeUniqueness(allEntries) {
+    // For each category slot, collect all valid answers (normalised)
+    const answerSets = {};
+    allEntries.forEach(e => {
+      if (!e.answers) return;
+      Object.keys(e.answers).forEach(i => {
+        const val = normalize(e.answers[i] || '');
+        const ai = e.aiResults ? e.aiResults[i] : null;
+        if (val && ai === 'valid') {
+          if (!answerSets[i]) answerSets[i] = [];
+          answerSets[i].push(val);
+        }
+      });
+    });
+    // An answer is unique if it appears exactly once across all players
+    const unique = {};
+    allEntries.forEach(e => {
+      if (!e.answers) return;
+      unique[e.name] = {};
+      Object.keys(e.answers).forEach(i => {
+        const val = normalize(e.answers[i] || '');
+        const ai = e.aiResults ? e.aiResults[i] : null;
+        if (val && ai === 'valid') {
+          unique[e.name][i] = (answerSets[i] || []).filter(v => v === val).length === 1;
+        }
+      });
+    });
+    return unique;
+  }
+
+  const uniqueness = computeUniqueness(entries);
+
   function buildAnswerPanel(e, idx) {
     if (!e.answers) return '';
     const panelCats = (e.categories && e.categories.length) ? e.categories : cats;
     if (!panelCats.length) return '';
+    const playerUnique = uniqueness[e.name] || {};
+    const _dl = dl();
     const rows = panelCats.map((cat, i) => {
       const val = e.answers[i] || '';
       const ai = e.aiResults ? e.aiResults[i] : null;
       const aiIcon = ai === 'valid' ? '✅' : ai === 'invalid' ? '❌' : ai === 'unsure' ? '🤔' : '';
+      const isUnique = playerUnique[i] === true;
       const pts = !val ? '' : ai === 'valid' ? '+100' : ai === 'invalid' ? '0' : ai === 'unsure' ? '+50' : '';
+      const origBadge = isUnique ? `<span class="daily-lb-orig" style="font-size:11px">+50✨</span>` : '';
       const ptsHtml = pts ? `<span class="daily-lb-answer-pts${ai === 'invalid' ? ' zero' : ''}">${pts}</span>` : '';
       return `<div class="daily-lb-answer-row">
         <span class="daily-lb-answer-cat">${cat}</span>
         <span class="daily-lb-answer-val${val ? '' : ' empty'}">${val || '—'}</span>
         <span class="daily-lb-answer-ai">${aiIcon}</span>
-        ${ptsHtml}
+        ${ptsHtml}${origBadge}
       </div>`;
     }).join('');
     return `<div class="daily-lb-answers" id="daily-ans-${idx}">${rows}</div>`;
@@ -2620,7 +2777,7 @@ function updateDailyButtonDate() {
   if (!span) return;
 
   const key = getDailyKey();
-  const played = !!localStorage.getItem('alto_daily_' + key);
+  const played = !!localStorage.getItem('alto_daily_' + key + '_' + LANG);
 
   const labels = { es:'Reto diario', en:'Daily challenge', fr:'Défi du jour' };
   const doneLabels = {
@@ -4580,7 +4737,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260906.95</div>
+  <div style="font-size: 11px;opacity:0.5">v260906.107</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
