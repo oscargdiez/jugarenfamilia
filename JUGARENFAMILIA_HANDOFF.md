@@ -1,5 +1,5 @@
 # JugarEnFamilia.es — Project Handoff Document
-*Last updated: September 2026*
+*Last updated: September 2026 — Session 11*
 
 ---
 
@@ -73,12 +73,12 @@ Claude ALWAYS checks with user BEFORE building anything.
 2. Double-click `D:\09_ALTO\deploy.bat`
 3. Live at jugarenfamilia.es in ~30 seconds ✅
 
-### Staging workflow (index_tmp.html)
+### Staging workflow
 - Claude produces `jugarenfamilia_tmp.html` + `gitinfo_tmp.txt`
 - Drop both to `C:\Users\User\Downloads\`, run `D:\09_ALTO\deploy_tmp.bat`
 - Test at `https://jugarenfamilia.es/index_tmp.html`
 - When happy: promote staging to production by copying `index_tmp.html` → `index.html`, bump version (drop `-tmp`), deploy with `deploy.bat`
-- Staging is ALWAYS based on latest production (`cp index.html index_tmp.html`) — never from old stale staging file
+- Staging is ALWAYS based on latest production — never from old stale staging file
 - Claude ALWAYS states the version number when deploying
 
 ### gitinfo.txt format
@@ -87,7 +87,7 @@ REPO=https://github.com/oscargdiez/jugarenfamilia.git
 BRANCH=main
 NAME=oscargdiez
 EMAIL=oscar.g.diez@gmail.com
-MESSAGE=description of changes
+MESSAGE=description of changes (ASCII only — no emoji or special chars)
 ```
 
 ---
@@ -103,6 +103,8 @@ Double-click `D:\09_ALTO\rollback.bat` and pick the commit hash.
 **Version bump on every deploy** — update the footer version string.
 Format: `vYYMMDD.NN` (e.g. `v260905.76`). Staging gets `-tmp` suffix.
 State the version clearly when presenting deploy files.
+
+**Commit messages must be plain ASCII — no emoji or special characters** — they break the git command in deploy.bat.
 
 **Check with user BEFORE building anything. Deploy immediately after building without asking.**
 
@@ -123,10 +125,13 @@ A single syntax error in the `<script type="module">` block kills ALL buttons an
 SVG flags and other non-module `<script>` tags in `<head>` are completely isolated.
 
 ### 5. applyLang wipes child elements ← LEARNED IN SESSION 10
-`s(id, text)` uses `textContent` which destroys child spans. When an element contains both text AND a child span (e.g. solo hint, group hint, pencil emoji), use `innerHTML` in applyLang instead, or rebuild the full innerHTML including the span. Never use `s()` on elements with child spans.
+`s(id, text)` uses `textContent` which destroys child spans. When an element contains both text AND a child span, use `innerHTML` in applyLang instead. Never use `s()` on elements with child spans.
 
 ### 6. str_replace context — READ ENOUGH LINES
-When using str_replace near closing tags, always read enough context (10+ lines) to include the closing `</div>` tags. Accidentally eating closing divs breaks ALL subsequent screens silently. Always verify screen IDs are present after structural edits: `grep -c 'id="s-' file.html` should return 12.
+Always read enough context (10+ lines) to include closing `</div>` tags. Accidentally eating closing divs breaks ALL subsequent screens silently. Always verify screen IDs after structural edits: `grep -c 'id="s-' file.html` should return 12.
+
+### 7. SVG flags — inline use ← LEARNED IN SESSION 11
+The FLAGS SVG strings have `display:block` baked in (via the `S` variable). This breaks when used inline with text. The FLAGS object is defined in a non-module `<script>` and exposed as `window.FLAGS`. For inline use, replace `display:block` with `display:inline-block;vertical-align:middle` before injecting. Better: avoid mixing SVG flags with text — use the flag only in button elements as done elsewhere.
 
 **Mandatory pre-deploy checklist:**
 - Version string updated ✅
@@ -134,6 +139,7 @@ When using str_replace near closing tags, always read enough context (10+ lines)
 - Init block present (`buildEmojiGrid`, `tryRestore`) ✅
 - No `-tmp` in version string for production ✅
 - All 12 screen IDs present (`grep -c 'id="s-'` = 12) ✅
+- JS syntax clean (`node --check`) ✅
 
 **Always start from the uploaded working file** — never from a local copy that may have drifted.
 **First thing every session — make a backup:** `cp index_tmp.html index_tmp_backup_sN.html` before any edits.
@@ -154,12 +160,19 @@ Two fonts, six slots. **Do not add new sizes outside these slots.**
 | hero | Caveat | 32px+ | Timer numbers, letter display, room code |
 
 **Role assignment:**
-- **Special Elite** → all UI chrome (labels, scores, buttons, navigation, metadata, category labels in leaderboard)
+- **Special Elite** → all UI chrome (labels, scores, buttons, navigation, metadata)
 - **Caveat** → all player-generated content + category labels in playing/result screens
 
-**Letter-spacing:** only on decorative all-caps elements (JUGARENFAMILIA.ES, SIN REGISTRO footer, MULTIJUGADOR label, stop button, room code). Default everywhere else — NOT on `.lbl` or `button`.
+---
 
-**Note:** Caveat has a smaller x-height than Special Elite, so Caveat 20px looks visually smaller than Special Elite 16px at the same pixel size. This is expected and fine.
+## 🏷 Label Casing Rules
+
+| Type | Rule | Examples |
+|---|---|---|
+| Buttons (tappable actions) | Sentence case | `Crear sala`, `Salir de la sala`, `← Volver` |
+| Inline hints / sublabels | lowercase | `comparte el código`, `nombre del grupo` |
+| Toasts | Sentence case | `Escribe tu nombre primero` |
+| Decorative / badge text | ALL CAPS | `MULTIJUGADOR · CON FAMILIA Y AMIGOS` |
 
 ---
 
@@ -169,7 +182,7 @@ Two fonts, six slots. **Do not add new sizes outside these slots.**
 - Real-time multiplayer via Firebase (room codes, host/guest model)
 - Session restore / welcome-back screen with emoji picker
 - Collision-safe room code generation (`genUniqueCode()`)
-- Room auto-deleted from Firebase 60s after game ends (leaderboard data preserved)
+- Room auto-deleted from Firebase 60s after game ends
 - Letter selection (easy pool only — hard letters option hidden, always easy)
 - Language-aware easy pool: EN keeps K, ES/FR drop it (`LETTERS_EASY` object)
 - Correct remaining timer for rejoiners (`roundStartTime` saved in Firebase)
@@ -177,125 +190,120 @@ Two fonts, six slots. **Do not add new sizes outside these slots.**
 - Accent-insensitive duplicate detection (`normalize()`)
 
 ### Validation Screen (host)
-- 📖 Wikipedia lookup (host + guests, language-aware, did-you-mean suggestions)
-- 🤖 AI validation via Cloudflare Worker → OpenRouter (fallback chain, 20s timeout)
-- AI result shows coloured verdict word: green=válido, red=inválido, amber=no sé (all 3 langs)
-- Validate subtitle: "🤖 Asistente IA" + red ✕ for cancel
+- 📖 Wikipedia lookup (host + guests, language-aware)
+- 🤖 Robot validation via Cloudflare Worker → OpenRouter (fallback chain, 20s timeout)
+- Robot result shows coloured verdict: green=válido, red=inválido, amber=no sé (all 3 langs)
 - Automatic validation ON by default, Estricta by default
-- 👍👎 Per-entry voting with live counts
+- 👍👎 Per-entry voting (democratic mode only — not shown in normal mode)
 - 😂🔥👏 Per-entry emoji reactions
-- 🛑 Stop caller banner: shows on host validate screen AND guest waiting screen
+- 🛑 Stop caller banner: shows on host validate AND guest waiting screen
 - 🗳️ Democratic mode (majority vote auto-invalidates)
 - ← Revisar: undo scoring
 
 ### Guest Waiting Screen
-- Title "Esperando..." / "Waiting..." / "En attente..." (same style as host "Revisar")
-- "el anfitrión está revisando ✏️" with bouncing pencil inline (25px gap from text)
+- Title "Esperando..." / "Waiting..." / "En attente..."
+- "el anfitrión está revisando ✏️" with bouncing pencil inline
 - Stop caller banner shown below the text
 - Guest sees full validation content below (read-only)
 
 ### Daily Challenge
-- Letter + 6 categories picked deterministically from date seed
+- **58 categories across 13 groups** with valid-letter strings per language (ES/EN/FR)
+- **Per-language seeded daily** — ES/EN/FR each get their own letter + 6 categories
+- Letter picked from `LETTERS_EASY[LANG]` — EN gets K, ES/FR don't
+- Max 1 category per group per day
+- Only categories valid for today's letter in today's language
 - 90s countdown timer with speed bonus (1.0–2.0× multiplier)
-- AI consensus validation (2 models parallel, tiebreaker if split)
-- Scoring: valid=10pts, unsure=5pts, invalid=0pts (displayed ×10 in UI: 100/50/0)
-- Speed breakdown shown: `⚡×1.34 velocidad | base 100 pts → 134 pts`
-- In-progress save/restore (page refresh safe)
-- Categories saved to Firebase on submit (immune to category changes breaking old results)
-- Daily leaderboard with lang switcher (ES/EN/FR flags)
-- Originality bonus: +5pts (shown as +50) if answer unique among all players
-- Accent-insensitive originality check (ratón = raton)
+- Robot consensus validation (2 models parallel, tiebreaker if split)
+- Scoring: valid=100pts, invalid=0pts, unsure=50pts (displayed correctly ×10)
+- Speed breakdown: `base 500 pts ×1.12⚡→ 560 pts +200 originalidad✨`
+- In-progress save/restore (page refresh safe) — only saves after timer starts
+- Timer stops when tab is backgrounded (visibilitychange handler)
+- Categories saved to Firebase on submit
+- Daily leaderboard with lang switcher (ES/EN/FR SVG flags)
+- **Per-language localStorage keys** — `alto_daily_{date}_{lang}` — play in all 3 langs independently
+- Originality bonus: +50pts if answer unique among all players
+- Originality shows on initial load (not just after flag tap)
+- Originality badges (+50✨) shown per answer in ALL players' panels
+- Accent-insensitive originality check
 - Letter validity sanity check on in-progress restore
-- Stale in-progress keys from previous days cleaned up on fresh start
 - Double-submit race guard (`_submitting` flag)
 - PlayerKey has random suffix to prevent collision
+- **Test mode** — name starting with `__` skips Firebase write + localStorage save, can replay unlimited
+- **DAILY_OVERRIDES** — add entries keyed by `YYYY-MM-DD` to override normal picker for themed days
 
 ### UX/Polish
 - Fixed shell layout: logo (left), letter+round+timer (center), room+? (right)
 - Logo click goes home on ALL screens
 - Floating timer numbers (spawn from edges, accelerate as time runs out)
-- SVG flags — identical on Windows, iOS, Android, Mac
-- WhatsApp share: icon-only button on same row as link + copy button (lobby host + guest)
+- SVG flags — identical on Windows, iOS, Android, Mac. `window.FLAGS` exposed globally.
+- WhatsApp share: icon-only button on same row as link + copy button
 - 720px max-width for desktop comfort
-- Solo hint in lobby: "jugadores (¡mejor con más!)" — disappears when 2nd player joins
-- Name placeholder: "Nombre..." / "Name..." / "Prénom..." (no "tu nombre" label)
-- Group name hint inline: "nombre del grupo (familia, amigos...)" on one line
-- Easy letters option hidden from settings (always on, re-exposable by removing display:none)
+- Solo hint in lobby: disappears when 2nd player joins
+- Daily challenge button same size as Crear Sala (20px/14px padding)
 
 ### Languages
 - 🇪🇸 ES 🇬🇧 EN 🇫🇷 FR
 - Full UI + categories + themes + rules translated
+- All AI/IA references replaced with Robot throughout all 3 languages
+- Voting thumbs (👍👎) only mentioned in democratic mode section of help — not in general review
 - **Rule for new features:** always add translations for all 3 languages immediately
-- `soloHint`, `waitingTitle` added in Session 10
 
 ### Debug Mode
 - Type `__debug__` as player name → debug bar at bottom
 - 14 screen buttons with realistic fake data
 - Zero Firebase calls — fully offline
+- Test mode for daily: name starting with `__` (not `__debug__`) — skips Firebase + localStorage
 
 ---
 
 ## 🐛 Known Issues / Watch List
 
-- OpenRouter free tier models rotate without warning — if AI breaks, check openrouter.ai logs
-- Session restore on same device/browser: host and guest share localStorage, so testing both roles in same browser will confuse restore. Works correctly on separate devices.
+- OpenRouter free tier models rotate without warning — if Robot breaks, check openrouter.ai logs
+- Session restore on same device/browser: host and guest share localStorage
 - Font sizes: Caveat x-height smaller than Special Elite — visually looks different at same px
+- iCloud Safari sync: iPhone + iPad share localStorage if Safari sync enabled — player may not be able to replay on second Apple device
+- Daily challenge "already played" check is per-device/browser (localStorage), not per-person — email/PIN system needed for true deduplication
 
 ---
 
 ## 🗺 Flagged for Future
 
-### Automatic AI Multiplayer Mode
-- Add a third validation mode alongside Normal and Democratic: fully automatic AI validation
-- Round ends → AI validates all answers → scores shown, no host review step
-- Makes solo-in-multiplayer viable
-- "unsure" edge case: lean valid, lean invalid, or show just those for human review (TBD)
-
-### Solo Play Warning (built Session 10)
-- Already built: solo hint shows in lobby when only 1 player
-- Future: when automatic AI mode is added, single-player in multiplayer becomes a proper solo mode
-
 ### Player Identity System (designed, not built)
-- **Concept:** name is unique (first-come-first-served), email is proof of ownership, emoji is cosmetic
-- **Flow:** enter name → if taken, prompted for email to verify ownership → email stored in Firebase as hidden key → on new device, enter name+email to restore identity
-- **No email sending needed** — trust-based, family game stakes are low
+- **Concept:** name is unique (first-come-first-served), email is proof of ownership
+- **Flow:** enter name → if taken, prompted for email to verify → email stored in Firebase as hidden key
 - **Why email not device ID:** travels across devices naturally, truly unique
-- **Implementation:** `playerKey` in Firebase switches from `name_timestamp_random` to email hash
+- **Implementation:** `playerKey` switches from `name_timestamp_random` to email hash
+- Also fixes: one daily play per person (server-side check), leaderboard deduplication
 
-### Category System Overhaul (PRIORITY for Session 11)
-- 40 categories defined across 12 groups with valid-letter strings per language
-- JSON table ready in chat "+++ ALTO CATEGORY TABLE"
-- Picker needs: letter-aware (only show categories valid for today's letter in all 3 langs), group-aware (max 1 per group per day), 6 categories per day
-- Current `DAILY_CATS` flat array to be replaced
-- EN easy letters include K (ES/FR don't) — already in `LETTERS_EASY` object
-- Always use easy letter pool (already enforced — hard letters option hidden)
-- Category names in EN and FR still need translating before implementation
+### Historical Daily Leaderboard
+- Data already stored at `daily/{date}/{lang}/scores/` permanently
+- Could surface: per-day archive, all-time ranking, streak tracking, personal history
+- Best built after player identity system
+
+### Themed Daily Days (DAILY_OVERRIDES — infrastructure built)
+- Add entry to `DAILY_OVERRIDES` object keyed by `YYYY-MM-DD`
+- Specify: `letter`, `theme` (title per lang), `categories` (6 per lang)
+- Robot validates as normal, same leaderboard infrastructure
+- Zero code change needed — just add the override entry
+
+### Automatic AI Multiplayer Mode
+- Third validation mode: fully automatic Robot validation, no host review step
+- Round ends → Robot validates all → scores shown
+- Makes solo-in-multiplayer viable
 
 ### iOS Layout Refactor
-- Replace `position:fixed` shell with true fixed layout using `html, body { height:100%; overflow:hidden }` + inner scrollable content div
+- Replace `position:fixed` shell with true fixed layout
 - Eliminates iOS Safari keyboard viewport resize bug
 - Big refactor — do in staging first
 
 ### Other
-- Historical daily leaderboard: data already stored in Firebase at `daily/{date}/{lang}/scores/` permanently — could surface per-day archive, all-time ranking, streak tracking, personal history. Best built after player identity system so aggregation is reliable.
 - Democratic mode: minimum 2 players guard
 - Language as lobby setting (currently global)
-- Emoji picker: SVG/Twemoji treatment for consistency across platforms
-
----
-
-## 🗺 Roadmap
-
-1. Category system overhaul (letter-aware + group-aware daily picker)
-2. Player identity system (email-based, no registration)
-3. Automatic AI multiplayer mode
-4. Google login
-5. WhatsApp deep link invites
-6. 🎵 Background soundtrack
-7. 🔔 Sound effects
-8. Letter reveal animation
-9. 🎮 Solo practice mode
-10. Public rooms / Tournaments
+- Emoji picker: SVG/Twemoji treatment for consistency
+- Public rooms / Tournaments
+- Background soundtrack + sound effects
+- Letter reveal animation
+- Solo practice mode
 
 ---
 
@@ -305,10 +313,10 @@ Two fonts, six slots. **Do not add new sizes outside these slots.**
 Initial build: multiplayer, Firebase, rooms, scoring, themes, 6 languages
 
 ### Session 2 (Aug 30)
-Quick join, guest lobby card, per-entry reactions/votes, Wikipedia lookups, flying emojis, experimental panel, AI validation, democratic mode, Google Analytics, deploy/rollback scripts
+Quick join, guest lobby card, per-entry reactions/votes, Wikipedia lookups, flying emojis, AI validation, democratic mode, deploy/rollback scripts
 
 ### Session 3 (Aug 31)
-Full audit — 15 bugs fixed. Room cleanup, collision-safe codes, stop caller banner, AI fallback chain, timer on rejoin, democratic mode fixes, debug mode (14 screens)
+Full audit — 15 bugs fixed. Room cleanup, collision-safe codes, stop caller banner, AI fallback chain, timer on rejoin, debug mode
 
 ### Session 4 (Sep 1)
 AI button/results hidden when off, validation entry layout, debug controls, SVG flags, exhaustive i18n pass
@@ -323,53 +331,50 @@ Fixed shell layout. Home screen refresh. Lobby redesign. Rules panel. Urgency pu
 Validation screen layout fix. Countdown before each round. Daily Challenge promoted to production. Democratic mode overhaul. AI result sharing.
 
 ### Session 8 (Sep 4/8)
-Floating timer numbers. Round timer bug fix. Validation row overhaul. Guest AI button. Category system (partial). Cloudflare Worker for OpenRouter key. Dropped IT/DE/PT.
+Floating timer numbers. Round timer bug fix. Validation row overhaul. Guest AI button. Cloudflare Worker for OpenRouter key. Dropped IT/DE/PT.
 **Last version: v260908.17**
 
 ### Session 9 (Sep 5)
-Daily challenge improvements: AI icons + pts in leaderboard, speed multiplier display, scores ×10, originality check fix, categories saved to Firebase, lang switcher on daily leaderboard, 4 bug fixes, double-submit guard, playerKey collision prevention.
-Multiplayer: language flags removed from chips, stop caller banner fixed, logo click all screens.
-Typography overhaul: 6-slot system, Special Elite for UI chrome, Caveat for content, 720px max-width.
+Daily challenge: AI icons + pts in leaderboard, speed multiplier, scores x10, originality fix, categories saved to Firebase, lang switcher, 4 bug fixes, double-submit guard.
+Multiplayer: stop caller banner fixed, logo click all screens.
+Typography overhaul: 6-slot system, Special Elite for UI, Caveat for content, 720px max-width.
 **Last version: v260905.49**
 
 ### Session 10 (Sep 6)
-**UX & Polish:**
-- Solo hint in lobby: "jugadores (¡mejor con más!)" disappears when 2nd player joins
-- Name inputs fixed to Caveat 26px (was 16px override); placeholder "Nombre/Name/Prénom"; "tu nombre" label removed from home, welcome, quickjoin
-- Group name input: Caveat 26px (was Special Elite 16px); hint inline on same line in parentheses
-- WhatsApp button: icon-only, separate from copy button, on same row as URL display
-- Easy letters option hidden from settings (always on by default)
-- Home/welcome screen compacted: tighter logo gap (`calc(50px+4px)`), smaller emoji grid gaps, reduced card padding on home/welcome only
-- "elige tu emoji" label hidden (grid is self-explanatory)
+UX & Polish: solo hint, name inputs, group name hint, WhatsApp button, easy letters hidden, home screen compacted.
+Waiting screen overhaul. Validation screen polish.
+Bug fixes: stop banner guests, broken HTML, applyLang child spans, duplicate IDs, CSS variables.
+**Last version: v260905.85**
 
-**Waiting screen overhaul:**
-- "Esperando..." / "Waiting..." / "En attente..." title at top (same style as "Revisar")
-- "el anfitrión está revisando ✏️" — pencil inline with 25px gap, original rotation animation
-- Stop caller banner moved below the text
-- "Respuestas enviadas" label removed
+### Session 11 (Sep 6)
+**Category system overhaul:**
+- 58 categories / 13 groups replacing flat 17-item DAILY_CATS array
+- Per-language seeded daily (date + lang offset) — ES/EN/FR get different letter + categories
+- Letter validity per language from obj1 JSON data
+- Max 1 category per group per day
+- EN/FR translations for all 58 category names
 
-**Validation screen:**
-- "🤖 IA" → "🤖 Asistente IA" / "AI Assistant" / "Assistant IA" in subtitle
-- ✕ cancel rendered in red
-- AI result verdict word coloured in-place: green=válido, red=inválido, amber=no sé (all 3 langs)
+**Daily challenge fixes:**
+- Auto-submit bug: null startTimestamp during countdown → instant submit (fixed: guard in saveProgress + elapsed calculation)
+- Timer running to negative: clearInterval before dailySubmit in all 3 timer callbacks
+- Per-language localStorage keys: `alto_daily_{date}_{lang}` — play all 3 langs independently
+- Originality on initial load: reapplyOriginality() called after first leaderboard load
+- Originality badges in all players' panels: computeUniqueness() runs across all entries
+- Daily rules scoring x10: 100pts / +50pts originality (was 10/5)
+- Daily title translates on flag switch
+- iOS flex overflow fix: min-width:0 + overflow:hidden on daily play inputs
 
-**Bug fixes:**
-- Stop caller banner now shows for guests (was host-only — banner element was only in s-validate, added stop-caller-banner-guest to s-waiting)
-- Fixed broken HTML: str_replace ate closing divs + s-daily-play opening tag when deduping btn-leave ID
-- applyLang: switched elements with child spans to innerHTML to prevent span wipeout
+**New features:**
+- Test mode: name starting with __ skips Firebase + localStorage, can replay unlimited
+- DAILY_OVERRIDES: infrastructure for themed days, Halloween example commented in
 
-**Code audit:**
-- Duplicate IDs removed: welcome-logo-tag (×2), btn-leave/btn-leave-text (host vs guest panels now distinct)
-- All console.log removed (console.warn/error kept)
-- letter-spacing removed from .lbl and button (was non-decorative, against spec)
+**UI/Language fixes:**
+- All AI/IA → Robot across ES/EN/FR (8 locations per language)
+- Error/timeout messages translated to all 3 languages
+- Voting thumbs removed from general review rules (democratic mode section only)
+- leaveRoom + leaderboardBack button casing fixed (ES/EN/FR)
+- Daily challenge button size matches Crear Sala (20px/14px)
+- Commit messages must be ASCII only (special chars break deploy.bat git command)
+- window.FLAGS exposed globally from DOMContentLoaded block
 
-- Defined missing CSS variables --success, --success-bg, --danger, --danger-bg in :root (were missing, causing black/transparent on vote buttons, AI results, democratic badges, daily pts)
-
-- visibilitychange handler: auto-submits if time ran out while tab was backgrounded (setInterval throttled by browser)
-- playAgain: re-checks host status from Firebase in case G.isHost got lost; handles deleted room gracefully
-- shellLogoClick: final screen now goes home (was silently doing nothing)
-- Daily result card: per-answer pts now show ×10 (100/50 not 10/5); originality shows +50 not +5
-- Daily leaderboard: total score now shows ×10 (910 not 91)
-- Defined missing CSS vars --success --success-bg --danger --danger-bg in :root
-
-**Last version deployed: v260905.85**
+**Last version deployed: v260906.107**
