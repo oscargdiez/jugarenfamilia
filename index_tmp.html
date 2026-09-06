@@ -700,7 +700,7 @@ body.screen-home .page, body.screen-welcome .page { padding-bottom: 2rem; }
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   var S = ' style="display:block;border-radius:3px;border:0.5px solid rgba(0,0,0,0.15)"';
-  var FLAGS = {
+  window.FLAGS = {
     es: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 30" width="28" height="19"'+S+'><rect width="44" height="30" fill="#c60b1e"/><rect y="7.5" width="44" height="15" fill="#ffc400"/></svg>',
     en: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 30" width="28" height="19"'+S+'><rect width="44" height="30" fill="#012169"/><line x1="0" y1="0" x2="44" y2="30" stroke="white" stroke-width="7"/><line x1="44" y1="0" x2="0" y2="30" stroke="white" stroke-width="7"/><line x1="0" y1="0" x2="44" y2="30" stroke="#C8102E" stroke-width="4"/><line x1="44" y1="0" x2="0" y2="30" stroke="#C8102E" stroke-width="4"/><rect x="18" y="0" width="8" height="30" fill="white"/><rect x="0" y="11" width="44" height="8" fill="white"/><rect x="19.5" y="0" width="5" height="30" fill="#C8102E"/><rect x="0" y="12.5" width="44" height="5" fill="#C8102E"/></svg>',
     fr: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 30" width="28" height="19"'+S+'><rect width="44" height="30" fill="#ED2939"/><rect width="29.5" height="30" fill="white"/><rect width="14.5" height="30" fill="#002395"/></svg>',
@@ -2728,8 +2728,11 @@ function dl() { return DAILY_LABELS[LANG] || DAILY_LABELS.es; }
 function applyDailyLang() {
   const l = dl();
   const s2 = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
-  const _langFlag = {es:'🇪🇸', en:'🇬🇧', fr:'🇫🇷'}[LANG] || '';
-  s2('lbl-daily-your-answers', _langFlag + ' ' + l.yourAnswers);
+  const _flagSvg = (window.FLAGS && window.FLAGS[LANG]) || '';
+  const _flagEl = document.getElementById('lbl-daily-your-answers');
+  if (_flagEl) {
+    _flagEl.innerHTML = (_flagSvg ? _flagSvg + ' ' : '') + l.yourAnswers;
+  }
   s2('lbl-daily-leaderboard', l.leaderboard);
 
   s2('btn-daily-home', l.backHome);
@@ -4738,7 +4741,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260906.103-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v260906.104-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
