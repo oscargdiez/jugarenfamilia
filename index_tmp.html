@@ -453,6 +453,7 @@ body.screen-home .page, body.screen-welcome .page { padding-bottom: 2rem; }
 .daily-cat-row {
   display: flex; align-items: center; gap: 10px;
   padding: 8px 0; border-bottom: 1px solid var(--border);
+  overflow: hidden;
 }
 .daily-cat-row:last-child { border-bottom: none; }
 .daily-cat-label {
@@ -460,7 +461,7 @@ body.screen-home .page, body.screen-welcome .page { padding-bottom: 2rem; }
   min-width: 100px; width: 120px; flex-shrink: 0;
 }
 .daily-cat-input {
-  flex: 1; border: none; border-bottom: 2px solid var(--border);
+  flex: 1; min-width: 0; border: none; border-bottom: 2px solid var(--border);
   background: transparent; font-family: 'Caveat', cursive; font-size:26px;
   color: var(--ink); padding: 2px 4px; outline: none;
 }
@@ -799,7 +800,7 @@ document.addEventListener('DOMContentLoaded', function() {
     <div style="margin-top:14px;display:flex;flex-direction:column;gap:8px">
       <button class="pri" onclick="createRoom()" style="width:100%;font-size:20px;padding:14px" id="btn-create">Crear sala →</button>
       <div style="font-family:'Special Elite',monospace;font-size:11px;color:var(--ink-muted);text-align:center;letter-spacing:1px;margin:-2px 0 2px" id="lbl-create-sub">MULTIJUGADOR · CON FAMILIA Y AMIGOS</div>
-      <button onclick="startDailyChallenge()" style="width:100%;font-size: 16px;padding:12px;border-color:var(--border-strong)" id="btn-daily">📅 <span id="btn-daily-text">Reto diario · cargando…</span></button>
+      <button onclick="startDailyChallenge()" style="width:100%;font-size:20px;padding:14px;line-height:1;border-color:var(--border-strong)" id="btn-daily">📅 <span id="btn-daily-text">Reto diario · cargando…</span></button>
       <div style="font-family:'Special Elite',monospace;font-size:11px;color:var(--ink-muted);text-align:center;letter-spacing:1px;margin:-2px 0 2px" id="lbl-daily-sub">TÚ CONTRA EL MUNDO · UN RETO POR DÍA</div>
     </div>
   </div>
@@ -926,7 +927,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <button id="mode-host" onclick="setValidationMode('host')" style="font-size: 11px;padding:4px 10px;border-radius:20px;border:1.5px solid #c0392b;background:#fdf0ee;cursor:pointer">👑 Normal</button>
             <button id="mode-democratic" onclick="setValidationMode('democratic')" style="font-size: 11px;padding:4px 10px;border-radius:20px;border:1.5px solid var(--border-strong);background:var(--paper-dark);cursor:pointer">🗳️ Democrático</button>
           </div>
-          <p class="lbl" id="lbl-ai-validation" style="margin-bottom:6px"><span id="lbl-ai-validation-text">🤖 Asistente IA</span></p>
+          <p class="lbl" id="lbl-ai-validation" style="margin-bottom:6px"><span id="lbl-ai-validation-text">🤖 Asistente Robot</span></p>
           <div style="display:flex;gap:6px;margin-bottom:8px">
             <button id="ai-relajado" onclick="setAIStrictness('relajado')" style="font-size: 11px;padding:4px 10px;border-radius:20px;border:1.5px solid #c0392b;background:#fdf0ee;cursor:pointer">🟢 Relajada</button>
             <button id="ai-estricto" onclick="setAIStrictness('estricto')" style="font-size: 11px;padding:4px 10px;border-radius:20px;border:1.5px solid var(--border-strong);background:var(--paper-dark);cursor:pointer">🔴 Estricta</button>
@@ -1176,7 +1177,7 @@ const T = {
     noGroupGlobal: 'Aún no hay partidas registradas.',
     noGroupLocal: 'Aún no hay partidas para este grupo.',
     endGame2: '¡Fin del juego!', playAgain: 'Jugar de nuevo',
-    leaveRoom: 'salir de la sala',
+    leaveRoom: 'Salir de la sala',
     wins: 'victorias', games: 'partidas',
     toastCopied: '¡Enlace copiado!', toastNoGroup: 'Sin nombre de grupo',
     toastPenalty: 'pierde', toastPenaltySuffix: 'pts',
@@ -1186,8 +1187,8 @@ const T = {
     toastCats: 'Selecciona al menos una categoría',
     toastFreeCats: 'Escribe al menos 2 categorías',
     toastHostOnly: 'Solo el anfitrión puede reiniciar',
-    continueBtn: 'Continuar →', notMe: 'No soy yo — cambiar', groupHint2: 'familia, amigos, trabajo... como queráis', easyHint: '(sin K, Ñ, Q, U, W, X, Y, Z)', validate: 'Revisar', validateSub1: '📖 Wikipedia · 🤖 Asistente IA · <span style="color:var(--red)">✕</span> anular', validateSub2: 'única = 100 pts · repetida = 50 pts · anulada = 0 pts', submitted2: 'Respuestas enviadas', waitingTitle: 'Esperando...', hostReviewing2: 'el anfitrión está revisando', leaderboardBack: '← volver', loading: 'Cargando…', final2: '¡Fin del juego!', searching: 'Buscando...', hostSearching: 'El anfitrión está buscando...', rndLabel: 'ronda', of: 'de', freeCatLabel: 'escreve as tuas categorias (uma por linha)', freeCatPlaceholder: 'Jogadores do Barça\nFilmes de terror\nCoisas na cozinha', freeCatLabel: 'escribe tus categorías (una por línea)', freeCatPlaceholder: 'Jugadores del Barça\nPelículas de terror\nCosas en la cocina', of: 'de', freeCatLabel: 'escreve as tuas categorias (uma por linha)', freeCatPlaceholder: 'Jogadores do Barça\nFilmes de terror\nCoisas na cozinha', freeCatLabel: 'escribe tus categorías (una por línea)', freeCatPlaceholder: 'Jugadores del Barça\nPelículas de terror\nCosas en la cocina', letterLabel: 'letra', calculate: 'Calcular puntuación →', stopCallerMsg: '{name} llamó al ¡Alto!', timerRanOut: 'se acabó el tiempo', scoresTitle: 'Puntuación', lbTitle: 'Marcador',
-    invited: '¡Te han invitado a jugar!', rulesBtn: '¿Cómo se juega?', expBtn: '⚗️ FUNCIONES EXPERIMENTALES', aiValidation: '🤖 Asistente IA', aiRelajado: '🟢 Relajada', aiEstricto: '🔴 Estricta', aiSpelling: '✏️ Permitir faltas de ortografía', aiYes: 'Sí', aiNo: 'No', modeHost: '👑 Normal', modeDemocratic: '🗳️ Democrático', invalidated: 'anulada', winnerLine: '{emoji} {name} gana con {pts} puntos!', wrongPwd: '❌ Contraseña incorrecta', expActivated: '⚗️ Funciones experimentales activadas', qjCodeLabel: 'sala:', gcInside: '✅ ESTÁS DENTRO', inviteMore: '+ ¿Quieres invitar a alguien más?', getReady: 'PREPARADOS',
+    continueBtn: 'Continuar →', notMe: 'No soy yo — cambiar', groupHint2: 'familia, amigos, trabajo... como queráis', easyHint: '(sin K, Ñ, Q, U, W, X, Y, Z)', validate: 'Revisar', validateSub1: '📖 Wikipedia · 🤖 Asistente Robot · <span style="color:var(--red)">✕</span> anular', validateSub2: 'única = 100 pts · repetida = 50 pts · anulada = 0 pts', submitted2: 'Respuestas enviadas', waitingTitle: 'Esperando...', hostReviewing2: 'el anfitrión está revisando', leaderboardBack: '← Volver', loading: 'Cargando…', final2: '¡Fin del juego!', searching: 'Buscando...', hostSearching: 'El anfitrión está buscando...', rndLabel: 'ronda', of: 'de', freeCatLabel: 'escreve as tuas categorias (uma por linha)', freeCatPlaceholder: 'Jogadores do Barça\nFilmes de terror\nCoisas na cozinha', freeCatLabel: 'escribe tus categorías (una por línea)', freeCatPlaceholder: 'Jugadores del Barça\nPelículas de terror\nCosas en la cocina', of: 'de', freeCatLabel: 'escreve as tuas categorias (uma por linha)', freeCatPlaceholder: 'Jogadores do Barça\nFilmes de terror\nCoisas na cozinha', freeCatLabel: 'escribe tus categorías (una por línea)', freeCatPlaceholder: 'Jugadores del Barça\nPelículas de terror\nCosas en la cocina', letterLabel: 'letra', calculate: 'Calcular puntuación →', stopCallerMsg: '{name} llamó al ¡Alto!', timerRanOut: 'se acabó el tiempo', scoresTitle: 'Puntuación', lbTitle: 'Marcador',
+    invited: '¡Te han invitado a jugar!', rulesBtn: '¿Cómo se juega?', expBtn: '⚗️ FUNCIONES EXPERIMENTALES', aiValidation: '🤖 Asistente Robot', aiRelajado: '🟢 Relajada', aiEstricto: '🔴 Estricta', aiSpelling: '✏️ Permitir faltas de ortografía', aiYes: 'Sí', aiNo: 'No', modeHost: '👑 Normal', modeDemocratic: '🗳️ Democrático', invalidated: 'anulada', winnerLine: '{emoji} {name} gana con {pts} puntos!', wrongPwd: '❌ Contraseña incorrecta', expActivated: '⚗️ Funciones experimentales activadas', qjCodeLabel: 'sala:', gcInside: '✅ ESTÁS DENTRO', inviteMore: '+ ¿Quieres invitar a alguien más?', getReady: 'PREPARADOS',
     toastBack: 'Volviendo como', notFoundWord: '📭 No se encontró', didYouMean: '¿Quisiste decir', noDefinition: '📭 Sin definición para',
     waMsg: '¡Juega conmigo al ¡Alto! 🎮 Únete aquí:',
     createSub: 'MULTIJUGADOR · CON FAMILIA Y AMIGOS', configLabel: '⚙️ Configuración', leaveRoom2: 'Salir de la sala',
@@ -1233,7 +1234,7 @@ const T = {
     noGroupGlobal: 'No games registered yet.',
     noGroupLocal: 'No games for this group yet.',
     endGame2: 'Game over!', playAgain: 'Play again',
-    leaveRoom: 'leave room',
+    leaveRoom: 'Leave room',
     wins: 'wins', games: 'games',
     toastCopied: 'Link copied!', toastNoGroup: 'No group name set',
     toastPenalty: 'loses', toastPenaltySuffix: 'pts',
@@ -1243,8 +1244,8 @@ const T = {
     toastCats: 'Select at least one category',
     toastFreeCats: 'Enter at least 2 categories',
     toastHostOnly: 'Only the host can restart',
-    continueBtn: 'Continue →', notMe: "That's not me — change", groupHint2: 'family, friends, work... whatever you like', easyHint: '(no Q, U, W, X, Y, Z)', validate: 'Review', validateSub1: '📖 Wikipedia · 🤖 AI Assistant · <span style="color:var(--red)">✕</span> invalidate', validateSub2: 'unique = 100 pts · duplicate = 50 pts · invalid = 0 pts', submitted2: 'Answers submitted', waitingTitle: 'Waiting...', hostReviewing2: 'host is reviewing', leaderboardBack: '← back', loading: 'Loading…', final2: 'Game over!', searching: 'Searching...', hostSearching: 'Host is searching...', rndLabel: 'round', of: 'di', freeCatLabel: 'scrivi le tue categorie (una per riga)', freeCatPlaceholder: 'Giocatori del Barça\nFilm horror\nCose in cucina', of: 'of', freeCatLabel: 'write your categories (one per line)', freeCatPlaceholder: 'Football players\nHorror films\nThings in the kitchen', letterLabel: 'letter', calculate: 'Calculate scores →', stopCallerMsg: '{name} called Stop!', timerRanOut: 'time ran out', scoresTitle: 'Scores', lbTitle: 'Leaderboard',
-    invited: "You've been invited to play!", rulesBtn: 'How to play?', expBtn: '⚗️ EXPERIMENTAL FEATURES', aiValidation: '🤖 AI Assistant', aiRelajado: '🟢 Relaxed', aiEstricto: '🔴 Strict', aiSpelling: '✏️ Allow spelling mistakes', aiYes: 'Yes', aiNo: 'No', modeHost: '👑 Normal', modeDemocratic: '🗳️ Democratic', invalidated: 'invalid', winnerLine: '{emoji} {name} wins with {pts} points!', wrongPwd: '❌ Wrong password', expActivated: '⚗️ Experimental features activated', qjCodeLabel: 'room:', gcInside: "✅ YOU'RE IN", inviteMore: '+ Want to invite someone?', getReady: 'GET READY',
+    continueBtn: 'Continue →', notMe: "That's not me — change", groupHint2: 'family, friends, work... whatever you like', easyHint: '(no Q, U, W, X, Y, Z)', validate: 'Review', validateSub1: '📖 Wikipedia · 🤖 Robot Assistant · <span style="color:var(--red)">✕</span> invalidate', validateSub2: 'unique = 100 pts · duplicate = 50 pts · invalid = 0 pts', submitted2: 'Answers submitted', waitingTitle: 'Waiting...', hostReviewing2: 'host is reviewing', leaderboardBack: '← Back', loading: 'Loading…', final2: 'Game over!', searching: 'Searching...', hostSearching: 'Host is searching...', rndLabel: 'round', of: 'di', freeCatLabel: 'scrivi le tue categorie (una per riga)', freeCatPlaceholder: 'Giocatori del Barça\nFilm horror\nCose in cucina', of: 'of', freeCatLabel: 'write your categories (one per line)', freeCatPlaceholder: 'Football players\nHorror films\nThings in the kitchen', letterLabel: 'letter', calculate: 'Calculate scores →', stopCallerMsg: '{name} called Stop!', timerRanOut: 'time ran out', scoresTitle: 'Scores', lbTitle: 'Leaderboard',
+    invited: "You've been invited to play!", rulesBtn: 'How to play?', expBtn: '⚗️ EXPERIMENTAL FEATURES', aiValidation: '🤖 Robot Assistant', aiRelajado: '🟢 Relaxed', aiEstricto: '🔴 Strict', aiSpelling: '✏️ Allow spelling mistakes', aiYes: 'Yes', aiNo: 'No', modeHost: '👑 Normal', modeDemocratic: '🗳️ Democratic', invalidated: 'invalid', winnerLine: '{emoji} {name} wins with {pts} points!', wrongPwd: '❌ Wrong password', expActivated: '⚗️ Experimental features activated', qjCodeLabel: 'room:', gcInside: "✅ YOU'RE IN", inviteMore: '+ Want to invite someone?', getReady: 'GET READY',
     toastBack: 'Rejoining as', notFoundWord: '📭 Not found', didYouMean: 'Did you mean', noDefinition: '📭 No definition for',
     waMsg: 'Play Stop! with me 🎮 Join here:',
     createSub: 'MULTIPLAYER · WITH FAMILY & FRIENDS', configLabel: '⚙️ Settings', leaveRoom2: 'Leave room',
@@ -1290,7 +1291,7 @@ const T = {
     noGroupGlobal: 'Pas encore de parties enregistrées.',
     noGroupLocal: 'Pas encore de parties pour ce groupe.',
     endGame2: 'Fin de partie!', playAgain: 'Rejouer',
-    leaveRoom: 'quitter la salle',
+    leaveRoom: 'Quitter la salle',
     wins: 'victoires', games: 'parties',
     toastCopied: 'Lien copié!', toastNoGroup: 'Pas de nom de groupe',
     toastPenalty: 'perd', toastPenaltySuffix: 'pts',
@@ -1300,8 +1301,8 @@ const T = {
     toastCats: 'Sélectionne au moins une catégorie',
     toastFreeCats: 'Entre au moins 2 catégories',
     toastHostOnly: "Seul l'hôte peut recommencer",
-    continueBtn: 'Continuer →', notMe: "Ce n'est pas moi — changer", groupHint2: 'famille, amis, travail... comme vous voulez', easyHint: '(sans K, Q, U, W, X, Y, Z)', validate: 'Vérifier', validateSub1: '📖 Wikipedia · 🤖 Assistant IA · <span style="color:var(--red)">✕</span> annuler', validateSub2: 'unique = 100 pts · doublon = 50 pts · annulé = 0 pts', submitted2: 'Réponses envoyées', waitingTitle: 'En attente...', hostReviewing2: "l'hôte vérifie", leaderboardBack: '← retour', loading: 'Chargement…', final2: 'Fin de partie!', searching: 'Recherche...', hostSearching: "L'hôte cherche...", rndLabel: 'manche', of: 'sur', freeCatLabel: 'écris tes catégories (une par ligne)', freeCatPlaceholder: 'Joueurs du Barça\nFilms d\'horreur\nChoses dans la cuisine', letterLabel: 'lettre', calculate: 'Calculer les scores →', stopCallerMsg: '{name} a crié Stop !', timerRanOut: 'temps écoulé', scoresTitle: 'Scores', lbTitle: 'Classement',
-    invited: 'Tu as été invité à jouer!', rulesBtn: 'Comment jouer?', expBtn: '⚗️ FONCTIONS EXPÉRIMENTALES', aiValidation: '🤖 Assistant IA', aiRelajado: '🟢 Détendue', aiEstricto: '🔴 Stricte', aiSpelling: '✏️ Autoriser les fautes d\'orthographe', aiYes: 'Oui', aiNo: 'Non', modeHost: '👑 Normal', modeDemocratic: '🗳️ Démocratique', invalidated: 'annulée', winnerLine: '{emoji} {name} gagne avec {pts} points!', wrongPwd: '❌ Mot de passe incorrect', expActivated: '⚗️ Fonctions expérimentales activées', qjCodeLabel: 'salle:', gcInside: '✅ VOUS ÊTES DEDANS', inviteMore: "+ Inviter quelqu'un d'autre?", getReady: 'PRÊTS',
+    continueBtn: 'Continuer →', notMe: "Ce n'est pas moi — changer", groupHint2: 'famille, amis, travail... comme vous voulez', easyHint: '(sans K, Q, U, W, X, Y, Z)', validate: 'Vérifier', validateSub1: '📖 Wikipedia · 🤖 Assistant Robot · <span style="color:var(--red)">✕</span> annuler', validateSub2: 'unique = 100 pts · doublon = 50 pts · annulé = 0 pts', submitted2: 'Réponses envoyées', waitingTitle: 'En attente...', hostReviewing2: "l'hôte vérifie", leaderboardBack: '← Retour', loading: 'Chargement…', final2: 'Fin de partie!', searching: 'Recherche...', hostSearching: "L'hôte cherche...", rndLabel: 'manche', of: 'sur', freeCatLabel: 'écris tes catégories (une par ligne)', freeCatPlaceholder: 'Joueurs du Barça\nFilms d\'horreur\nChoses dans la cuisine', letterLabel: 'lettre', calculate: 'Calculer les scores →', stopCallerMsg: '{name} a crié Stop !', timerRanOut: 'temps écoulé', scoresTitle: 'Scores', lbTitle: 'Classement',
+    invited: 'Tu as été invité à jouer!', rulesBtn: 'Comment jouer?', expBtn: '⚗️ FONCTIONS EXPÉRIMENTALES', aiValidation: '🤖 Assistant Robot', aiRelajado: '🟢 Détendue', aiEstricto: '🔴 Stricte', aiSpelling: '✏️ Autoriser les fautes d\'orthographe', aiYes: 'Oui', aiNo: 'Non', modeHost: '👑 Normal', modeDemocratic: '🗳️ Démocratique', invalidated: 'annulée', winnerLine: '{emoji} {name} gagne avec {pts} points!', wrongPwd: '❌ Mot de passe incorrect', expActivated: '⚗️ Fonctions expérimentales activées', qjCodeLabel: 'salle:', gcInside: '✅ VOUS ÊTES DEDANS', inviteMore: "+ Inviter quelqu'un d'autre?", getReady: 'PRÊTS',
     toastBack: 'Reconnexion en tant que', notFoundWord: '📭 Introuvable', didYouMean: 'Vouliez-vous dire', noDefinition: '📭 Aucune définition pour',
     waMsg: 'Joue au Stop! avec moi 🎮 Rejoins ici:',
     createSub: 'MULTIJOUEUR · EN FAMILLE ET ENTRE AMIS', configLabel: '⚙️ Paramètres', leaveRoom2: 'Quitter la salle',
@@ -1334,9 +1335,9 @@ window.setLang = function(lang) {
 
 function dailyRulesHTML() {
   const d = {
-    es: { h: 'Reto diario', r1: 'Una letra y 6 categorías fijas, iguales para todo el mundo cada día', r2: 'Rellena todas las categorías con palabras que empiecen por esa letra — ¡lo más rápido posible!', r3: 'El asistente IA valida cada respuesta — en el reto diario su decisión es definitiva', s: 'Puntuación:', u: 'Respuesta válida', spd: 'Bonus por velocidad', orig: 'Bonus por originalidad (respuesta única entre todos)', e: 'Respuesta inválida o en blanco' },
-    en: { h: 'Daily challenge', r1: 'One letter and 6 fixed categories, the same for everyone each day', r2: 'Fill all categories with words starting with that letter — as fast as you can!', r3: 'The AI assistant validates each answer — in the daily challenge its decision is final', s: 'Scoring:', u: 'Valid answer', spd: 'Speed bonus', orig: 'Originality bonus (unique answer among all players)', e: 'Invalid or blank answer' },
-    fr: { h: 'Défi du jour', r1: 'Une lettre et 6 catégories fixes, identiques pour tout le monde chaque jour', r2: 'Remplis toutes les catégories avec des mots commençant par cette lettre — le plus vite possible!', r3: "L'assistant IA valide chaque réponse — dans le défi du jour sa décision est définitive", s: 'Points:', u: 'Réponse valide', spd: 'Bonus de vitesse', orig: "Bonus d'originalité (réponse unique parmi tous les joueurs)", e: 'Réponse invalide ou vide' },
+    es: { h: 'Reto diario', r1: 'Una letra y 6 categorías fijas, iguales para todo el mundo cada día', r2: 'Rellena todas las categorías con palabras que empiecen por esa letra — ¡lo más rápido posible!', r3: 'El asistente Robot valida cada respuesta — en el reto diario su decisión es definitiva', s: 'Puntuación:', u: 'Respuesta válida', spd: 'Bonus por velocidad', orig: 'Bonus por originalidad (respuesta única entre todos)', e: 'Respuesta inválida o en blanco' },
+    en: { h: 'Daily challenge', r1: 'One letter and 6 fixed categories, the same for everyone each day', r2: 'Fill all categories with words starting with that letter — as fast as you can!', r3: 'The Robot assistant validates each answer — in the daily challenge its decision is final', s: 'Scoring:', u: 'Valid answer', spd: 'Speed bonus', orig: 'Originality bonus (unique answer among all players)', e: 'Invalid or blank answer' },
+    fr: { h: 'Défi du jour', r1: 'Une lettre et 6 catégories fixes, identiques pour tout le monde chaque jour', r2: 'Remplis toutes les catégories avec des mots commençant par cette lettre — le plus vite possible!', r3: "L'assistant Robot valide chaque réponse — dans le défi du jour sa décision est définitive", s: 'Points:', u: 'Réponse valide', spd: 'Bonus de vitesse', orig: "Bonus d'originalité (réponse unique parmi tous les joueurs)", e: 'Réponse invalide ou vide' },
   };
   const r = d[LANG] || d.es;
   return `
@@ -1345,9 +1346,9 @@ function dailyRulesHTML() {
     <div class="rules-step"><span class="rules-icon">🤖</span><span class="rules-text">${r.r3}</span></div>
     <div class="rules-scoring">
       <div class="rules-score-row"><span>${r.s}</span></div>
-      <div class="rules-score-row"><span>${r.u}</span><span class="rules-pts">10 pts</span></div>
+      <div class="rules-score-row"><span>${r.u}</span><span class="rules-pts">100 pts</span></div>
       <div class="rules-score-row"><span>${r.spd}</span><span class="rules-pts">×1.0–2.0</span></div>
-      <div class="rules-score-row"><span>${r.orig}</span><span class="rules-pts">+5 pts</span></div>
+      <div class="rules-score-row"><span>${r.orig}</span><span class="rules-pts">+50 pts</span></div>
       <div class="rules-score-row"><span>${r.e}</span><span class="rules-pts">0 pts</span></div>
     </div>`;
 }
@@ -1395,11 +1396,11 @@ function helpHTML() {
     es: {
       t1: '🔍 Revisar respuestas',
       b1: 'Después de cada ronda el anfitrión revisa las respuestas:',
-      l1: ['📖 Busca la definición en Wikipedia', '🤖 Consulta al asistente IA — su opinión es orientativa, el anfitrión decide', '👍👎 Los jugadores votan cada respuesta', '✕ El anfitrión puede anular una respuesta manualmente'],
+      l1: ['📖 Busca la definición en Wikipedia', '🤖 Consulta al asistente Robot — su opinión es orientativa, el anfitrión decide', '✕ El anfitrión puede anular una respuesta manualmente'],
       t2: '🗳️ Modo democrático',
       b2: 'En lugar de que el anfitrión decida solo, los jugadores votan con 👍👎. Si la mayoría vota en contra, la respuesta se anula automáticamente.',
-      t3: '🤖 Asistente IA',
-      b3: 'El anfitrión activa el asistente IA. Su opinión es orientativa — el anfitrión tiene la última palabra.',
+      t3: '🤖 Asistente Robot',
+      b3: 'El anfitrión activa el asistente Robot. Su opinión es orientativa — el anfitrión tiene la última palabra.',
       l3: ['🟢 Relajada — se aceptan respuestas borderline y creativas', '🔴 Estricta — solo respuestas claras e indiscutibles', '✏️ Faltas de ortografía — activar si queréis ser más permisivos con la escritura'],
       t4: '🏆 Marcador',
       b4: 'Tu grupo acumula victorias a lo largo de todas las partidas. El marcador global compara con jugadores de todo el mundo.',
@@ -1410,11 +1411,11 @@ function helpHTML() {
     en: {
       t1: '🔍 Reviewing answers',
       b1: 'After each round the host reviews all answers:',
-      l1: ['📖 Look up the definition on Wikipedia', '🤖 Ask the AI assistant — its opinion is a guide, the host decides', '👍👎 Players vote on each answer', '✕ The host can manually invalidate an answer'],
+      l1: ['📖 Look up the definition on Wikipedia', '🤖 Ask the Robot assistant — its opinion is a guide, the host decides', '✕ The host can manually invalidate an answer'],
       t2: '🗳️ Democratic mode',
       b2: 'Instead of the host deciding alone, players vote 👍👎. If the majority votes against, the answer is automatically invalidated.',
-      t3: '🤖 AI Assistant',
-      b3: 'The host enables the AI assistant. Its opinion is a guide — the host always has the final say.',
+      t3: '🤖 Robot Assistant',
+      b3: 'The host enables the Robot assistant. Its opinion is a guide — the host always has the final say.',
       l3: ['🟢 Relaxed — borderline and creative answers accepted', '🔴 Strict — only clear and unambiguous answers accepted', '✏️ Spelling mistakes — enable if you want to be more lenient with spelling'],
       t4: '🏆 Leaderboard',
       b4: 'Your group accumulates wins across all games. The global leaderboard compares you with players worldwide.',
@@ -1425,11 +1426,11 @@ function helpHTML() {
     fr: {
       t1: '🔍 Vérifier les réponses',
       b1: "Après chaque manche l'hôte vérifie toutes les réponses:",
-      l1: ["📖 Cherche la définition sur Wikipedia", "🤖 Consulte l'assistant IA — son avis est indicatif, l'hôte décide", "👍👎 Les joueurs votent pour chaque réponse", "✕ L'hôte peut annuler une réponse manuellement"],
+      l1: ["📖 Cherche la définition sur Wikipedia", "🤖 Consulte l'assistant Robot — son avis est indicatif, l'hôte décide", "✕ L'hôte peut annuler une réponse manuellement"],
       t2: '🗳️ Mode démocratique',
       b2: "Au lieu que l'hôte décide seul, les joueurs votent 👍👎. Si la majorité vote contre, la réponse est automatiquement annulée.",
-      t3: '🤖 Assistant IA',
-      b3: "L'hôte active l'assistant IA. Son avis est indicatif — l'hôte a toujours le dernier mot.",
+      t3: '🤖 Assistant Robot',
+      b3: "L'hôte active l'assistant Robot. Son avis est indicatif — l'hôte a toujours le dernier mot.",
       l3: ['🟢 Détendue — réponses créatives et limites acceptées', '🔴 Stricte — uniquement des réponses claires et indiscutables', '✏️ Fautes d\'orthographe — activez si vous voulez être plus permissifs avec l\'écriture'],
       t4: '🏆 Classement',
       b4: 'Votre groupe accumule des victoires sur toutes les parties. Le classement mondial vous compare aux joueurs du monde entier.',
@@ -1771,6 +1772,10 @@ window.shellLogoClick = function() {
     show('home');
     return;
   }
+  if (G.screen === 'final') {
+    leaveGame();
+    return;
+  }
   const inGame = ['playing','validate','waiting','scores'].includes(G.screen);
   if (!inGame) return;
   if (confirm(t('shellLeave') + '\n\n' + t('shellLeaveConfirm'))) {
@@ -1833,10 +1838,80 @@ function mulberry32(seed) {
 // DAILY_CONSENSUS: set true to use 2-model consensus + tiebreaker, false for single model
 const DAILY_CONSENSUS = false;
 
-const DAILY_CATS = {
-  es: ['País','Ciudad','Animal','Fruta','Color','Profesión','Objeto','Comida/Plato','Deporte','Instrumento musical','Nombre de persona','Medio de transporte','Árbol','Flor','Prenda de ropa','Ave/Pájaro','Cosa que encuentras en la cocina'],
-  en: ['Country','City','Animal','Fruit','Colour','Profession','Object','Food/Dish','Sport','Musical instrument','Person name','Means of transport','Tree','Flower','Clothing item','Bird','Thing you find in the kitchen'],
-  fr: ['Pays','Ville','Animal','Fruit','Couleur','Profession','Objet','Aliment/Plat','Sport','Instrument de musique','Prénom','Moyen de transport','Arbre','Fleur','Vêtement','Oiseau','Cosa en la cocina (FR)'],
+const DAILY_CAT_DATA = {
+  "Mamífero": {group:"animales",es:"ABCDEFGHIJLMNOPRSTV",en:"ABCDEFGHIJKLMNOPRSTV",fr:"ABCDEFGHIJLMNOPRSTV",name_en:"Mammal",name_fr:"Mammifère"},
+  "Reptil": {group:"animales",es:"ABCGILMPSTV",en:"ABCGIKLMPSTV",fr:"ABCGILMPSTV",name_en:"Reptile",name_fr:"Reptile"},
+  "Ave": {group:"animales",es:"ABCEFGHIJLMOPRTV",en:"ABCDEFGHIJKLMNOPRSTV",fr:"ABCEFGHILMOPRTV",name_en:"Bird",name_fr:"Oiseau"},
+  "Pez": {group:"animales",es:"ABCDEFLMPRST",en:"ABCDEFGHLMPRST",fr:"ABCDEFGHLMPRST",name_en:"Fish",name_fr:"Poisson"},
+  "Insecto o arácnido": {group:"animales",es:"ACEGHLMPST",en:"ABCDEFGHLMPST",fr:"ACFGLMPST",name_en:"Insect or arachnid",name_fr:"Insecte ou arachnide"},
+  "País": {group:"geografia",es:"ABCDEFGHIJLMNOPRSTV",en:"ABCDEFGHIJKLMNOPRSTV",fr:"ABCDEFGHIJLMNOPRSTV",name_en:"Country",name_fr:"Pays"},
+  "Ciudad": {group:"geografia",es:"ABCDEFGHJLMNOPRSTV",en:"ABCDEFGHIJKLMNOPRSTV",fr:"ABCDEFGHIJLMNOPRSTV",name_en:"City",name_fr:"Ville"},
+  "Capital": {group:"geografia",es:"ABCDEILMNOPRSTV",en:"ABCDIJKLMNOPRSTV",fr:"ABCDIJLMNOPRSTV",name_en:"Capital city",name_fr:"Capitale"},
+  "País europeo": {group:"geografia",es:"ABCDEFGHILMNPRST",en:"ABCDEFGHILMNPRST",fr:"ABCDEFGHILMNPRST",name_en:"European country",name_fr:"Pays européen"},
+  "País americano": {group:"geografia",es:"ABCEGHJMNPRSTV",en:"ABCDEGHJMNPSTV",fr:"ABCEGHJMNPSTV",name_en:"American country",name_fr:"Pays américain"},
+  "Árbol": {group:"naturaleza",es:"ABCDEFHJLMNOPRST",en:"ABCEFHJLMOPRST",fr:"ABCDEFHLMNOPSTV",name_en:"Tree",name_fr:"Arbre"},
+  "Flor": {group:"naturaleza",es:"ABCDGHIJLMNOPRTV",en:"ABCDGHIJLMNOPRSTV",fr:"ABCDGHIJLMNOPRSTV",name_en:"Flower",name_fr:"Fleur"},
+  "Planta": {group:"naturaleza",es:"ABCHLMPRST",en:"ABCFHILMPRST",fr:"ABCFHILMPRST",name_en:"Plant",name_fr:"Plante"},
+  "Fruta": {group:"naturaleza",es:"ABCDFGHLMNOPS",en:"ABCDFGKLMNOPRST",fr:"ABCDFGLMNOPR",name_en:"Fruit",name_fr:"Fruit"},
+  "Verdura": {group:"comida",es:"ABCEGLMNPRT",en:"ABCEGKLMOPRST",fr:"ABCELMNOPRT",name_en:"Vegetable",name_fr:"Légume"},
+  "Especia": {group:"comida",es:"ACJLMNOPRSTV",en:"ABCDGJLMNOPRSTV",fr:"ABCGLMNOPRSTV",name_en:"Spice",name_fr:"Épice"},
+  "Plato típico": {group:"comida",es:"ABCEFGHJLMNPRST",en:"ABCDEFGHKLMOPRST",fr:"BCEFGMOPRSTV",name_en:"Traditional dish",name_fr:"Plat typique"},
+  "Bebida": {group:"comida",es:"ABCGHLMRSTV",en:"ABCGHJKLMOPSTV",fr:"ABCGJLOPRSTV",name_en:"Drink",name_fr:"Boisson"},
+  "Postre": {group:"comida",es:"ABCDFGHMNPST",en:"ABCDEFGIJMPST",fr:"BCEFGMPST",name_en:"Dessert",name_fr:"Dessert"},
+  "Película": {group:"entretenimiento",es:"ABCDEFGHIJLMNOPRSTV",en:"ABCDEFGHIJKLMNOPRSTV",fr:"ABCDEFGHIJLMNOPRSTV",name_en:"Film",name_fr:"Film"},
+  "Película animada": {group:"entretenimiento",es:"ABCDEFHILMPRST",en:"ABCDEFHILMPRST",fr:"ABCDEFHLMPRST",name_en:"Animated film",name_fr:"Film d'animation"},
+  "Serie de TV": {group:"entretenimiento",es:"BCDEFGHLMPST",en:"BCDFGHLMPST",fr:"BCDFGHLMPST",name_en:"TV series",name_fr:"Série TV"},
+  "Actor o actriz": {group:"entretenimiento",es:"ABCDGHJLMNPRST",en:"ABCDGHJKLMNPRST",fr:"ABCDGHJLMNPRST",name_en:"Actor or actress",name_fr:"Acteur ou actrice"},
+  "Cantante o banda famosa": {group:"arte_musica",es:"ABCDEFGHJLMNOPRSTV",en:"ABCDEFGHJKLMNOPRSTV",fr:"ABCDEFGHJLMNOPRSTV",name_en:"Singer or famous band",name_fr:"Chanteur ou groupe célèbre"},
+  "Compositor": {group:"arte_musica",es:"BCDHLMPRSTV",en:"BCDHLMPRSTV",fr:"BCDHLMPRSTV",name_en:"Composer",name_fr:"Compositeur"},
+  "Instrumento": {group:"arte_musica",es:"ABCFGLMOPSTV",en:"ABCDFGHKLMOPSTV",fr:"ABCFGHLMOPSTV",name_en:"Instrument",name_fr:"Instrument"},
+  "Baile o danza": {group:"arte_musica",es:"BCFHJLMPRSTV",en:"BCFHJLMPRSTV",fr:"BCFHJLMPRSTV",name_en:"Dance",name_fr:"Danse"},
+  "Pintor famoso": {group:"arte_musica",es:"BCDEFGMPRTV",en:"BCDEFGKMPRTV",fr:"BCDEFGMPRTV",name_en:"Famous painter",name_fr:"Peintre célèbre"},
+  "Figura histórica": {group:"historia_cultura",es:"ABCDEFGHIJLMNOPRSTV",en:"ABCDEFGHIJKLMNOPRSTV",fr:"ABCDEFGHIJLMNOPRSTV",name_en:"Historical figure",name_fr:"Personnage historique"},
+  "Escritor": {group:"historia_cultura",es:"ABCDEFGHJLMNOPRSTV",en:"ABCDEFGHJKLMNOPRSTV",fr:"ABCDEFGHJLMNOPRSTV",name_en:"Writer",name_fr:"Écrivain"},
+  "Científico": {group:"historia_cultura",es:"ABCDEFGHMNPT",en:"ABCDEFGHKMNPT",fr:"ABCDEFGHMNPT",name_en:"Scientist",name_fr:"Scientifique"},
+  "Criatura mítica": {group:"historia_cultura",es:"ABCDEFGHLMOPSTV",en:"BCDFGHKLMOPSTV",fr:"BCDFGHLMOPSTV",name_en:"Mythical creature",name_fr:"Créature mythique"},
+  "Superhéroe o villano": {group:"historia_cultura",es:"ABCDFGHIJLMPRSTV",en:"ABCDFGHIJLMPRSTV",fr:"ABCDFGHIJLMPRSTV",name_en:"Superhero or villain",name_fr:"Super-héros ou vilain"},
+  "Parte del cuerpo": {group:"ciencia",es:"BCDEFGHILMNOPRSTV",en:"ABCEFHKLMNPRST",fr:"BCDEFGHJLMNOPRSTV",name_en:"Body part",name_fr:"Partie du corps"},
+  "Planeta o astro": {group:"ciencia",es:"JMNPSTV",en:"EJMNPSV",fr:"JMNPSTV",name_en:"Planet or star",name_fr:"Planète ou astre"},
+  "Animal prehistórico": {group:"ciencia",es:"ABDIMPRTV",en:"ABDIMPRSTV",fr:"ABDIMPRSTV",name_en:"Prehistoric animal",name_fr:"Animal préhistorique"},
+  "Invento": {group:"ciencia",es:"ABCDEFGILMPRSTV",en:"ABCDEGILMPRSTV",fr:"ABCDEGILMPRSTV",name_en:"Invention",name_fr:"Invention"},
+  "Transporte": {group:"ciudad_urbanismo",es:"ABCHMPSTV",en:"ABCHKMSTV",fr:"ABCHMSTV",name_en:"Transport",name_fr:"Transport"},
+  "Tipo de edificio": {group:"ciudad_urbanismo",es:"ABCEFGHIMPRT",en:"ABCEFGHILMPST",fr:"ABCEFGHIMPST",name_en:"Type of building",name_fr:"Type de bâtiment"},
+  "Monumento": {group:"ciudad_urbanismo",es:"ACEMPST",en:"ACMPST",fr:"ACMPST",name_en:"Monument",name_fr:"Monument"},
+  "Tipo de tienda": {group:"ciudad_urbanismo",es:"CFLOPS",en:"BCFGLMOPS",fr:"BCFLMOPS",name_en:"Type of shop",name_fr:"Type de magasin"},
+  "Ropa": {group:"hogar_objetos",es:"ABCFGIJLMPSTV",en:"ABCDGHJKLMOPRSTV",fr:"ABCEGIJLMPRSTV",name_en:"Clothing",name_fr:"Vêtement"},
+  "Mueble": {group:"hogar_objetos",es:"ABCELMPSTV",en:"ABCDLMST",fr:"ABCDEFLMPSTV",name_en:"Furniture",name_fr:"Meuble"},
+  "Herramienta": {group:"hogar_objetos",es:"ABCLMNPST",en:"ACDHLMPRST",fr:"CHLMNPRST",name_en:"Tool",name_fr:"Outil"},
+  "Utensilio de cocina": {group:"hogar_objetos",es:"BCEFMOPRSTV",en:"BCFGKLMOPRST",fr:"BCFLMPRSTV",name_en:"Kitchen utensil",name_fr:"Ustensile de cuisine"},
+  "Objeto del hogar": {group:"hogar_objetos",es:"ABCEFLMPRSTV",en:"ABCDFHIKLMPRTV",fr:"ABCFLMPRSTV",name_en:"Household object",name_fr:"Objet du foyer"},
+  "Marca de coche": {group:"marcas",es:"ABCDFHJLMNOPRSTV",en:"ABCDFHJKLMNOPRSTV",fr:"ABCDFHJLMNOPRSTV",name_en:"Car brand",name_fr:"Marque de voiture"},
+  "Marca de ropa y deporte": {group:"marcas",es:"ABCDGHLNPRV",en:"ABCDGHKLNPRV",fr:"ABCDGHLNPRV",name_en:"Fashion or sports brand",name_fr:"Marque de sport ou mode"},
+  "Marca tecnológica": {group:"marcas",es:"ABCDGHILMNPS",en:"ABCDGHILMNPS",fr:"ABCDGHILMNPS",name_en:"Tech brand",name_fr:"Marque technologique"},
+  "Deporte": {group:"deporte",es:"ABCEFGHJLMNPRSTV",en:"ABCEFGHJKLMPRSTV",fr:"ABCEFGHJLMNPRSTV",name_en:"Sport",name_fr:"Sport"},
+  "Modalidad olímpica": {group:"deporte",es:"ABCEFGHJLMNPSTV",en:"ABCEFGJKMPRSTV",fr:"ABCEFGHJLMNPRSTV",name_en:"Olympic discipline",name_fr:"Discipline olympique"},
+  "Deportista": {group:"deporte",es:"AFJLMNPRST",en:"AFJKLMNPRST",fr:"AFJLMNPRST",name_en:"Athlete",name_fr:"Sportif"},
+  "Equipamiento deportivo": {group:"deporte",es:"ABCEGMPRSTV",en:"ABCGHMNPRST",fr:"ABCEGMPRST",name_en:"Sports equipment",name_fr:"Équipement sportif"},
+  "Nombre": {group:"identidad_sociedad",es:"ABCDEFGHIJLMNOPRSTV",en:"ABCDEFGHIJKLMNOPRSTV",fr:"ABCDEFGHIJLMNOPRSTV",name_en:"First name",name_fr:"Prénom"},
+  "Apellido famoso": {group:"identidad_sociedad",es:"ABCDEFGHIJLMNOPRSTV",en:"ABCDEFGHIJKLMNOPRSTV",fr:"ABCDEFGHIJLMNOPRSTV",name_en:"Famous surname",name_fr:"Nom de famille célèbre"},
+  "Profesión": {group:"identidad_sociedad",es:"ABCDEFIMPSTV",en:"ABCDEFJLMNPSTV",fr:"ABCDEFIJMNPSTV",name_en:"Profession",name_fr:"Profession"},
+  "Idioma": {group:"identidad_sociedad",es:"ACDEFGHIJLMNPRST",en:"ABCDEFGHIJKLMNPRST",fr:"ABCDEFGHIJLMNPRST",name_en:"Language",name_fr:"Langue"},
+  "Color": {group:"identidad_sociedad",es:"ABCEGLMNOPRTV",en:"ABCEGIKLMOPRSTV",fr:"ABCEGIJLMNOPRTV",name_en:"Colour",name_fr:"Couleur"},
+};
+// ── Themed day overrides ──────────────────────────────
+// Add entries keyed by YYYY-MM-DD to override the normal seed-based picker.
+// Each entry: { letter, theme:{es,en,fr}, categories:{es:[...],en:[...],fr:[...]} }
+// Categories must be valid display names (not keys) for each language.
+const DAILY_OVERRIDES = {
+  // '2026-10-31': {
+  //   letter: 'B',
+  //   theme: { es: '🎃 Halloween', en: '🎃 Halloween', fr: '🎃 Halloween' },
+  //   categories: {
+  //     es: ['Bruja', 'Bestia', 'Bebida terrorífica', 'Baile macabro', 'Bicho', 'Barco fantasma'],
+  //     en: ['Bat', 'Beast', 'Blood', 'Bone', 'Boggart', 'Burial'],
+  //     fr: ['Balai', 'Bête', 'Bourdon', 'Bizarre', 'Brouillard', 'Bougie'],
+  //   }
+  // },
 };
 
 // Get today's date key YYYY-MM-DD
@@ -1845,29 +1920,65 @@ function getDailyKey() {
   return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
 }
 
-// Get deterministic daily setup from date
+// Get deterministic daily setup — per language, per date
 function getDailySetup() {
   const key = getDailyKey();
-  const seed = parseInt(key.replace(/-/g,''));
-  const rng = mulberry32(seed);
-  // Pick letter from easy pool (language-independent — use ES easy set for consistency)
-  const easyPool = 'ABCDEFGHIJLMNOPRSTV'.split('');
-  const letter = easyPool[Math.floor(rng() * easyPool.length)];
-  // Pick 6 categories from pool (indices, same for all languages)
-  const indices = [];
-  const poolSize = 17;
-  while (indices.length < 6) {
-    const idx = Math.floor(rng() * poolSize);
-    if (!indices.includes(idx)) indices.push(idx);
+  // Check for themed day override
+  const ov = DAILY_OVERRIDES[key];
+  if (ov && ov.categories && ov.categories[LANG]) {
+    return { letter: ov.letter, categories: ov.categories[LANG], key, theme: (ov.theme || {})[LANG] || null };
   }
-  return { letter, indices, key };
+  const langOffset = {es: 0, en: 1, fr: 2}[LANG] || 0;
+  const seed = parseInt(key.replace(/-/g,'')) + langOffset;
+  const rng = mulberry32(seed);
+
+  // Pick letter from this language's easy pool
+  const easyPool = LETTERS_EASY[LANG] || LETTERS_EASY.es;
+  const letter = easyPool[Math.floor(rng() * easyPool.length)];
+
+  // Filter categories valid for this letter+lang
+  const valid = Object.entries(DAILY_CAT_DATA).filter(([_, d]) => d[LANG].includes(letter));
+
+  // Group them
+  const byGroup = {};
+  valid.forEach(([cat, d]) => {
+    if (!byGroup[d.group]) byGroup[d.group] = [];
+    byGroup[d.group].push(cat);
+  });
+
+  // Pick 1 per group randomly, then pick 6 total
+  const groupKeys = Object.keys(byGroup);
+  // Shuffle groups
+  for (let i = groupKeys.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [groupKeys[i], groupKeys[j]] = [groupKeys[j], groupKeys[i]];
+  }
+  // Pick one cat per group (shuffled within group too)
+  const candidates = [];
+  groupKeys.forEach(g => {
+    const arr = byGroup[g].slice();
+    const pick = arr[Math.floor(rng() * arr.length)];
+    candidates.push(pick);
+  });
+  // Shuffle candidates and take 6
+  for (let i = candidates.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [candidates[i], candidates[j]] = [candidates[j], candidates[i]];
+  }
+  const categories = candidates.slice(0, 6);
+
+  return { letter, categories, key };
 }
 
-// Get category names for current language
-function getDailyCatNames(indices) {
-  const pool = DAILY_CATS[LANG] || DAILY_CATS.es;
-  return indices.map(i => pool[i]);
+// Get display names for current language
+function getDailyCatNames(categories) {
+  return categories.map(cat => {
+    if (LANG === 'en') return DAILY_CAT_DATA[cat]?.name_en || cat;
+    if (LANG === 'fr') return DAILY_CAT_DATA[cat]?.name_fr || cat;
+    return cat; // ES — key is already Spanish
+  });
 }
+
 
 // Speed bonus: linear 0–10 pts based on time remaining
 function calcSpeedBonus(secsRemaining, totalSecs) {
@@ -1876,7 +1987,7 @@ function calcSpeedBonus(secsRemaining, totalSecs) {
 
 // Daily game state
 let G_daily = {
-  letter: '', indices: [], categories: [], key: '',
+  letter: '', categories: [], key: '',
   answers: {}, timerInterval: null, secsRemaining: 90, totalSecs: 90,
   submitted: false, aiResults: {}
 };
@@ -1885,7 +1996,7 @@ window.startDailyChallenge = function() {
   const key = getDailyKey();
   const _playerNameRaw = G.playerName || document.getElementById('inp-name')?.value?.trim() || '';
   const _debugMode = _playerNameRaw.includes('__debug__');
-  const stored = localStorage.getItem('alto_daily_' + key);
+  const stored = localStorage.getItem('alto_daily_' + key + '_' + LANG);
   if (stored && !_debugMode) {
     // Already played today — show result directly
     try {
@@ -1896,10 +2007,10 @@ window.startDailyChallenge = function() {
     } catch(e) {}
   }
   // In debug mode, clear stored result so we can replay
-  if (_debugMode && stored) localStorage.removeItem('alto_daily_' + key);
+  if (_debugMode && stored) localStorage.removeItem('alto_daily_' + key + '_' + LANG);
 
   // Check localStorage for in-progress game (handles page refresh)
-  const inProgressKey = 'alto_daily_inprogress_' + key;
+  const inProgressKey = 'alto_daily_inprogress_' + key + '_' + LANG;
   const inProgressData = localStorage.getItem(inProgressKey);
   if (inProgressData && !G_daily.key) {
     // Page was refreshed mid-game — reconstruct state
@@ -1907,13 +2018,12 @@ window.startDailyChallenge = function() {
       const ipd = JSON.parse(inProgressData);
       const _expectedSetup = getDailySetup();
       if (ipd.key === key && ipd.lang === LANG && ipd.letter === _expectedSetup.letter) {
-        const elapsed = Math.floor((Date.now() - ipd.startTimestamp) / 1000);
+        const elapsed = ipd.startTimestamp ? Math.floor((Date.now() - ipd.startTimestamp) / 1000) : 0;
         const remaining = Math.max(0, (ipd.totalSecs || 90) - elapsed);
         if (remaining > 0) {
           // Restore G_daily from saved state
           G_daily.key = ipd.key;
           G_daily.letter = ipd.letter;
-          G_daily.indices = ipd.indices;
           G_daily.categories = ipd.categories;
           G_daily.answers = ipd.answers || {};
           G_daily.startTimestamp = ipd.startTimestamp;
@@ -1929,7 +2039,7 @@ window.startDailyChallenge = function() {
           if (card) card.innerHTML = G_daily.categories.map((cat, i) =>
             `<div class="daily-cat-row"><span class="daily-cat-label">${cat}</span><input class="daily-cat-input" id="daily-inp-${i}" placeholder="${G_daily.letter}…" maxlength="40" autocomplete="off" inputmode="text" oninput="dailyCheckInput(${i}, this.value)" value="${(G_daily.answers[i]||'').replace(/"/g,'&quot;')}"></div>`
           ).join('');
-          G_daily.saveProgress = () => localStorage.setItem(inProgressKey, JSON.stringify({ key: G_daily.key, letter: G_daily.letter, indices: G_daily.indices, categories: G_daily.categories, answers: G_daily.answers, startTimestamp: G_daily.startTimestamp, totalSecs: G_daily.totalSecs, lang: LANG }));
+          G_daily.saveProgress = () => localStorage.setItem(inProgressKey, JSON.stringify({ key: G_daily.key, letter: G_daily.letter, categories: G_daily.categories, answers: G_daily.answers, startTimestamp: G_daily.startTimestamp, totalSecs: G_daily.totalSecs, lang: LANG }));
           show('daily-play');
           // Resume timer
           const fill2 = document.getElementById('daily-timer-fill');
@@ -1945,13 +2055,12 @@ window.startDailyChallenge = function() {
             const ft3 = document.getElementById('ft-timer');
             if (ft3) { ft3.textContent = G_daily.secsRemaining; if (G_daily.secsRemaining <= 10) ft3.classList.add('urgent'); else ft3.classList.remove('urgent'); }
             if (G_daily.secsRemaining <= 10) setUrgencyPulse(true);
-            if (G_daily.secsRemaining <= 0) dailySubmit();
+            if (G_daily.secsRemaining <= 0) { clearInterval(G_daily.timerInterval); dailySubmit(); }
           }, 1000);
           return;
         } else {
           // Time ran out while away — auto-submit with saved answers
-          G_daily.key = ipd.key; G_daily.letter = ipd.letter; G_daily.indices = ipd.indices;
-          G_daily.categories = ipd.categories; G_daily.answers = ipd.answers || {};
+          G_daily.key = ipd.key; G_daily.letter = ipd.letter; G_daily.categories = ipd.categories; G_daily.answers = ipd.answers || {};
           G_daily.secsRemaining = 0; G_daily.totalSecs = ipd.totalSecs || 90;
           G_daily.submitted = false;
           localStorage.removeItem(inProgressKey);
@@ -1990,21 +2099,20 @@ window.startDailyChallenge = function() {
       const ft = document.getElementById('ft-timer');
       if (ft) { ft.textContent = G_daily.secsRemaining; if (G_daily.secsRemaining <= 10) ft.classList.add('urgent'); else ft.classList.remove('urgent'); }
       if (G_daily.secsRemaining <= 10) setUrgencyPulse(true);
-      if (G_daily.secsRemaining <= 0) dailySubmit();
+      if (G_daily.secsRemaining <= 0) { clearInterval(G_daily.timerInterval); dailySubmit(); }
     }, 1000);
     return;
   }
 
   // Clean up stale in-progress keys from previous days
   Object.keys(localStorage).forEach(k => {
-    if (k.startsWith('alto_daily_inprogress_') && k !== 'alto_daily_inprogress_' + key) {
+    if (k.startsWith('alto_daily_inprogress_') && k !== 'alto_daily_inprogress_' + key + '_' + LANG) {
       localStorage.removeItem(k);
     }
   });
 
   const setup = getDailySetup();
   G_daily.letter = setup.letter;
-  G_daily.indices = setup.indices;
   G_daily.key = setup.key;
   G_daily.answers = {};
   G_daily.aiResults = {};
@@ -2012,7 +2120,14 @@ window.startDailyChallenge = function() {
   G_daily.secsRemaining = 90;
   G_daily.totalSecs = 90;
   G_daily.startTimestamp = null; // set when timer actually starts after countdown
-  G_daily.categories = getDailyCatNames(setup.indices);
+  G_daily.categories = getDailyCatNames(setup.categories);
+
+  // Apply theme override title if present
+  if (setup.theme) {
+    const s2 = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+    s2('daily-play-label', setup.theme);
+    s2('daily-result-title', setup.theme);
+  }
 
   // Build input UI
   const card = document.getElementById('daily-inputs-card');
@@ -2032,8 +2147,9 @@ window.startDailyChallenge = function() {
 
   // Save in-progress state to localStorage
   const _saveProgress = () => {
-    localStorage.setItem('alto_daily_inprogress_' + G_daily.key, JSON.stringify({
-      key: G_daily.key, letter: G_daily.letter, indices: G_daily.indices,
+    if (!G_daily.startTimestamp) return; // don't save until timer has started
+    localStorage.setItem('alto_daily_inprogress_' + G_daily.key + '_' + LANG, JSON.stringify({
+      key: G_daily.key, letter: G_daily.letter,
       categories: G_daily.categories, answers: G_daily.answers,
       startTimestamp: G_daily.startTimestamp, totalSecs: G_daily.totalSecs,
       lang: LANG,
@@ -2047,6 +2163,29 @@ window.startDailyChallenge = function() {
   // Countdown before timer starts
   startDailyCountdown();
 };
+
+// Pause daily timer when tab is backgrounded, resume when visible again
+document.addEventListener('visibilitychange', () => {
+  if (!G_daily.timerInterval || G_daily.submitted) return;
+  if (document.hidden) {
+    // Tab hidden — record when we paused
+    G_daily._hiddenAt = Date.now();
+    clearInterval(G_daily.timerInterval);
+  } else {
+    // Tab visible again — adjust for time spent hidden
+    if (G_daily._hiddenAt) {
+      const hiddenSecs = Math.floor((Date.now() - G_daily._hiddenAt) / 1000);
+      G_daily.secsRemaining = Math.max(0, G_daily.secsRemaining - hiddenSecs);
+      G_daily._hiddenAt = null;
+    }
+    if (G_daily.secsRemaining <= 0) {
+      dailySubmit();
+    } else {
+      // Restart the interval
+      startDailyTimer();
+    }
+  }
+});
 
 function startDailyTimer() {
   G_daily.startTimestamp = Date.now();
@@ -2077,7 +2216,7 @@ function startDailyTimer() {
       else ft.classList.remove('urgent');
     }
     if (G_daily.secsRemaining <= 10) setUrgencyPulse(true);
-    if (G_daily.secsRemaining <= 0) dailySubmit();
+    if (G_daily.secsRemaining <= 0) { clearInterval(G_daily.timerInterval); dailySubmit(); }
   }, 1000);
 }
 
@@ -2132,7 +2271,7 @@ window.dailySubmit = async function() {
   setTimerBubble(0, false);
   setUrgencyPulse(false);
   // Clear in-progress save
-  localStorage.removeItem('alto_daily_inprogress_' + G_daily.key);
+  localStorage.removeItem('alto_daily_inprogress_' + G_daily.key + '_' + LANG);
   const submitBtn = document.getElementById('btn-daily-submit');
   if (submitBtn) { submitBtn.disabled = true; submitBtn.innerHTML = '<span class="spin-icon">↻</span> Validando…'; }
   // Disable all answer inputs so player can't edit during validation
@@ -2188,16 +2327,22 @@ window.dailySubmit = async function() {
     key: G_daily.key, lang: LANG,
     playerName: dailyPlayerName, playerEmoji: dailyPlayerEmoji
   };
-  localStorage.setItem('alto_daily_' + G_daily.key, JSON.stringify(saveData));
+  if (!dailyPlayerName.startsWith('__')) {
+    localStorage.setItem('alto_daily_' + G_daily.key + '_' + LANG, JSON.stringify(saveData));
+  }
 
   // Submit to Firebase — scoped by language
   // Store answers as object for originality computation
   const answersObj = {};
   G_daily.categories.forEach((cat, i) => { answersObj[i] = G_daily.answers[i] || ''; });
+  // Test mode: if name starts with __ skip Firebase write
+  const _isTestMode = dailyPlayerName.startsWith('__');
+
   try {
     const playerKey = dailyPlayerName.replace(/[.#$\[\]\/]/g,'_') + '_' + Date.now() + '_' + Math.floor(Math.random()*9999);
     G_daily.playerKey = playerKey;
-    G_daily.displayName = displayName;
+    G_daily.displayName = _isTestMode ? displayName + ' 🧪' : displayName;
+    if (!_isTestMode) {
     const dailyRef = ref(db, 'daily/' + G_daily.key + '/' + LANG + '/scores/' + playerKey);
     await set(dailyRef, {
       name: displayName,
@@ -2207,6 +2352,7 @@ window.dailySubmit = async function() {
       categories: G_daily.categories || [],
       timestamp: Date.now()
     });
+    } // end !_isTestMode
     G_daily.playerKey = playerKey;
   } catch(e) { console.warn('Daily Firebase write failed:', e); }
 
@@ -2297,7 +2443,7 @@ async function dailyAIValidate(word, category, letter) {
 async function showDailyResult(answers, baseScore, totalScore, aiResults, secsLeft, speedMultiplier) {
   const list = document.getElementById('daily-answers-list');
   const setup = getDailySetup();
-  const cats = getDailyCatNames(setup.indices);
+  const cats = getDailyCatNames(setup.categories);
   const aiIcon = { valid:'✅', invalid:'❌', unsure:'🤔', empty:'—' };
 
   // Store for originality recompute
@@ -2309,7 +2455,7 @@ async function showDailyResult(answers, baseScore, totalScore, aiResults, secsLe
   list.innerHTML = cats.map((cat, i) => {
     const word = answers[i] || '';
     const res = aiResults[i] || (word ? 'unsure' : 'empty');
-    const base = (word && res === 'valid') ? 10 : 0;
+    const base = (word && res === 'valid') ? 100 : (word && res === 'unsure') ? 50 : 0;
     return `<div class="daily-result-row" id="daily-row-${i}">
       <span class="daily-result-cat">${cat}</span>
       <span class="daily-result-word">${word || '<span style="opacity:0.4">—</span>'}</span>
@@ -2321,8 +2467,9 @@ async function showDailyResult(answers, baseScore, totalScore, aiResults, secsLe
 
   // Speed summary
   const mult = speedMultiplier ? speedMultiplier.toFixed(2) : '1.00';
-  list.innerHTML += `<div style="text-align:right;font-family:'Special Elite',monospace;font-size:11px;color:var(--ink-muted);padding-top:6px">
-    ⚡ ×${mult} velocidad &nbsp;|&nbsp; base ${baseScore*10} pts → <strong>${totalScore*10} pts</strong>
+  const _dl = dl();
+  list.innerHTML += `<div id="daily-speed-summary" style="text-align:right;font-family:'Special Elite',monospace;font-size:11px;color:var(--ink-muted);padding-top:6px">
+    ${_dl.baseLabel} ${baseScore*10} pts ×${mult}⚡→ <strong>${totalScore*10} pts</strong>
   </div>`;
 
   // Total score
@@ -2336,7 +2483,7 @@ async function showDailyResult(answers, baseScore, totalScore, aiResults, secsLe
 
   show('daily-result');
   document.querySelectorAll('.daily-lb-lang-btn').forEach(b => b.classList.toggle('active', b.dataset.lang === LANG));
-  loadDailyLeaderboard(getDailyKey());
+  loadDailyLeaderboard(getDailyKey()).then(() => reapplyOriginality());
 }
 
 async function loadDailyLeaderboard(key, lbLang) {
@@ -2373,7 +2520,7 @@ function renderLeaderboard(allScores) {
 
   // Ensure categories are available even when leaderboard viewed after session
   if (!G_daily.categories || !G_daily.categories.length) {
-    try { const s = getDailySetup(); G_daily.categories = getDailyCatNames(s.indices); } catch(e) {}
+    try { const s = getDailySetup(); G_daily.categories = getDailyCatNames(s.categories); } catch(e) {}
   }
   const cats = G_daily.categories || [];
   function speedTag(e) {
@@ -2381,21 +2528,58 @@ function renderLeaderboard(allScores) {
     const mult = (e.totalScore / e.baseScore).toFixed(2);
     return `<span class="daily-lb-speed">⚡×${mult}</span>`;
   }
+  // Pre-compute unique answers across all entries (for originality badges)
+  function computeUniqueness(allEntries) {
+    // For each category slot, collect all valid answers (normalised)
+    const answerSets = {};
+    allEntries.forEach(e => {
+      if (!e.answers) return;
+      Object.keys(e.answers).forEach(i => {
+        const val = normalize(e.answers[i] || '');
+        const ai = e.aiResults ? e.aiResults[i] : null;
+        if (val && ai === 'valid') {
+          if (!answerSets[i]) answerSets[i] = [];
+          answerSets[i].push(val);
+        }
+      });
+    });
+    // An answer is unique if it appears exactly once across all players
+    const unique = {};
+    allEntries.forEach(e => {
+      if (!e.answers) return;
+      unique[e.name] = {};
+      Object.keys(e.answers).forEach(i => {
+        const val = normalize(e.answers[i] || '');
+        const ai = e.aiResults ? e.aiResults[i] : null;
+        if (val && ai === 'valid') {
+          unique[e.name][i] = (answerSets[i] || []).filter(v => v === val).length === 1;
+        }
+      });
+    });
+    return unique;
+  }
+
+  const uniqueness = computeUniqueness(entries);
+
   function buildAnswerPanel(e, idx) {
     if (!e.answers) return '';
     const panelCats = (e.categories && e.categories.length) ? e.categories : cats;
     if (!panelCats.length) return '';
+    const playerUnique = uniqueness[e.name] || {};
+    const _dl = dl();
     const rows = panelCats.map((cat, i) => {
       const val = e.answers[i] || '';
       const ai = e.aiResults ? e.aiResults[i] : null;
       const aiIcon = ai === 'valid' ? '✅' : ai === 'invalid' ? '❌' : ai === 'unsure' ? '🤔' : '';
+      const isUnique = playerUnique[i] === true;
       const pts = !val ? '' : ai === 'valid' ? '+100' : ai === 'invalid' ? '0' : ai === 'unsure' ? '+50' : '';
+      const origBadge = isUnique ? `<span class="daily-lb-orig" style="font-size:11px">+50✨</span>` : '';
       const ptsHtml = pts ? `<span class="daily-lb-answer-pts${ai === 'invalid' ? ' zero' : ''}">${pts}</span>` : '';
       return `<div class="daily-lb-answer-row">
         <span class="daily-lb-answer-cat">${cat}</span>
         <span class="daily-lb-answer-val${val ? '' : ' empty'}">${val || '—'}</span>
         <span class="daily-lb-answer-ai">${aiIcon}</span>
-        ${ptsHtml}
+        ${ptsHtml}${origBadge}
       </div>`;
     }).join('');
     return `<div class="daily-lb-answers" id="daily-ans-${idx}">${rows}</div>`;
@@ -2407,7 +2591,7 @@ function renderLeaderboard(allScores) {
     return `<div class="daily-lb-row${isMe ? ' daily-lb-me' : ''}" id="daily-row-${i}" onclick="toggleDailyAnswers(${i})">
       <span class="daily-lb-rank">${medals[i] || (i+1)}</span>
       <span class="daily-lb-name">${e.name}</span>
-      <span class="daily-lb-score">${e.totalScore} pts</span>
+      <span class="daily-lb-score">${e.totalScore*10} pts</span>
       ${speedTag(e)}${orig}<span class="daily-lb-chevron">▶</span>
     </div>${buildAnswerPanel(e, i)}`;
   }).join('');
@@ -2421,7 +2605,7 @@ function renderLeaderboard(allScores) {
     html += `<div class="daily-lb-row daily-lb-me" id="daily-row-me" onclick="toggleDailyAnswers('me')">
       <span class="daily-lb-rank">${myIdx+1}</span>
       <span class="daily-lb-name">${me.name}</span>
-      <span class="daily-lb-score">${me.totalScore} pts</span>
+      <span class="daily-lb-score">${me.totalScore*10} pts</span>
       ${speedTag(me)}${orig}<span class="daily-lb-chevron">▶</span>
     </div>${buildAnswerPanel(me, 'me')}`;
   }
@@ -2437,6 +2621,28 @@ window.toggleDailyAnswers = function(idx) {
   row.classList.toggle('expanded', open);
 };
 
+function reapplyOriginality() {
+  if (!G_daily.originality || G_daily.originality <= 0) return;
+  const originality = G_daily.originality;
+  // Re-apply per-answer badges for unique answers only
+  const _uniqueIdx = G_daily.uniqueIndices || [];
+  _uniqueIdx.forEach(i => {
+    const origEl = document.getElementById('daily-orig-' + i);
+    if (origEl) origEl.textContent = '+50✨';
+  });
+  // Re-apply header total
+  const newTotal = G_daily.totalWithOrig || (G_daily.totalScore + originality);
+  const totalEl = document.getElementById('daily-total-score');
+  if (totalEl) totalEl.textContent = (newTotal*10) + ' pts';
+  // Re-apply speed breakdown line
+  const summaryEl = document.getElementById('daily-speed-summary');
+  if (summaryEl) {
+    const _dlr = dl();
+    const mult = G_daily.totalScore && G_daily.baseScore ? (G_daily.totalScore / G_daily.baseScore).toFixed(2) : '1.00';
+    summaryEl.innerHTML = `${_dlr.baseLabel} ${G_daily.baseScore*10} pts ×${mult}⚡→ <strong>${G_daily.totalScore*10} pts</strong> +${originality*10} ${_dlr.origLabel}✨`;
+  }
+}
+
 async function computeAndUpdateOriginality(allScores, key) {
   // For each of my valid answers, check if it's unique among all players
   const myName = G_daily.displayName || ((G.playerName || '') + ' ' + (G.playerEmoji || ''));
@@ -2447,6 +2653,7 @@ async function computeAndUpdateOriginality(allScores, key) {
 
   const otherEntries = Object.values(allScores).filter(e => e.name && e.name.trim() !== myName.trim());
   let originality = 0;
+  const uniqueIndices = [];
 
   G_daily.categories.forEach((cat, i) => {
     const myAnswer = normalize(myData.answers[i] || '');
@@ -2458,16 +2665,23 @@ async function computeAndUpdateOriginality(allScores, key) {
     });
     if (isUnique) {
       originality += 5;
+      uniqueIndices.push(i);
       // Update UI badge on answer row
       const origEl = document.getElementById('daily-orig-' + i);
-      if (origEl) origEl.textContent = '+5✨';
+      if (origEl) origEl.textContent = '+50✨';
     }
   });
 
+  // Save to G_daily so reapplyOriginality() can use it on lang switch
+  G_daily.originality = originality;
+  G_daily.uniqueIndices = uniqueIndices;
+  G_daily.totalWithOrig = G_daily.totalScore + originality;
   // Update total score display
-  const newTotal = G_daily.totalScore + originality;
+  const newTotal = G_daily.totalWithOrig;
   const totalEl = document.getElementById('daily-total-score');
-  if (totalEl) totalEl.textContent = (newTotal*10) + ' pts' + (originality > 0 ? ' +' + (originality*10) + '✨' : '');
+  if (totalEl) totalEl.textContent = (newTotal*10) + ' pts';
+  // Update speed breakdown line with originality label
+  reapplyOriginality();
 
   // Update Firebase if originality changed
   if (originality !== (myData.originality || 0)) {
@@ -2485,7 +2699,7 @@ async function computeAndUpdateOriginality(allScores, key) {
 // Manual refresh button
 window.switchDailyLbLang = function(lang) {
   document.querySelectorAll(".daily-lb-lang-btn").forEach(b => b.classList.toggle("active", b.dataset.lang === lang));
-  loadDailyLeaderboard(getDailyKey(), lang);
+  loadDailyLeaderboard(getDailyKey(), lang).then(() => reapplyOriginality());
 };
 
 window.refreshDailyOriginality = async function() {
@@ -2536,12 +2750,14 @@ function dl() { return DAILY_LABELS[LANG] || DAILY_LABELS.es; }
 function applyDailyLang() {
   const l = dl();
   const s2 = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
-  s2('lbl-daily-your-answers', l.yourAnswers);
+  const _langFlag = {es:'🇪🇸', en:'🇬🇧', fr:'🇫🇷'}[LANG] || '';
+  s2('lbl-daily-your-answers', _langFlag + ' ' + l.yourAnswers);
   s2('lbl-daily-leaderboard', l.leaderboard);
 
   s2('btn-daily-home', l.backHome);
   s2('btn-daily-submit', l.dailySubmitBtn);
   s2('daily-play-label', l.dailyPlayLabel);
+  s2('daily-result-title', l.dailyPlayLabel);
   s2('btn-daily-refresh', l.refreshBtn);
 }
 
@@ -2584,7 +2800,7 @@ function updateDailyButtonDate() {
   if (!span) return;
 
   const key = getDailyKey();
-  const played = !!localStorage.getItem('alto_daily_' + key);
+  const played = !!localStorage.getItem('alto_daily_' + key + '_' + LANG);
 
   const labels = { es:'Reto diario', en:'Daily challenge', fr:'Défi du jour' };
   const doneLabels = {
@@ -3024,6 +3240,23 @@ function startTimer(secs) {
     if (t<=0) { clearInterval(G.timerInterval); setUrgencyPulse(false); setTimerBubble(0, false); await doSubmit(null,true); }
   }, 1000);
 }
+
+// When tab regains focus, check if time ran out while backgrounded
+document.addEventListener('visibilitychange', async () => {
+  if (document.hidden || G.screen !== 'playing') return;
+  const snap = await get(roomRef(G.roomCode));
+  if (!snap.exists()) return;
+  const room = snap.val();
+  if (room.phase !== 'playing') return;
+  const maxSecs = room.timePerRound || 60;
+  const elapsed = room.roundStartTime ? Math.floor((Date.now() - room.roundStartTime) / 1000) : 0;
+  if (elapsed >= maxSecs) {
+    clearInterval(G.timerInterval);
+    setUrgencyPulse(false);
+    setTimerBubble(0, false);
+    await doSubmit(null, true);
+  }
+});
 
 window.callStop = async () => {
   clearInterval(G.timerInterval);
@@ -3548,10 +3781,12 @@ window.askAI = async (word, category, letter, key) => {
     result.className = 'ai-result show ' + cls;
     btn.style.display = 'none'; // hide button — result locked in
   } catch(e) {
-    const isTimeout = e.name === 'TimeoutError' || e.name === 'AbortError';
+    const _slow = {es:'⏳ Robot lento…', en:'⏳ Robot slow…', fr:'⏳ Robot lent…'}[LANG] || '⏳ Robot lento…';
+    const _retry = {es:'Reintentar', en:'Retry', fr:'Réessayer'}[LANG] || 'Reintentar';
+    const _unavail = {es:'Robot no disponible', en:'Robot unavailable', fr:'Robot indisponible'}[LANG] || 'Robot no disponible';
     result.innerHTML = isTimeout
-      ? `⏳ IA lenta… <button onclick="askAI('${word.replace(/'/g,"\'")}','${category}','${letter}','${key}')" style="font-size:11px;padding:2px 6px;margin-left:4px;border-radius:4px;border:1px solid var(--border);cursor:pointer;background:var(--paper-dark)">Reintentar</button>`
-      : '⚠️ ' + (e.message || 'IA no disponible');
+      ? `${_slow} <button onclick="askAI('${word.replace(/'/g,"\\'")}','${category}','${letter}','${key}')" style="font-size:11px;padding:2px 6px;margin-left:4px;border-radius:4px;border:1px solid var(--border);cursor:pointer;background:var(--paper-dark)">${_retry}</button>`
+      : '⚠️ ' + (e.message || _unavail);
     result.className = 'ai-result show unsure';
     btn.textContent = '🤖';
     console.error('OpenRouter error:', e);
@@ -3665,7 +3900,7 @@ window.setValidationMode = (mode) => {
   const sub1 = document.getElementById('lbl-validate-sub1');
   const sub2 = document.getElementById('lbl-validate-sub2');
   if (mode === 'democratic') {
-    const s1 = {es:'👍👎 votar · 📖 Wikipedia · 🤖 IA', en:'👍👎 vote · 📖 Wikipedia · 🤖 AI', fr:'👍👎 voter · 📖 Wikipedia · 🤖 IA'}[LANG] || '👍👎 votar · 📖 Wikipedia · 🤖 IA';
+    const s1 = {es:'👍👎 votar · 📖 Wikipedia · 🤖 Robot', en:'👍👎 vote · 📖 Wikipedia · 🤖 Robot', fr:'👍👎 voter · 📖 Wikipedia · 🤖 Robot'}[LANG] || '👍👎 votar · 📖 Wikipedia · 🤖 Robot';
     const s2 = {es:'única = 100 pts · repetida = 50 pts · anulada = 0 pts', en:'unique = 100 pts · duplicate = 50 pts · invalid = 0 pts', fr:'unique = 100 pts · doublon = 50 pts · annulé = 0 pts'}[LANG] || 'única = 100 pts · repetida = 50 pts · anulada = 0 pts';
     if (sub1) sub1.textContent = s1;
     if (sub2) sub2.textContent = s2;
@@ -4113,9 +4348,15 @@ function showFinal(room) {
 
 window.playAgain = async () => {
   stopConfetti();
-  if (!G.isHost) { toast(t('toastHostOnly')); return; }
   const snap = await get(roomRef(G.roomCode));
+  if (!snap.exists()) {
+    leaveGame();
+    return;
+  }
   const room = snap.val();
+  // Re-check host status from Firebase in case G.isHost got lost
+  const isActuallyHost = G.isHost || (room.host && room.host === G.playerName);
+  if (!isActuallyHost) { toast(t('toastHostOnly')); return; }
   const scores = {};
   Object.keys(room.players||{}).forEach(p => scores[p]=0);
   await update(roomRef(G.roomCode), {
@@ -4519,7 +4760,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260905.78-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v260906.101-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
@@ -4543,7 +4784,7 @@ tryRestore();
     <!-- AI toggle -->
     <label style="color:#eee;font-size: 11px;display:flex;align-items:center;gap:3px;cursor:pointer">
       <input type="checkbox" id="dbg-ai" onchange="dbgSetAI(this.checked)" checked style="cursor:pointer">
-      🤖 AI
+      🤖 Robot
     </label>
     <!-- Long word toggle -->
     <label style="color:#eee;font-size: 11px;display:flex;align-items:center;gap:3px;cursor:pointer">
