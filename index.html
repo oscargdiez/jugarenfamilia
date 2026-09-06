@@ -4113,6 +4113,9 @@ function showFinal(room) {
   document.getElementById('final-list').innerHTML = sorted.map(([n,pts],i) =>
     `<div class="score-row"><span>${MEDALS[i]||''} ${fPlayers[n]||'🎲'} ${n}</span><span class="pts">${pts} pts</span></div>`
   ).join('');
+  // Only host can play again
+  const playAgainBtn = document.getElementById('btn-play-again');
+  if (playAgainBtn) playAgainBtn.style.display = G.isHost ? '' : 'none';
 }
 
 window.playAgain = async () => {
@@ -4529,7 +4532,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260905.82</div>
+  <div style="font-size: 11px;opacity:0.5">v260905.83</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
