@@ -2472,7 +2472,7 @@ async function computeAndUpdateOriginality(allScores, key) {
   // Update total score display
   const newTotal = G_daily.totalScore + originality;
   const totalEl = document.getElementById('daily-total-score');
-  if (totalEl) totalEl.textContent = (newTotal*10) + ' pts' + (originality > 0 ? ' (incl. +' + (originality*10) + '✨)' : '');
+  if (totalEl) totalEl.textContent = (newTotal*10) + ' pts';
   // Update speed breakdown line with originality label
   const summaryEl = document.getElementById('daily-speed-summary');
   if (summaryEl && originality > 0) {
@@ -4556,7 +4556,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260906.92</div>
+  <div style="font-size: 11px;opacity:0.5">v260906.93</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
