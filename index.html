@@ -3029,6 +3029,23 @@ function startTimer(secs) {
   }, 1000);
 }
 
+// When tab regains focus, check if time ran out while backgrounded
+document.addEventListener('visibilitychange', async () => {
+  if (document.hidden || G.screen !== 'playing') return;
+  const snap = await get(roomRef(G.roomCode));
+  if (!snap.exists()) return;
+  const room = snap.val();
+  if (room.phase !== 'playing') return;
+  const maxSecs = room.timePerRound || 60;
+  const elapsed = room.roundStartTime ? Math.floor((Date.now() - room.roundStartTime) / 1000) : 0;
+  if (elapsed >= maxSecs) {
+    clearInterval(G.timerInterval);
+    setUrgencyPulse(false);
+    setTimerBubble(0, false);
+    await doSubmit(null, true);
+  }
+});
+
 window.callStop = async () => {
   clearInterval(G.timerInterval);
   setUrgencyPulse(false);
@@ -4529,7 +4546,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260905.84</div>
+  <div style="font-size: 11px;opacity:0.5">v260905.85</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
