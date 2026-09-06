@@ -2731,7 +2731,8 @@ function applyDailyLang() {
   const _flagSvg = (window.FLAGS && window.FLAGS[LANG]) || '';
   const _flagEl = document.getElementById('lbl-daily-your-answers');
   if (_flagEl) {
-    _flagEl.innerHTML = (_flagSvg ? '<span style="display:inline-block;vertical-align:middle;margin-right:5px">' + _flagSvg + '</span>' : '') + l.yourAnswers;
+    const _inlineSvg = _flagSvg.replace('display:block', 'display:inline-block;vertical-align:middle');
+    _flagEl.innerHTML = (_inlineSvg ? '<span style="margin-right:5px;line-height:1;vertical-align:middle">' + _inlineSvg + '</span>' : '') + l.yourAnswers;
   }
   s2('lbl-daily-leaderboard', l.leaderboard);
 
@@ -4741,7 +4742,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260906.105-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v260906.106-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
