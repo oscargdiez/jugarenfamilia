@@ -365,4 +365,11 @@ Typography overhaul: 6-slot system, Special Elite for UI chrome, Caveat for cont
 
 - Defined missing CSS variables --success, --success-bg, --danger, --danger-bg in :root (were missing, causing black/transparent on vote buttons, AI results, democratic badges, daily pts)
 
-**Last version deployed: v260905.78**
+- visibilitychange handler: auto-submits if time ran out while tab was backgrounded (setInterval throttled by browser)
+- playAgain: re-checks host status from Firebase in case G.isHost got lost; handles deleted room gracefully
+- shellLogoClick: final screen now goes home (was silently doing nothing)
+- Daily result card: per-answer pts now show ×10 (100/50 not 10/5); originality shows +50 not +5
+- Daily leaderboard: total score now shows ×10 (910 not 91)
+- Defined missing CSS vars --success --success-bg --danger --danger-bg in :root
+
+**Last version deployed: v260905.85**
