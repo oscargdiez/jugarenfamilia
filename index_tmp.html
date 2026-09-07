@@ -2158,9 +2158,11 @@ window.startDailyChallenge = function() {
   G_daily.startTimestamp = null; // set when timer actually starts after countdown
   G_daily.categories = getDailyCatNames(setup.categories);
 
-  // Apply theme override title if present
-  if (setup.theme) {
-    const s2 = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+  // Apply theme override title if present, or practice label
+  const s2 = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+  if (G_daily.practiceMode) {
+    s2('daily-play-label', dl().practiceLabel || 'Práctica');
+  } else if (setup.theme) {
     s2('daily-play-label', setup.theme);
     s2('daily-result-title', setup.theme);
   }
@@ -2170,7 +2172,7 @@ window.startDailyChallenge = function() {
   const letterEl = document.getElementById('daily-letter-display');
   if (letterEl) letterEl.textContent = setup.letter;
   const dateEl = document.getElementById('daily-play-date');
-  if (dateEl) dateEl.textContent = getDailyDateString();
+  if (dateEl) dateEl.textContent = G_daily.practiceMode ? '' : getDailyDateString();
 
   card.innerHTML = G_daily.categories.map((cat, i) => `
     <div class="daily-cat-row">
@@ -2834,7 +2836,7 @@ function updateDailyButtonDate() {
 
   const labels = { es:'Reto diario', en:'Daily challenge', fr:'Défi du jour' };
   const doneLabels = {
-    es:'✅ Ya jugaste hoy · Ver puntuación',
+    es:'✅ Ya jugaste · Ver puntuación',
     en:'✅ Already played · See score',
     fr:'✅ Déjà joué · Voir le score',
     de:'✅ Bereits gespielt · Ergebnis sehen',
@@ -4790,7 +4792,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260907.111-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v260907.112-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
