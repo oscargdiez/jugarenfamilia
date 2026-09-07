@@ -447,12 +447,13 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
   font-family: 'Special Elite', monospace; font-size: 13px;
   cursor: pointer; z-index: 998;
   box-shadow: 0 2px 8px rgba(0,0,0,0.18);
-  display: none; align-items: center; gap: 6px;
+  display: flex; align-items: center; gap: 6px;
   border: none; white-space: nowrap;
-  animation: bubble-in 0.3s ease;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  transform: scale(0.85) translateY(8px);
 }
-#update-bubble.show { display: flex; }
-@keyframes bubble-in { from { opacity:0; transform:scale(0.85) translateY(8px); } to { opacity:1; transform:scale(1) translateY(0); } }
+#update-bubble.show { opacity: 1; pointer-events: auto; transform: scale(1) translateY(0); }
 
 /* ── Floating timer numbers ── */
 .timer-float {
@@ -5248,7 +5249,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260907.139-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v260907.140-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
