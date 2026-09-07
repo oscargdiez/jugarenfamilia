@@ -876,13 +876,12 @@ document.addEventListener('DOMContentLoaded', function() {
     <div class="logo-tag">el juego de siempre, con los de siempre</div>
   </div>
   <div class="card">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;min-height:18px">
-      <p class="lbl" id="lbl-your-name" style="margin:0">tu nombre</p>
-      <button id="claim-pill" class="" onclick="claimOpen()" tabindex="-1" style="padding:0;background:none;border:none;cursor:pointer;display:none">
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:14px">
+      <input type="text" id="inp-name" placeholder="María..." maxlength="20" autocomplete="nickname" inputmode="text" style="flex:1;margin-bottom:0" oninput="this.value=this.value.charAt(0).toUpperCase()+this.value.slice(1).toLowerCase();localStorage.setItem('alto_name', this.value.trim());scheduleNameCheck(this.value.trim())">
+      <button id="claim-pill" class="" onclick="claimOpen()" tabindex="-1" style="padding:0;background:none;border:none;cursor:pointer;display:none;flex-shrink:0">
         <span id="claim-pill-badge"></span>
       </button>
     </div>
-    <input type="text" id="inp-name" placeholder="María..." maxlength="20" autocomplete="nickname" inputmode="text" style="margin-bottom:14px" oninput="this.value=this.value.charAt(0).toUpperCase()+this.value.slice(1).toLowerCase();localStorage.setItem('alto_name', this.value.trim());scheduleNameCheck(this.value.trim())">
     <p class="lbl" id="lbl-choose-emoji" style="display:none">elige tu emoji <span class="emoji-display" id="selected-emoji">🎲</span></p>
     <div class="emoji-grid" id="emoji-grid"></div>
     <div style="margin-top:14px;display:flex;flex-direction:column;gap:8px">
@@ -1569,7 +1568,6 @@ window.applyLang = function() {
   // Home
   document.querySelectorAll('.logo-tag').forEach(el => el.textContent = t('tagline'));
   s('inp-name', null, t('namePlaceholder'));
-  s('lbl-your-name', t('yourName'));
   s('lbl-choose-emoji', t('chooseEmoji') + ' ');
   s('btn-create', t('createRoom') + ' →');
   s('rules-btn', '▼ ' + t('rulesBtn'));
@@ -5231,7 +5229,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260907.133-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v260907.134-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
