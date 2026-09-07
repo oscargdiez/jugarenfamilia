@@ -2253,6 +2253,7 @@ window.startDailyChallenge = async function() {
           const ft2 = document.getElementById('ft-timer');
           if (ft2) { ft2.textContent = remaining; ft2.classList.toggle('urgent', remaining <= 10); }
           setTimerBubble(remaining, true);
+          clearInterval(G_daily.timerInterval);
           G_daily.timerInterval = setInterval(() => {
             G_daily.secsRemaining--;
             const pct2 = (G_daily.secsRemaining / G_daily.totalSecs) * 100;
@@ -2298,6 +2299,7 @@ window.startDailyChallenge = async function() {
     const ftTimer = document.getElementById('ft-timer');
     if (ftTimer) { ftTimer.textContent = G_daily.secsRemaining; ftTimer.classList.toggle('urgent', G_daily.secsRemaining <= 10); }
     setTimerBubble(G_daily.secsRemaining, true);
+    clearInterval(G_daily.timerInterval);
     G_daily.timerInterval = setInterval(() => {
       G_daily.secsRemaining--;
       const pct = (G_daily.secsRemaining / G_daily.totalSecs) * 100;
@@ -5407,7 +5409,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260907.158</div>
+  <div style="font-size: 11px;opacity:0.5">v260907.159</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
