@@ -438,8 +438,8 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
 #claim-pill.free #claim-pill-badge { color: #c4621a; background: #fef3ea; border: 1.5px solid #e8864a; }
 #claim-pill.claimed #claim-pill-badge { color: #2d7a4a; background: #edf7f1; border: 1.5px solid #a8d8b8; }
 #claim-pill.reserved #claim-pill-badge { color: var(--red); background: var(--red-light); border: 1.5px solid var(--red); }
-#claim-pill { visibility: hidden; width: 0; overflow: hidden; }
-#claim-pill.free, #claim-pill.claimed, #claim-pill.reserved { visibility: visible; width: auto; overflow: visible; }
+#claim-pill { display: none; padding:0; background:none; border:none; cursor:pointer; flex-shrink:0; }
+#claim-pill.free, #claim-pill.claimed, #claim-pill.reserved { display: inline-block; }
 
 
 #update-bubble {
@@ -881,7 +881,7 @@ document.addEventListener('DOMContentLoaded', function() {
   <div class="card">
     <div style="display:flex;gap:8px;align-items:center;margin-bottom:14px">
       <input type="text" id="inp-name" placeholder="María..." maxlength="20" autocomplete="nickname" inputmode="text" style="flex:1;margin-bottom:0" oninput="this.value=this.value.charAt(0).toUpperCase()+this.value.slice(1).toLowerCase();localStorage.setItem('alto_name', this.value.trim());scheduleNameCheck(this.value.trim())">
-      <button id="claim-pill" onclick="claimOpen()" tabindex="-1" style="padding:0;background:none;border:none;cursor:pointer;flex-shrink:0">
+      <button id="claim-pill" onclick="claimOpen()" tabindex="-1">
         <span id="claim-pill-badge"></span>
       </button>
     </div>
@@ -5252,7 +5252,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260907.145-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v260907.146-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
