@@ -5039,9 +5039,15 @@ async function checkClaimStatus(name) {
   }
 }
 
-window.claimOpen = function() {
+window.claimOpen = async function() {
   const l = cl();
-  const name = _claimCurrentName;
+  // Always read the current input value — not the debounced _claimCurrentName
+  const currentInput = document.getElementById('inp-name')?.value?.trim() || '';
+  if (currentInput && currentInput !== _claimCurrentName) {
+    // Name changed since last debounce — re-check before opening
+    await checkClaimStatus(currentInput);
+  }
+  const name = _claimCurrentName || currentInput;
   const overlay = document.getElementById('claim-overlay');
   const title = document.getElementById('claim-panel-title');
   const desc = document.getElementById('claim-desc');
@@ -5225,7 +5231,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260907.132-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v260907.133-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
