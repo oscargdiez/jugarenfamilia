@@ -880,7 +880,7 @@ document.addEventListener('DOMContentLoaded', function() {
   </div>
   <div class="card">
     <div style="display:flex;gap:8px;align-items:center;margin-bottom:14px">
-      <input type="text" id="inp-name" placeholder="María..." maxlength="20" autocomplete="nickname" inputmode="text" style="flex:1;margin-bottom:0" oninput="this.value=this.value.charAt(0).toUpperCase()+this.value.slice(1).toLowerCase();localStorage.setItem('alto_name', this.value.trim());scheduleNameCheck(this.value.trim())">
+      <input type="text" id="inp-name" placeholder="María..." maxlength="20" autocomplete="nickname" inputmode="text" style="flex:1;margin-bottom:0">
       <button id="claim-pill" onclick="claimOpen()" tabindex="-1">
         <span id="claim-pill-badge"></span>
       </button>
@@ -5022,7 +5022,6 @@ function scheduleNameCheck(name) {
   clearTimeout(_claimDebounceTimer);
   const pill = document.getElementById('claim-pill');
   if (!pill) return;
-  toast('check:' + name.length); // DEBUG
   if (name === _claimCurrentName && _claimState) {
     _claimDebounceTimer = setTimeout(() => checkClaimStatus(name), 800);
     return;
@@ -5238,6 +5237,23 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) chec
 
 // Init
 document.body.classList.add('screen-home');
+// Name input — capitalise first letter and handle claim pill
+(function() {
+  const inp = document.getElementById('inp-name');
+  if (!inp) return;
+  inp.addEventListener('input', function() {
+    const pos = this.selectionStart;
+    const raw = this.value;
+    if (!raw) { localStorage.setItem('alto_name', ''); scheduleNameCheck(''); return; }
+    const capped = raw.charAt(0).toUpperCase() + raw.slice(1).toLowerCase();
+    if (capped !== raw) {
+      this.value = capped;
+      this.setSelectionRange(pos, pos);
+    }
+    localStorage.setItem('alto_name', capped.trim());
+    scheduleNameCheck(capped.trim());
+  });
+})();
 buildEmojiGrid();
 applyLang();
 document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.getAttribute('onclick').includes("'"+LANG+"'")));
@@ -5268,7 +5284,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260907.150-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v260907.151-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
