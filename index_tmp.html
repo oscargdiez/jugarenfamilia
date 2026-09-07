@@ -438,8 +438,8 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
 #claim-pill.free #claim-pill-badge { color: #c4621a; background: #fef3ea; border: 1.5px solid #e8864a; }
 #claim-pill.claimed #claim-pill-badge { color: #2d7a4a; background: #edf7f1; border: 1.5px solid #a8d8b8; }
 #claim-pill.reserved #claim-pill-badge { color: var(--red); background: var(--red-light); border: 1.5px solid var(--red); }
-#claim-pill { display: none; padding:0; background:none; border:none; cursor:pointer; flex-shrink:0; }
-#claim-pill.free, #claim-pill.claimed, #claim-pill.reserved { display: inline-block; }
+#claim-pill { display: none !important; padding:0; background:none; border:none; cursor:pointer; flex-shrink:0; }
+#claim-pill.free, #claim-pill.claimed, #claim-pill.reserved { display: inline-block !important; }
 
 
 #update-bubble {
@@ -5023,6 +5023,7 @@ function scheduleNameCheck(name) {
   const pill = document.getElementById('claim-pill');
   if (!pill) return;
   pill.className = ''; // hide via CSS
+  pill.style.display = 'none'; // force hide in case CSS specificity issues
   _claimState = null;
   if (!name || name.length < 2) return;
   _claimDebounceTimer = setTimeout(() => checkClaimStatus(name), 800);
@@ -5037,7 +5038,7 @@ async function checkClaimStatus(name) {
   const pillBadge = document.getElementById('claim-pill-badge');
   if (!pill || !pillBadge) return;
 
-  const showPill = (cls) => { pill.className = cls; };
+  const showPill = (cls) => { pill.style.display = ''; pill.className = cls; };
 
   // Check localStorage first — already claimed/verified on this device
   const lsData = localStorage.getItem(claimLsKey(safeName));
@@ -5262,7 +5263,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260907.147-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v260907.148-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
