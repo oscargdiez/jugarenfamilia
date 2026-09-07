@@ -438,6 +438,8 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
 #claim-pill.free #claim-pill-badge { color: #c4621a; background: #fef3ea; border: 1.5px solid #e8864a; }
 #claim-pill.claimed #claim-pill-badge { color: #2d7a4a; background: #edf7f1; border: 1.5px solid #a8d8b8; }
 #claim-pill.reserved #claim-pill-badge { color: var(--red); background: var(--red-light); border: 1.5px solid var(--red); }
+#claim-pill { visibility: hidden; width: 0; overflow: hidden; }
+#claim-pill.free, #claim-pill.claimed, #claim-pill.reserved { visibility: visible; width: auto; overflow: visible; }
 
 
 #update-bubble {
@@ -879,7 +881,7 @@ document.addEventListener('DOMContentLoaded', function() {
   <div class="card">
     <div style="display:flex;gap:8px;align-items:center;margin-bottom:14px">
       <input type="text" id="inp-name" placeholder="María..." maxlength="20" autocomplete="nickname" inputmode="text" style="flex:1;margin-bottom:0" oninput="this.value=this.value.charAt(0).toUpperCase()+this.value.slice(1).toLowerCase();localStorage.setItem('alto_name', this.value.trim());scheduleNameCheck(this.value.trim())">
-      <button id="claim-pill" onclick="claimOpen()" tabindex="-1" style="padding:0;background:none;border:none;cursor:pointer;flex-shrink:0;display:none">
+      <button id="claim-pill" onclick="claimOpen()" tabindex="-1" style="padding:0;background:none;border:none;cursor:pointer;flex-shrink:0">
         <span id="claim-pill-badge"></span>
       </button>
     </div>
@@ -5009,9 +5011,7 @@ function scheduleNameCheck(name) {
   clearTimeout(_claimDebounceTimer);
   const pill = document.getElementById('claim-pill');
   if (!pill) return;
-  // Force hide — belt and braces for iOS
-  pill.style.cssText = 'padding:0;background:none;border:none;cursor:pointer;flex-shrink:0;display:none';
-  pill.className = '';
+  pill.className = ''; // hide via CSS
   _claimState = null;
   if (!name || name.length < 2) return;
   _claimDebounceTimer = setTimeout(() => checkClaimStatus(name), 800);
@@ -5026,7 +5026,7 @@ async function checkClaimStatus(name) {
   const pillBadge = document.getElementById('claim-pill-badge');
   if (!pill || !pillBadge) return;
 
-  const showPill = (cls) => { pill.className = cls; pill.style.cssText = 'padding:0;background:none;border:none;cursor:pointer;flex-shrink:0;display:inline-block'; };
+  const showPill = (cls) => { pill.className = cls; };
 
   // Check localStorage first — already claimed/verified on this device
   const lsData = localStorage.getItem(claimLsKey(safeName));
@@ -5140,7 +5140,7 @@ window.claimSubmit = async function() {
       // Update pill
       const pill = document.getElementById('claim-pill');
       const pillBadge = document.getElementById('claim-pill-badge');
-      if (pill) { pill.className = 'claimed'; pill.style.cssText = 'padding:0;background:none;border:none;cursor:pointer;flex-shrink:0;display:inline-block'; }
+      if (pill) { pill.className = 'claimed'; }
       if (pillBadge) pillBadge.textContent = l.pillMine;
     } else {
       // Verify against stored hash
@@ -5160,7 +5160,7 @@ window.claimSubmit = async function() {
         toast(l.successVerified);
         const pill = document.getElementById('claim-pill');
         const pillBadge = document.getElementById('claim-pill-badge');
-        if (pill) { pill.className = 'claimed'; pill.style.cssText = 'padding:0;background:none;border:none;cursor:pointer;flex-shrink:0;display:inline-block'; }
+        if (pill) { pill.className = 'claimed'; }
         if (pillBadge) pillBadge.textContent = l.pillMine;
       } else {
         showClaimError(l.errorNoMatch);
@@ -5251,7 +5251,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260907.143-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v260907.144-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
