@@ -395,7 +395,21 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
 }
 #toast.show { opacity: 1; }
 
-/* ── Floating timer bubble — bottom-left, always above iOS keyboard ── */
+/* ── Update available bubble ── */
+#update-bubble {
+  position: fixed; bottom: 72px; right: 16px;
+  background: var(--red); color: #fff;
+  padding: 8px 14px; border-radius: 20px;
+  font-family: 'Special Elite', monospace; font-size: 13px;
+  cursor: pointer; z-index: 998;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+  display: none; align-items: center; gap: 6px;
+  border: none; white-space: nowrap;
+  animation: bubble-in 0.3s ease;
+}
+#update-bubble.show { display: flex; }
+@keyframes bubble-in { from { opacity:0; transform:scale(0.85) translateY(8px); } to { opacity:1; transform:scale(1) translateY(0); } }
+
 /* ── Floating timer numbers ── */
 .timer-float {
   position: fixed;
@@ -766,6 +780,7 @@ document.addEventListener('DOMContentLoaded', function() {
   <div id="countdown-label" id="cd-label">PREPARADOS</div>
 </div>
 <div id="toast"></div>
+<button id="update-bubble" onclick="window.location.reload(true)">↻ <span id="update-bubble-text">Nueva versión</span></button>
 
 <!-- ══ QUICK JOIN (when arriving via link) ══ -->
 <div id="s-quickjoin" class="screen">
@@ -4792,6 +4807,44 @@ window.dbgRefresh = function() {
 
 // ══ END DEBUG MODE ═══════════════════════════════════════════════════════════
 
+// ══ VERSION CHECK ════════════════════════════════════════════════════════════
+
+const CURRENT_VERSION = (() => {
+  const m = document.body.innerHTML.match(/v(\d{6}\.\d+)(?!-tmp|[0-9])/);
+  return m ? m[1] : null;
+})();
+
+const UPDATE_LABELS = {
+  es: 'Nueva versión',
+  en: 'New version',
+  fr: 'Nouvelle version',
+};
+
+function showUpdateBubble() {
+  const el = document.getElementById('update-bubble');
+  const txt = document.getElementById('update-bubble-text');
+  if (!el) return;
+  if (txt) txt.textContent = UPDATE_LABELS[LANG] || UPDATE_LABELS.es;
+  el.classList.add('show');
+}
+
+async function checkForUpdate() {
+  if (G.screen !== 'home') return;
+  try {
+    const res = await fetch('/index.html?_=' + Date.now(), { cache: 'no-store' });
+    const html = await res.text();
+    const m = html.match(/v(\d{6}\.\d+)(?!-tmp|-[a-z])/);
+    if (!m) return;
+    if (CURRENT_VERSION && m[1] !== CURRENT_VERSION) showUpdateBubble();
+  } catch(e) { /* silent */ }
+}
+
+setTimeout(checkForUpdate, 10000);
+setInterval(checkForUpdate, 5 * 60 * 1000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) checkForUpdate(); });
+
+// ══ END VERSION CHECK ════════════════════════════════════════════════════════
+
 // Init
 document.body.classList.add('screen-home');
 buildEmojiGrid();
@@ -4824,7 +4877,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260907.120-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v260907.121-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
