@@ -2151,6 +2151,7 @@ function resetGDaily(practiceMode) {
 }
 
 window.startDailyChallenge = async function() {
+  reloadIfOutdated();
   resetGDaily(false);
   const key = getDailyKey();
   const _playerNameRaw = G.playerName || document.getElementById('inp-name')?.value?.trim() || '';
@@ -3221,6 +3222,7 @@ function handleRoom(room) {
 window.showJoin = () => document.getElementById('join-box').style.display = 'block';
 
 window.createRoom = async () => {
+  reloadIfOutdated();
   let name = document.getElementById('inp-name').value.trim();
   if (!name) { toast(t('toastName')); return; }
   // If this name is verified on this device, use the stored display name (preserves accents)
@@ -3242,6 +3244,7 @@ window.createRoom = async () => {
 };
 
 window.joinRoom = async () => {
+  reloadIfOutdated();
   let name = document.getElementById('inp-name').value.trim();
   const code = document.getElementById('inp-code').value.trim().toUpperCase();
   if (!name) { toast(t('toastName')); return; }
@@ -5323,6 +5326,8 @@ function showUpdateBubble() {
   el.classList.add('show');
 }
 
+let _updateAvailable = false;
+
 async function checkForUpdate() {
   if (G.screen !== 'home') return;
   try {
@@ -5335,8 +5340,15 @@ async function checkForUpdate() {
     const html = await res.text();
     const m = html.match(/v(\d{6}\.\d+)(?!-tmp)/);
     if (!m) return;
-    if (CURRENT_VERSION && m[1] !== CURRENT_VERSION) showUpdateBubble();
+    if (CURRENT_VERSION && m[1] !== CURRENT_VERSION) {
+      _updateAvailable = true;
+      showUpdateBubble();
+    }
   } catch(e) { /* silent */ }
+}
+
+function reloadIfOutdated() {
+  if (_updateAvailable) location.reload(true);
 }
 
 setTimeout(checkForUpdate, 5000);
@@ -5395,7 +5407,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260907.157</div>
+  <div style="font-size: 11px;opacity:0.5">v260907.158</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
