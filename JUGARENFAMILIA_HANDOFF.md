@@ -1,5 +1,5 @@
 # JugarEnFamilia.es — Project Handoff Document
-*Last updated: September 2026 — Session 11*
+*Last updated: September 2026 — Session 12*
 
 ---
 
@@ -39,6 +39,10 @@ A multiplayer browser-based version of the classic Spanish word game "Stop/Tutti
 - **Project:** `stop-9f0ea`
 - **Database URL:** `https://stop-9f0ea-default-rtdb.europe-west1.firebasedatabase.app`
 - **Config:** embedded in HTML (public, protected by Firebase rules)
+- **Schema additions (Session 12):**
+  - `daily/{date}/{lang}/players/{safeName}: true` — cross-device daily dedup index
+  - `names/{safeName}/secret: hash` — SHA-256 hash of email or PIN for name claim
+  - `names/{safeName}/displayName: string` — original display name with accents
 
 ### OpenRouter API
 - **Key:** stored in Cloudflare Worker only — never in the HTML or GitHub repo
@@ -80,6 +84,7 @@ Claude ALWAYS checks with user BEFORE building anything.
 - When happy: promote staging to production by copying `index_tmp.html` → `index.html`, bump version (drop `-tmp`), deploy with `deploy.bat`
 - Staging is ALWAYS based on latest production — never from old stale staging file
 - Claude ALWAYS states the version number when deploying
+- **IMPORTANT:** Version check bubble only works on production (fetches `/index.html`), not staging
 
 ### gitinfo.txt format
 ```
@@ -101,7 +106,7 @@ Double-click `D:\09_ALTO\rollback.bat` and pick the commit hash.
 ## ⚠️ CRITICAL RULES FOR CLAUDE
 
 **Version bump on every deploy** — update the footer version string.
-Format: `vYYMMDD.NN` (e.g. `v260905.76`). Staging gets `-tmp` suffix.
+Format: `vYYMMDD.NN` (e.g. `v260907.156`). Staging gets `-tmp` suffix.
 State the version clearly when presenting deploy files.
 
 **Commit messages must be plain ASCII — no emoji or special characters** — they break the git command in deploy.bat.
@@ -109,6 +114,7 @@ State the version clearly when presenting deploy files.
 **Check with user BEFORE building anything. Deploy immediately after building without asking.**
 
 **Font size rule — STRICT:** Only use these sizes: `11px / 13px / 16px / 20px / 26px / 32px` plus intentional hero exceptions (17px for icon buttons, 24px for emoji/icon elements, 28px for stop button, 15px for logo tagline, 48/52/56/80/120px and clamp for hero displays). No new sizes without explicit justification.
+- **Session 12 exception:** Daily + Practice buttons use `19px` to fit on one line on small iPhone screens. Emojis inside those buttons use `17px`.
 
 **The home screen buttons and emojis break silently if ANY of these happen:**
 
@@ -131,7 +137,13 @@ SVG flags and other non-module `<script>` tags in `<head>` are completely isolat
 Always read enough context (10+ lines) to include closing `</div>` tags. Accidentally eating closing divs breaks ALL subsequent screens silently. Always verify screen IDs after structural edits: `grep -c 'id="s-' file.html` should return 12.
 
 ### 7. SVG flags — inline use ← LEARNED IN SESSION 11
-The FLAGS SVG strings have `display:block` baked in (via the `S` variable). This breaks when used inline with text. The FLAGS object is defined in a non-module `<script>` and exposed as `window.FLAGS`. For inline use, replace `display:block` with `display:inline-block;vertical-align:middle` before injecting. Better: avoid mixing SVG flags with text — use the flag only in button elements as done elsewhere.
+The FLAGS SVG strings have `display:block` baked in (via the `S` variable). This breaks when used inline with text. The FLAGS object is defined in a non-module `<script>` and exposed as `window.FLAGS`. For inline use, replace `display:block` with `display:inline-block;vertical-align:middle` before injecting.
+
+### 8. inline oninput with value reassignment ← LEARNED IN SESSION 12
+Do NOT use `oninput="this.value = ..."` on input fields — the value reassignment suppresses subsequent `oninput` events on both iOS and Windows. Use `addEventListener('input', ...)` in JS instead, with `setSelectionRange` to preserve cursor position.
+
+### 9. Claim pill visibility ← LEARNED IN SESSION 12
+The claim pill uses CSS-only show/hide (`#claim-pill { display:none }` / `#claim-pill.free, .claimed, .reserved { display:inline-block }`). Never add inline `style` to the pill button — it will override the CSS and break show/hide. JS only sets `className`.
 
 **Mandatory pre-deploy checklist:**
 - Version string updated ✅
@@ -158,6 +170,8 @@ Two fonts, six slots. **Do not add new sizes outside these slots.**
 | body | Caveat | 20px | Player names, secondary content, `.lbl` labels |
 | primary | Caveat | 26px | Answers, gameplay text, answer inputs, name fields |
 | hero | Caveat | 32px+ | Timer numbers, letter display, room code |
+
+**Session 12 exception:** Daily + Practice home screen buttons use `19px` (between md and body slots) to fit English text on one line on small iPhones. Documented in HTML comment.
 
 **Role assignment:**
 - **Special Elite** → all UI chrome (labels, scores, buttons, navigation, metadata)
@@ -230,6 +244,40 @@ Two fonts, six slots. **Do not add new sizes outside these slots.**
 - PlayerKey has random suffix to prevent collision
 - **Test mode** — name starting with `__` skips Firebase write + localStorage save, can replay unlimited
 - **DAILY_OVERRIDES** — add entries keyed by `YYYY-MM-DD` to override normal picker for themed days
+- **Submit guard** — blocks submit if zero answers filled (toast in all 3 langs)
+- **Cross-device dedup** — Firebase `players/{safeName}` index prevents same name playing twice per day
+- Daily button: orange tinted outlined style, compact date (`7 sep`), 19px font
+
+### Practice Mode (Session 12)
+- Solo daily-style play — same flow as daily (countdown, 90s, AI validation, score)
+- Random letter + 6 categories each time (no date lock, unlimited replays)
+- No Firebase write, no localStorage save, no leaderboard
+- Originality scoring disabled (no Firebase data to compare against)
+- Button: outlined, same row as Daily, 19px font, `✏️ Práctica`
+- Result screen shows "Práctica" title, hides leaderboard card
+- `resetGDaily(practiceMode)` fully resets all G_daily fields on entry
+- `initDaily()` extracted as named function, shared by Daily and Practice
+
+### Name Claim System (Session 12)
+- **Pill** on home screen name input — appears after 800ms debounce
+  - 🟠 Orange: `¡Disponible! Resérvalo →` — name unclaimed
+  - 🟢 Green: `✓ Nombre reservado` — claimed by you (verified on this device)
+  - 🔴 Red: `¿Eres tú? Verifica →` — claimed by someone else
+- **Overlay screen** — friendly copy, GDPR reassurance, email or 4-digit PIN
+- **Firebase path:** `names/{safeName}/secret` (SHA-256 hash) + `names/{safeName}/displayName`
+- After verify: restores original accented display name from Firebase into input field
+- localStorage key: `alto_claim_{safeName}` — never prompts again on this device
+- Name normalisation: lowercase + accent-strip for key, original preserved for display
+- Fully translated ES/EN/FR, pill text updates on language switch
+- **Future:** reserved names should use Firebase for daily dedup + score retrieval instead of localStorage
+
+### Update Bubble (Session 12)
+- Fetches `/index.html?_=timestamp` every 5 min + on tab focus + on window focus
+- Compares version string — shows red pill bottom-right when newer version available
+- Only shows on home screen (`G.screen === 'home'` guard)
+- Tap → `window.location.reload(true)`
+- iOS note: takes longer to appear due to Safari caching (works, just slower)
+- CSS: opacity transition (not display:flex toggle) for iOS compatibility
 
 ### UX/Polish
 - Fixed shell layout: logo (left), letter+round+timer (center), room+? (right)
@@ -239,13 +287,14 @@ Two fonts, six slots. **Do not add new sizes outside these slots.**
 - WhatsApp share: icon-only button on same row as link + copy button
 - 720px max-width for desktop comfort
 - Solo hint in lobby: disappears when 2nd player joins
-- Daily challenge button same size as Crear Sala (20px/14px padding)
+- Name input: auto-capitalises first letter, lowercases rest, restores on page refresh
+- `🎲 Clásico. Crear sala →` button label in all 3 langs
+- `¡Hecho! Ver puntuación` / `Done! See score` / `Fait ! Voir le score` already-played label
 
 ### Languages
 - 🇪🇸 ES 🇬🇧 EN 🇫🇷 FR
 - Full UI + categories + themes + rules translated
 - All AI/IA references replaced with Robot throughout all 3 languages
-- Voting thumbs (👍👎) only mentioned in democratic mode section of help — not in general review
 - **Rule for new features:** always add translations for all 3 languages immediately
 
 ### Debug Mode
@@ -262,48 +311,49 @@ Two fonts, six slots. **Do not add new sizes outside these slots.**
 - Session restore on same device/browser: host and guest share localStorage
 - Font sizes: Caveat x-height smaller than Special Elite — visually looks different at same px
 - iCloud Safari sync: iPhone + iPad share localStorage if Safari sync enabled — player may not be able to replay on second Apple device
-- Daily challenge "already played" check is per-device/browser (localStorage), not per-person — email/PIN system needed for true deduplication
+- Daily challenge "already played" check is per-device/browser (localStorage) for unregistered players — email/PIN claim system partially addresses this
+- Update bubble on iOS appears slower than on Windows (Safari caching) — working correctly, just slower
+- Reserved names: daily dedup + score retrieval still localStorage-based on Device 2 — future: use Firebase for reserved names
 
 ---
 
 ## 🗺 Flagged for Future
 
-### Player Identity System (designed, not built)
-- **Concept:** name is unique (first-come-first-served), email is proof of ownership
-- **Flow:** enter name → if taken, prompted for email to verify → email stored in Firebase as hidden key
-- **Why email not device ID:** travels across devices naturally, truly unique
-- **Implementation:** `playerKey` switches from `name_timestamp_random` to email hash
-- Also fixes: one daily play per person (server-side check), leaderboard deduplication
-
-### Historical Daily Leaderboard
-- Data already stored at `daily/{date}/{lang}/scores/` permanently
-- Could surface: per-day archive, all-time ranking, streak tracking, personal history
-- Best built after player identity system
+### Reserved Name Full Identity (designed, partially built)
+- Name claim system built (Session 12) — email/PIN → SHA-256 hash in Firebase
+- **Next step:** for reserved names, skip localStorage for daily dedup and score retrieval — use Firebase instead
+- Unlocks: true cross-device identity, score history, streak tracking
 
 ### Themed Daily Days (DAILY_OVERRIDES — infrastructure built)
 - Add entry to `DAILY_OVERRIDES` object keyed by `YYYY-MM-DD`
 - Specify: `letter`, `theme` (title per lang), `categories` (6 per lang)
-- Robot validates as normal, same leaderboard infrastructure
+- Theme title wires into play screen + result screen title
 - Zero code change needed — just add the override entry
+
+### Historical Daily Leaderboard
+- Data already stored at `daily/{date}/{lang}/scores/` permanently
+- Could surface: per-day archive, all-time ranking, streak tracking, personal history
+- Best built after reserved name identity system
 
 ### Automatic AI Multiplayer Mode
 - Third validation mode: fully automatic Robot validation, no host review step
 - Round ends → Robot validates all → scores shown
-- Makes solo-in-multiplayer viable
 
 ### iOS Layout Refactor
 - Replace `position:fixed` shell with true fixed layout
 - Eliminates iOS Safari keyboard viewport resize bug
-- Big refactor — do in staging first
+
+### Special Categories Overhaul
+- Current special themes (Música, Deportes etc) use old flat category lists
+- Daily category system (58 cats, 13 groups) is much better quality
+- Could power a "Random" multiplayer mode drawing from daily category set
 
 ### Other
 - Democratic mode: minimum 2 players guard
 - Language as lobby setting (currently global)
-- Emoji picker: SVG/Twemoji treatment for consistency
 - Public rooms / Tournaments
 - Background soundtrack + sound effects
 - Letter reveal animation
-- Solo practice mode
 
 ---
 
@@ -347,40 +397,19 @@ Bug fixes: stop banner guests, broken HTML, applyLang child spans, duplicate IDs
 **Last version: v260905.85**
 
 ### Session 11 (Sep 6)
-**Category system overhaul:**
-- 58 categories / 13 groups replacing flat 17-item DAILY_CATS array
-- Per-language seeded daily (date + lang offset) — ES/EN/FR get different letter + categories
-- Letter validity per language from obj1 JSON data
-- Max 1 category per group per day
-- EN/FR translations for all 58 category names
+Category system overhaul: 58 categories / 13 groups, per-language seeded daily, letter validity per language, max 1 category per group per day, EN/FR translations for all 58 categories.
+Daily challenge fixes: null startTimestamp bug, timer negative fix, per-language localStorage keys, originality on initial load, daily rules scoring x10.
+New features: test mode, DAILY_OVERRIDES infrastructure.
+UI/Language fixes: Robot throughout, error messages translated, button casing, daily button size.
+**Last version: v260906.107**
 
-**Daily challenge fixes:**
-- Auto-submit bug: null startTimestamp during countdown → instant submit (fixed: guard in saveProgress + elapsed calculation)
-- Timer running to negative: clearInterval before dailySubmit in all 3 timer callbacks
-- Per-language localStorage keys: `alto_daily_{date}_{lang}` — play all 3 langs independently
-- Originality on initial load: reapplyOriginality() called after first leaderboard load
-- Originality badges in all players' panels: computeUniqueness() runs across all entries
-- Daily rules scoring x10: 100pts / +50pts originality (was 10/5)
-- Daily title translates on flag switch
-- iOS flex overflow fix: min-width:0 + overflow:hidden on daily play inputs
-
-**New features:**
-- Test mode: name starting with __ skips Firebase + localStorage, can replay unlimited
-- DAILY_OVERRIDES: infrastructure for themed days, Halloween example commented in
-
-**UI/Language fixes:**
-- All AI/IA → Robot across ES/EN/FR (8 locations per language)
-- Error/timeout messages translated to all 3 languages
-- Voting thumbs removed from general review rules (democratic mode section only)
-- leaveRoom + leaderboardBack button casing fixed (ES/EN/FR)
-- Daily challenge button size matches Crear Sala (20px/14px)
-- Commit messages must be ASCII only (special chars break deploy.bat git command)
-- window.FLAGS exposed globally from DOMContentLoaded block
-
-**Last version deployed: v260906.107**
-
-**Confirmed fixed in v260906.107 (verified against file):**
-- Timer running to negative: clearInterval before dailySubmit in all 3 callbacks ✅
-- Tab backgrounded timer: bad visibilitychange handler reverted, multiplayer one untouched ✅
-- Stop button greyed out: never explicitly disabled at game start, was a one-off test glitch ✅
-- null startTimestamp auto-submit: saveProgress guard + elapsed calculation guard both in place ✅
+### Session 12 (Sep 7)
+**Practice Mode:** solo daily-style play, no Firebase/leaderboard, random categories, `initDaily()` extracted as shared function, full `resetGDaily()` state isolation.
+**Name claim system:** orange/green/red pill on home screen, overlay with email/PIN, SHA-256 hash in Firebase, displayName restore after verify, fully translated ES/EN/FR.
+**Cross-device daily dedup:** Firebase `players/{safeName}` index, name normalised (lowercase + accent-strip).
+**Update bubble:** version polling, opacity CSS transition (iOS-safe), home-screen only guard.
+**Home screen UX:** `🎲 Clásico. Crear sala →`, orange tinted daily button, `¡Hecho!` label, compact date, 19px font exception for iOS, Practice button same row as Daily.
+**Name input:** auto-capitalise via `addEventListener` (inline oninput suppresses events — learned the hard way), restores from localStorage on page refresh.
+**Daily submit guard:** blocks if zero answers filled.
+**Bug fix:** inline `oninput` with value reassignment suppresses subsequent events on iOS/Windows — moved to `addEventListener`.
+**Last version deployed: v260907.156**
