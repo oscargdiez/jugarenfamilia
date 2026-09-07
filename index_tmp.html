@@ -1082,9 +1082,9 @@ document.addEventListener('DOMContentLoaded', function() {
       </div>
     </div>
     <!-- Historical date nav -->
-    <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:8px">
+    <div style="display:flex;align-items:center;justify-content:center;gap:4px;margin-bottom:8px">
       <button id="btn-lb-hist-prev" onclick="lbHistNav(-1)" style="font-family:'Special Elite',monospace;font-size:13px;padding:2px 10px;border:1px solid var(--border);border-radius:4px;background:transparent;cursor:pointer;color:var(--ink-sec)">◀</button>
-      <span id="lb-hist-date-label" style="font-family:'Special Elite',monospace;font-size:11px;color:var(--ink-muted);min-width:60px;text-align:center">hoy</span>
+      <span id="lb-hist-date-label" style="font-family:'Special Elite',monospace;font-size:11px;color:var(--ink-muted);min-width:52px;text-align:center">hoy</span>
       <button id="btn-lb-hist-next" onclick="lbHistNav(1)" disabled style="font-family:'Special Elite',monospace;font-size:13px;padding:2px 10px;border:1px solid var(--border);border-radius:4px;background:transparent;cursor:pointer;color:var(--ink-sec);opacity:0.35">▶</button>
     </div>
     <div id="daily-lb-list"></div>
@@ -2947,16 +2947,11 @@ function _lbUpdateNavUI() {
   const dateLabel = document.getElementById('lb-hist-date-label');
   if (nextBtn) nextBtn.disabled = (cur >= today);
   if (dateLabel) {
-    if (cur === today) {
-      const todayLabel = { es: 'hoy', en: 'today', fr: "aujourd'hui" };
-      dateLabel.textContent = todayLabel[LANG] || 'hoy';
-    } else {
-      // Format: "6 sep" style using same logic as getDailyDateString
-      const [y, m, d] = cur.split('-').map(Number);
-      const dt = new Date(y, m - 1, d);
-      const localeMap = { es:'es-ES', en:'en-GB', fr:'fr-FR' };
-      dateLabel.textContent = dt.toLocaleDateString(localeMap[LANG] || 'es-ES', { day:'numeric', month:'short' });
-    }
+    const [y, m, d] = cur.split('-').map(Number);
+    const dd = String(d).padStart(2,'0');
+    const mm = String(m).padStart(2,'0');
+    const yy = String(y).slice(2);
+    dateLabel.textContent = `${dd}/${mm}/${yy}`;
   }
 }
 
@@ -3017,7 +3012,6 @@ const DAILY_LABELS = {
     noResults: 'Sin resultados aún', errorLb: 'Error cargando clasificación',
     speedLabel: 'velocidad', baseLabel: 'base', origLabel: 'originalidad', sep: '· · ·',
     practiceLabel: 'Práctica',
-    histToday: 'hoy',
   },
   en: {
     yourAnswers: 'your answers', leaderboard: 'leaderboard',
@@ -3027,7 +3021,6 @@ const DAILY_LABELS = {
     noResults: 'No results yet', errorLb: 'Error loading leaderboard',
     speedLabel: 'speed', baseLabel: 'base', origLabel: 'originality', sep: '· · ·',
     practiceLabel: 'Practice',
-    histToday: 'today',
   },
   fr: {
     yourAnswers: 'tes réponses', leaderboard: 'classement',
@@ -3037,7 +3030,6 @@ const DAILY_LABELS = {
     noResults: 'Pas encore de résultats', errorLb: 'Erreur de chargement',
     speedLabel: 'vitesse', baseLabel: 'base', origLabel: 'originalité', sep: '· · ·',
     practiceLabel: 'Pratique',
-    histToday: "aujourd'hui",
   },
 };
 
