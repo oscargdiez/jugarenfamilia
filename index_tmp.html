@@ -1993,12 +1993,7 @@ function getPracticeSetup() {
 }
 
 window.startPractice = function() {
-  G_daily.practiceMode = true;
-  G_daily.submitted = false;
-  G_daily._submitting = false;
-  G_daily.key = '';
-  G_daily.originality = 0;
-  G_daily.totalWithOrig = 0;
+  resetGDaily(true);
   window._practiceSetup = getPracticeSetup();
   initDaily();
 };
@@ -2025,8 +2020,32 @@ let G_daily = {
   submitted: false, aiResults: {}
 };
 
+function resetGDaily(practiceMode) {
+  clearInterval(G_daily.timerInterval);
+  G_daily.practiceMode  = practiceMode || false;
+  G_daily.key           = '';
+  G_daily.letter        = '';
+  G_daily.categories    = [];
+  G_daily.answers       = {};
+  G_daily.aiResults     = {};
+  G_daily.submitted     = false;
+  G_daily._submitting   = false;
+  G_daily.secsRemaining = 90;
+  G_daily.totalSecs     = 90;
+  G_daily.startTimestamp= null;
+  G_daily.timerInterval = null;
+  G_daily.saveProgress  = null;
+  G_daily.baseScore     = 0;
+  G_daily.totalScore    = 0;
+  G_daily.originality   = 0;
+  G_daily.totalWithOrig = 0;
+  G_daily.displayName   = '';
+  G_daily.playerKey     = '';
+  G_daily.uniqueIndices = [];
+}
+
 window.startDailyChallenge = function() {
-  G_daily.practiceMode = false;
+  resetGDaily(false);
   const key = getDailyKey();
   const _playerNameRaw = G.playerName || document.getElementById('inp-name')?.value?.trim() || '';
   const _debugMode = _playerNameRaw.includes('__debug__');
@@ -4799,7 +4818,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260907.117-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v260907.118-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
