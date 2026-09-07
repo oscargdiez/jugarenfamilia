@@ -557,6 +557,7 @@ body.screen-home .page, body.screen-welcome .page { padding-bottom: 2rem; }
 .daily-lb-sep { text-align: center; font-family: 'Special Elite', monospace; font-size:11px; color: var(--ink-muted); padding: 4px 0; letter-spacing: 2px; }
 .daily-lb-lang-btn { padding: 2px 3px; border: 1.5px solid transparent; background: transparent; cursor: pointer; border-radius: 4px; opacity: 0.45; line-height: 1; vertical-align: middle; }
 .daily-lb-lang-btn.active { opacity: 1; background: var(--paper-dark); border-color: var(--border-strong); }
+#btn-lb-hist-next:disabled { opacity: 0.25; cursor: default; }
 .daily-lb-row.daily-lb-me { background: var(--red-light); border: 1.5px solid var(--red); }
 .daily-lb-row { cursor: pointer; }
 .daily-lb-row.expanded { border-radius: var(--radius) var(--radius) 0 0; margin-bottom: 0; }
@@ -1073,12 +1074,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
   <div class="card" id="daily-lb-card">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-      <p class="lbl" id="lbl-daily-leaderboard" style="margin:0">clasificación del día</p>
+      <p class="lbl" id="lbl-daily-leaderboard" style="margin:0">clasificación</p>
       <div id="daily-lb-lang-btns" style="display:flex;gap:4px;align-items:center">
         <button class="daily-lb-lang-btn active" data-lang="es" onclick="switchDailyLbLang('es')" title="Español">🇪🇸</button>
         <button class="daily-lb-lang-btn" data-lang="en" onclick="switchDailyLbLang('en')" title="English">🇬🇧</button>
         <button class="daily-lb-lang-btn" data-lang="fr" onclick="switchDailyLbLang('fr')" title="Français">🇫🇷</button>
       </div>
+    </div>
+    <!-- Historical date nav -->
+    <div style="display:flex;align-items:center;justify-content:center;gap:4px;margin-bottom:8px">
+      <button id="btn-lb-hist-prev" onclick="lbHistNav(-1)" style="font-family:'Special Elite',monospace;font-size:13px;padding:2px 10px;border:1px solid var(--border);border-radius:4px;background:transparent;cursor:pointer;color:var(--ink-sec)">◀</button>
+      <span id="lb-hist-date-label" style="font-family:'Special Elite',monospace;font-size:11px;color:var(--ink-muted);min-width:52px;text-align:center">hoy</span>
+      <button id="btn-lb-hist-next" onclick="lbHistNav(1)" disabled style="font-family:'Special Elite',monospace;font-size:13px;padding:2px 10px;border:1px solid var(--border);border-radius:4px;background:transparent;cursor:pointer;color:var(--ink-sec);opacity:0.35">▶</button>
     </div>
     <div id="daily-lb-list"></div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
@@ -2115,7 +2122,7 @@ function calcSpeedBonus(secsRemaining, totalSecs) {
 let G_daily = {
   letter: '', categories: [], key: '',
   answers: {}, timerInterval: null, secsRemaining: 90, totalSecs: 90,
-  submitted: false, aiResults: {}
+  submitted: false, aiResults: {}, theme: null
 };
 
 function resetGDaily(practiceMode) {
@@ -2140,6 +2147,7 @@ function resetGDaily(practiceMode) {
   G_daily.displayName   = '';
   G_daily.playerKey     = '';
   G_daily.uniqueIndices = [];
+  G_daily.theme         = null;
 }
 
 window.startDailyChallenge = async function() {
@@ -2166,6 +2174,36 @@ window.startDailyChallenge = async function() {
       if (safeName) {
         const playerSnap = await get(ref(db, 'daily/' + key + '/' + LANG + '/players/' + safeName));
         if (playerSnap.exists()) {
+          // Name already played today — try to retrieve their score from Firebase
+          // (covers reserved names on Device 2 that have no localStorage entry)
+          try {
+            const scoresSnap = await get(ref(db, 'daily/' + key + '/' + LANG + '/scores'));
+            if (scoresSnap.exists()) {
+              const allScores = scoresSnap.val();
+              // Find entry by safeName field (primary) or normalised name match (fallback)
+              const entry = Object.values(allScores).find(e =>
+                (e.safeName && e.safeName === safeName) ||
+                (!e.safeName && e.name && e.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().replace(/[^a-z0-9 ]/g,'_').replace(/\s+/g,'_').replace(/_+/g,'_').replace(/^_|_$/g,'').startsWith(safeName))
+              );
+              if (entry) {
+                G_daily.displayName = entry.name || (_playerNameRaw + ' 🎲');
+                const _setup = getDailySetup();
+                G_daily.letter = _setup.letter;
+                G_daily.key = key;
+                G_daily.categories = getDailyCatNames(_setup.categories);
+                G_daily.theme = _setup.theme || null;
+                showDailyResult(
+                  entry.answers || {},
+                  entry.baseScore || entry.score || 0,
+                  entry.totalScore || entry.score || 0,
+                  entry.aiResults || {},
+                  0,
+                  entry.totalScore && entry.baseScore ? entry.totalScore / entry.baseScore : 1
+                );
+                return;
+              }
+            }
+          } catch(e2) { /* score retrieval failed — fall through to toast */ }
           const alreadyPlayedMsg = { es: 'Ya jugaste hoy con este nombre', en: 'You already played today with this name', fr: 'Tu as déjà joué aujourd\'hui avec ce nom' };
           toast(alreadyPlayedMsg[LANG] || alreadyPlayedMsg.es);
           return;
@@ -2295,14 +2333,15 @@ function initDaily() {
   G_daily.totalSecs = 90;
   G_daily.startTimestamp = null; // set when timer actually starts after countdown
   G_daily.categories = getDailyCatNames(setup.categories);
+  G_daily.theme = setup.theme || null;
 
   // Apply theme override title if present, or practice label
   const s2 = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
   if (G_daily.practiceMode) {
     s2('daily-play-label', dl().practiceLabel || 'Práctica');
-  } else if (setup.theme) {
-    s2('daily-play-label', setup.theme);
-    s2('daily-result-title', setup.theme);
+  } else if (G_daily.theme) {
+    s2('daily-play-label', G_daily.theme);
+    s2('daily-result-title', G_daily.theme);
   }
 
   // Build input UI
@@ -2513,9 +2552,12 @@ window.dailySubmit = async function() {
     G_daily.playerKey = playerKey;
     G_daily.displayName = _isTestMode ? displayName + ' 🧪' : displayName;
     if (!_isTestMode) {
+    const safeNameIdx = dailyPlayerName.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim()
+      .replace(/[^a-z0-9 ]/g,'_').replace(/\s+/g,'_').replace(/_+/g,'_').replace(/^_|_$/g,'');
     const dailyRef = ref(db, 'daily/' + G_daily.key + '/' + LANG + '/scores/' + playerKey);
     await set(dailyRef, {
       name: displayName,
+      safeName: safeNameIdx || '',
       baseScore, totalScore, originality: 0,
       answers: answersObj,
       aiResults: aiResults,
@@ -2523,8 +2565,6 @@ window.dailySubmit = async function() {
       timestamp: Date.now()
     });
     // Write name index for cross-device dedup
-    const safeNameIdx = dailyPlayerName.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim()
-      .replace(/[^a-z0-9 ]/g,'_').replace(/\s+/g,'_').replace(/_+/g,'_').replace(/^_|_$/g,'');
     if (safeNameIdx) await set(ref(db, 'daily/' + G_daily.key + '/' + LANG + '/players/' + safeNameIdx), true);
     } // end !_isTestMode
     G_daily.playerKey = playerKey;
@@ -2666,6 +2706,8 @@ async function showDailyResult(answers, baseScore, totalScore, aiResults, secsLe
 
   show('daily-result');
   if (!G_daily.practiceMode) {
+    _lbDate = null; // always start on today when entering result screen
+    _lbUpdateNavUI();
     document.querySelectorAll('.daily-lb-lang-btn').forEach(b => b.classList.toggle('active', b.dataset.lang === LANG));
     loadDailyLeaderboard(getDailyKey()).then(() => reapplyOriginality());
   }
@@ -2693,6 +2735,11 @@ function renderLeaderboard(allScores) {
   const lbEl = document.getElementById('daily-lb-list');
   if (!lbEl) return;
   const myName = G_daily.displayName || ((G.playerName || '') + ' ' + (G.playerEmoji || ''));
+  const mySafeName = claimSafeName(G.playerName || document.getElementById('inp-name')?.value?.trim() || '');
+  function isMe(e) {
+    if (mySafeName && e.safeName) return e.safeName === mySafeName;
+    return (e.name || '').trim() === myName.trim();
+  }
   // Normalise entries — handle old schema (score) and new (totalScore), filter out malformed entries
   const entries = Object.values(allScores)
     .filter(e => e && e.name)
@@ -2700,7 +2747,7 @@ function renderLeaderboard(allScores) {
     .sort((a,b) => b.totalScore - a.totalScore);
   const medals = ['🥇','🥈','🥉'];
   const top10 = entries.slice(0, 10);
-  const myIdx = entries.findIndex(e => (e.name||'').trim() === myName.trim());
+  const myIdx = entries.findIndex(e => isMe(e));
   const isInTop10 = myIdx >= 0 && myIdx < 10;
 
   // Ensure categories are available even when leaderboard viewed after session
@@ -2771,9 +2818,9 @@ function renderLeaderboard(allScores) {
   }
 
   let html = top10.map((e, i) => {
-    const isMe = (e.name||'').trim() === myName.trim();
+    const _isMe = isMe(e);
     const orig = e.originality > 0 ? `<span class="daily-lb-orig">+${e.originality*10}✨</span>` : '';
-    return `<div class="daily-lb-row${isMe ? ' daily-lb-me' : ''}" id="daily-row-${i}" onclick="toggleDailyAnswers(${i})">
+    return `<div class="daily-lb-row${_isMe ? ' daily-lb-me' : ''}" id="daily-row-${i}" onclick="toggleDailyAnswers(${i})">
       <span class="daily-lb-rank">${medals[i] || (i+1)}</span>
       <span class="daily-lb-name">${e.name}</span>
       <span class="daily-lb-score">${e.totalScore*10} pts</span>
@@ -2831,12 +2878,19 @@ function reapplyOriginality() {
 async function computeAndUpdateOriginality(allScores, key) {
   // For each of my valid answers, check if it's unique among all players
   const myName = G_daily.displayName || ((G.playerName || '') + ' ' + (G.playerEmoji || ''));
-  const myEntry = Object.entries(allScores).find(([k,v]) => v.name && v.name.trim() === myName.trim());
+  const mySafeName = claimSafeName(G.playerName || document.getElementById('inp-name')?.value?.trim() || '');
+  // Match by safeName first (emoji-independent), fall back to exact name match for old entries
+  const myEntry = Object.entries(allScores).find(([k,v]) =>
+    (mySafeName && v.safeName && v.safeName === mySafeName) ||
+    (v.name && v.name.trim() === myName.trim())
+  );
   if (!myEntry) return;
   const [myKey, myData] = myEntry;
   if (!myData.answers) return;
 
-  const otherEntries = Object.values(allScores).filter(e => e.name && e.name.trim() !== myName.trim());
+  const otherEntries = Object.values(allScores).filter(e =>
+    (mySafeName && e.safeName) ? e.safeName !== mySafeName : (e.name && e.name.trim() !== myName.trim())
+  );
   let originality = 0;
   const uniqueIndices = [];
 
@@ -2874,17 +2928,57 @@ async function computeAndUpdateOriginality(allScores, key) {
       await update(ref(db, 'daily/' + key + '/' + LANG + '/scores/' + myKey), {
         originality, totalScore: newTotal
       });
-      // Re-render leaderboard with updated scores
-      const snap2 = await get(ref(db, 'daily/' + key + '/' + LANG + '/scores'));
-      if (snap2.exists()) renderLeaderboard(snap2.val());
+      // Note: do NOT re-fetch and re-render here — caller already has the full list rendered.
+      // A second get() immediately after update() can return a partial snapshot and shrink the list.
     } catch(e) { console.warn('Originality update failed:', e); }
   }
 }
 
+// Historical leaderboard navigation state
+let _lbDate = null; // null = today; set to YYYY-MM-DD when browsing history
+
+function _lbEffectiveDate() { return _lbDate || getDailyKey(); }
+
+function _lbUpdateNavUI() {
+  const today = getDailyKey();
+  const cur = _lbEffectiveDate();
+  const prevBtn = document.getElementById('btn-lb-hist-prev');
+  const nextBtn = document.getElementById('btn-lb-hist-next');
+  const dateLabel = document.getElementById('lb-hist-date-label');
+  if (nextBtn) nextBtn.disabled = (cur >= today);
+  if (dateLabel) {
+    if (cur === today) {
+      const todayLabel = { es: 'hoy', en: 'today', fr: "aujourd'hui" };
+      dateLabel.textContent = todayLabel[LANG] || 'hoy';
+    } else {
+      const [y, m, d] = cur.split('-').map(Number);
+      const dd = String(d).padStart(2,'0');
+      const mm = String(m).padStart(2,'0');
+      const yy = String(y).slice(2);
+      dateLabel.textContent = `${dd}/${mm}/${yy}`;
+    }
+  }
+}
+
+window.lbHistNav = function(dir) {
+  // dir: -1 = prev day, +1 = next day
+  const today = getDailyKey();
+  const cur = _lbEffectiveDate();
+  const [y, m, d] = cur.split('-').map(Number);
+  const dt = new Date(y, m - 1, d + dir);
+  const next = dt.getFullYear() + '-' + String(dt.getMonth()+1).padStart(2,'0') + '-' + String(dt.getDate()).padStart(2,'0');
+  if (next > today) return; // no future dates
+  _lbDate = (next === today) ? null : next;
+  _lbUpdateNavUI();
+  const activeLang = document.querySelector('.daily-lb-lang-btn.active')?.dataset?.lang || LANG;
+  loadDailyLeaderboard(_lbEffectiveDate(), activeLang);
+  // Suppress reapplyOriginality when viewing history (not current player's data)
+};
+
 // Manual refresh button
 window.switchDailyLbLang = function(lang) {
   document.querySelectorAll(".daily-lb-lang-btn").forEach(b => b.classList.toggle("active", b.dataset.lang === lang));
-  loadDailyLeaderboard(getDailyKey(), lang).then(() => reapplyOriginality());
+  loadDailyLeaderboard(_lbEffectiveDate(), lang).then(() => { if (!_lbDate) reapplyOriginality(); });
 };
 
 window.refreshDailyOriginality = async function() {
@@ -2892,14 +2986,16 @@ window.refreshDailyOriginality = async function() {
   const btn = document.getElementById('btn-daily-refresh');
   if (btn) { btn.textContent = '↻ …'; btn.disabled = true; }
   try {
-    const key = getDailyKey();
-    const snap = await get(ref(db, 'daily/' + key + '/' + LANG + '/scores'));
+    const key = _lbEffectiveDate();
+    const activeLang = document.querySelector('.daily-lb-lang-btn.active')?.dataset?.lang || LANG;
+    const snap = await get(ref(db, 'daily/' + key + '/' + activeLang + '/scores'));
     if (snap.exists()) {
       renderLeaderboard(snap.val());
-      await computeAndUpdateOriginality(snap.val(), key);
+      if (!_lbDate) await computeAndUpdateOriginality(snap.val(), key);
     }
   } catch(e) { console.warn('Refresh failed:', e); }
-  if (btn) { btn.textContent = '↻ actualizar'; btn.disabled = false; }
+  const _dlRefresh = dl();
+  if (btn) { btn.textContent = _dlRefresh.refreshBtn || '↻ actualizar'; btn.disabled = false; }
 };
 
 window.dailyGoHome = function() {
@@ -2914,7 +3010,7 @@ window.dailyGoHome = function() {
 // All daily challenge UI strings
 const DAILY_LABELS = {
   es: {
-    yourAnswers: 'tus respuestas', leaderboard: 'clasificación del día',
+    yourAnswers: 'tus respuestas', leaderboard: 'clasificación',
     backHome: '← Volver al inicio',
     dailySubmitBtn: '¡Alto! →', dailyPlayLabel: 'Reto diario',
     refreshBtn: '↻ actualizar', validating: 'Validando…',
@@ -2923,7 +3019,7 @@ const DAILY_LABELS = {
     practiceLabel: 'Práctica',
   },
   en: {
-    yourAnswers: 'your answers', leaderboard: "today's leaderboard",
+    yourAnswers: 'your answers', leaderboard: 'leaderboard',
     backHome: '← Back to home',
     dailySubmitBtn: 'Stop! →', dailyPlayLabel: 'Daily challenge',
     refreshBtn: '↻ refresh', validating: 'Validating…',
@@ -2932,7 +3028,7 @@ const DAILY_LABELS = {
     practiceLabel: 'Practice',
   },
   fr: {
-    yourAnswers: 'tes réponses', leaderboard: 'classement du jour',
+    yourAnswers: 'tes réponses', leaderboard: 'classement',
     backHome: '← Retour',
     dailySubmitBtn: 'Stop! →', dailyPlayLabel: 'Défi du jour',
     refreshBtn: '↻ actualiser', validating: 'Validation…',
@@ -2952,10 +3048,11 @@ function applyDailyLang() {
 
   s2('btn-daily-home', l.backHome);
   s2('btn-daily-submit', l.dailySubmitBtn);
-  s2('daily-play-label', l.dailyPlayLabel);
-  s2('daily-result-title', G_daily.practiceMode ? l.practiceLabel : l.dailyPlayLabel);
+  s2('daily-play-label', G_daily.theme || l.dailyPlayLabel);
+  s2('daily-result-title', G_daily.practiceMode ? l.practiceLabel : (G_daily.theme || l.dailyPlayLabel));
   s2('btn-daily-refresh', l.refreshBtn);
   s2('btn-practice-text', l.practiceLabel || 'Práctica');
+  _lbUpdateNavUI();
 }
 
 // ══ END DAILY CHALLENGE ═════════════════════════════════════════════════════
@@ -3124,8 +3221,12 @@ function handleRoom(room) {
 window.showJoin = () => document.getElementById('join-box').style.display = 'block';
 
 window.createRoom = async () => {
-  const name = document.getElementById('inp-name').value.trim();
+  let name = document.getElementById('inp-name').value.trim();
   if (!name) { toast(t('toastName')); return; }
+  // If this name is verified on this device, use the stored display name (preserves accents)
+  const _snCR = claimSafeName(name);
+  const _lsCR = _snCR ? localStorage.getItem(claimLsKey(_snCR)) : null;
+  if (_lsCR) { try { const _dCR = JSON.parse(_lsCR); if (_dCR.verified) { const _stored = localStorage.getItem('alto_name'); if (_stored && claimSafeName(_stored) === _snCR) { name = _stored; document.getElementById('inp-name').value = name; } } } catch(e) {} }
   G.playerName = name; G.isHost = true; G.roomCode = await genUniqueCode();
   localStorage.setItem('alto_emoji', G.playerEmoji);
   const room = {
@@ -3141,10 +3242,14 @@ window.createRoom = async () => {
 };
 
 window.joinRoom = async () => {
-  const name = document.getElementById('inp-name').value.trim();
+  let name = document.getElementById('inp-name').value.trim();
   const code = document.getElementById('inp-code').value.trim().toUpperCase();
   if (!name) { toast(t('toastName')); return; }
   if (code.length !== 4) { toast(t('toastCode')); return; }
+  // If this name is verified on this device, use the stored display name (preserves accents)
+  const _snJR = claimSafeName(name);
+  const _lsJR = _snJR ? localStorage.getItem(claimLsKey(_snJR)) : null;
+  if (_lsJR) { try { const _dJR = JSON.parse(_lsJR); if (_dJR.verified) { const _stored = localStorage.getItem('alto_name'); if (_stored && claimSafeName(_stored) === _snJR) { name = _stored; document.getElementById('inp-name').value = name; } } } catch(e) {} }
   G.playerName = name; G.isHost = false; G.roomCode = code;
   localStorage.setItem('alto_emoji', G.playerEmoji);
   const snap = await get(roomRef(code));
@@ -5290,7 +5395,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260907.156</div>
+  <div style="font-size: 11px;opacity:0.5">v260907.157</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
