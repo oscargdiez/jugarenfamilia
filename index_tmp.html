@@ -1577,6 +1577,16 @@ window.applyLang = function() {
   s('rules-btn', '▼ ' + t('rulesBtn'));
   s('btn-enter', t('enter'));
   s('footer-noreg', t('noReg'));
+  // Update claim pill text for current language if visible
+  if (_claimState) {
+    const pillBadge = document.getElementById('claim-pill-badge');
+    const _cl = CLAIM_LABELS[LANG] || CLAIM_LABELS.es;
+    if (pillBadge) {
+      if (_claimState === 'mine') pillBadge.textContent = _cl.pillMine;
+      else if (_claimState === 'taken') pillBadge.textContent = _cl.pillTaken;
+      else if (_claimState === 'free') pillBadge.textContent = _cl.pillFree;
+    }
+  }
   // Welcome
   s('wb-continue', t('continueBtn'));
   s('btn-not-me', t('notMe'));
@@ -5252,7 +5262,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260907.146-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v260907.147-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
