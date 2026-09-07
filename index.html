@@ -5221,17 +5221,23 @@ function showUpdateBubble() {
 async function checkForUpdate() {
   if (G.screen !== 'home') return;
   try {
-    const res = await fetch('/index.html?_=' + Date.now(), { cache: 'no-store' });
+    const url = window.location.origin + '/index.html?_=' + Date.now();
+    const res = await fetch(url, {
+      cache: 'no-store',
+      headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' }
+    });
+    if (!res.ok) return;
     const html = await res.text();
-    const m = html.match(/v(\d{6}\.\d+)(?!-tmp|-[a-z])/);
+    const m = html.match(/v(\d{6}\.\d+)(?!-tmp)/);
     if (!m) return;
     if (CURRENT_VERSION && m[1] !== CURRENT_VERSION) showUpdateBubble();
   } catch(e) { /* silent */ }
 }
 
-setTimeout(checkForUpdate, 10000);
+setTimeout(checkForUpdate, 5000);
 setInterval(checkForUpdate, 5 * 60 * 1000);
-document.addEventListener('visibilitychange', () => { if (!document.hidden) checkForUpdate(); });
+document.addEventListener('visibilitychange', () => { if (!document.hidden) setTimeout(checkForUpdate, 1000); });
+window.addEventListener('focus', () => setTimeout(checkForUpdate, 1000));
 
 // ══ END VERSION CHECK ════════════════════════════════════════════════════════
 
@@ -5284,7 +5290,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260907.152</div>
+  <div style="font-size: 11px;opacity:0.5">v260907.153</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
