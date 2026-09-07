@@ -151,6 +151,15 @@ button.pri {
 }
 button.pri:hover { background: var(--red-dark); }
 button.pri:disabled { background: var(--ink-muted); border-color: var(--ink-muted); opacity: 0.55; cursor: not-allowed; pointer-events: none; }
+button.green {
+  background: var(--green);
+  color: #fff;
+  border-color: var(--green);
+}
+button.green:hover { background: var(--success); border-color: var(--success); }
+button.green:active { opacity: .85; }
+#btn-practice:hover { background: var(--paper-dark); }
+#btn-practice:active { opacity: .8; }
 button.stop-btn {
   width: 100%;
   background: var(--red);
@@ -817,7 +826,7 @@ document.addEventListener('DOMContentLoaded', function() {
       <div style="font-family:'Special Elite',monospace;font-size:11px;color:var(--ink-muted);text-align:center;letter-spacing:1px;margin:-2px 0 2px" id="lbl-create-sub">MULTIJUGADOR · CON FAMILIA Y AMIGOS</div>
       <div style="display:flex;gap:6px;align-items:flex-start">
         <div style="flex:1;display:flex;flex-direction:column;gap:0">
-          <button onclick="startDailyChallenge()" style="width:100%;font-size:20px;padding:14px;line-height:1;border-color:var(--border-strong)" id="btn-daily">📅 <span id="btn-daily-text">Reto diario · cargando…</span></button>
+          <button onclick="startDailyChallenge()" class="green" style="width:100%;font-size:20px;padding:14px;line-height:1;" id="btn-daily">📅 <span id="btn-daily-text">Reto diario · cargando…</span></button>
           <div style="font-family:'Special Elite',monospace;font-size:11px;color:var(--ink-muted);text-align:center;letter-spacing:1px;margin:2px 0 0" id="lbl-daily-sub">TÚ CONTRA EL MUNDO · UN RETO POR DÍA</div>
         </div>
         <button onclick="startPractice()" style="flex:0 0 auto;font-size:20px;padding:14px 12px;line-height:1;border:1.5px solid var(--border);border-radius:var(--radius);background:transparent;font-family:'Caveat',cursive;font-weight:400;cursor:pointer;white-space:nowrap" id="btn-practice">✏️ <span id="btn-practice-text">Práctica</span></button>
@@ -4877,7 +4886,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260907.123</div>
+  <div style="font-size: 11px;opacity:0.5">v260907.124</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
