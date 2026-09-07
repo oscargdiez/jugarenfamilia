@@ -1067,10 +1067,7 @@ document.addEventListener('DOMContentLoaded', function() {
   <div class="card" style="margin-bottom:1rem">
     <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">
       <span class="lbl" id="lbl-daily-your-answers">tus respuestas</span>
-      <div style="display:flex;align-items:center;gap:8px">
-        <button onclick="shareDailyResult()" id="btn-daily-share" style="font-family:'Special Elite',monospace;font-size:11px;padding:3px 8px;border:1px solid var(--border);border-radius:4px;background:transparent;cursor:pointer;color:var(--ink-sec);line-height:1">Compartir</button>
-        <span style="font-family:'Special Elite',monospace;font-size:16px;color:var(--red);line-height:1;position:relative;top:2px" id="daily-total-score">0 pts</span>
-      </div>
+      <span style="font-family:'Special Elite',monospace;font-size:16px;color:var(--red);line-height:1;position:relative;top:2px" id="daily-total-score">0 pts</span>
     </div>
     <div id="daily-answers-list"></div>
   </div>
@@ -2689,11 +2686,12 @@ async function showDailyResult(answers, baseScore, totalScore, aiResults, secsLe
     </div>`;
   }).join('');
 
-  // Speed summary
+  // Speed summary + share button on same line
   const mult = speedMultiplier ? speedMultiplier.toFixed(2) : '1.00';
   const _dl = dl();
-  list.innerHTML += `<div id="daily-speed-summary" style="text-align:right;font-family:'Special Elite',monospace;font-size:11px;color:var(--ink-muted);padding-top:6px">
-    ${_dl.baseLabel} ${baseScore*10} pts ×${mult}⚡→ <strong>${totalScore*10} pts</strong>
+  list.innerHTML += `<div id="daily-speed-summary" style="display:flex;justify-content:space-between;align-items:baseline;font-family:'Special Elite',monospace;font-size:11px;color:var(--ink-muted);padding-top:6px">
+    <button onclick="shareDailyResult()" id="btn-daily-share" style="font-family:'Special Elite',monospace;font-size:11px;padding:2px 7px;border:1px solid var(--border);border-radius:4px;background:transparent;cursor:pointer;color:var(--ink-sec);line-height:1">${_dl.shareBtn || 'Compartir'}</button>
+    <span>${_dl.baseLabel} ${baseScore*10} pts ×${mult}⚡→ <strong>${totalScore*10} pts</strong></span>
   </div>`;
 
   // Total score
@@ -5516,7 +5514,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260907.167</div>
+  <div style="font-size: 11px;opacity:0.5">v260907.169</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
