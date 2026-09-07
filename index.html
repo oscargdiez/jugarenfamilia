@@ -2153,6 +2153,7 @@ function resetGDaily(practiceMode) {
   G_daily.uniqueIndices = [];
   G_daily.theme         = null;
   G_daily.myRank        = null;
+  G_daily.submitTime    = null;
 }
 
 window.startDailyChallenge = async function() {
@@ -2484,6 +2485,7 @@ window.dailySubmit = async function() {
   G_daily._submitting = true;
   if (G_daily.submitted) { G_daily._submitting = false; return; }
   G_daily.submitted = true;
+  G_daily.submitTime = Date.now();
   clearInterval(G_daily.timerInterval);
   setTimerBubble(0, false);
   setUrgencyPulse(false);
@@ -2995,8 +2997,8 @@ window.shareDailyResult = function() {
   const flagMap = { es: '🇪🇸', en: '🇬🇧', fr: '🇫🇷' };
   const aiIcon = { valid: '✅', invalid: '❌', unsure: '🤔', empty: '—' };
 
-  // Header — name prominent
-  const name = G_daily.displayName || G.playerName || '';
+  // Header — name prominent (strip test marker if present)
+  const name = (G_daily.displayName || G.playerName || '').replace(/\s*🧪\s*$/, '').trim();
   const flag = flagMap[LANG] || '🇪🇸';
   const letter = G_daily.letter || '?';
 
@@ -3010,7 +3012,12 @@ window.shareDailyResult = function() {
     const dd = String(d).padStart(2,'0');
     const mm = String(m).padStart(2,'0');
     const yy = String(y).slice(2);
-    dateLine = `${dd}/${mm}/${yy}`;
+    // Time
+    const ts = G_daily.submitTime || Date.now();
+    const dt = new Date(ts);
+    const hh = String(dt.getHours()).padStart(2,'0');
+    const min = String(dt.getMinutes()).padStart(2,'0');
+    dateLine = `${dd}/${mm}/${yy} ${hh}:${min}`;
     // Rank
     if (G_daily.myRank) {
       const rank = G_daily.myRank;
@@ -3036,9 +3043,7 @@ window.shareDailyResult = function() {
     const base = res === 'valid' ? '+100' : res === 'unsure' ? '+50' : '';
     const orig = uniqueIndices.includes(i) ? ' +50⚡' : '';
     const pts = base ? ` ${base}${orig}` : '';
-    // Pad category to ~22 chars for alignment
-    const padded = cat.padEnd(22, ' ');
-    return word ? `${padded} ${word} ${icon}${pts}` : `${padded} —`;
+    return word ? `${cat} → ${word} ${icon}${pts}` : `${cat} → —`;
   });
 
   // Score summary
@@ -5511,7 +5516,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260907.162</div>
+  <div style="font-size: 11px;opacity:0.5">v260907.163</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
