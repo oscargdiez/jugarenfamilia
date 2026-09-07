@@ -2735,6 +2735,11 @@ function renderLeaderboard(allScores) {
   const lbEl = document.getElementById('daily-lb-list');
   if (!lbEl) return;
   const myName = G_daily.displayName || ((G.playerName || '') + ' ' + (G.playerEmoji || ''));
+  const mySafeName = claimSafeName(G.playerName || document.getElementById('inp-name')?.value?.trim() || '');
+  function isMe(e) {
+    if (mySafeName && e.safeName) return e.safeName === mySafeName;
+    return (e.name || '').trim() === myName.trim();
+  }
   // Normalise entries — handle old schema (score) and new (totalScore), filter out malformed entries
   const entries = Object.values(allScores)
     .filter(e => e && e.name)
@@ -2742,7 +2747,7 @@ function renderLeaderboard(allScores) {
     .sort((a,b) => b.totalScore - a.totalScore);
   const medals = ['🥇','🥈','🥉'];
   const top10 = entries.slice(0, 10);
-  const myIdx = entries.findIndex(e => (e.name||'').trim() === myName.trim());
+  const myIdx = entries.findIndex(e => isMe(e));
   const isInTop10 = myIdx >= 0 && myIdx < 10;
 
   // Ensure categories are available even when leaderboard viewed after session
@@ -2813,9 +2818,9 @@ function renderLeaderboard(allScores) {
   }
 
   let html = top10.map((e, i) => {
-    const isMe = (e.name||'').trim() === myName.trim();
+    const _isMe = isMe(e);
     const orig = e.originality > 0 ? `<span class="daily-lb-orig">+${e.originality*10}✨</span>` : '';
-    return `<div class="daily-lb-row${isMe ? ' daily-lb-me' : ''}" id="daily-row-${i}" onclick="toggleDailyAnswers(${i})">
+    return `<div class="daily-lb-row${_isMe ? ' daily-lb-me' : ''}" id="daily-row-${i}" onclick="toggleDailyAnswers(${i})">
       <span class="daily-lb-rank">${medals[i] || (i+1)}</span>
       <span class="daily-lb-name">${e.name}</span>
       <span class="daily-lb-score">${e.totalScore*10} pts</span>
@@ -2873,12 +2878,19 @@ function reapplyOriginality() {
 async function computeAndUpdateOriginality(allScores, key) {
   // For each of my valid answers, check if it's unique among all players
   const myName = G_daily.displayName || ((G.playerName || '') + ' ' + (G.playerEmoji || ''));
-  const myEntry = Object.entries(allScores).find(([k,v]) => v.name && v.name.trim() === myName.trim());
+  const mySafeName = claimSafeName(G.playerName || document.getElementById('inp-name')?.value?.trim() || '');
+  // Match by safeName first (emoji-independent), fall back to exact name match for old entries
+  const myEntry = Object.entries(allScores).find(([k,v]) =>
+    (mySafeName && v.safeName && v.safeName === mySafeName) ||
+    (v.name && v.name.trim() === myName.trim())
+  );
   if (!myEntry) return;
   const [myKey, myData] = myEntry;
   if (!myData.answers) return;
 
-  const otherEntries = Object.values(allScores).filter(e => e.name && e.name.trim() !== myName.trim());
+  const otherEntries = Object.values(allScores).filter(e =>
+    (mySafeName && e.safeName) ? e.safeName !== mySafeName : (e.name && e.name.trim() !== myName.trim())
+  );
   let originality = 0;
   const uniqueIndices = [];
 
@@ -2916,9 +2928,8 @@ async function computeAndUpdateOriginality(allScores, key) {
       await update(ref(db, 'daily/' + key + '/' + LANG + '/scores/' + myKey), {
         originality, totalScore: newTotal
       });
-      // Re-render leaderboard with updated scores
-      const snap2 = await get(ref(db, 'daily/' + key + '/' + LANG + '/scores'));
-      if (snap2.exists()) renderLeaderboard(snap2.val());
+      // Note: do NOT re-fetch and re-render here — caller already has the full list rendered.
+      // A second get() immediately after update() can return a partial snapshot and shrink the list.
     } catch(e) { console.warn('Originality update failed:', e); }
   }
 }
