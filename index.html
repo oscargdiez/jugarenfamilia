@@ -2066,7 +2066,7 @@ function resetGDaily(practiceMode) {
   G_daily.uniqueIndices = [];
 }
 
-window.startDailyChallenge = function() {
+window.startDailyChallenge = async function() {
   resetGDaily(false);
   const key = getDailyKey();
   const _playerNameRaw = G.playerName || document.getElementById('inp-name')?.value?.trim() || '';
@@ -2080,6 +2080,22 @@ window.startDailyChallenge = function() {
       showDailyResult(data.answers, data.baseScore || data.score || 0, data.totalScore || data.score || 0, data.aiResults || {}, data.secsLeft || 0, data.speedMultiplier || 1);
       return;
     } catch(e) {}
+  }
+
+  // Check Firebase for same name already played today (cross-device dedup)
+  if (!_debugMode && _playerNameRaw) {
+    try {
+      const safeName = _playerNameRaw.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim()
+        .replace(/[^a-z0-9 ]/g,'_').replace(/\s+/g,'_').replace(/_+/g,'_').replace(/^_|_$/g,'');
+      if (safeName) {
+        const playerSnap = await get(ref(db, 'daily/' + key + '/' + LANG + '/players/' + safeName));
+        if (playerSnap.exists()) {
+          const alreadyPlayedMsg = { es: 'Ya jugaste hoy con este nombre', en: 'You already played today with this name', fr: 'Tu as déjà joué aujourd\'hui avec ce nom' };
+          toast(alreadyPlayedMsg[LANG] || alreadyPlayedMsg.es);
+          return;
+        }
+      }
+    } catch(e) { /* silent — if check fails, let them play */ }
   }
   // In debug mode, clear stored result so we can replay
   if (_debugMode && stored) localStorage.removeItem('alto_daily_' + key + '_' + LANG);
@@ -2415,6 +2431,10 @@ window.dailySubmit = async function() {
       categories: G_daily.categories || [],
       timestamp: Date.now()
     });
+    // Write name index for cross-device dedup
+    const safeNameIdx = dailyPlayerName.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim()
+      .replace(/[^a-z0-9 ]/g,'_').replace(/\s+/g,'_').replace(/_+/g,'_').replace(/^_|_$/g,'');
+    if (safeNameIdx) await set(ref(db, 'daily/' + G_daily.key + '/' + LANG + '/players/' + safeNameIdx), true);
     } // end !_isTestMode
     G_daily.playerKey = playerKey;
   } catch(e) { console.warn('Daily Firebase write failed:', e); }
@@ -4886,7 +4906,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260907.125</div>
+  <div style="font-size: 11px;opacity:0.5">v260907.126</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
