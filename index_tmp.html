@@ -1994,12 +1994,9 @@ function getPracticeSetup() {
 
 window.startPractice = function() {
   G_daily.practiceMode = true;
-  // Clear any leftover daily state so initDaily starts fresh
   G_daily.submitted = false;
   G_daily._submitting = false;
   G_daily.key = '';
-  // Patch getDailySetup temporarily for this call
-  const _orig = window._practiceSetup;
   window._practiceSetup = getPracticeSetup();
   initDaily();
 };
@@ -2139,6 +2136,12 @@ window.startDailyChallenge = function() {
     return;
   }
 
+  initDaily();
+};
+
+function initDaily() {
+  const key = G_daily.practiceMode ? 'practice' : getDailyKey();
+
   // Clean up stale in-progress keys from previous days
   Object.keys(localStorage).forEach(k => {
     if (k.startsWith('alto_daily_inprogress_') && k !== 'alto_daily_inprogress_' + key + '_' + LANG) {
@@ -2183,9 +2186,10 @@ window.startDailyChallenge = function() {
     </div>
   `).join('');
 
-  // Save in-progress state to localStorage
+  // Save in-progress state to localStorage (no-op in practice mode)
   const _saveProgress = () => {
-    if (!G_daily.startTimestamp) return; // don't save until timer has started
+    if (G_daily.practiceMode) return;
+    if (!G_daily.startTimestamp) return;
     localStorage.setItem('alto_daily_inprogress_' + G_daily.key + '_' + LANG, JSON.stringify({
       key: G_daily.key, letter: G_daily.letter,
       categories: G_daily.categories, answers: G_daily.answers,
@@ -2200,7 +2204,7 @@ window.startDailyChallenge = function() {
 
   // Countdown before timer starts
   startDailyCountdown();
-};
+}
 
 
 function startDailyTimer() {
@@ -4792,7 +4796,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260907.114-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v260907.115-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
