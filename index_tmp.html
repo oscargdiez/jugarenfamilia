@@ -3221,8 +3221,12 @@ function handleRoom(room) {
 window.showJoin = () => document.getElementById('join-box').style.display = 'block';
 
 window.createRoom = async () => {
-  const name = document.getElementById('inp-name').value.trim();
+  let name = document.getElementById('inp-name').value.trim();
   if (!name) { toast(t('toastName')); return; }
+  // If this name is verified on this device, use the stored display name (preserves accents)
+  const _snCR = claimSafeName(name);
+  const _lsCR = _snCR ? localStorage.getItem(claimLsKey(_snCR)) : null;
+  if (_lsCR) { try { const _dCR = JSON.parse(_lsCR); if (_dCR.verified) { const _stored = localStorage.getItem('alto_name'); if (_stored && claimSafeName(_stored) === _snCR) { name = _stored; document.getElementById('inp-name').value = name; } } } catch(e) {} }
   G.playerName = name; G.isHost = true; G.roomCode = await genUniqueCode();
   localStorage.setItem('alto_emoji', G.playerEmoji);
   const room = {
@@ -3238,10 +3242,14 @@ window.createRoom = async () => {
 };
 
 window.joinRoom = async () => {
-  const name = document.getElementById('inp-name').value.trim();
+  let name = document.getElementById('inp-name').value.trim();
   const code = document.getElementById('inp-code').value.trim().toUpperCase();
   if (!name) { toast(t('toastName')); return; }
   if (code.length !== 4) { toast(t('toastCode')); return; }
+  // If this name is verified on this device, use the stored display name (preserves accents)
+  const _snJR = claimSafeName(name);
+  const _lsJR = _snJR ? localStorage.getItem(claimLsKey(_snJR)) : null;
+  if (_lsJR) { try { const _dJR = JSON.parse(_lsJR); if (_dJR.verified) { const _stored = localStorage.getItem('alto_name'); if (_stored && claimSafeName(_stored) === _snJR) { name = _stored; document.getElementById('inp-name').value = name; } } } catch(e) {} }
   G.playerName = name; G.isHost = false; G.roomCode = code;
   localStorage.setItem('alto_emoji', G.playerEmoji);
   const snap = await get(roomRef(code));
