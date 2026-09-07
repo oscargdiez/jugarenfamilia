@@ -798,10 +798,15 @@ document.addEventListener('DOMContentLoaded', function() {
     <p class="lbl" id="lbl-choose-emoji" style="display:none">elige tu emoji <span class="emoji-display" id="selected-emoji">🎲</span></p>
     <div class="emoji-grid" id="emoji-grid"></div>
     <div style="margin-top:14px;display:flex;flex-direction:column;gap:8px">
-      <button class="pri" onclick="createRoom()" style="width:100%;font-size:20px;padding:14px" id="btn-create">Crear sala →</button>
+      <button class="pri" onclick="createRoom()" style="width:100%;font-size:20px;padding:14px" id="btn-create">🎲 Clásico. Crear sala →</button>
       <div style="font-family:'Special Elite',monospace;font-size:11px;color:var(--ink-muted);text-align:center;letter-spacing:1px;margin:-2px 0 2px" id="lbl-create-sub">MULTIJUGADOR · CON FAMILIA Y AMIGOS</div>
-      <button onclick="startDailyChallenge()" style="width:100%;font-size:20px;padding:14px;line-height:1;border-color:var(--border-strong)" id="btn-daily">📅 <span id="btn-daily-text">Reto diario · cargando…</span></button>
-      <div style="font-family:'Special Elite',monospace;font-size:11px;color:var(--ink-muted);text-align:center;letter-spacing:1px;margin:-2px 0 2px" id="lbl-daily-sub">TÚ CONTRA EL MUNDO · UN RETO POR DÍA</div>
+      <div style="display:flex;gap:6px;align-items:flex-start">
+        <div style="flex:1;display:flex;flex-direction:column;gap:0">
+          <button onclick="startDailyChallenge()" style="width:100%;font-size:20px;padding:14px;line-height:1;border-color:var(--border-strong)" id="btn-daily">📅 <span id="btn-daily-text">Reto diario · cargando…</span></button>
+          <div style="font-family:'Special Elite',monospace;font-size:11px;color:var(--ink-muted);text-align:center;letter-spacing:1px;margin:2px 0 0" id="lbl-daily-sub">TÚ CONTRA EL MUNDO · UN RETO POR DÍA</div>
+        </div>
+        <button onclick="startPractice()" style="flex:0 0 auto;font-size:20px;padding:14px 12px;line-height:1;border:1.5px solid var(--border);border-radius:var(--radius);background:transparent;font-family:'Caveat',cursive;font-weight:400;cursor:pointer;white-space:nowrap" id="btn-practice">✏️ <span id="btn-practice-text">Práctica</span></button>
+      </div>
     </div>
   </div>
 
@@ -975,7 +980,7 @@ document.addEventListener('DOMContentLoaded', function() {
     <div id="daily-answers-list"></div>
   </div>
 
-  <div class="card">
+  <div class="card" id="daily-lb-card">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
       <p class="lbl" id="lbl-daily-leaderboard" style="margin:0">clasificación del día</p>
       <div id="daily-lb-lang-btns" style="display:flex;gap:4px;align-items:center">
@@ -990,7 +995,7 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
   </div>
 
-  <button onclick="show('home')" style="width:100%;font-size:20px;padding:12px;margin-top:12px;border:1.5px solid var(--border);border-radius:var(--radius);background:transparent;font-family:'Caveat',cursive;cursor:pointer" id="btn-daily-home">← Volver al inicio</button>
+  <button onclick="dailyGoHome()" style="width:100%;font-size:20px;padding:12px;margin-top:12px;border:1.5px solid var(--border);border-radius:var(--radius);background:transparent;font-family:'Caveat',cursive;cursor:pointer" id="btn-daily-home">← Volver al inicio</button>
 </div>
 
 <!-- ══ PLAYING ══ -->
@@ -1146,7 +1151,7 @@ const T = {
     tagline: 'el juego de siempre, con los de siempre',
     yourName: 'tu nombre', namePlaceholder: 'Nombre...',
     chooseEmoji: 'elige tu emoji',
-    createRoom: 'Crear sala', join: 'Unirse',
+    createRoom: '🎲 Clásico. Crear sala', join: 'Unirse',
     roomCode: 'código de sala',
     enter: 'Entrar',
     noReg: 'SIN REGISTRO · SIN DESCARGAS · GRATIS',
@@ -1203,7 +1208,7 @@ const T = {
     tagline: 'the classic game, with the people you love',
     yourName: 'your name', namePlaceholder: 'Name...',
     chooseEmoji: 'choose your emoji',
-    createRoom: 'Create room', join: 'Join',
+    createRoom: '🎲 Classic. Create room', join: 'Join',
     roomCode: 'room code',
     enter: 'Enter',
     noReg: 'NO SIGN UP · NO DOWNLOAD · FREE',
@@ -1260,7 +1265,7 @@ const T = {
     tagline: "le jeu de toujours, avec ceux qu'on aime",
     yourName: 'ton prénom', namePlaceholder: 'Prénom...',
     chooseEmoji: 'choisis ton emoji',
-    createRoom: 'Créer une salle', join: 'Rejoindre',
+    createRoom: '🎲 Classique. Créer une salle', join: 'Rejoindre',
     roomCode: 'code de la salle',
     enter: 'Entrer',
     noReg: 'SANS INSCRIPTION · SANS TÉLÉCHARGEMENT · GRATUIT',
@@ -1767,9 +1772,7 @@ window.shellLogoClick = function() {
     return;
   }
   if (['daily-play','daily-result'].includes(G.screen)) {
-    clearInterval(G_daily.timerInterval);
-    setUrgencyPulse(false);
-    show('home');
+    dailyGoHome();
     return;
   }
   if (G.screen === 'final') {
@@ -1970,6 +1973,29 @@ function getDailySetup() {
   return { letter, categories, key };
 }
 
+// Practice mode setup — random seed, no date lock
+function getPracticeSetup() {
+  const seed = Math.floor(Date.now() * Math.random());
+  const rng = mulberry32(seed);
+  const easyPool = LETTERS_EASY[LANG] || LETTERS_EASY.es;
+  const letter = easyPool[Math.floor(rng() * easyPool.length)];
+  // Same group-balanced pick as daily
+  const valid = Object.entries(DAILY_CAT_DATA).filter(([_, d]) => d[LANG].includes(letter));
+  const byGroup = {};
+  valid.forEach(([k, d]) => { const g = d.group || 'other'; if (!byGroup[g]) byGroup[g] = []; byGroup[g].push(k); });
+  const groupKeys = Object.keys(byGroup).sort(() => rng() - 0.5);
+  const candidates = [];
+  groupKeys.forEach(g => { const arr = byGroup[g].slice(); candidates.push(arr[Math.floor(rng() * arr.length)]); });
+  for (let i = candidates.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [candidates[i], candidates[j]] = [candidates[j], candidates[i]]; }
+  return { letter, categories: candidates.slice(0, 6), key: 'practice', theme: null };
+}
+
+window.startPractice = function() {
+  resetGDaily(true);
+  window._practiceSetup = getPracticeSetup();
+  initDaily();
+};
+
 // Get display names for current language
 function getDailyCatNames(categories) {
   return categories.map(cat => {
@@ -1992,7 +2018,32 @@ let G_daily = {
   submitted: false, aiResults: {}
 };
 
+function resetGDaily(practiceMode) {
+  clearInterval(G_daily.timerInterval);
+  G_daily.practiceMode  = practiceMode || false;
+  G_daily.key           = '';
+  G_daily.letter        = '';
+  G_daily.categories    = [];
+  G_daily.answers       = {};
+  G_daily.aiResults     = {};
+  G_daily.submitted     = false;
+  G_daily._submitting   = false;
+  G_daily.secsRemaining = 90;
+  G_daily.totalSecs     = 90;
+  G_daily.startTimestamp= null;
+  G_daily.timerInterval = null;
+  G_daily.saveProgress  = null;
+  G_daily.baseScore     = 0;
+  G_daily.totalScore    = 0;
+  G_daily.originality   = 0;
+  G_daily.totalWithOrig = 0;
+  G_daily.displayName   = '';
+  G_daily.playerKey     = '';
+  G_daily.uniqueIndices = [];
+}
+
 window.startDailyChallenge = function() {
+  resetGDaily(false);
   const key = getDailyKey();
   const _playerNameRaw = G.playerName || document.getElementById('inp-name')?.value?.trim() || '';
   const _debugMode = _playerNameRaw.includes('__debug__');
@@ -2104,6 +2155,12 @@ window.startDailyChallenge = function() {
     return;
   }
 
+  initDaily();
+};
+
+function initDaily() {
+  const key = G_daily.practiceMode ? 'practice' : getDailyKey();
+
   // Clean up stale in-progress keys from previous days
   Object.keys(localStorage).forEach(k => {
     if (k.startsWith('alto_daily_inprogress_') && k !== 'alto_daily_inprogress_' + key + '_' + LANG) {
@@ -2111,7 +2168,8 @@ window.startDailyChallenge = function() {
     }
   });
 
-  const setup = getDailySetup();
+  const setup = G_daily.practiceMode && window._practiceSetup ? window._practiceSetup : getDailySetup();
+  window._practiceSetup = null;
   G_daily.letter = setup.letter;
   G_daily.key = setup.key;
   G_daily.answers = {};
@@ -2122,9 +2180,11 @@ window.startDailyChallenge = function() {
   G_daily.startTimestamp = null; // set when timer actually starts after countdown
   G_daily.categories = getDailyCatNames(setup.categories);
 
-  // Apply theme override title if present
-  if (setup.theme) {
-    const s2 = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+  // Apply theme override title if present, or practice label
+  const s2 = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+  if (G_daily.practiceMode) {
+    s2('daily-play-label', dl().practiceLabel || 'Práctica');
+  } else if (setup.theme) {
     s2('daily-play-label', setup.theme);
     s2('daily-result-title', setup.theme);
   }
@@ -2134,7 +2194,7 @@ window.startDailyChallenge = function() {
   const letterEl = document.getElementById('daily-letter-display');
   if (letterEl) letterEl.textContent = setup.letter;
   const dateEl = document.getElementById('daily-play-date');
-  if (dateEl) dateEl.textContent = getDailyDateString();
+  if (dateEl) dateEl.textContent = G_daily.practiceMode ? '' : getDailyDateString();
 
   card.innerHTML = G_daily.categories.map((cat, i) => `
     <div class="daily-cat-row">
@@ -2145,9 +2205,10 @@ window.startDailyChallenge = function() {
     </div>
   `).join('');
 
-  // Save in-progress state to localStorage
+  // Save in-progress state to localStorage (no-op in practice mode)
   const _saveProgress = () => {
-    if (!G_daily.startTimestamp) return; // don't save until timer has started
+    if (G_daily.practiceMode) return;
+    if (!G_daily.startTimestamp) return;
     localStorage.setItem('alto_daily_inprogress_' + G_daily.key + '_' + LANG, JSON.stringify({
       key: G_daily.key, letter: G_daily.letter,
       categories: G_daily.categories, answers: G_daily.answers,
@@ -2162,7 +2223,7 @@ window.startDailyChallenge = function() {
 
   // Countdown before timer starts
   startDailyCountdown();
-};
+}
 
 
 function startDailyTimer() {
@@ -2305,7 +2366,7 @@ window.dailySubmit = async function() {
     key: G_daily.key, lang: LANG,
     playerName: dailyPlayerName, playerEmoji: dailyPlayerEmoji
   };
-  if (!dailyPlayerName.startsWith('__')) {
+  if (!dailyPlayerName.startsWith('__') && !G_daily.practiceMode) {
     localStorage.setItem('alto_daily_' + G_daily.key + '_' + LANG, JSON.stringify(saveData));
   }
 
@@ -2313,8 +2374,8 @@ window.dailySubmit = async function() {
   // Store answers as object for originality computation
   const answersObj = {};
   G_daily.categories.forEach((cat, i) => { answersObj[i] = G_daily.answers[i] || ''; });
-  // Test mode: if name starts with __ skip Firebase write
-  const _isTestMode = dailyPlayerName.startsWith('__');
+  // Test mode: if name starts with __ OR practice mode — skip Firebase write
+  const _isTestMode = dailyPlayerName.startsWith('__') || G_daily.practiceMode;
 
   try {
     const playerKey = dailyPlayerName.replace(/[.#$\[\]\/]/g,'_') + '_' + Date.now() + '_' + Math.floor(Math.random()*9999);
@@ -2420,8 +2481,8 @@ async function dailyAIValidate(word, category, letter) {
 }
 async function showDailyResult(answers, baseScore, totalScore, aiResults, secsLeft, speedMultiplier) {
   const list = document.getElementById('daily-answers-list');
-  const setup = getDailySetup();
-  const cats = getDailyCatNames(setup.categories);
+  // In practice mode use stored categories directly — getDailySetup() would return today's daily, not the practice setup
+  const cats = G_daily.practiceMode ? G_daily.categories : getDailyCatNames(getDailySetup().categories);
   const aiIcon = { valid:'✅', invalid:'❌', unsure:'🤔', empty:'—' };
 
   // Store for originality recompute
@@ -2454,14 +2515,25 @@ async function showDailyResult(answers, baseScore, totalScore, aiResults, secsLe
   const totalEl = document.getElementById('daily-total-score');
   if (totalEl) totalEl.textContent = (totalScore*10) + ' pts';
 
-  // Date header
-  const dateStr = getDailyDateString();
+  // Date header / practice mode adjustments
+  const lbCard = document.getElementById('daily-lb-card');
+  const resultTitle = document.getElementById('daily-result-title');
   const dateEl = document.getElementById('daily-result-date');
-  if (dateEl) dateEl.textContent = dateStr;
+  if (G_daily.practiceMode) {
+    if (lbCard) lbCard.style.display = 'none';
+    const _dl2 = dl();
+    if (resultTitle) resultTitle.textContent = _dl2.practiceLabel || 'Práctica';
+    if (dateEl) dateEl.textContent = '';
+  } else {
+    if (lbCard) lbCard.style.display = '';
+    if (dateEl) dateEl.textContent = getDailyDateString();
+  }
 
   show('daily-result');
-  document.querySelectorAll('.daily-lb-lang-btn').forEach(b => b.classList.toggle('active', b.dataset.lang === LANG));
-  loadDailyLeaderboard(getDailyKey()).then(() => reapplyOriginality());
+  if (!G_daily.practiceMode) {
+    document.querySelectorAll('.daily-lb-lang-btn').forEach(b => b.classList.toggle('active', b.dataset.lang === LANG));
+    loadDailyLeaderboard(getDailyKey()).then(() => reapplyOriginality());
+  }
 }
 
 async function loadDailyLeaderboard(key, lbLang) {
@@ -2681,6 +2753,7 @@ window.switchDailyLbLang = function(lang) {
 };
 
 window.refreshDailyOriginality = async function() {
+  if (G_daily.practiceMode) return;
   const btn = document.getElementById('btn-daily-refresh');
   if (btn) { btn.textContent = '↻ …'; btn.disabled = true; }
   try {
@@ -2694,6 +2767,14 @@ window.refreshDailyOriginality = async function() {
   if (btn) { btn.textContent = '↻ actualizar'; btn.disabled = false; }
 };
 
+window.dailyGoHome = function() {
+  clearInterval(G_daily.timerInterval);
+  G_daily.practiceMode = false;
+  setUrgencyPulse(false);
+  show('home');
+  updateDailyButtonDate();
+};
+
 // Update applyLang for daily result screen
 // All daily challenge UI strings
 const DAILY_LABELS = {
@@ -2704,6 +2785,7 @@ const DAILY_LABELS = {
     refreshBtn: '↻ actualizar', validating: 'Validando…',
     noResults: 'Sin resultados aún', errorLb: 'Error cargando clasificación',
     speedLabel: 'velocidad', baseLabel: 'base', origLabel: 'originalidad', sep: '· · ·',
+    practiceLabel: 'Práctica',
   },
   en: {
     yourAnswers: 'your answers', leaderboard: "today's leaderboard",
@@ -2712,6 +2794,7 @@ const DAILY_LABELS = {
     refreshBtn: '↻ refresh', validating: 'Validating…',
     noResults: 'No results yet', errorLb: 'Error loading leaderboard',
     speedLabel: 'speed', baseLabel: 'base', origLabel: 'originality', sep: '· · ·',
+    practiceLabel: 'Practice',
   },
   fr: {
     yourAnswers: 'tes réponses', leaderboard: 'classement du jour',
@@ -2720,6 +2803,7 @@ const DAILY_LABELS = {
     refreshBtn: '↻ actualiser', validating: 'Validation…',
     noResults: 'Pas encore de résultats', errorLb: 'Erreur de chargement',
     speedLabel: 'vitesse', baseLabel: 'base', origLabel: 'originalité', sep: '· · ·',
+    practiceLabel: 'Pratique',
   },
 };
 
@@ -2734,8 +2818,9 @@ function applyDailyLang() {
   s2('btn-daily-home', l.backHome);
   s2('btn-daily-submit', l.dailySubmitBtn);
   s2('daily-play-label', l.dailyPlayLabel);
-  s2('daily-result-title', l.dailyPlayLabel);
+  s2('daily-result-title', G_daily.practiceMode ? l.practiceLabel : l.dailyPlayLabel);
   s2('btn-daily-refresh', l.refreshBtn);
+  s2('btn-practice-text', l.practiceLabel || 'Práctica');
 }
 
 // ══ END DAILY CHALLENGE ═════════════════════════════════════════════════════
@@ -2748,23 +2833,25 @@ window.toggleLobbyConfig = function() {
 };
 
 // ── Daily challenge helpers ────────────────────────────
-function getDailyDateString() {
+function getDailyDateString(short) {
   const now = new Date();
   const localeMap = { es:'es-ES', en:'en-GB', fr:'fr-FR' };
   const locale = localeMap[LANG] || 'es-ES';
-  // Day + month name, no year
   const day = now.getDate();
+  // Short format: "7 sep" / "Sep 7" / "7 sep"
+  if (short) {
+    const monthShort = now.toLocaleDateString(locale, { month: 'short' }).replace('.','');
+    if (LANG === 'en') return monthShort.charAt(0).toUpperCase() + monthShort.slice(1) + ' ' + day;
+    return day + ' ' + monthShort;
+  }
+  // Long format: "7 de septiembre" / "September 7th" / "7 septembre"
   const month = now.toLocaleDateString(locale, { month: 'long' });
-
   if (LANG === 'en') {
-    // English: ordinal suffix
     const s = ['th','st','nd','rd'];
     const v = day % 100;
     const suffix = s[(v-20)%10] || s[v] || s[0];
-    // Capitalise month
     return month.charAt(0).toUpperCase() + month.slice(1) + ' ' + day + suffix;
   } else {
-    // es, fr, it: "2 de septiembre" / "2 septembre" / "2 settembre"
     const ofWord = { es:' de ', fr:' ' };
     return day + (ofWord[LANG]||' de ') + month;
   }
@@ -2781,15 +2868,15 @@ function updateDailyButtonDate() {
 
   const labels = { es:'Reto diario', en:'Daily challenge', fr:'Défi du jour' };
   const doneLabels = {
-    es:'✅ Ya jugaste hoy · Ver puntuación',
-    en:'✅ Already played · See score',
-    fr:'✅ Déjà joué · Voir le score',
+    es:'✅ Completado! Ver puntuación',
+    en:'✅ Completed! See score',
+    fr:'✅ Complété! Voir le score',
     de:'✅ Bereits gespielt · Ergebnis sehen',
     pt:'✅ Já jogaste hoje · Ver pontuação'
   };
 
   const label = labels[LANG] || labels.es;
-  span.textContent = label + ' · ' + getDailyDateString();
+  span.textContent = label + ' · ' + getDailyDateString(true);
 
   if (played) {
     if (sub) sub.textContent = doneLabels[LANG] || doneLabels.es;
@@ -4737,7 +4824,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260906.107</div>
+  <div style="font-size: 11px;opacity:0.5">v260907.120</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
