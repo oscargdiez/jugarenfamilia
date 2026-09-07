@@ -2483,8 +2483,8 @@ async function dailyAIValidate(word, category, letter) {
 }
 async function showDailyResult(answers, baseScore, totalScore, aiResults, secsLeft, speedMultiplier) {
   const list = document.getElementById('daily-answers-list');
-  const setup = getDailySetup();
-  const cats = getDailyCatNames(setup.categories);
+  // In practice mode use stored categories directly — getDailySetup() would return today's daily, not the practice setup
+  const cats = G_daily.practiceMode ? G_daily.categories : getDailyCatNames(getDailySetup().categories);
   const aiIcon = { valid:'✅', invalid:'❌', unsure:'🤔', empty:'—' };
 
   // Store for originality recompute
@@ -4818,7 +4818,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260907.118-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v260907.119-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
