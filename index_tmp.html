@@ -2947,11 +2947,16 @@ function _lbUpdateNavUI() {
   const dateLabel = document.getElementById('lb-hist-date-label');
   if (nextBtn) nextBtn.disabled = (cur >= today);
   if (dateLabel) {
-    const [y, m, d] = cur.split('-').map(Number);
-    const dd = String(d).padStart(2,'0');
-    const mm = String(m).padStart(2,'0');
-    const yy = String(y).slice(2);
-    dateLabel.textContent = `${dd}/${mm}/${yy}`;
+    if (cur === today) {
+      const todayLabel = { es: 'hoy', en: 'today', fr: "aujourd'hui" };
+      dateLabel.textContent = todayLabel[LANG] || 'hoy';
+    } else {
+      const [y, m, d] = cur.split('-').map(Number);
+      const dd = String(d).padStart(2,'0');
+      const mm = String(m).padStart(2,'0');
+      const yy = String(y).slice(2);
+      dateLabel.textContent = `${dd}/${mm}/${yy}`;
+    }
   }
 }
 
