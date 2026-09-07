@@ -1067,7 +1067,10 @@ document.addEventListener('DOMContentLoaded', function() {
   <div class="card" style="margin-bottom:1rem">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
       <span class="lbl" id="lbl-daily-your-answers">tus respuestas</span>
-      <span style="font-family:'Special Elite',monospace;font-size: 16px;color:var(--red)" id="daily-total-score">0 pts</span>
+      <div style="display:flex;align-items:center;gap:8px">
+        <button onclick="shareDailyResult()" id="btn-daily-share" style="font-family:'Special Elite',monospace;font-size:11px;padding:3px 8px;border:1px solid var(--border);border-radius:4px;background:transparent;cursor:pointer;color:var(--ink-sec)">📋 Compartir</button>
+        <span style="font-family:'Special Elite',monospace;font-size: 16px;color:var(--red)" id="daily-total-score">0 pts</span>
+      </div>
     </div>
     <div id="daily-answers-list"></div>
   </div>
@@ -2149,6 +2152,7 @@ function resetGDaily(practiceMode) {
   G_daily.playerKey     = '';
   G_daily.uniqueIndices = [];
   G_daily.theme         = null;
+  G_daily.myRank        = null;
 }
 
 window.startDailyChallenge = async function() {
@@ -2753,6 +2757,7 @@ function renderLeaderboard(allScores) {
   const top10 = entries.slice(0, 10);
   const myIdx = entries.findIndex(e => isMe(e));
   const isInTop10 = myIdx >= 0 && myIdx < 10;
+  G_daily.myRank = myIdx >= 0 ? myIdx + 1 : null;
 
   // Ensure categories are available even when leaderboard viewed after session
   if (!G_daily.categories || !G_daily.categories.length) {
@@ -2985,6 +2990,95 @@ window.switchDailyLbLang = function(lang) {
   loadDailyLeaderboard(_lbEffectiveDate(), lang).then(() => { if (!_lbDate) reapplyOriginality(); });
 };
 
+window.shareDailyResult = function() {
+  const l = dl();
+  const flagMap = { es: '🇪🇸', en: '🇬🇧', fr: '🇫🇷' };
+  const aiIcon = { valid: '✅', invalid: '❌', unsure: '🤔', empty: '—' };
+
+  // Header — name prominent
+  const name = G_daily.displayName || G.playerName || '';
+  const flag = flagMap[LANG] || '🇪🇸';
+  const letter = G_daily.letter || '?';
+
+  // Date / practice tag
+  let dateLine = '';
+  if (G_daily.practiceMode) {
+    dateLine = l.practiceTag || 'Práctica';
+  } else {
+    const k = G_daily.key || getDailyKey();
+    const [y, m, d] = k.split('-').map(Number);
+    const dd = String(d).padStart(2,'0');
+    const mm = String(m).padStart(2,'0');
+    const yy = String(y).slice(2);
+    dateLine = `${dd}/${mm}/${yy}`;
+    // Rank
+    if (G_daily.myRank) {
+      const rank = G_daily.myRank;
+      const medals = ['🥇','🥈','🥉'];
+      const medal = medals[rank - 1] || '';
+      const suffixes = l.rankSuffix || ['º','º','º','º'];
+      const suffix = rank <= 3 ? suffixes[rank - 1] : suffixes[3];
+      const rankStr = medal ? medal : `${rank}${suffix}`;
+      dateLine += ` · ${rankStr}`;
+    }
+  }
+
+  // Answers block
+  const cats = G_daily.categories || [];
+  const answers = G_daily.answers || {};
+  const aiResults = G_daily.aiResults || {};
+  const uniqueIndices = G_daily.uniqueIndices || [];
+
+  const answerLines = cats.map((cat, i) => {
+    const word = answers[i] || '';
+    const res = aiResults[i] || (word ? 'unsure' : 'empty');
+    const icon = word ? (aiIcon[res] || '🤔') : '—';
+    const base = res === 'valid' ? '+100' : res === 'unsure' ? '+50' : '';
+    const orig = uniqueIndices.includes(i) ? ' +50⚡' : '';
+    const pts = base ? ` ${base}${orig}` : '';
+    // Pad category to ~22 chars for alignment
+    const padded = cat.padEnd(22, ' ');
+    return word ? `${padded} ${word} ${icon}${pts}` : `${padded} —`;
+  });
+
+  // Score summary
+  const baseScore = G_daily.baseScore || 0;
+  const totalScore = G_daily.totalScore || 0;
+  const mult = baseScore > 0 ? (totalScore / baseScore).toFixed(2) : '1.00';
+  const origPts = (totalScore - baseScore) * 10;
+  const origLine = origPts > 0
+    ? `${baseScore * 10} pts ×${mult}⚡→ ${totalScore * 10} pts +${origPts} ${l.origLabel || 'originalidad'} ⚡`
+    : `${baseScore * 10} pts ×${mult}⚡→ ${totalScore * 10} pts`;
+
+  // Assemble
+  const lines = [
+    name,
+    `¡Alto! ${flag} · ${letter} · ${dateLine}`,
+    '',
+    ...answerLines,
+    '',
+    origLine,
+    'jugarenfamilia.es',
+  ];
+  const text = lines.join('\n');
+
+  // Copy to clipboard
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('btn-daily-share');
+    const original = btn ? btn.textContent : '';
+    if (btn) btn.textContent = l.shareCopied || '¡Copiado!';
+    setTimeout(() => { if (btn) btn.textContent = original; }, 2000);
+  }).catch(() => {
+    // Fallback: prompt with text selected
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.focus(); ta.select();
+    try { document.execCommand('copy'); } catch(e) {}
+    document.body.removeChild(ta);
+    toast(l.shareCopied || '¡Copiado!');
+  });
+};
+
 window.refreshDailyOriginality = async function() {
   if (G_daily.practiceMode) return;
   const btn = document.getElementById('btn-daily-refresh');
@@ -3021,6 +3115,8 @@ const DAILY_LABELS = {
     noResults: 'Sin resultados aún', errorLb: 'Error cargando clasificación',
     speedLabel: 'velocidad', baseLabel: 'base', origLabel: 'originalidad', sep: '· · ·',
     practiceLabel: 'Práctica',
+    shareBtn: '📋 Compartir', shareCopied: '¡Copiado!',
+    rankSuffix: ['er','º','º','º'], practiceTag: 'Práctica',
   },
   en: {
     yourAnswers: 'your answers', leaderboard: 'leaderboard',
@@ -3030,6 +3126,8 @@ const DAILY_LABELS = {
     noResults: 'No results yet', errorLb: 'Error loading leaderboard',
     speedLabel: 'speed', baseLabel: 'base', origLabel: 'originality', sep: '· · ·',
     practiceLabel: 'Practice',
+    shareBtn: '📋 Share', shareCopied: 'Copied!',
+    rankSuffix: ['st','nd','rd','th'], practiceTag: 'Practice',
   },
   fr: {
     yourAnswers: 'tes réponses', leaderboard: 'classement',
@@ -3039,6 +3137,8 @@ const DAILY_LABELS = {
     noResults: 'Pas encore de résultats', errorLb: 'Erreur de chargement',
     speedLabel: 'vitesse', baseLabel: 'base', origLabel: 'originalité', sep: '· · ·',
     practiceLabel: 'Pratique',
+    shareBtn: '📋 Partager', shareCopied: 'Copié !',
+    rankSuffix: ['er','e','e','e'], practiceTag: 'Pratique',
   },
 };
 
@@ -3055,6 +3155,7 @@ function applyDailyLang() {
   s2('daily-play-label', G_daily.theme || l.dailyPlayLabel);
   s2('daily-result-title', G_daily.practiceMode ? l.practiceLabel : (G_daily.theme || l.dailyPlayLabel));
   s2('btn-daily-refresh', l.refreshBtn);
+  s2('btn-daily-share', l.shareBtn || '📋 Compartir');
   s2('btn-practice-text', l.practiceLabel || 'Práctica');
   _lbUpdateNavUI();
 }
@@ -5410,7 +5511,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260907.161</div>
+  <div style="font-size: 11px;opacity:0.5">v260907.162</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
