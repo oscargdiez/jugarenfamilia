@@ -404,7 +404,44 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
 }
 #toast.show { opacity: 1; }
 
-/* ── Update available bubble ── */
+/* ── Claim name overlay ── */
+#claim-overlay {
+  display: none; position: fixed; inset: 0; z-index: 401;
+  background: var(--paper);
+  flex-direction: column;
+}
+#claim-overlay.open { display: flex; }
+#claim-panel {
+  flex: 1; overflow-y: auto;
+  padding: 1.25rem 1.25rem 3rem;
+  max-width: 720px; width: 100%; margin: 0 auto;
+}
+#claim-panel-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 1.5rem; padding-top: 0.25rem;
+}
+#claim-panel-title {
+  font-family: 'Caveat', cursive; font-size:26px; font-weight:700; color: var(--ink);
+}
+#claim-panel-close {
+  font-family: 'Special Elite', monospace; font-size:13px;
+  padding: 5px 12px; border: 1.5px solid var(--border-strong);
+  border-radius: 4px; background: transparent; color: var(--ink-sec); cursor: pointer;
+  letter-spacing: 1px;
+}
+/* Claim pill — right of name label */
+#claim-pill-badge {
+  font-family: 'Special Elite', monospace; font-size: 11px;
+  border-radius: 20px; padding: 2px 8px; white-space: nowrap;
+  letter-spacing: 0.3px;
+}
+#claim-pill.free #claim-pill-badge { color: #c4621a; background: #fef3ea; border: 1.5px solid #e8864a; }
+#claim-pill.claimed #claim-pill-badge { color: #2d7a4a; background: #edf7f1; border: 1.5px solid #a8d8b8; }
+#claim-pill.reserved #claim-pill-badge { color: var(--red); background: var(--red-light); border: 1.5px solid var(--red); }
+#claim-pill { display: none !important; padding:0; background:none; border:none; cursor:pointer; flex-shrink:0; }
+#claim-pill.free, #claim-pill.claimed, #claim-pill.reserved { display: inline-block !important; }
+
+
 #update-bubble {
   position: fixed; bottom: 72px; right: 16px;
   background: var(--red); color: #fff;
@@ -412,12 +449,13 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
   font-family: 'Special Elite', monospace; font-size: 13px;
   cursor: pointer; z-index: 998;
   box-shadow: 0 2px 8px rgba(0,0,0,0.18);
-  display: none; align-items: center; gap: 6px;
+  display: flex; align-items: center; gap: 6px;
   border: none; white-space: nowrap;
-  animation: bubble-in 0.3s ease;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  transform: scale(0.85) translateY(8px);
 }
-#update-bubble.show { display: flex; }
-@keyframes bubble-in { from { opacity:0; transform:scale(0.85) translateY(8px); } to { opacity:1; transform:scale(1) translateY(0); } }
+#update-bubble.show { opacity: 1; pointer-events: auto; transform: scale(1) translateY(0); }
 
 /* ── Floating timer numbers ── */
 .timer-float {
@@ -780,6 +818,30 @@ document.addEventListener('DOMContentLoaded', function() {
   </div>
 </div>
 
+<!-- ══ CLAIM NAME OVERLAY ══ -->
+<div id="claim-overlay">
+  <div id="claim-panel">
+    <div id="claim-panel-header">
+      <span id="claim-panel-title">🔒 Reservar nombre</span>
+      <button id="claim-panel-close" onclick="claimClose()">Cerrar</button>
+    </div>
+    <div id="claim-panel-body">
+      <p id="claim-name-display" style="font-family:'Caveat',cursive;font-size:32px;font-weight:700;color:var(--ink);margin-bottom:4px"></p>
+      <p id="claim-desc" style="font-family:'Special Elite',monospace;font-size:13px;color:var(--ink-sec);margin-bottom:1.5rem;line-height:1.6"></p>
+      <div class="card" style="margin-bottom:1rem">
+        <p id="claim-privacy" style="font-family:'Special Elite',monospace;font-size:11px;color:var(--ink-muted);margin-bottom:1rem;line-height:1.6"></p>
+        <p class="lbl" id="claim-input-lbl" style="margin-bottom:6px">email o PIN de 4 dígitos</p>
+        <input type="text" id="claim-input" placeholder="tucorreo@email.com o 1234" maxlength="100"
+          autocomplete="off" inputmode="text"
+          style="width:100%;margin-bottom:12px"
+          oninput="claimInputChanged()">
+        <p id="claim-error" style="font-family:'Special Elite',monospace;font-size:11px;color:var(--red);margin-bottom:8px;display:none"></p>
+        <button class="pri" onclick="claimSubmit()" style="width:100%;font-size:20px;padding:14px" id="claim-btn">Reservar →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- legacy id kept for startTimer compat -->
 <div id="fixed-topbar" style="display:none"></div>
 <div class="confetti-stage" id="confetti-stage"></div>
@@ -817,8 +879,12 @@ document.addEventListener('DOMContentLoaded', function() {
     <div class="logo-tag">el juego de siempre, con los de siempre</div>
   </div>
   <div class="card">
-    <p class="lbl" id="lbl-your-name" style="display:none">tu nombre</p>
-    <input type="text" id="inp-name" placeholder="María..." maxlength="20" autocomplete="nickname" inputmode="text" style="margin-bottom:14px" oninput="this.value=this.value.charAt(0).toUpperCase()+this.value.slice(1).toLowerCase();localStorage.setItem('alto_name', this.value.trim())">
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:14px">
+      <input type="text" id="inp-name" placeholder="María..." maxlength="20" autocomplete="nickname" inputmode="text" style="flex:1;margin-bottom:0">
+      <button id="claim-pill" onclick="claimOpen()" tabindex="-1">
+        <span id="claim-pill-badge"></span>
+      </button>
+    </div>
     <p class="lbl" id="lbl-choose-emoji" style="display:none">elige tu emoji <span class="emoji-display" id="selected-emoji">🎲</span></p>
     <div class="emoji-grid" id="emoji-grid"></div>
     <div style="margin-top:14px;display:flex;flex-direction:column;gap:8px">
@@ -826,10 +892,11 @@ document.addEventListener('DOMContentLoaded', function() {
       <div style="font-family:'Special Elite',monospace;font-size:11px;color:var(--ink-muted);text-align:center;letter-spacing:1px;margin:-2px 0 2px" id="lbl-create-sub">MULTIJUGADOR · CON FAMILIA Y AMIGOS</div>
       <div style="display:flex;gap:6px;align-items:flex-start">
         <div style="flex:1;display:flex;flex-direction:column;gap:0">
-          <button onclick="startDailyChallenge()" class="green" style="width:100%;font-size:20px;padding:14px;line-height:1;" id="btn-daily">📅 <span id="btn-daily-text">Reto diario · cargando…</span></button>
+          <!-- 19px exception to 6-slot font system: needed to fit Daily+Practice on one line on small iPhone screens -->
+          <button onclick="startDailyChallenge()" class="green" style="width:100%;font-size:19px;padding:14px;line-height:1;font-weight:400" id="btn-daily"><span style="font-size:17px">📅</span> <span id="btn-daily-text">Reto diario · cargando…</span></button>
           <div style="font-family:'Special Elite',monospace;font-size:11px;color:var(--ink-muted);text-align:center;letter-spacing:1px;margin:2px 0 0" id="lbl-daily-sub">TÚ CONTRA EL MUNDO · UN RETO POR DÍA</div>
         </div>
-        <button onclick="startPractice()" style="flex:0 0 auto;font-size:20px;padding:14px 12px;line-height:1;border:1.5px solid var(--border);border-radius:var(--radius);background:transparent;font-family:'Caveat',cursive;font-weight:400;cursor:pointer;white-space:nowrap" id="btn-practice">✏️ <span id="btn-practice-text">Práctica</span></button>
+        <button onclick="startPractice()" style="flex:0 0 auto;font-size:19px;padding:14px 8px;line-height:1;border:1.5px solid var(--border);border-radius:var(--radius);background:transparent;font-family:'Caveat',cursive;font-weight:400;cursor:pointer;white-space:nowrap" id="btn-practice"><span style="font-size:17px">✏️</span> <span id="btn-practice-text">Práctica</span></button>
       </div>
     </div>
   </div>
@@ -1505,12 +1572,21 @@ window.applyLang = function() {
   // Home
   document.querySelectorAll('.logo-tag').forEach(el => el.textContent = t('tagline'));
   s('inp-name', null, t('namePlaceholder'));
-  s('lbl-your-name', t('yourName'));
   s('lbl-choose-emoji', t('chooseEmoji') + ' ');
   s('btn-create', t('createRoom') + ' →');
   s('rules-btn', '▼ ' + t('rulesBtn'));
   s('btn-enter', t('enter'));
   s('footer-noreg', t('noReg'));
+  // Update claim pill text for current language if visible
+  if (_claimState) {
+    const pillBadge = document.getElementById('claim-pill-badge');
+    const _cl = CLAIM_LABELS[LANG] || CLAIM_LABELS.es;
+    if (pillBadge) {
+      if (_claimState === 'mine') pillBadge.textContent = _cl.pillMine;
+      else if (_claimState === 'taken') pillBadge.textContent = _cl.pillTaken;
+      else if (_claimState === 'free') pillBadge.textContent = _cl.pillFree;
+    }
+  }
   // Welcome
   s('wb-continue', t('continueBtn'));
   s('btn-not-me', t('notMe'));
@@ -2343,6 +2419,21 @@ window.dailyCheckInput = function(i, val) {
 
 window.dailySubmit = async function() {
   if (G_daily.submitted || G_daily._submitting) return;
+
+  // Guard: at least one answer must be filled
+  const hasAnswer = G_daily.categories.some((_, i) => {
+    const inp = document.getElementById('daily-inp-' + i);
+    return inp && inp.value.trim().length > 0;
+  });
+  if (!hasAnswer) {
+    const msg = { es: '¡Rellena al menos una respuesta!', en: 'Fill in at least one answer!', fr: 'Remplis au moins une réponse !' };
+    toast(msg[LANG] || msg.es);
+    // Re-enable submit button (was disabled by inline onclick)
+    const submitBtn = document.getElementById('btn-daily-submit');
+    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = { es:'¡Alto! →', en:'Stop! →', fr:'Stop! →' }[LANG] || '¡Alto! →'; }
+    return;
+  }
+
   G_daily._submitting = true;
   if (G_daily.submitted) { G_daily._submitting = false; return; }
   G_daily.submitted = true;
@@ -4836,6 +4927,276 @@ window.dbgRefresh = function() {
 
 // ══ END DEBUG MODE ═══════════════════════════════════════════════════════════
 
+// ══ CLAIM NAME ══════════════════════════════════════════════════════════════
+
+const CLAIM_LABELS = {
+  es: {
+    title: '🔒 Reservar nombre',
+    close: 'Cerrar',
+    inputLbl: 'Email o PIN de 4 dígitos',
+    placeholder: 'tucorreo@email.com o 1234',
+    btnClaim: 'Reservar →',
+    btnVerify: 'Verificar →',
+    privacy: '🔒 Tu email solo se usa para identificarte aquí. No lo guardamos en ningún servidor propio ni te enviaremos nada nunca. Si usas un PIN, solo tú lo sabes.',
+    descFree: (name) => `"${name}" aún no está reservado. Si lo reservas, nadie más podrá usarlo en JugarEnFamilia.`,
+    descMine: (name) => `"${name}" ya es tuyo. Introduce tu email o PIN para verificar tu identidad en este dispositivo.`,
+    descTaken: (name) => `"${name}" ya está reservado. ¿Eres tú? Introduce tu email o PIN para verificar.`,
+    pillFree: '¡Disponible! Resérvalo →',
+    pillMine: '✓ Nombre reservado',
+    pillTaken: '¿Eres tú? Verifica →',
+    errorEmpty: 'Introduce un email o PIN de 4 dígitos',
+    errorPin: 'El PIN debe tener exactamente 4 dígitos',
+    errorNoMatch: 'No coincide — inténtalo de nuevo',
+    errorFail: 'No se pudo conectar, inténtalo más tarde',
+    successClaimed: '¡Nombre reservado! Solo tú puedes usarlo.',
+    successVerified: '¡Verificado! Este dispositivo reconoce tu nombre.',
+  },
+  en: {
+    title: '🔒 Claim your name',
+    close: 'Close',
+    inputLbl: 'Email or 4-digit PIN',
+    placeholder: 'you@email.com or 1234',
+    btnClaim: 'Claim →',
+    btnVerify: 'Verify →',
+    privacy: '🔒 Your email is only used to identify you here. We don\'t store it on our own servers and will never contact you. If you use a PIN, only you know it.',
+    descFree: (name) => `"${name}" hasn\'t been claimed yet. Claim it and no one else will be able to use it on JugarEnFamilia.`,
+    descMine: (name) => `"${name}" is already yours. Enter your email or PIN to verify your identity on this device.`,
+    descTaken: (name) => `"${name}" is already claimed. Is that you? Enter your email or PIN to verify.`,
+    pillFree: 'Available! Claim it →',
+    pillMine: '✓ Name claimed',
+    pillTaken: 'Is that you? Verify →',
+    errorEmpty: 'Enter an email or 4-digit PIN',
+    errorPin: 'PIN must be exactly 4 digits',
+    errorNoMatch: 'Doesn\'t match — try again',
+    errorFail: 'Couldn\'t connect, try again later',
+    successClaimed: 'Name claimed! Only you can use it.',
+    successVerified: 'Verified! This device recognises your name.',
+  },
+  fr: {
+    title: '🔒 Réserver ton nom',
+    close: 'Fermer',
+    inputLbl: 'Email ou code PIN à 4 chiffres',
+    placeholder: 'toi@email.com ou 1234',
+    btnClaim: 'Réserver →',
+    btnVerify: 'Vérifier →',
+    privacy: '🔒 Ton email sert uniquement à t\'identifier ici. Nous ne le stockons pas sur nos propres serveurs et ne te contacterons jamais. Si tu utilises un PIN, seul toi le connais.',
+    descFree: (name) => `"${name}" n\'est pas encore réservé. Réserve-le et personne d\'autre ne pourra l\'utiliser sur JugarEnFamilia.`,
+    descMine: (name) => `"${name}" est déjà le tien. Entre ton email ou PIN pour vérifier ton identité sur cet appareil.`,
+    descTaken: (name) => `"${name}" est déjà réservé. C\'est toi ? Entre ton email ou PIN pour vérifier.`,
+    pillFree: 'Disponible ! Réserve-le →',
+    pillMine: '✓ Nom réservé',
+    pillTaken: 'C\'est toi ? Vérifie →',
+    errorEmpty: 'Entre un email ou un PIN à 4 chiffres',
+    errorPin: 'Le PIN doit avoir exactement 4 chiffres',
+    errorNoMatch: 'Ne correspond pas — réessaie',
+    errorFail: 'Impossible de se connecter, réessaie plus tard',
+    successClaimed: 'Nom réservé ! Toi seul peux l\'utiliser.',
+    successVerified: 'Vérifié ! Cet appareil reconnaît ton nom.',
+  },
+};
+
+function cl() { return CLAIM_LABELS[LANG] || CLAIM_LABELS.es; }
+
+// Hash a string using SHA-256, return hex string
+async function hashSecret(str) {
+  const encoded = new TextEncoder().encode(str.trim().toLowerCase());
+  const buf = await crypto.subtle.digest('SHA-256', encoded);
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+// Normalise name for Firebase key (same as daily dedup)
+function claimSafeName(name) {
+  return name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim()
+    .replace(/[^a-z0-9 ]/g,'_').replace(/\s+/g,'_').replace(/_+/g,'_').replace(/^_|_$/g,'');
+}
+
+// localStorage key for this name claim
+function claimLsKey(safeName) { return 'alto_claim_' + safeName; }
+
+// Current state: null | 'free' | 'mine' | 'taken'
+let _claimState = null;
+let _claimCurrentName = '';
+let _claimDebounceTimer = null;
+
+function scheduleNameCheck(name) {
+  clearTimeout(_claimDebounceTimer);
+  const pill = document.getElementById('claim-pill');
+  if (!pill) return;
+  if (name === _claimCurrentName && _claimState) {
+    _claimDebounceTimer = setTimeout(() => checkClaimStatus(name), 800);
+    return;
+  }
+  pill.className = '';
+  pill.style.display = 'none';
+  _claimState = null;
+  if (!name || name.length < 2) return;
+  _claimDebounceTimer = setTimeout(() => checkClaimStatus(name), 800);
+}
+
+async function checkClaimStatus(name) {
+  const safeName = claimSafeName(name);
+  if (!safeName || safeName.length < 2) return;
+  _claimCurrentName = name;
+
+  const pill = document.getElementById('claim-pill');
+  const pillBadge = document.getElementById('claim-pill-badge');
+  if (!pill || !pillBadge) return;
+
+  const showPill = (cls) => { pill.style.display = ''; pill.className = cls; };
+
+  // Check localStorage first — already claimed/verified on this device
+  const lsData = localStorage.getItem(claimLsKey(safeName));
+  if (lsData) {
+    try {
+      const d = JSON.parse(lsData);
+      if (d.verified) {
+        _claimState = 'mine';
+        pillBadge.textContent = cl().pillMine;
+        showPill('claimed');
+        return;
+      }
+    } catch(e) {}
+  }
+
+  // Check Firebase
+  try {
+    const snap = await get(ref(db, 'names/' + safeName + '/secret'));
+    if (snap.exists()) {
+      _claimState = 'taken';
+      pillBadge.textContent = cl().pillTaken;
+      showPill('reserved');
+    } else {
+      _claimState = 'free';
+      pillBadge.textContent = cl().pillFree;
+      showPill('free');
+    }
+  } catch(e) {
+    pill.style.display = 'none';
+  }
+}
+
+window.claimOpen = async function() {
+  const l = cl();
+  // Always read the current input value — not the debounced _claimCurrentName
+  const currentInput = document.getElementById('inp-name')?.value?.trim() || '';
+  if (currentInput && currentInput !== _claimCurrentName) {
+    // Name changed since last debounce — re-check before opening
+    await checkClaimStatus(currentInput);
+  }
+  const name = _claimCurrentName || currentInput;
+  const overlay = document.getElementById('claim-overlay');
+  const title = document.getElementById('claim-panel-title');
+  const desc = document.getElementById('claim-desc');
+  const privacy = document.getElementById('claim-privacy');
+  const inputLbl = document.getElementById('claim-input-lbl');
+  const input = document.getElementById('claim-input');
+  const btn = document.getElementById('claim-btn');
+  const nameDisplay = document.getElementById('claim-name-display');
+  const err = document.getElementById('claim-error');
+  const closeBtn = document.getElementById('claim-panel-close');
+
+  if (title) title.textContent = l.title;
+  if (closeBtn) closeBtn.textContent = l.close;
+  if (nameDisplay) nameDisplay.textContent = name;
+  if (privacy) privacy.textContent = l.privacy;
+  if (inputLbl) inputLbl.textContent = l.inputLbl;
+  if (input) { input.value = ''; input.placeholder = l.placeholder; }
+  if (err) { err.style.display = 'none'; err.textContent = ''; }
+
+  if (_claimState === 'free') {
+    if (desc) desc.textContent = l.descFree(name);
+    if (btn) btn.textContent = l.btnClaim;
+  } else {
+    if (desc) desc.textContent = _claimState === 'mine' ? l.descMine(name) : l.descTaken(name);
+    if (btn) btn.textContent = l.btnVerify;
+  }
+
+  if (overlay) overlay.classList.add('open');
+};
+
+window.claimClose = function() {
+  const overlay = document.getElementById('claim-overlay');
+  if (overlay) overlay.classList.remove('open');
+};
+
+window.claimInputChanged = function() {
+  const err = document.getElementById('claim-error');
+  if (err) err.style.display = 'none';
+};
+
+function isValidPin(val) { return /^\d{4}$/.test(val.trim()); }
+function isValidEmail(val) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val.trim()); }
+
+window.claimSubmit = async function() {
+  const l = cl();
+  const input = document.getElementById('claim-input');
+  const err = document.getElementById('claim-error');
+  const btn = document.getElementById('claim-btn');
+  const val = input ? input.value.trim() : '';
+
+  // Validate input
+  if (!val) { showClaimError(l.errorEmpty); return; }
+  if (!isValidEmail(val) && !isValidPin(val)) { showClaimError(l.errorPin); return; }
+
+  if (btn) { btn.disabled = true; btn.textContent = '…'; }
+
+  try {
+    const safeName = claimSafeName(_claimCurrentName);
+    const hash = await hashSecret(val);
+
+    if (_claimState === 'free') {
+      // Write to Firebase
+      await set(ref(db, 'names/' + safeName + '/secret'), hash);
+      await set(ref(db, 'names/' + safeName + '/displayName'), _claimCurrentName);
+      // Save to localStorage
+      localStorage.setItem(claimLsKey(safeName), JSON.stringify({ verified: true, claimedAt: Date.now() }));
+      _claimState = 'mine';
+      claimClose();
+      toast(l.successClaimed);
+      // Update pill
+      const pill = document.getElementById('claim-pill');
+      const pillBadge = document.getElementById('claim-pill-badge');
+      if (pill) { pill.className = 'claimed'; }
+      if (pillBadge) pillBadge.textContent = l.pillMine;
+    } else {
+      // Verify against stored hash
+      const snap = await get(ref(db, 'names/' + safeName + '/secret'));
+      if (!snap.exists()) { showClaimError(l.errorFail); if (btn) { btn.disabled = false; btn.textContent = l.btnVerify; } return; }
+      if (snap.val() === hash) {
+        // Restore original display name (with accents) from Firebase
+        const dnSnap = await get(ref(db, 'names/' + safeName + '/displayName'));
+        if (dnSnap.exists()) {
+          const originalName = dnSnap.val();
+          const nameInput = document.getElementById('inp-name');
+          if (nameInput) { nameInput.value = originalName; localStorage.setItem('alto_name', originalName); _claimCurrentName = originalName; }
+        }
+        localStorage.setItem(claimLsKey(safeName), JSON.stringify({ verified: true, verifiedAt: Date.now() }));
+        _claimState = 'mine';
+        claimClose();
+        toast(l.successVerified);
+        const pill = document.getElementById('claim-pill');
+        const pillBadge = document.getElementById('claim-pill-badge');
+        if (pill) { pill.className = 'claimed'; }
+        if (pillBadge) pillBadge.textContent = l.pillMine;
+      } else {
+        showClaimError(l.errorNoMatch);
+        if (btn) { btn.disabled = false; btn.textContent = _claimState === 'free' ? l.btnClaim : l.btnVerify; }
+      }
+    }
+  } catch(e) {
+    console.warn('Claim error:', e);
+    showClaimError(l.errorFail);
+    if (btn) { btn.disabled = false; btn.textContent = _claimState === 'free' ? l.btnClaim : l.btnVerify; }
+  }
+};
+
+function showClaimError(msg) {
+  const err = document.getElementById('claim-error');
+  if (err) { err.textContent = msg; err.style.display = 'block'; }
+}
+
+// ══ END CLAIM NAME ════════════════════════════════════════════════════════════
+
 // ══ VERSION CHECK ════════════════════════════════════════════════════════════
 
 const CURRENT_VERSION = (() => {
@@ -4876,10 +5237,27 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) chec
 
 // Init
 document.body.classList.add('screen-home');
+// Name input — capitalise first letter and handle claim pill
+(function() {
+  const inp = document.getElementById('inp-name');
+  if (!inp) return;
+  inp.addEventListener('input', function() {
+    const pos = this.selectionStart;
+    const raw = this.value;
+    if (!raw) { localStorage.setItem('alto_name', ''); scheduleNameCheck(''); return; }
+    const capped = raw.charAt(0).toUpperCase() + raw.slice(1).toLowerCase();
+    if (capped !== raw) {
+      this.value = capped;
+      this.setSelectionRange(pos, pos);
+    }
+    localStorage.setItem('alto_name', capped.trim());
+    scheduleNameCheck(capped.trim());
+  });
+})();
 buildEmojiGrid();
 applyLang();
 document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.getAttribute('onclick').includes("'"+LANG+"'")));
-try { const s=JSON.parse(localStorage.getItem('alto_session')||'{}'); const _n=document.getElementById('inp-name'); if(_n && !_n.value) { if(s.name) _n.value=s.name; else { const _saved=localStorage.getItem('alto_name'); if(_saved) _n.value=_saved; } } } catch(e){}
+try { const s=JSON.parse(localStorage.getItem('alto_session')||'{}'); const _n=document.getElementById('inp-name'); if(_n && !_n.value) { if(s.name) _n.value=s.name; else { const _saved=localStorage.getItem('alto_name'); if(_saved) _n.value=_saved; } } if(_n && _n.value) scheduleNameCheck(_n.value); } catch(e){}
 tryRestore();
 // Debug: intercept createRoom AFTER it's been defined
 (function() {
@@ -4901,12 +5279,12 @@ tryRestore();
 buildEmojiGrid();
 applyLang();
 document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.getAttribute('onclick').includes("'"+LANG+"'")));
-try { const s=JSON.parse(localStorage.getItem('alto_session')||'{}'); const _n=document.getElementById('inp-name'); if(_n && !_n.value) { if(s.name) _n.value=s.name; else { const _saved=localStorage.getItem('alto_name'); if(_saved) _n.value=_saved; } } } catch(e){}
+try { const s=JSON.parse(localStorage.getItem('alto_session')||'{}'); const _n=document.getElementById('inp-name'); if(_n && !_n.value) { if(s.name) _n.value=s.name; else { const _saved=localStorage.getItem('alto_name'); if(_saved) _n.value=_saved; } } if(_n && _n.value) scheduleNameCheck(_n.value); } catch(e){}
 tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260907.128</div>
+  <div style="font-size: 11px;opacity:0.5">v260907.151</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
