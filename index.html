@@ -1065,11 +1065,11 @@ document.addEventListener('DOMContentLoaded', function() {
   <p style="font-family:'Special Elite',monospace;font-size:11px;color:var(--ink-muted);margin-bottom:1rem" id="daily-result-date"></p>
 
   <div class="card" style="margin-bottom:1rem">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">
       <span class="lbl" id="lbl-daily-your-answers">tus respuestas</span>
       <div style="display:flex;align-items:center;gap:8px">
-        <button onclick="shareDailyResult()" id="btn-daily-share" style="font-family:'Special Elite',monospace;font-size:11px;padding:3px 8px;border:1px solid var(--border);border-radius:4px;background:transparent;cursor:pointer;color:var(--ink-sec)">📋 Compartir</button>
-        <span style="font-family:'Special Elite',monospace;font-size: 16px;color:var(--red)" id="daily-total-score">0 pts</span>
+        <button onclick="shareDailyResult()" id="btn-daily-share" style="font-family:'Special Elite',monospace;font-size:11px;padding:3px 8px;border:1px solid var(--border);border-radius:4px;background:transparent;cursor:pointer;color:var(--ink-sec);line-height:1">Share</button>
+        <span style="font-family:'Special Elite',monospace;font-size:16px;color:var(--red);line-height:1" id="daily-total-score">0 pts</span>
       </div>
     </div>
     <div id="daily-answers-list"></div>
@@ -3120,7 +3120,7 @@ const DAILY_LABELS = {
     noResults: 'Sin resultados aún', errorLb: 'Error cargando clasificación',
     speedLabel: 'velocidad', baseLabel: 'base', origLabel: 'originalidad', sep: '· · ·',
     practiceLabel: 'Práctica',
-    shareBtn: '📋 Compartir', shareCopied: '¡Copiado!',
+    shareBtn: 'Compartir', shareCopied: '¡Copiado!',
     rankSuffix: ['er','º','º','º'], practiceTag: 'Práctica',
   },
   en: {
@@ -3131,7 +3131,7 @@ const DAILY_LABELS = {
     noResults: 'No results yet', errorLb: 'Error loading leaderboard',
     speedLabel: 'speed', baseLabel: 'base', origLabel: 'originality', sep: '· · ·',
     practiceLabel: 'Practice',
-    shareBtn: '📋 Share', shareCopied: 'Copied!',
+    shareBtn: 'Share', shareCopied: 'Copied!',
     rankSuffix: ['st','nd','rd','th'], practiceTag: 'Practice',
   },
   fr: {
@@ -3142,7 +3142,7 @@ const DAILY_LABELS = {
     noResults: 'Pas encore de résultats', errorLb: 'Erreur de chargement',
     speedLabel: 'vitesse', baseLabel: 'base', origLabel: 'originalité', sep: '· · ·',
     practiceLabel: 'Pratique',
-    shareBtn: '📋 Partager', shareCopied: 'Copié !',
+    shareBtn: 'Partager', shareCopied: 'Copié !',
     rankSuffix: ['er','e','e','e'], practiceTag: 'Pratique',
   },
 };
@@ -5516,7 +5516,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260907.163</div>
+  <div style="font-size: 11px;opacity:0.5">v260907.164</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
