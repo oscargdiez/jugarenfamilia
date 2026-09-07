@@ -2405,6 +2405,21 @@ window.dailyCheckInput = function(i, val) {
 
 window.dailySubmit = async function() {
   if (G_daily.submitted || G_daily._submitting) return;
+
+  // Guard: at least one answer must be filled
+  const hasAnswer = G_daily.categories.some((_, i) => {
+    const inp = document.getElementById('daily-inp-' + i);
+    return inp && inp.value.trim().length > 0;
+  });
+  if (!hasAnswer) {
+    const msg = { es: '¡Rellena al menos una respuesta!', en: 'Fill in at least one answer!', fr: 'Remplis au moins une réponse !' };
+    toast(msg[LANG] || msg.es);
+    // Re-enable submit button (was disabled by inline onclick)
+    const submitBtn = document.getElementById('btn-daily-submit');
+    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = { es:'¡Alto! →', en:'Stop! →', fr:'Stop! →' }[LANG] || '¡Alto! →'; }
+    return;
+  }
+
   G_daily._submitting = true;
   if (G_daily.submitted) { G_daily._submitting = false; return; }
   G_daily.submitted = true;
@@ -5232,7 +5247,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260907.135-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v260907.136-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
