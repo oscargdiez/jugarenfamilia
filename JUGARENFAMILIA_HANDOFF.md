@@ -378,3 +378,9 @@ Bug fixes: stop banner guests, broken HTML, applyLang child spans, duplicate IDs
 - window.FLAGS exposed globally from DOMContentLoaded block
 
 **Last version deployed: v260906.107**
+
+**Confirmed fixed in v260906.107 (verified against file):**
+- Timer running to negative: clearInterval before dailySubmit in all 3 callbacks ✅
+- Tab backgrounded timer: bad visibilitychange handler reverted, multiplayer one untouched ✅
+- Stop button greyed out: never explicitly disabled at game start, was a one-off test glitch ✅
+- null startTimestamp auto-submit: saveProgress guard + elapsed calculation guard both in place ✅
