@@ -435,7 +435,7 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
   border-radius: 20px; padding: 2px 8px; white-space: nowrap;
   letter-spacing: 0.3px;
 }
-#claim-pill.free #claim-pill-badge { color: #2d7a4a; background: #edf7f1; border: 1.5px solid #a8d8b8; }
+#claim-pill.free #claim-pill-badge { color: #c4621a; background: #fef3ea; border: 1.5px solid #e8864a; }
 #claim-pill.claimed #claim-pill-badge { color: #2d7a4a; background: #edf7f1; border: 1.5px solid #a8d8b8; }
 #claim-pill.reserved #claim-pill-badge { color: var(--red); background: var(--red-light); border: 1.5px solid var(--red); }
 
@@ -5008,8 +5008,9 @@ function scheduleNameCheck(name) {
   clearTimeout(_claimDebounceTimer);
   const pill = document.getElementById('claim-pill');
   if (!pill) return;
-  // Hide immediately while typing — avoids stale state showing
+  // Hide immediately and clear state on any keystroke
   pill.style.display = 'none';
+  pill.className = '';
   _claimState = null;
   if (!name || name.length < 2) return;
   _claimDebounceTimer = setTimeout(() => checkClaimStatus(name), 800);
@@ -5247,7 +5248,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260907.137-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v260907.138-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
