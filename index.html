@@ -2485,7 +2485,7 @@ window.dailySubmit = async function() {
   // Clear in-progress save
   localStorage.removeItem('alto_daily_inprogress_' + G_daily.key + '_' + LANG);
   const submitBtn = document.getElementById('btn-daily-submit');
-  if (submitBtn) { submitBtn.disabled = true; submitBtn.innerHTML = '<span class="spin-icon">↻</span> Validando…'; }
+  if (submitBtn) { submitBtn.disabled = true; submitBtn.innerHTML = '<span class="spin-icon">↻</span> ' + (dl().validating || 'Validando…'); }
   // Disable all answer inputs so player can't edit during validation
   document.querySelectorAll('.daily-cat-input').forEach(inp => { inp.disabled = true; inp.style.opacity = '0.5'; });
 
@@ -5409,7 +5409,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260907.159</div>
+  <div style="font-size: 11px;opacity:0.5">v260907.160</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
