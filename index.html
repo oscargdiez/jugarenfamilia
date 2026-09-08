@@ -3211,7 +3211,7 @@ function updateDailyButtonDate() {
   if (!span) return;
 
   const key = getDailyKey();
-  const played = !!localStorage.getItem('alto_daily_' + key + '_' + LANG);
+  const played = ['es','en','fr'].some(l => !!localStorage.getItem('alto_daily_' + key + '_' + l));
 
   const labels = { es:'Reto diario', en:'Daily challenge', fr:'Défi du jour' };
   const doneLabels = {
@@ -5522,10 +5522,11 @@ tryRestore();
 setTimeout(() => updateDailyButtonDate(), 350);
 // Fix iOS bfcache: re-run when page is restored from back/forward cache
 window.addEventListener('pageshow', (e) => { if (e.persisted) updateDailyButtonDate(); });
+document.addEventListener('visibilitychange', () => { if (!document.hidden) updateDailyButtonDate(); });
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260907.179</div>
+  <div style="font-size: 11px;opacity:0.5">v260907.180</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
