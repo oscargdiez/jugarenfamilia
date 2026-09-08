@@ -896,6 +896,7 @@ document.addEventListener('DOMContentLoaded', function() {
           <!-- 19px exception to 6-slot font system: needed to fit Daily+Practice on one line on small iPhone screens -->
           <button onclick="startDailyChallenge()" class="green" style="width:100%;font-size:19px;padding:14px;line-height:1;font-weight:400" id="btn-daily"><span style="font-size:17px">📅</span> <span id="btn-daily-text">Reto diario · cargando…</span></button>
           <div style="font-family:'Special Elite',monospace;font-size:11px;color:var(--ink-muted);text-align:center;letter-spacing:1px;margin:2px 0 0" id="lbl-daily-sub">TÚ CONTRA EL MUNDO · UN RETO POR DÍA</div>
+          <div id="daily-played-warning" style="display:none;margin-top:6px;padding:8px 10px;border-left:3px solid var(--red);background:var(--red-light);border-radius:0 4px 4px 0;font-family:'Special Elite',monospace;font-size:11px;color:var(--ink);line-height:1.4"></div>
         </div>
         <button onclick="startPractice()" style="flex:0 0 auto;font-size:19px;padding:14px 8px;line-height:1;border:1.5px solid var(--border);border-radius:var(--radius);background:transparent;font-family:'Caveat',cursive;font-weight:400;cursor:pointer;white-space:nowrap" id="btn-practice"><span style="font-size:17px">✏️</span> <span id="btn-practice-text">Práctica</span></button>
       </div>
@@ -2190,14 +2191,18 @@ window.startDailyChallenge = async function() {
     const _playedSafe = claimSafeName(_playedName);
     const _currentSafe = claimSafeName(_nameCheck);
     if (_playedSafe && _currentSafe && _playedSafe !== _currentSafe) {
-      // Different name trying to play on same device — block with friendly toast
       const _alreadyMsg = {
-        es: `El reto diario ya fue jugado hoy en este dispositivo con el nombre ${_playedName}. ¡Espera a mañana para jugar con otro nombre!`,
-        en: `Today's challenge was already played on this device as ${_playedName}. Wait until tomorrow to play with a different name!`,
-        fr: `Le défi du jour a déjà été joué sur cet appareil sous le nom ${_playedName}. Attends demain pour jouer avec un autre nom !`,
+        es: `El reto diario ya fue jugado hoy en este dispositivo con el nombre ${_playedName}. Espera a mañana para jugar con otro nombre.`,
+        en: `Today's challenge was already played on this device as ${_playedName}. Wait until tomorrow to play with a different name.`,
+        fr: `Le défi du jour a déjà été joué sur cet appareil sous le nom ${_playedName}. Attends demain pour jouer avec un autre nom.`,
       };
-      toast(_alreadyMsg[LANG] || _alreadyMsg.es);
+      const _warn = document.getElementById('daily-played-warning');
+      if (_warn) { _warn.textContent = _alreadyMsg[LANG] || _alreadyMsg.es; _warn.style.display = 'block'; }
       return;
+    } else {
+      // Same name or no mismatch — hide warning if showing
+      const _warn = document.getElementById('daily-played-warning');
+      if (_warn) { _warn.style.display = 'none'; _warn.textContent = ''; }
     }
   }
 
@@ -3277,6 +3282,9 @@ function updateDailyButtonDate() {
   } else {
     if (sub) sub.textContent = ''; // restored by applyLang via t('dailySub')
     if (btn) btn.style.opacity = '1';
+    // Hide any mismatch warning when not played
+    const _warn = document.getElementById('daily-played-warning');
+    if (_warn) { _warn.style.display = 'none'; _warn.textContent = ''; }
   }
 }
 
@@ -5594,7 +5602,7 @@ checkDailyPlayedCrossDevice();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260907.187</div>
+  <div style="font-size: 11px;opacity:0.5">v260907.188</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
