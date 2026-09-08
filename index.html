@@ -1065,14 +1065,14 @@ document.addEventListener('DOMContentLoaded', function() {
   <p style="font-family:'Special Elite',monospace;font-size:11px;color:var(--ink-muted);margin-bottom:1rem" id="daily-result-date"></p>
 
   <div class="card" style="margin-bottom:1rem">
-    <div style="text-align:right;margin-bottom:4px">
-      <button onclick="shareDailyResult()" id="btn-daily-share" style="font-family:'Special Elite',monospace;font-size:11px;padding:2px 7px;border:1px solid var(--border);border-radius:4px;background:transparent;cursor:pointer;color:var(--ink-sec);line-height:1">Compartir</button>
-    </div>
     <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">
       <span class="lbl" id="lbl-daily-your-answers">tus respuestas</span>
       <span style="font-family:'Special Elite',monospace;font-size:16px;color:var(--red);line-height:1;position:relative;top:2px" id="daily-total-score">0 pts</span>
     </div>
     <div id="daily-answers-list"></div>
+    <div style="margin-top:6px">
+      <button onclick="shareDailyResult()" id="btn-daily-share" style="font-family:'Special Elite',monospace;font-size:11px;padding:2px 7px;border:1px solid var(--border);border-radius:4px;background:transparent;cursor:pointer;color:var(--ink-sec);line-height:1">Compartir</button>
+    </div>
   </div>
 
   <div class="card" id="daily-lb-card">
@@ -5521,7 +5521,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260907.176</div>
+  <div style="font-size: 11px;opacity:0.5">v260907.177</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
