@@ -2693,7 +2693,7 @@ async function showDailyResult(answers, baseScore, totalScore, aiResults, secsLe
   const _dl = dl();
   list.innerHTML += `<div id="daily-speed-summary" style="display:flex;justify-content:space-between;align-items:baseline;font-family:'Special Elite',monospace;font-size:11px;color:var(--ink-muted);padding-top:6px">
     <button onclick="shareDailyResult()" id="btn-daily-share" style="font-family:'Special Elite',monospace;font-size:11px;padding:2px 7px;border:1px solid var(--border);border-radius:4px;background:transparent;cursor:pointer;color:var(--ink-sec);line-height:1">${_dl.shareBtn || 'Compartir'}</button>
-    <span>${_dl.baseLabel} ${baseScore*10} pts ×${mult}⚡→ <strong>${totalScore*10} pts</strong></span>
+    <span id="daily-speed-text">${_dl.baseLabel} ${baseScore*10} pts ×${mult}⚡→ <strong>${totalScore*10} pts</strong></span>
   </div>`;
 
   // Total score
@@ -2878,11 +2878,11 @@ function reapplyOriginality() {
   const totalEl = document.getElementById('daily-total-score');
   if (totalEl) totalEl.textContent = (newTotal*10) + ' pts';
   // Re-apply speed breakdown line
-  const summaryEl = document.getElementById('daily-speed-summary');
-  if (summaryEl) {
+  const speedTextEl = document.getElementById('daily-speed-text');
+  if (speedTextEl) {
     const _dlr = dl();
     const mult = G_daily.totalScore && G_daily.baseScore ? (G_daily.totalScore / G_daily.baseScore).toFixed(2) : '1.00';
-    summaryEl.innerHTML = `${_dlr.baseLabel} ${G_daily.baseScore*10} pts ×${mult}⚡→ <strong>${G_daily.totalScore*10} pts</strong> +${originality*10} ${_dlr.origLabel}✨`;
+    speedTextEl.innerHTML = `${_dlr.baseLabel} ${G_daily.baseScore*10} pts ×${mult}⚡→ <strong>${G_daily.totalScore*10} pts</strong> +${originality*10} ${_dlr.origLabel}✨`;
   }
 }
 
@@ -5518,7 +5518,7 @@ tryRestore();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260907.173</div>
+  <div style="font-size: 11px;opacity:0.5">v260907.174</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
