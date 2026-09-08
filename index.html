@@ -2161,6 +2161,27 @@ function resetGDaily(practiceMode) {
 window.startDailyChallenge = async function() {
   const _nameCheck = document.getElementById('inp-name')?.value?.trim();
   if (!_nameCheck) { toast(t('toastName')); return; }
+
+  // Check if already played today on this device under a different name
+  const _agnosticKey = 'alto_daily_played_' + getDailyKey();
+  const _playedRaw = localStorage.getItem(_agnosticKey);
+  if (_playedRaw) {
+    let _playedName = '';
+    try { _playedName = JSON.parse(_playedRaw).name || ''; } catch(e) { _playedName = ''; }
+    const _playedSafe = claimSafeName(_playedName);
+    const _currentSafe = claimSafeName(_nameCheck);
+    if (_playedSafe && _currentSafe && _playedSafe !== _currentSafe) {
+      // Different name trying to play on same device — block with friendly toast
+      const _alreadyMsg = {
+        es: `El reto diario ya fue jugado hoy en este dispositivo con el nombre ${_playedName}. ¡Espera a mañana para jugar con otro nombre!`,
+        en: `Today's challenge was already played on this device as ${_playedName}. Wait until tomorrow to play with a different name!`,
+        fr: `Le défi du jour a déjà été joué sur cet appareil sous le nom ${_playedName}. Attends demain pour jouer avec un autre nom !`,
+      };
+      toast(_alreadyMsg[LANG] || _alreadyMsg.es);
+      return;
+    }
+  }
+
   reloadIfOutdated();
   resetGDaily(false);
   const key = getDailyKey();
@@ -2554,7 +2575,7 @@ window.dailySubmit = async function(fromTimer = false) {
   };
   if (!dailyPlayerName.startsWith('__') && !G_daily.practiceMode) {
     localStorage.setItem('alto_daily_' + G_daily.key + '_' + LANG, JSON.stringify(saveData));
-    localStorage.setItem('alto_daily_played_' + G_daily.key, '1'); // lang-agnostic, for button state
+    localStorage.setItem('alto_daily_played_' + G_daily.key, JSON.stringify({ name: G_daily.displayName || dailyPlayerName }));
   }
 
   // Submit to Firebase — scoped by language
@@ -3216,8 +3237,8 @@ function updateDailyButtonDate() {
   if (!span) return;
 
   const key = getDailyKey();
-  const played = !!localStorage.getItem('alto_daily_played_' + key) ||
-                 !!localStorage.getItem('alto_daily_' + key + '_' + LANG);
+  const _playedRaw = localStorage.getItem('alto_daily_played_' + key);
+  const played = !!_playedRaw || !!localStorage.getItem('alto_daily_' + key + '_' + LANG);
 
   const labels = { es:'Reto diario', en:'Daily challenge', fr:'Défi du jour' };
   const doneLabels = {
@@ -3254,7 +3275,7 @@ async function checkDailyPlayedCrossDevice() {
     for (const l of langs) {
       const snap = await get(ref(db, 'daily/' + key + '/' + l + '/players/' + safeName));
       if (snap.exists()) {
-        localStorage.setItem(agnosticKey, '1');
+        localStorage.setItem(agnosticKey, JSON.stringify({ name: localStorage.getItem('alto_name') || name }));
         updateDailyButtonDate();
         return;
       }
@@ -5554,7 +5575,7 @@ checkDailyPlayedCrossDevice();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260907.183</div>
+  <div style="font-size: 11px;opacity:0.5">v260907.184</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
