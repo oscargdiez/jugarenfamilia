@@ -2186,8 +2186,7 @@ window.startDailyChallenge = async function() {
       const _parsed = JSON.parse(_playedRaw);
       _playedName = (typeof _parsed === 'object' ? _parsed.name : '') || '';
     } catch(e) { _playedName = ''; }
-    // If no name stored in key (old format), fall back to alto_name
-    if (!_playedName) _playedName = localStorage.getItem('alto_name') || '';
+    // Don't fall back to alto_name — it may have changed since playing
     const _playedSafe = claimSafeName(_playedName);
     const _currentSafe = claimSafeName(_nameCheck);
     if (_playedSafe && _currentSafe && _playedSafe !== _currentSafe) {
@@ -5603,7 +5602,7 @@ checkDailyPlayedCrossDevice();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260907.191</div>
+  <div style="font-size: 11px;opacity:0.5">v260907.192</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
