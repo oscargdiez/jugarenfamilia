@@ -5518,10 +5518,12 @@ applyLang();
 document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.getAttribute('onclick').includes("'"+LANG+"'")));
 try { const s=JSON.parse(localStorage.getItem('alto_session')||'{}'); const _n=document.getElementById('inp-name'); if(_n && !_n.value) { if(s.name) _n.value=s.name; else { const _saved=localStorage.getItem('alto_name'); if(_saved) _n.value=_saved; } } if(_n && _n.value) scheduleNameCheck(_n.value); } catch(e){}
 tryRestore();
+// Ensure daily button played state wins any init timing race (especially iOS)
+setTimeout(() => updateDailyButtonDate(), 350);
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260907.177</div>
+  <div style="font-size: 11px;opacity:0.5">v260907.178</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
