@@ -2167,13 +2167,16 @@ window.startDailyChallenge = async function() {
   let _playedRaw = localStorage.getItem(_agnosticKey);
   // Fall back to lang-specific key if agnostic key not yet written (pre-v184 plays)
   if (!_playedRaw) {
-    const _langKey = localStorage.getItem('alto_daily_' + getDailyKey() + '_' + LANG);
-    if (_langKey) {
-      try {
-        const _langData = JSON.parse(_langKey);
-        const _fallbackName = (_langData.playerName || '') + (_langData.playerEmoji ? ' ' + _langData.playerEmoji : '');
-        _playedRaw = JSON.stringify({ name: _fallbackName || localStorage.getItem('alto_name') || '' });
-      } catch(e) { _playedRaw = JSON.stringify({ name: localStorage.getItem('alto_name') || '' }); }
+    for (const _l of ['es','en','fr']) {
+      const _langKey = localStorage.getItem('alto_daily_' + getDailyKey() + '_' + _l);
+      if (_langKey) {
+        try {
+          const _langData = JSON.parse(_langKey);
+          const _fallbackName = (_langData.playerName || '') + (_langData.playerEmoji ? ' ' + _langData.playerEmoji : '');
+          _playedRaw = JSON.stringify({ name: _fallbackName || localStorage.getItem('alto_name') || '' });
+        } catch(e) { _playedRaw = JSON.stringify({ name: localStorage.getItem('alto_name') || '' }); }
+        break;
+      }
     }
   }
   if (_playedRaw) {
@@ -5591,7 +5594,7 @@ checkDailyPlayedCrossDevice();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260907.186</div>
+  <div style="font-size: 11px;opacity:0.5">v260907.187</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
