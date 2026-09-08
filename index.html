@@ -3236,7 +3236,27 @@ function updateDailyButtonDate() {
   }
 }
 
-// startDailyChallenge — implemented in Daily Challenge section above
+// Check Firebase across all langs to see if this player has played today on any device
+async function checkDailyPlayedCrossDevice() {
+  const key = getDailyKey();
+  const agnosticKey = 'alto_daily_played_' + key;
+  if (localStorage.getItem(agnosticKey)) return; // already know
+  const name = localStorage.getItem('alto_name') || '';
+  if (!name) return;
+  const safeName = claimSafeName(name);
+  if (!safeName) return;
+  try {
+    const langs = ['es','en','fr'];
+    for (const l of langs) {
+      const snap = await get(ref(db, 'daily/' + key + '/' + l + '/players/' + safeName));
+      if (snap.exists()) {
+        localStorage.setItem(agnosticKey, '1');
+        updateDailyButtonDate();
+        return;
+      }
+    }
+  } catch(e) { /* silent */ }
+}
 
 function toast(msg) {
   const el = document.getElementById('toast');
@@ -5525,10 +5545,12 @@ setTimeout(() => updateDailyButtonDate(), 350);
 // Fix iOS bfcache: re-run when page is restored from back/forward cache
 window.addEventListener('pageshow', (e) => { if (e.persisted) updateDailyButtonDate(); });
 document.addEventListener('visibilitychange', () => { if (!document.hidden) updateDailyButtonDate(); });
+// Cross-device played check via Firebase (runs once per device per day)
+checkDailyPlayedCrossDevice();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260907.181</div>
+  <div style="font-size: 11px;opacity:0.5">v260907.182</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
