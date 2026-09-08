@@ -2219,7 +2219,7 @@ window.startDailyChallenge = async function() {
     } catch(e) { /* silent — if check fails, let them play */ }
   }
   // In debug mode, clear stored result so we can replay
-  if (_debugMode && stored) localStorage.removeItem('alto_daily_' + key + '_' + LANG);
+  if (_debugMode && stored) { localStorage.removeItem('alto_daily_' + key + '_' + LANG); localStorage.removeItem('alto_daily_played_' + key); }
 
   // Check localStorage for in-progress game (handles page refresh)
   const inProgressKey = 'alto_daily_inprogress_' + key + '_' + LANG;
@@ -2550,6 +2550,7 @@ window.dailySubmit = async function(fromTimer = false) {
   };
   if (!dailyPlayerName.startsWith('__') && !G_daily.practiceMode) {
     localStorage.setItem('alto_daily_' + G_daily.key + '_' + LANG, JSON.stringify(saveData));
+    localStorage.setItem('alto_daily_played_' + G_daily.key, '1'); // lang-agnostic, for button state
   }
 
   // Submit to Firebase — scoped by language
@@ -3211,7 +3212,8 @@ function updateDailyButtonDate() {
   if (!span) return;
 
   const key = getDailyKey();
-  const played = ['es','en','fr'].some(l => !!localStorage.getItem('alto_daily_' + key + '_' + l));
+  const played = !!localStorage.getItem('alto_daily_played_' + key) ||
+                 !!localStorage.getItem('alto_daily_' + key + '_' + LANG);
 
   const labels = { es:'Reto diario', en:'Daily challenge', fr:'Défi du jour' };
   const doneLabels = {
@@ -5526,7 +5528,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) upda
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260907.180</div>
+  <div style="font-size: 11px;opacity:0.5">v260907.181</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
