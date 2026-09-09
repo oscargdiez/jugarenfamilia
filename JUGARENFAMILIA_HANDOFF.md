@@ -43,6 +43,9 @@ A multiplayer browser-based version of the classic Spanish word game "Stop/Tutti
   - `daily/{date}/{lang}/players/{safeName}: true` — cross-device daily dedup index
   - `names/{safeName}/secret: hash` — SHA-256 hash of email or PIN for name claim
   - `names/{safeName}/displayName: string` — original display name with accents
+- **Schema additions (Session 13):**
+  - `daily/{date}/{lang}/scores/{playerKey}/safeName: string` — for emoji-independent matching
+  - `daily/{date}/{lang}/scores/{playerKey}/verified: bool` — (TODO: not yet written) for unverified label
 
 ### OpenRouter API
 - **Key:** stored in Cloudflare Worker only — never in the HTML or GitHub repo
@@ -311,18 +314,18 @@ Two fonts, six slots. **Do not add new sizes outside these slots.**
 - Session restore on same device/browser: host and guest share localStorage
 - Font sizes: Caveat x-height smaller than Special Elite — visually looks different at same px
 - iCloud Safari sync: iPhone + iPad share localStorage if Safari sync enabled — player may not be able to replay on second Apple device
-- Daily challenge "already played" check is per-device/browser (localStorage) for unregistered players — email/PIN claim system partially addresses this
+- Daily challenge same-device replay block stores player name at submit time — pre-v184 plays fall back to checking all 3 lang keys; may not catch edge cases from old plays
 - Update bubble on iOS appears slower than on Windows (Safari caching) — working correctly, just slower
-- Reserved names: daily dedup + score retrieval still localStorage-based on Device 2 — future: use Firebase for reserved names
+- Unverified name label not yet implemented — old scores have no `verified` field (treat as verified when built)
 
 ---
 
 ## 🗺 Flagged for Future
 
-### Reserved Name Full Identity (designed, partially built)
-- Name claim system built (Session 12) — email/PIN → SHA-256 hash in Firebase
-- **Next step:** for reserved names, skip localStorage for daily dedup and score retrieval — use Firebase instead
-- Unlocks: true cross-device identity, score history, streak tracking
+### Reserved Name Full Identity (built Session 13)
+- Device 2 with verified name now shows result screen instead of toast ✅
+- `safeName` written into every score entry ✅
+- Cross-device played check via Firebase on page init ✅
 
 ### Themed Daily Days (DAILY_OVERRIDES — infrastructure built)
 - Add entry to `DAILY_OVERRIDES` object keyed by `YYYY-MM-DD`
@@ -330,10 +333,21 @@ Two fonts, six slots. **Do not add new sizes outside these slots.**
 - Theme title wires into play screen + result screen title
 - Zero code change needed — just add the override entry
 
-### Historical Daily Leaderboard
-- Data already stored at `daily/{date}/{lang}/scores/` permanently
-- Could surface: per-day archive, all-time ranking, streak tracking, personal history
-- Best built after reserved name identity system
+### Historical Daily Leaderboard (built Session 13)
+- Prev/next date nav on result screen ✅
+- Data at `daily/{date}/{lang}/scores/` permanent ✅
+- Could surface: all-time ranking, streak tracking, personal history
+
+### Unverified Name Label (designed Session 13, not yet built)
+- Write `verified: true/false` to score entry at submit
+- Show `Peter? 🎸` in muted grey on leaderboard for unverified entries
+- Old entries (no `verified` field) treated as verified
+- Incentivises registration without blocking play
+
+### Cancel Button on Daily Countdown
+- 10s countdown before daily starts — add cancel/back button
+- No penalty — game not started yet, no localStorage/Firebase written
+- User returns to home screen cleanly
 
 ### Automatic AI Multiplayer Mode
 - Third validation mode: fully automatic Robot validation, no host review step
@@ -413,3 +427,45 @@ UI/Language fixes: Robot throughout, error messages translated, button casing, d
 **Daily submit guard:** blocks if zero answers filled.
 **Bug fix:** inline `oninput` with value reassignment suppresses subsequent events on iOS/Windows — moved to `addEventListener`.
 **Last version deployed: v260907.156**
+
+### Session 13 (Sep 8-9)
+**Reserved name Firebase identity:** Device 2 with a verified name now sees their result screen instead of a dead-end toast. `safeName` field written into every Firebase score entry. Score retrieved by `safeName` match (primary) or normalised name fallback.
+
+**Historical daily leaderboard:** Prev/next date nav (◀ ▶) on result screen. Shows `DD/MM/YY` for past days, "hoy/today/aujourd'hui" for today. Originality/refresh suppressed when viewing history. Lang switch uses currently viewed date. `_lbDate` resets to today on result screen entry.
+
+**Emoji independence:** Leaderboard row highlight and originality matching now use `safeName` first, name-trim fallback for old entries. Free emoji changes without losing score tracking.
+
+**Leaderboard label:** "clasificacion / leaderboard / classement" (removed "del dia" — now covers history too).
+
+**Share result:** "Compartir/Share/Partager" button on answers card. Copies formatted text: name prominent at top, letter, date+time, rank (if known), answers with `→` separator and AI validation icons, separator line matching longest line, score summary. Bottom-left of card. Works for daily and practice. Strips `🧪` test marker from name.
+
+**Multiplayer display name restore:** Verified names auto-correct to accented form on `createRoom`/`joinRoom`.
+
+**Version check before game start:** `reloadIfOutdated()` on all five entry points (`createRoom`, `joinRoom`, `startDailyChallenge`, `startPractice`, and via `_updateAvailable` boolean). Zero delay — only reloads if background check already flagged update.
+
+**No-name guard:** `startDailyChallenge` and `startPractice` now block and toast if name input is empty.
+
+**Same-device daily replay block:** `alto_daily_played_{date}` lang-agnostic key written on submit storing player name. `startDailyChallenge` detects different name on same device → shows inline warning banner (red left border, full message in 3 langs) below daily button. Banner clears on lang switch, hides when correct name taps button. Falls back to checking all 3 lang-specific keys for pre-v184 plays.
+
+**Cross-device played check:** `checkDailyPlayedCrossDevice()` runs on page init — if `alto_daily_played_{date}` not found locally and a name is stored, checks Firebase `players/{safeName}` across all 3 langs. If found, writes local key and calls `updateDailyButtonDate()`. Fires once per device per day, silent on error.
+
+**"Hecho!" label cross-device fix:** `updateDailyButtonDate` checks `alto_daily_played_{date}` (lang-agnostic) first, then `alto_daily_{date}_{LANG}`. `pageshow` and `visibilitychange` handlers ensure label survives iOS bfcache and tab switching. `applyDailyLang` hides the mismatch warning on lang switch.
+
+**Timer expiry with empty answers:** `dailySubmit(fromTimer)` parameter — timer-triggered calls pass `true` to bypass the "fill at least one answer" guard. All 4 timer paths updated.
+
+**Double timer interval bug:** `clearInterval(G_daily.timerInterval)` added before all `setInterval` calls in resume paths. Prevented double-speed countdown causing premature auto-submit.
+
+**"Validando" wrong language:** Was hardcoded ES — now uses `dl().validating`.
+
+**`reapplyOriginality` wipes share button:** Fixed by giving score text its own `id="daily-speed-text"` span. `reapplyOriginality` now targets the span, not the whole summary div.
+
+**Leaderboard answer panel:** Category column fixed at 25% width with `word-break: break-word`. Category now wraps within its column instead of pushing the answer text across.
+
+**TODO Session 14+: Unverified name label on leaderboard**
+- At submit, write `verified: true/false` to Firebase score entry
+- If `entry.verified === false` → display as `Peter? 🎸` in muted grey on leaderboard
+- If `entry.verified` is `undefined` (old entries) → treat as verified (no badge)
+- Incentivises name registration without blocking play
+- Also: cancel button on daily 10s countdown (no penalty — game not yet started)
+
+**Last version deployed: v260907.195**
