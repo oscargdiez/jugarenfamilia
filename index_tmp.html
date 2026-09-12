@@ -71,6 +71,59 @@ body {
 }
 .page { max-width: 720px; margin: 0 auto; padding: 2rem 1.25rem 5rem; overflow: visible; }
 
+/* ── iPhone Debug Mode ── */
+body.iphone-mode {
+  background: #2a2a2a;
+  background-image: none;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 24px;
+  min-height: 100vh;
+}
+body.iphone-mode .page {
+  position: relative;
+  width: 390px;
+  max-width: 390px;
+  height: 844px;
+  overflow: hidden;
+  border-radius: 44px;
+  box-shadow: 0 0 0 10px #1a1a1a, 0 0 0 12px #3a3a3a, 0 30px 80px rgba(0,0,0,0.7);
+  background: var(--paper);
+  background-image: repeating-linear-gradient(0deg, transparent, transparent 31px, var(--paper-line) 31px, var(--paper-line) 32px);
+  padding: 0;
+  margin: 0;
+  flex-shrink: 0;
+}
+/* Notch */
+body.iphone-mode .page::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 50%; transform: translateX(-50%);
+  width: 126px; height: 34px;
+  background: #1a1a1a;
+  border-radius: 0 0 20px 20px;
+  z-index: 9999;
+}
+/* Scope all fixed elements inside the phone frame */
+body.iphone-mode #shell-header { position: absolute; }
+body.iphone-mode #help-overlay { position: absolute; }
+body.iphone-mode #claim-overlay { position: absolute; }
+body.iphone-mode #countdown-overlay { position: absolute; }
+body.iphone-mode #urgency-overlay { position: absolute; }
+body.iphone-mode #toast { position: absolute; }
+body.iphone-mode #update-bubble { position: absolute; }
+body.iphone-mode .reactions-stage { position: absolute; }
+body.iphone-mode .confetti-stage { position: absolute; }
+body.iphone-mode .screen { padding-left: 1.25rem; padding-right: 1.25rem; }
+/* Scrollable content area inside phone */
+body.iphone-mode .page > .screen.on {
+  position: absolute;
+  top: 50px; left: 0; right: 0; bottom: 0;
+  overflow-y: auto;
+  padding: calc(1rem + 4px) 1.25rem 5rem;
+}
+
 /* ── Typography ── */
 .caveat { font-family: 'Caveat', cursive; }
 h1 { font-family: 'Caveat', cursive; font-size: 32px; font-weight: 700; color: var(--ink); margin-bottom: 2px; }
@@ -465,7 +518,7 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
   font-family: 'Special Elite', monospace;
   font-size: 36px;
   line-height: 1;
-  color: var(--red);
+  color: #ac3326; /* 10% darker than --red so numbers stay visible over the Alto button */
   animation: timerFloat 1.8s linear forwards;
   z-index: 996;
 }
@@ -572,10 +625,10 @@ body.screen-home .page, body.screen-welcome .page { padding-bottom: 2rem; }
 .daily-lb-answers.open { display: block; }
 .daily-lb-answer-row {
   display: flex; justify-content: space-between; align-items: baseline;
-  padding: 3px 0; border-bottom: 1px dashed var(--border); gap: 8px;
+  padding: 3px 0; border-bottom: 1px dashed var(--border); gap: 8px; flex-wrap: wrap;
 }
 .daily-lb-answer-row:last-child { border-bottom: none; }
-.daily-lb-answer-cat { font-family: 'Special Elite', monospace; font-size:13px; color: var(--ink-muted); flex-shrink: 0; }
+.daily-lb-answer-cat { font-family: 'Special Elite', monospace; font-size:13px; color: var(--ink-muted); flex: 0 0 25%; max-width: 25%; word-break: break-word; }
 .daily-lb-answer-val { font-family: 'Caveat', cursive; font-size:20px; color: var(--ink); flex: 1; text-align: left; }
 .daily-lb-answer-val.empty { color: var(--ink-muted); font-style: italic; font-size: 11px; }
 .daily-lb-answer-ai { font-size: 13px; flex-shrink: 0; min-width: 18px; text-align: center; }
@@ -896,6 +949,7 @@ document.addEventListener('DOMContentLoaded', function() {
           <!-- 19px exception to 6-slot font system: needed to fit Daily+Practice on one line on small iPhone screens -->
           <button onclick="startDailyChallenge()" class="green" style="width:100%;font-size:19px;padding:14px;line-height:1;font-weight:400" id="btn-daily"><span style="font-size:17px">📅</span> <span id="btn-daily-text">Reto diario · cargando…</span></button>
           <div style="font-family:'Special Elite',monospace;font-size:11px;color:var(--ink-muted);text-align:center;letter-spacing:1px;margin:2px 0 0" id="lbl-daily-sub">TÚ CONTRA EL MUNDO · UN RETO POR DÍA</div>
+          <div id="daily-played-warning" style="display:none;margin-top:6px;padding:8px 10px;border-left:3px solid var(--red);background:var(--red-light);border-radius:0 4px 4px 0;font-family:'Special Elite',monospace;font-size:11px;color:var(--ink);line-height:1.4"></div>
         </div>
         <button onclick="startPractice()" style="flex:0 0 auto;font-size:19px;padding:14px 8px;line-height:1;border:1.5px solid var(--border);border-radius:var(--radius);background:transparent;font-family:'Caveat',cursive;font-weight:400;cursor:pointer;white-space:nowrap" id="btn-practice"><span style="font-size:17px">✏️</span> <span id="btn-practice-text">Práctica</span></button>
       </div>
@@ -1065,11 +1119,14 @@ document.addEventListener('DOMContentLoaded', function() {
   <p style="font-family:'Special Elite',monospace;font-size:11px;color:var(--ink-muted);margin-bottom:1rem" id="daily-result-date"></p>
 
   <div class="card" style="margin-bottom:1rem">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">
       <span class="lbl" id="lbl-daily-your-answers">tus respuestas</span>
-      <span style="font-family:'Special Elite',monospace;font-size: 16px;color:var(--red)" id="daily-total-score">0 pts</span>
+      <span style="font-family:'Special Elite',monospace;font-size:16px;color:var(--red);line-height:1;position:relative;top:2px" id="daily-total-score">0 pts</span>
     </div>
     <div id="daily-answers-list"></div>
+    <div style="margin-top:6px">
+      <button onclick="shareDailyResult()" id="btn-daily-share" style="font-family:'Special Elite',monospace;font-size:11px;padding:2px 7px;border:1px solid var(--border);border-radius:4px;background:transparent;cursor:pointer;color:var(--ink-sec);line-height:1">Compartir</button>
+    </div>
   </div>
 
   <div class="card" id="daily-lb-card">
@@ -1319,14 +1376,14 @@ const T = {
     groupPlaceholder: 'The Smiths, Friday Friends...',
     theme: 'theme', easyLetters: 'easy letters only',
     rounds: 'rounds', seconds: 'seconds per round',
-    penalty: 'Stop! penalty for invalid answers',
+    penalty: '¡Alto! penalty for invalid answers',
     start: 'Start! →',
     guestWait: '✏️ Waiting for the host…',
     letter: 'letter', round: 'round', of: 'of', freeCatLabel: 'write your categories (one per line)', freeCatPlaceholder: 'Football players\nHorror films\nThings in the kitchen',
     stop: '¡ A L T O !',
     review: 'Review answers',
     reviewSub: '✕ to invalidate · unique = 100 · duplicate = 50 · invalid = 0',
-    calculate: 'Calculate scores →', stopCallerMsg: '{name} called Stop!', timerRanOut: 'time ran out',
+    calculate: 'Calculate scores →', stopCallerMsg: '{name} called ¡Alto!', timerRanOut: 'time ran out',
     submitted: 'Answers submitted',
     hostReviewing: 'the host is reviewing answers',
     scores: 'Scores', nextRound: 'Next round →',
@@ -1347,10 +1404,10 @@ const T = {
     toastCats: 'Select at least one category',
     toastFreeCats: 'Enter at least 2 categories',
     toastHostOnly: 'Only the host can restart',
-    continueBtn: 'Continue →', notMe: "That's not me — change", groupHint2: 'family, friends, work... whatever you like', easyHint: '(no Q, U, W, X, Y, Z)', validate: 'Review', validateSub1: '📖 Wikipedia · 🤖 Robot Assistant · <span style="color:var(--red)">✕</span> invalidate', validateSub2: 'unique = 100 pts · duplicate = 50 pts · invalid = 0 pts', submitted2: 'Answers submitted', waitingTitle: 'Waiting...', hostReviewing2: 'host is reviewing', leaderboardBack: '← Back', loading: 'Loading…', final2: 'Game over!', searching: 'Searching...', hostSearching: 'Host is searching...', rndLabel: 'round', of: 'di', freeCatLabel: 'scrivi le tue categorie (una per riga)', freeCatPlaceholder: 'Giocatori del Barça\nFilm horror\nCose in cucina', of: 'of', freeCatLabel: 'write your categories (one per line)', freeCatPlaceholder: 'Football players\nHorror films\nThings in the kitchen', letterLabel: 'letter', calculate: 'Calculate scores →', stopCallerMsg: '{name} called Stop!', timerRanOut: 'time ran out', scoresTitle: 'Scores', lbTitle: 'Leaderboard',
+    continueBtn: 'Continue →', notMe: "That's not me — change", groupHint2: 'family, friends, work... whatever you like', easyHint: '(no Q, U, W, X, Y, Z)', validate: 'Review', validateSub1: '📖 Wikipedia · 🤖 Robot Assistant · <span style="color:var(--red)">✕</span> invalidate', validateSub2: 'unique = 100 pts · duplicate = 50 pts · invalid = 0 pts', submitted2: 'Answers submitted', waitingTitle: 'Waiting...', hostReviewing2: 'host is reviewing', leaderboardBack: '← Back', loading: 'Loading…', final2: 'Game over!', searching: 'Searching...', hostSearching: 'Host is searching...', rndLabel: 'round', of: 'di', freeCatLabel: 'scrivi le tue categorie (una per riga)', freeCatPlaceholder: 'Giocatori del Barça\nFilm horror\nCose in cucina', of: 'of', freeCatLabel: 'write your categories (one per line)', freeCatPlaceholder: 'Football players\nHorror films\nThings in the kitchen', letterLabel: 'letter', calculate: 'Calculate scores →', stopCallerMsg: '{name} called ¡Alto!', timerRanOut: 'time ran out', scoresTitle: 'Scores', lbTitle: 'Leaderboard',
     invited: "You've been invited to play!", rulesBtn: 'How to play?', expBtn: '⚗️ EXPERIMENTAL FEATURES', aiValidation: '🤖 Robot Assistant', aiRelajado: '🟢 Relaxed', aiEstricto: '🔴 Strict', aiSpelling: '✏️ Allow spelling mistakes', aiYes: 'Yes', aiNo: 'No', modeHost: '👑 Normal', modeDemocratic: '🗳️ Democratic', invalidated: 'invalid', winnerLine: '{emoji} {name} wins with {pts} points!', wrongPwd: '❌ Wrong password', expActivated: '⚗️ Experimental features activated', qjCodeLabel: 'room:', gcInside: "✅ YOU'RE IN", inviteMore: '+ Want to invite someone?', getReady: 'GET READY',
     toastBack: 'Rejoining as', notFoundWord: '📭 Not found', didYouMean: 'Did you mean', noDefinition: '📭 No definition for',
-    waMsg: 'Play Stop! with me 🎮 Join here:',
+    waMsg: 'Play ¡Alto! with me 🎮 Join here:',
     createSub: 'MULTIPLAYER · WITH FAMILY & FRIENDS', configLabel: '⚙️ Settings', leaveRoom2: 'Leave room',
     dailySub: 'YOU VS THE WORLD · ONE CHALLENGE A DAY',
     rulesTitle: 'How to play',
@@ -1376,14 +1433,14 @@ const T = {
     groupPlaceholder: 'Les Dupont, Amis du lycée...',
     theme: 'thème', easyLetters: 'lettres faciles seulement',
     rounds: 'manches', seconds: 'secondes par manche',
-    penalty: 'pénalité Stop! invalide',
+    penalty: 'pénalité ¡Alto! invalide',
     start: 'Commencer! →',
     guestWait: "✏️ En attente de l'hôte…",
     letter: 'lettre', round: 'manche', of: 'sur', freeCatLabel: 'écris tes catégories (une par ligne)', freeCatPlaceholder: 'Joueurs du Barça\nFilms d\'horreur\nChoses dans la cuisine',
     stop: '¡ A L T O !',
     review: 'Vérifier',
     reviewSub: '✕ pour annuler · unique = 100 · doublon = 50 · annulé = 0',
-    calculate: 'Calculer les scores →', stopCallerMsg: '{name} a crié Stop !', timerRanOut: 'temps écoulé',
+    calculate: 'Calculer les scores →', stopCallerMsg: '{name} a crié ¡Alto !', timerRanOut: 'temps écoulé',
     submitted: 'Réponses envoyées',
     hostReviewing: "l'hôte vérifie les réponses",
     scores: 'Scores', nextRound: 'Manche suivante →',
@@ -1404,10 +1461,10 @@ const T = {
     toastCats: 'Sélectionne au moins une catégorie',
     toastFreeCats: 'Entre au moins 2 catégories',
     toastHostOnly: "Seul l'hôte peut recommencer",
-    continueBtn: 'Continuer →', notMe: "Ce n'est pas moi — changer", groupHint2: 'famille, amis, travail... comme vous voulez', easyHint: '(sans K, Q, U, W, X, Y, Z)', validate: 'Vérifier', validateSub1: '📖 Wikipedia · 🤖 Assistant Robot · <span style="color:var(--red)">✕</span> annuler', validateSub2: 'unique = 100 pts · doublon = 50 pts · annulé = 0 pts', submitted2: 'Réponses envoyées', waitingTitle: 'En attente...', hostReviewing2: "l'hôte vérifie", leaderboardBack: '← Retour', loading: 'Chargement…', final2: 'Fin de partie!', searching: 'Recherche...', hostSearching: "L'hôte cherche...", rndLabel: 'manche', of: 'sur', freeCatLabel: 'écris tes catégories (une par ligne)', freeCatPlaceholder: 'Joueurs du Barça\nFilms d\'horreur\nChoses dans la cuisine', letterLabel: 'lettre', calculate: 'Calculer les scores →', stopCallerMsg: '{name} a crié Stop !', timerRanOut: 'temps écoulé', scoresTitle: 'Scores', lbTitle: 'Classement',
+    continueBtn: 'Continuer →', notMe: "Ce n'est pas moi — changer", groupHint2: 'famille, amis, travail... comme vous voulez', easyHint: '(sans K, Q, U, W, X, Y, Z)', validate: 'Vérifier', validateSub1: '📖 Wikipedia · 🤖 Assistant Robot · <span style="color:var(--red)">✕</span> annuler', validateSub2: 'unique = 100 pts · doublon = 50 pts · annulé = 0 pts', submitted2: 'Réponses envoyées', waitingTitle: 'En attente...', hostReviewing2: "l'hôte vérifie", leaderboardBack: '← Retour', loading: 'Chargement…', final2: 'Fin de partie!', searching: 'Recherche...', hostSearching: "L'hôte cherche...", rndLabel: 'manche', of: 'sur', freeCatLabel: 'écris tes catégories (une par ligne)', freeCatPlaceholder: 'Joueurs du Barça\nFilms d\'horreur\nChoses dans la cuisine', letterLabel: 'lettre', calculate: 'Calculer les scores →', stopCallerMsg: '{name} a crié ¡Alto !', timerRanOut: 'temps écoulé', scoresTitle: 'Scores', lbTitle: 'Classement',
     invited: 'Tu as été invité à jouer!', rulesBtn: 'Comment jouer?', expBtn: '⚗️ FONCTIONS EXPÉRIMENTALES', aiValidation: '🤖 Assistant Robot', aiRelajado: '🟢 Détendue', aiEstricto: '🔴 Stricte', aiSpelling: '✏️ Autoriser les fautes d\'orthographe', aiYes: 'Oui', aiNo: 'Non', modeHost: '👑 Normal', modeDemocratic: '🗳️ Démocratique', invalidated: 'annulée', winnerLine: '{emoji} {name} gagne avec {pts} points!', wrongPwd: '❌ Mot de passe incorrect', expActivated: '⚗️ Fonctions expérimentales activées', qjCodeLabel: 'salle:', gcInside: '✅ VOUS ÊTES DEDANS', inviteMore: "+ Inviter quelqu'un d'autre?", getReady: 'PRÊTS',
     toastBack: 'Reconnexion en tant que', notFoundWord: '📭 Introuvable', didYouMean: 'Vouliez-vous dire', noDefinition: '📭 Aucune définition pour',
-    waMsg: 'Joue au Stop! avec moi 🎮 Rejoins ici:',
+    waMsg: 'Joue au ¡Alto! avec moi 🎮 Rejoins ici:',
     createSub: 'MULTIJOUEUR · EN FAMILLE ET ENTRE AMIS', configLabel: '⚙️ Paramètres', leaveRoom2: 'Quitter la salle',
     dailySub: 'TOI CONTRE LE MONDE · UN DÉFI PAR JOUR',
     rulesTitle: 'Règles du jeu',
@@ -1418,7 +1475,14 @@ const T = {
   },
 };
 
-let LANG = localStorage.getItem('alto_lang') || 'es';
+// Detect browser language for first-time visitors (localStorage takes over after first manual pick)
+function _detectBrowserLang() {
+  const bl = (navigator.language || navigator.userLanguage || '').toLowerCase();
+  if (bl.startsWith('fr')) return 'fr';
+  if (bl.startsWith('en')) return 'en';
+  return null;
+}
+let LANG = localStorage.getItem('alto_lang') || _detectBrowserLang() || 'es';
 
 function t(key) { return (T[LANG]||T.es)[key] || T.es[key] || key; }
 
@@ -1459,8 +1523,8 @@ function dailyRulesHTML() {
 function rulesHTML() {
   const rules = rulesHTML._data = {
     es: { h: 'Reglas del juego', r1: 'Se elige una letra al azar para cada ronda', r2: 'Rellena todas las categorías con palabras que empiecen por esa letra — ¡lo más rápido posible!', r3: 'El primero en terminar pulsa ¡Alto! para terminar la ronda', s: 'Puntuación:', u: 'Respuesta única', d: 'Respuesta repetida', e: 'Sin respuesta', penalty: '⚠️ Si pulsas ¡Alto! y todas tus respuestas son inválidas, pierdes puntos como penalización.' },
-    en: { h: 'How to play', r1: 'A random letter is chosen for each round', r2: 'Fill all categories with words starting with that letter — as fast as you can!', r3: 'The first to finish taps Stop! to end the round', s: 'Scoring:', u: 'Unique answer', d: 'Duplicate answer', e: 'No answer', penalty: '⚠️ If you tap Stop! and all your answers are invalid, you lose points as a penalty.' },
-    fr: { h: 'Règles du jeu', r1: 'Une lettre aléatoire est choisie pour chaque manche', r2: 'Remplis toutes les catégories avec des mots commençant par cette lettre — le plus vite possible!', r3: 'Le premier à finir appuie sur Stop! pour terminer la manche', s: 'Points:', u: 'Réponse unique', d: 'Réponse en double', e: 'Sans réponse', penalty: "⚠️ Si tu appuies sur Stop! et que toutes tes réponses sont invalides, tu perds des points en pénalité." },
+    en: { h: 'How to play', r1: 'A random letter is chosen for each round', r2: 'Fill all categories with words starting with that letter — as fast as you can!', r3: 'The first to finish taps ¡Alto! to end the round', s: 'Scoring:', u: 'Unique answer', d: 'Duplicate answer', e: 'No answer', penalty: '⚠️ If you tap ¡Alto! and all your answers are invalid, you lose points as a penalty.' },
+    fr: { h: 'Règles du jeu', r1: 'Une lettre aléatoire est choisie pour chaque manche', r2: 'Remplis toutes les catégories avec des mots commençant par cette lettre — le plus vite possible!', r3: 'Le premier à finir appuie sur ¡Alto! pour terminer la manche', s: 'Points:', u: 'Réponse unique', d: 'Réponse en double', e: 'Sans réponse', penalty: "⚠️ Si tu appuies sur ¡Alto! et que toutes tes réponses sont invalides, tu perds des points en pénalité." },
   };
   const r = rules[LANG] || rules.es;
   return `
@@ -1896,6 +1960,84 @@ window.shellLogoClick = function() {
 // Room pill is a non-interactive badge — copy is handled in lobby
 
 // Help overlay
+function homeRulesHTML() {
+  const d = {
+    es: {
+      h1: '🎲 Clásico — multijugador',
+      r1: 'Se elige una letra al azar para cada ronda. Todas las respuestas deben empezar por esa letra',
+      r2: 'Rellena todas las categorías lo más rápido posible',
+      r3: 'El primero en terminar pulsa ¡Alto!',
+      r4: 'Ideal para jugar en grupo',
+      val: 'Validación: modo <b>Normal</b> → el anfitrión decide · modo <b>Democrático</b> → votación entre todos',
+      s: 'Puntuación:', u: 'Respuesta única', rep: 'Respuesta repetida', e: 'Sin respuesta',
+      h2: '📅 Reto diario &amp; Práctica — un jugador',
+      d1: 'Una letra y 6 categorías fijas, iguales para todo el mundo cada día. Todas las respuestas deben empezar por esa letra',
+      d2: 'Práctica: mismas reglas pero letra aleatoria y sin límite de intentos',
+      d3: 'Pulsa ¡Alto! cuando termines — ¡cuanto antes, mejor para el bonus de velocidad!',
+      d4: 'El Robot valida cada respuesta — su decisión es definitiva',
+      ds: 'Puntuación:', dv: 'Respuesta válida', dspd: 'Bonus velocidad', dorig: 'Originalidad (respuesta única entre todos)', de: 'Respuesta inválida o en blanco',
+    },
+    en: {
+      h1: '🎲 Classic — multiplayer',
+      r1: 'A random letter is chosen each round. All answers must start with that letter',
+      r2: 'Fill all categories as fast as you can',
+      r3: 'First to finish taps ¡Alto!',
+      r4: 'Best played in a group',
+      val: 'Validation: <b>Normal</b> mode → the host decides · <b>Democratic</b> mode → everyone votes',
+      s: 'Scoring:', u: 'Unique answer', rep: 'Duplicate answer', e: 'No answer',
+      h2: '📅 Daily challenge &amp; Practice — single player',
+      d1: 'One letter, 6 fixed categories — the same for everyone each day. All answers must start with that letter',
+      d2: 'Practice: same rules but a random letter and unlimited attempts',
+      d3: "Tap ¡Alto! when you're done — the sooner the better for the speed bonus!",
+      d4: 'The Robot validates each answer — its decision is final',
+      ds: 'Scoring:', dv: 'Valid answer', dspd: 'Speed bonus', dorig: 'Originality bonus (unique answer among all players)', de: 'Invalid or blank answer',
+    },
+    fr: {
+      h1: '🎲 Classique — multijoueur',
+      r1: 'Une lettre aléatoire est choisie à chaque manche. Toutes les réponses doivent commencer par cette lettre',
+      r2: 'Remplis toutes les catégories le plus vite possible',
+      r3: 'Le premier à finir appuie sur ¡Alto!',
+      r4: 'Idéal pour jouer en groupe',
+      val: "Validation: mode <b>Normal</b> → l'hôte décide · mode <b>Démocratique</b> → tout le monde vote",
+      s: 'Points:', u: 'Réponse unique', rep: 'Réponse en double', e: 'Sans réponse',
+      h2: '📅 Défi du jour &amp; Pratique — un joueur',
+      d1: 'Une lettre et 6 catégories fixes, identiques pour tout le monde chaque jour. Toutes les réponses doivent commencer par cette lettre',
+      d2: 'Pratique: mêmes règles mais lettre aléatoire et tentatives illimitées',
+      d3: 'Appuie sur ¡Alto! quand tu as fini — plus vite tu le fais, meilleur est le bonus de vitesse!',
+      d4: 'Le Robot valide chaque réponse — sa décision est définitive',
+      ds: 'Points:', dv: 'Réponse valide', dspd: 'Bonus de vitesse', dorig: "Bonus d'originalité (réponse unique parmi tous les joueurs)", de: 'Réponse invalide ou vide',
+    },
+  };
+  const r = d[LANG] || d.es;
+  const divider = '<div style="margin:1.25rem 0;border-top:2px dashed var(--border)"></div>';
+  return `
+    <div style="font-family:'Caveat',cursive;font-size:22px;font-weight:700;color:var(--ink);margin-bottom:10px">${r.h1}</div>
+    <div class="rules-step"><span class="rules-icon" style="opacity:0">·</span><span class="rules-text">${r.r1}</span></div>
+    <div class="rules-step"><span class="rules-icon">✏️</span><span class="rules-text">${r.r2}</span></div>
+    <div class="rules-step"><span class="rules-icon">🏆</span><span class="rules-text">${r.r3}</span></div>
+    <div class="rules-step"><span class="rules-icon">👥</span><span class="rules-text">${r.r4}</span></div>
+    <div style="margin:8px 0 10px;padding:7px 10px;background:var(--paper-dark);border-radius:var(--radius);font-size:12px;color:var(--ink-sec);line-height:1.5">${r.val}</div>
+    <div class="rules-scoring">
+      <div class="rules-score-row"><span>${r.s}</span></div>
+      <div class="rules-score-row"><span>${r.u}</span><span class="rules-pts">100 pts</span></div>
+      <div class="rules-score-row"><span>${r.rep}</span><span class="rules-pts">50 pts</span></div>
+      <div class="rules-score-row"><span>${r.e}</span><span class="rules-pts">0 pts</span></div>
+    </div>
+    ${divider}
+    <div style="font-family:'Caveat',cursive;font-size:22px;font-weight:700;color:var(--ink);margin-bottom:10px">${r.h2}</div>
+    <div class="rules-step"><span class="rules-icon" style="opacity:0">·</span><span class="rules-text">${r.d1}</span></div>
+    <div class="rules-step"><span class="rules-icon">✏️</span><span class="rules-text">${r.d2}</span></div>
+    <div class="rules-step"><span class="rules-icon">🏆</span><span class="rules-text">${r.d3}</span></div>
+    <div class="rules-step"><span class="rules-icon">🤖</span><span class="rules-text">${r.d4}</span></div>
+    <div class="rules-scoring">
+      <div class="rules-score-row"><span>${r.ds}</span></div>
+      <div class="rules-score-row"><span>${r.dv}</span><span class="rules-pts">100 pts</span></div>
+      <div class="rules-score-row"><span>${r.dspd}</span><span class="rules-pts">×1.0–2.0</span></div>
+      <div class="rules-score-row"><span>${r.dorig}</span><span class="rules-pts">+50 pts</span></div>
+      <div class="rules-score-row"><span>${r.de}</span><span class="rules-pts">0 pts</span></div>
+    </div>`;
+}
+
 window.shellHelpOpen = function() {
   const overlay  = document.getElementById('help-overlay');
   const body     = document.getElementById('help-panel-body');
@@ -1904,9 +2046,12 @@ window.shellHelpOpen = function() {
   if (title) title.textContent = t('rulesTitle');
   const closeLabels = {es:'Cerrar',en:'Close',fr:'Fermer'};
   if (closeBtn) closeBtn.textContent = closeLabels[LANG] || closeLabels.es;
+  const isHomeScreen  = ['home','welcome'].includes(G.screen);
   const isDailyScreen = ['daily-play','daily-result'].includes(G.screen);
   if (body) {
-    if (isDailyScreen) {
+    if (isHomeScreen) {
+      body.innerHTML = homeRulesHTML();
+    } else if (isDailyScreen) {
       body.innerHTML = dailyRulesHTML();
     } else {
       body.innerHTML = rulesHTML() + '<div style="margin-top:1.5rem;border-top:2px dashed var(--border);padding-top:1.25rem">' + helpHTML() + '</div>';
@@ -2098,6 +2243,9 @@ function getPracticeSetup() {
 }
 
 window.startPractice = function() {
+  const _nameCheck = document.getElementById('inp-name')?.value?.trim();
+  if (!_nameCheck) { toast(t('toastName')); return; }
+  reloadIfOutdated();
   resetGDaily(true);
   window._practiceSetup = getPracticeSetup();
   initDaily();
@@ -2148,9 +2296,59 @@ function resetGDaily(practiceMode) {
   G_daily.playerKey     = '';
   G_daily.uniqueIndices = [];
   G_daily.theme         = null;
+  G_daily.myRank        = null;
+  G_daily.submitTime    = null;
+  // Reset submit button DOM — may be left disabled/Validating from previous run
+  const _sb = document.getElementById("btn-daily-submit");
+  if (_sb) { _sb.disabled = false; _sb.textContent = { es:"¡Alto! →", en:"Stop! →", fr:"Stop! →" }[LANG] || "¡Alto! →"; }
 }
 
 window.startDailyChallenge = async function() {
+  const _nameCheck = document.getElementById('inp-name')?.value?.trim();
+  if (!_nameCheck) { toast(t('toastName')); return; }
+
+  // Check if already played today on this device under a different name
+  const _agnosticKey = 'alto_daily_played_' + getDailyKey();
+  let _playedRaw = localStorage.getItem(_agnosticKey);
+  // Fall back to lang-specific key if agnostic key not yet written (pre-v184 plays)
+  if (!_playedRaw) {
+    for (const _l of ['es','en','fr']) {
+      const _langKey = localStorage.getItem('alto_daily_' + getDailyKey() + '_' + _l);
+      if (_langKey) {
+        try {
+          const _langData = JSON.parse(_langKey);
+          const _fallbackName = (_langData.playerName || '') + (_langData.playerEmoji ? ' ' + _langData.playerEmoji : '');
+          _playedRaw = JSON.stringify({ name: _fallbackName || localStorage.getItem('alto_name') || '' });
+        } catch(e) { _playedRaw = JSON.stringify({ name: localStorage.getItem('alto_name') || '' }); }
+        break;
+      }
+    }
+  }
+  if (_playedRaw) {
+    let _playedName = '';
+    try {
+      const _parsed = JSON.parse(_playedRaw);
+      _playedName = (typeof _parsed === 'object' ? _parsed.name : '') || '';
+    } catch(e) { _playedName = ''; }
+    // Don't fall back to alto_name — it may have changed since playing
+    const _playedSafe = claimSafeName(_playedName);
+    const _currentSafe = claimSafeName(_nameCheck);
+    if (_playedSafe && _currentSafe && _playedSafe !== _currentSafe) {
+      const _alreadyMsg = {
+        es: `El reto diario ya fue jugado hoy en este dispositivo con el nombre ${_playedName}. Espera a mañana para jugar con otro nombre.`,
+        en: `Today's challenge was already played on this device as ${_playedName}. Wait until tomorrow to play with a different name.`,
+        fr: `Le défi du jour a déjà été joué sur cet appareil sous le nom ${_playedName}. Attends demain pour jouer avec un autre nom.`,
+      };
+      const _warn = document.getElementById('daily-played-warning');
+      if (_warn) { _warn.textContent = _alreadyMsg[LANG] || _alreadyMsg.es; _warn.style.display = 'block'; }
+      return;
+    } else {
+      const _warn = document.getElementById('daily-played-warning');
+      if (_warn) { _warn.style.display = 'none'; _warn.textContent = ''; }
+    }
+  }
+
+  reloadIfOutdated();
   resetGDaily(false);
   const key = getDailyKey();
   const _playerNameRaw = G.playerName || document.getElementById('inp-name')?.value?.trim() || '';
@@ -2212,7 +2410,7 @@ window.startDailyChallenge = async function() {
     } catch(e) { /* silent — if check fails, let them play */ }
   }
   // In debug mode, clear stored result so we can replay
-  if (_debugMode && stored) localStorage.removeItem('alto_daily_' + key + '_' + LANG);
+  if (_debugMode && stored) { localStorage.removeItem('alto_daily_' + key + '_' + LANG); localStorage.removeItem('alto_daily_played_' + key); }
 
   // Check localStorage for in-progress game (handles page refresh)
   const inProgressKey = 'alto_daily_inprogress_' + key + '_' + LANG;
@@ -2252,6 +2450,7 @@ window.startDailyChallenge = async function() {
           const ft2 = document.getElementById('ft-timer');
           if (ft2) { ft2.textContent = remaining; ft2.classList.toggle('urgent', remaining <= 10); }
           setTimerBubble(remaining, true);
+          clearInterval(G_daily.timerInterval);
           G_daily.timerInterval = setInterval(() => {
             G_daily.secsRemaining--;
             const pct2 = (G_daily.secsRemaining / G_daily.totalSecs) * 100;
@@ -2260,7 +2459,7 @@ window.startDailyChallenge = async function() {
             const ft3 = document.getElementById('ft-timer');
             if (ft3) { ft3.textContent = G_daily.secsRemaining; if (G_daily.secsRemaining <= 10) ft3.classList.add('urgent'); else ft3.classList.remove('urgent'); }
             if (G_daily.secsRemaining <= 10) setUrgencyPulse(true);
-            if (G_daily.secsRemaining <= 0) { clearInterval(G_daily.timerInterval); dailySubmit(); }
+            if (G_daily.secsRemaining <= 0) { clearInterval(G_daily.timerInterval); dailySubmit(true); }
           }, 1000);
           return;
         } else {
@@ -2270,7 +2469,7 @@ window.startDailyChallenge = async function() {
           G_daily.submitted = false;
           localStorage.removeItem(inProgressKey);
           // Delay to ensure Firebase module is fully initialised
-          setTimeout(() => dailySubmit(), 800);
+          setTimeout(() => dailySubmit(true), 800);
           return;
         }
       }
@@ -2297,6 +2496,7 @@ window.startDailyChallenge = async function() {
     const ftTimer = document.getElementById('ft-timer');
     if (ftTimer) { ftTimer.textContent = G_daily.secsRemaining; ftTimer.classList.toggle('urgent', G_daily.secsRemaining <= 10); }
     setTimerBubble(G_daily.secsRemaining, true);
+    clearInterval(G_daily.timerInterval);
     G_daily.timerInterval = setInterval(() => {
       G_daily.secsRemaining--;
       const pct = (G_daily.secsRemaining / G_daily.totalSecs) * 100;
@@ -2304,7 +2504,7 @@ window.startDailyChallenge = async function() {
       const ft = document.getElementById('ft-timer');
       if (ft) { ft.textContent = G_daily.secsRemaining; if (G_daily.secsRemaining <= 10) ft.classList.add('urgent'); else ft.classList.remove('urgent'); }
       if (G_daily.secsRemaining <= 10) setUrgencyPulse(true);
-      if (G_daily.secsRemaining <= 0) { clearInterval(G_daily.timerInterval); dailySubmit(); }
+      if (G_daily.secsRemaining <= 0) { clearInterval(G_daily.timerInterval); dailySubmit(true); }
     }, 1000);
     return;
   }
@@ -2395,6 +2595,9 @@ function startDailyTimer() {
   const ftTimer = document.getElementById('ft-timer');
   if (ftTimer) { ftTimer.textContent = G_daily.totalSecs; ftTimer.classList.remove('urgent'); }
 
+  // Start floating timer numbers (same as multiplayer)
+  setTimerBubble(G_daily.totalSecs, true);
+
   G_daily.timerInterval = setInterval(() => {
     G_daily.secsRemaining--;
     const pct = (G_daily.secsRemaining / G_daily.totalSecs) * 100;
@@ -2410,7 +2613,7 @@ function startDailyTimer() {
       else ft.classList.remove('urgent');
     }
     if (G_daily.secsRemaining <= 10) setUrgencyPulse(true);
-    if (G_daily.secsRemaining <= 0) { clearInterval(G_daily.timerInterval); dailySubmit(); }
+    if (G_daily.secsRemaining <= 0) { clearInterval(G_daily.timerInterval); dailySubmit(true); }
   }, 1000);
 }
 
@@ -2456,33 +2659,36 @@ window.dailyCheckInput = function(i, val) {
   if (G_daily.saveProgress) G_daily.saveProgress();
 };
 
-window.dailySubmit = async function() {
+window.dailySubmit = async function(fromTimer = false) {
   if (G_daily.submitted || G_daily._submitting) return;
 
   // Guard: at least one answer must be filled
-  const hasAnswer = G_daily.categories.some((_, i) => {
-    const inp = document.getElementById('daily-inp-' + i);
-    return inp && inp.value.trim().length > 0;
-  });
-  if (!hasAnswer) {
-    const msg = { es: '¡Rellena al menos una respuesta!', en: 'Fill in at least one answer!', fr: 'Remplis au moins une réponse !' };
-    toast(msg[LANG] || msg.es);
-    // Re-enable submit button (was disabled by inline onclick)
-    const submitBtn = document.getElementById('btn-daily-submit');
-    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = { es:'¡Alto! →', en:'Stop! →', fr:'Stop! →' }[LANG] || '¡Alto! →'; }
-    return;
+  if (!fromTimer) {
+    const hasAnswer = G_daily.categories.some((_, i) => {
+      const inp = document.getElementById('daily-inp-' + i);
+      return inp && inp.value.trim().length > 0;
+    });
+    if (!hasAnswer) {
+      const msg = { es: '¡Rellena al menos una respuesta!', en: 'Fill in at least one answer!', fr: 'Remplis au moins une réponse !' };
+      toast(msg[LANG] || msg.es);
+      // Re-enable submit button (was disabled by inline onclick)
+      const submitBtn = document.getElementById('btn-daily-submit');
+      if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = { es:'¡Alto! →', en:'Stop! →', fr:'Stop! →' }[LANG] || '¡Alto! →'; }
+      return;
+    }
   }
 
   G_daily._submitting = true;
   if (G_daily.submitted) { G_daily._submitting = false; return; }
   G_daily.submitted = true;
+  G_daily.submitTime = Date.now();
   clearInterval(G_daily.timerInterval);
   setTimerBubble(0, false);
   setUrgencyPulse(false);
   // Clear in-progress save
   localStorage.removeItem('alto_daily_inprogress_' + G_daily.key + '_' + LANG);
   const submitBtn = document.getElementById('btn-daily-submit');
-  if (submitBtn) { submitBtn.disabled = true; submitBtn.innerHTML = '<span class="spin-icon">↻</span> Validando…'; }
+  if (submitBtn) { submitBtn.disabled = true; submitBtn.innerHTML = '<span class="spin-icon">↻</span> ' + (dl().validating || 'Validando…'); }
   // Disable all answer inputs so player can't edit during validation
   document.querySelectorAll('.daily-cat-input').forEach(inp => { inp.disabled = true; inp.style.opacity = '0.5'; });
 
@@ -2538,6 +2744,7 @@ window.dailySubmit = async function() {
   };
   if (!dailyPlayerName.startsWith('__') && !G_daily.practiceMode) {
     localStorage.setItem('alto_daily_' + G_daily.key + '_' + LANG, JSON.stringify(saveData));
+    localStorage.setItem('alto_daily_played_' + G_daily.key, JSON.stringify({ name: G_daily.displayName || dailyPlayerName, lang: LANG }));
   }
 
   // Submit to Firebase — scoped by language
@@ -2679,11 +2886,11 @@ async function showDailyResult(answers, baseScore, totalScore, aiResults, secsLe
     </div>`;
   }).join('');
 
-  // Speed summary
+  // Speed summary + share button on same line
   const mult = speedMultiplier ? speedMultiplier.toFixed(2) : '1.00';
   const _dl = dl();
   list.innerHTML += `<div id="daily-speed-summary" style="text-align:right;font-family:'Special Elite',monospace;font-size:11px;color:var(--ink-muted);padding-top:6px">
-    ${_dl.baseLabel} ${baseScore*10} pts ×${mult}⚡→ <strong>${totalScore*10} pts</strong>
+    <span id="daily-speed-text">${_dl.baseLabel} ${baseScore*10} pts ×${mult}⚡→ <strong>${totalScore*10} pts</strong></span>
   </div>`;
 
   // Total score
@@ -2749,6 +2956,7 @@ function renderLeaderboard(allScores) {
   const top10 = entries.slice(0, 10);
   const myIdx = entries.findIndex(e => isMe(e));
   const isInTop10 = myIdx >= 0 && myIdx < 10;
+  G_daily.myRank = myIdx >= 0 ? myIdx + 1 : null;
 
   // Ensure categories are available even when leaderboard viewed after session
   if (!G_daily.categories || !G_daily.categories.length) {
@@ -2867,11 +3075,11 @@ function reapplyOriginality() {
   const totalEl = document.getElementById('daily-total-score');
   if (totalEl) totalEl.textContent = (newTotal*10) + ' pts';
   // Re-apply speed breakdown line
-  const summaryEl = document.getElementById('daily-speed-summary');
-  if (summaryEl) {
+  const speedTextEl = document.getElementById('daily-speed-text');
+  if (speedTextEl) {
     const _dlr = dl();
     const mult = G_daily.totalScore && G_daily.baseScore ? (G_daily.totalScore / G_daily.baseScore).toFixed(2) : '1.00';
-    summaryEl.innerHTML = `${_dlr.baseLabel} ${G_daily.baseScore*10} pts ×${mult}⚡→ <strong>${G_daily.totalScore*10} pts</strong> +${originality*10} ${_dlr.origLabel}✨`;
+    speedTextEl.innerHTML = `${_dlr.baseLabel} ${G_daily.baseScore*10} pts ×${mult}⚡→ <strong>${G_daily.totalScore*10} pts</strong> +${originality*10} ${_dlr.origLabel}✨`;
   }
 }
 
@@ -2981,6 +3189,101 @@ window.switchDailyLbLang = function(lang) {
   loadDailyLeaderboard(_lbEffectiveDate(), lang).then(() => { if (!_lbDate) reapplyOriginality(); });
 };
 
+window.shareDailyResult = function() {
+  const l = dl();
+  const flagMap = { es: '🇪🇸', en: '🇬🇧', fr: '🇫🇷' };
+  const aiIcon = { valid: '✅', invalid: '❌', unsure: '🤔', empty: '—' };
+
+  // Header — name prominent (strip test marker if present)
+  const name = (G_daily.displayName || G.playerName || '').replace(/\s*🧪\s*$/, '').trim();
+  const flag = flagMap[LANG] || '🇪🇸';
+  const letter = G_daily.letter || document.getElementById('daily-letter-display')?.textContent?.trim() || '?';
+
+  // Date / practice tag
+  let dateLine = '';
+  if (G_daily.practiceMode) {
+    dateLine = l.practiceTag || 'Práctica';
+  } else {
+    const k = G_daily.key || getDailyKey();
+    const [y, m, d] = k.split('-').map(Number);
+    const dd = String(d).padStart(2,'0');
+    const mm = String(m).padStart(2,'0');
+    const yy = String(y).slice(2);
+    // Time
+    const ts = G_daily.submitTime || Date.now();
+    const dt = new Date(ts);
+    const hh = String(dt.getHours()).padStart(2,'0');
+    const min = String(dt.getMinutes()).padStart(2,'0');
+    dateLine = `${dd}/${mm}/${yy} ${hh}:${min}`;
+    // Rank
+    if (G_daily.myRank) {
+      const rank = G_daily.myRank;
+      const medals = ['🥇','🥈','🥉'];
+      const medal = medals[rank - 1] || '';
+      const suffixes = l.rankSuffix || ['º','º','º','º'];
+      const suffix = rank <= 3 ? suffixes[rank - 1] : suffixes[3];
+      const rankStr = medal ? medal : `${rank}${suffix}`;
+      dateLine += ` · ${rankStr}`;
+    }
+  }
+
+  // Answers block
+  const cats = G_daily.categories || [];
+  const answers = G_daily.answers || {};
+  const aiResults = G_daily.aiResults || {};
+  const uniqueIndices = G_daily.uniqueIndices || [];
+
+  const answerLines = cats.map((cat, i) => {
+    const word = answers[i] || '';
+    const res = aiResults[i] || (word ? 'unsure' : 'empty');
+    const icon = word ? (aiIcon[res] || '🤔') : '—';
+    const base = res === 'valid' ? '+100' : res === 'unsure' ? '+50' : '';
+    const orig = uniqueIndices.includes(i) ? ' +50⚡' : '';
+    const pts = base ? ` ${base}${orig}` : '';
+    return word ? `${cat} → ${word} ${icon}${pts}` : `${cat} → —`;
+  });
+
+  // Score summary
+  const baseScore = G_daily.baseScore || 0;
+  const totalScore = G_daily.totalScore || 0;
+  const mult = baseScore > 0 ? (totalScore / baseScore).toFixed(2) : '1.00';
+  const origPts = (totalScore - baseScore) * 10;
+  const origLine = origPts > 0
+    ? `${baseScore * 10} pts ×${mult}⚡→ ${totalScore * 10} pts +${origPts} ${l.origLabel || 'originalidad'} ⚡`
+    : `${baseScore * 10} pts ×${mult}⚡→ ${totalScore * 10} pts`;
+
+  // Assemble
+  const maxLen = Math.max(...answerLines.map(l => l.length));
+  const separator = '─'.repeat(maxLen);
+
+  const lines = [
+    name,
+    `¡Alto! ${flag} · ${letter} · ${dateLine}`,
+    '',
+    ...answerLines,
+    separator,
+    origLine,
+    'jugarenfamilia.es',
+  ];
+  const text = lines.join('\n');
+
+  // Copy to clipboard
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('btn-daily-share');
+    const original = btn ? btn.textContent : '';
+    if (btn) btn.textContent = l.shareCopied || '¡Copiado!';
+    setTimeout(() => { if (btn) btn.textContent = original; }, 2000);
+  }).catch(() => {
+    // Fallback: prompt with text selected
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.focus(); ta.select();
+    try { document.execCommand('copy'); } catch(e) {}
+    document.body.removeChild(ta);
+    toast(l.shareCopied || '¡Copiado!');
+  });
+};
+
 window.refreshDailyOriginality = async function() {
   if (G_daily.practiceMode) return;
   const btn = document.getElementById('btn-daily-refresh');
@@ -3017,6 +3320,8 @@ const DAILY_LABELS = {
     noResults: 'Sin resultados aún', errorLb: 'Error cargando clasificación',
     speedLabel: 'velocidad', baseLabel: 'base', origLabel: 'originalidad', sep: '· · ·',
     practiceLabel: 'Práctica',
+    shareBtn: 'Compartir', shareCopied: '¡Copiado!',
+    rankSuffix: ['er','º','º','º'], practiceTag: 'Práctica',
   },
   en: {
     yourAnswers: 'your answers', leaderboard: 'leaderboard',
@@ -3026,6 +3331,8 @@ const DAILY_LABELS = {
     noResults: 'No results yet', errorLb: 'Error loading leaderboard',
     speedLabel: 'speed', baseLabel: 'base', origLabel: 'originality', sep: '· · ·',
     practiceLabel: 'Practice',
+    shareBtn: 'Share', shareCopied: 'Copied!',
+    rankSuffix: ['st','nd','rd','th'], practiceTag: 'Practice',
   },
   fr: {
     yourAnswers: 'tes réponses', leaderboard: 'classement',
@@ -3035,6 +3342,8 @@ const DAILY_LABELS = {
     noResults: 'Pas encore de résultats', errorLb: 'Erreur de chargement',
     speedLabel: 'vitesse', baseLabel: 'base', origLabel: 'originalité', sep: '· · ·',
     practiceLabel: 'Pratique',
+    shareBtn: 'Partager', shareCopied: 'Copié !',
+    rankSuffix: ['er','e','e','e'], practiceTag: 'Pratique',
   },
 };
 
@@ -3051,8 +3360,11 @@ function applyDailyLang() {
   s2('daily-play-label', G_daily.theme || l.dailyPlayLabel);
   s2('daily-result-title', G_daily.practiceMode ? l.practiceLabel : (G_daily.theme || l.dailyPlayLabel));
   s2('btn-daily-refresh', l.refreshBtn);
+  s2('btn-daily-share', l.shareBtn || 'Compartir');
   s2('btn-practice-text', l.practiceLabel || 'Práctica');
   _lbUpdateNavUI();
+  const _warn = document.getElementById('daily-played-warning');
+  if (_warn) { _warn.style.display = 'none'; _warn.textContent = ''; }
 }
 
 // ══ END DAILY CHALLENGE ═════════════════════════════════════════════════════
@@ -3096,7 +3408,10 @@ function updateDailyButtonDate() {
   if (!span) return;
 
   const key = getDailyKey();
-  const played = !!localStorage.getItem('alto_daily_' + key + '_' + LANG);
+  const _playedRaw = localStorage.getItem('alto_daily_played_' + key);
+  const _playedData = _playedRaw ? JSON.parse(_playedRaw) : null;
+  const _agnosticMatch = _playedData && (_playedData.lang === LANG || !_playedData.lang);
+  const played = _agnosticMatch || !!localStorage.getItem('alto_daily_' + key + '_' + LANG);
 
   const labels = { es:'Reto diario', en:'Daily challenge', fr:'Défi du jour' };
   const doneLabels = {
@@ -3116,10 +3431,33 @@ function updateDailyButtonDate() {
   } else {
     if (sub) sub.textContent = ''; // restored by applyLang via t('dailySub')
     if (btn) btn.style.opacity = '1';
+    // Hide any mismatch warning when not played
+    const _warn = document.getElementById('daily-played-warning');
+    if (_warn) { _warn.style.display = 'none'; _warn.textContent = ''; }
   }
 }
 
-// startDailyChallenge — implemented in Daily Challenge section above
+// Check Firebase across all langs to see if this player has played today on any device
+async function checkDailyPlayedCrossDevice() {
+  const key = getDailyKey();
+  const agnosticKey = 'alto_daily_played_' + key;
+  if (localStorage.getItem(agnosticKey)) return; // already know
+  const name = localStorage.getItem('alto_name') || '';
+  if (!name) return;
+  const safeName = claimSafeName(name);
+  if (!safeName) return;
+  try {
+    const langs = ['es','en','fr'];
+    for (const l of langs) {
+      const snap = await get(ref(db, 'daily/' + key + '/' + l + '/players/' + safeName));
+      if (snap.exists()) {
+        localStorage.setItem(agnosticKey, JSON.stringify({ name: localStorage.getItem('alto_name') || name, lang: l }));
+        updateDailyButtonDate();
+        return;
+      }
+    }
+  } catch(e) { /* silent */ }
+}
 
 function toast(msg) {
   const el = document.getElementById('toast');
@@ -3221,6 +3559,7 @@ function handleRoom(room) {
 window.showJoin = () => document.getElementById('join-box').style.display = 'block';
 
 window.createRoom = async () => {
+  reloadIfOutdated();
   let name = document.getElementById('inp-name').value.trim();
   if (!name) { toast(t('toastName')); return; }
   // If this name is verified on this device, use the stored display name (preserves accents)
@@ -3242,6 +3581,7 @@ window.createRoom = async () => {
 };
 
 window.joinRoom = async () => {
+  reloadIfOutdated();
   let name = document.getElementById('inp-name').value.trim();
   const code = document.getElementById('inp-code').value.trim().toUpperCase();
   if (!name) { toast(t('toastName')); return; }
@@ -4997,6 +5337,133 @@ window.dbg = function dbg(screen) {
       }).join('');
       break;
     }
+
+    case 'scores-guest':
+      G.isHost = false;
+      showScores(dbgFakeRoom({ phase: 'scores', currentRound: 2, rounds: 5 }));
+      break;
+
+    case 'final-guest':
+      G.isHost = false;
+      showFinal(dbgFakeRoom({ phase: 'final' }));
+      break;
+
+    case 'validate-noai': {
+      G.isHost = true;
+      G_aiEnabled = false;
+      G_validationMode = 'host';
+      G.invalidAnswers = Object.assign({}, DBG.invalidAnswers);
+      show('validate');
+      const bannerNoAi = document.getElementById('stop-caller-banner');
+      if (bannerNoAi) { bannerNoAi.textContent = '🦊 Carlos llamó al ¡Alto!'; bannerNoAi.style.display = 'block'; }
+      document.getElementById('val-content').innerHTML = buildValidationHTML(dbgFakeRoom({ invalidAnswers: DBG.invalidAnswers }), G.invalidAnswers, true);
+      break;
+    }
+
+    case 'waiting-demo': {
+      G.isHost = false;
+      const waitDemoRoom = dbgFakeRoom({ validationMode: 'democratic', invalidAnswers: {}, votes: DBG.votes });
+      show('waiting');
+      const bannerWD = document.getElementById('stop-caller-banner-guest');
+      if (bannerWD) { bannerWD.textContent = '🦊 Carlos llamó al ¡Alto!'; bannerWD.style.display = 'block'; }
+      document.getElementById('guest-val-content').innerHTML = buildValidationHTML(waitDemoRoom, {}, false);
+      break;
+    }
+
+    case 'daily-play': {
+      resetGDaily(false);
+      G_daily.letter = 'M';
+      G_daily.categories = ['Nombre', 'Ciudad', 'Animal', 'Fruta', 'Cosa en casa', 'Película'];
+      G_daily.key = '2026-09-12';
+      G_daily.secsRemaining = 47;
+      G_daily.totalSecs = 90;
+      G_daily.timerInterval = null;
+      show('daily-play');
+      const dlPlayLabel = document.getElementById('daily-play-label');
+      const dlPlayDate  = document.getElementById('daily-play-date');
+      if (dlPlayLabel) dlPlayLabel.textContent = dl().dailyLabel || 'Reto diario';
+      if (dlPlayDate)  dlPlayDate.textContent  = '12 sep';
+      // Render inputs
+      const inputsEl = document.getElementById('daily-inputs');
+      if (inputsEl) {
+        inputsEl.innerHTML = G_daily.categories.map((cat, i) =>
+          `<div class="daily-input-row">
+            <label class="daily-cat-label">${cat}</label>
+            <input class="daily-input" type="text" placeholder="${G_daily.letter}..." data-idx="${i}" value="${i===0?'Marcos':i===1?'Málaga':''}">
+          </div>`
+        ).join('');
+      }
+      setTimerBubble(47, true);
+      break;
+    }
+
+    case 'daily-result': {
+      resetGDaily(false);
+      G_daily.letter = 'M';
+      G_daily.categories = ['Nombre', 'Ciudad', 'Animal', 'Fruta', 'Cosa en casa', 'Película'];
+      G_daily.key = '2026-09-12';
+      G_daily.practiceMode = false;
+      const drAnswers = { 0:'Marcos', 1:'Málaga', 2:'Murciélago', 3:'Mandarina', 4:'', 5:'Matrix' };
+      const drAI = { 0:'valid', 1:'valid', 2:'valid', 3:'valid', 4:'empty', 5:'unsure' };
+      showDailyResult(drAnswers, 35, 39, drAI, 47, 1.12);
+      break;
+    }
+
+    case 'practice-play': {
+      resetGDaily(true);
+      G_daily.letter = 'B';
+      G_daily.categories = ['Nombre', 'País', 'Animal', 'Comida', 'Deporte', 'Marca'];
+      G_daily.secsRemaining = 72;
+      G_daily.totalSecs = 90;
+      show('daily-play');
+      const prPlayLabel = document.getElementById('daily-play-label');
+      const prPlayDate  = document.getElementById('daily-play-date');
+      if (prPlayLabel) prPlayLabel.textContent = dl().practiceLabel || 'Práctica';
+      if (prPlayDate)  prPlayDate.textContent  = '';
+      const prInputsEl = document.getElementById('daily-inputs');
+      if (prInputsEl) {
+        prInputsEl.innerHTML = G_daily.categories.map((cat, i) =>
+          `<div class="daily-input-row">
+            <label class="daily-cat-label">${cat}</label>
+            <input class="daily-input" type="text" placeholder="${G_daily.letter}..." data-idx="${i}" value="${i===0?'Beatriz':''}">
+          </div>`
+        ).join('');
+      }
+      setTimerBubble(72, true);
+      break;
+    }
+
+    case 'practice-result': {
+      resetGDaily(true);
+      G_daily.letter = 'B';
+      G_daily.categories = ['Nombre', 'País', 'Animal', 'Comida', 'Deporte', 'Marca'];
+      const prAnswers = { 0:'Beatriz', 1:'Brasil', 2:'Ballena', 3:'Bocadillo', 4:'Balonmano', 5:'' };
+      const prAI = { 0:'valid', 1:'valid', 2:'valid', 3:'valid', 4:'unsure', 5:'empty' };
+      showDailyResult(prAnswers, 45, 45, prAI, 72, 1.0);
+      break;
+    }
+
+    case 'countdown': {
+      const cdOverlay = document.getElementById('countdown-overlay');
+      if (cdOverlay) {
+        cdOverlay.classList.add('open');
+        document.getElementById('countdown-number').textContent = '3';
+        const cdLabel = document.getElementById('countdown-label');
+        if (cdLabel) cdLabel.textContent = t('getReady') || 'PREPARADOS';
+      }
+      break;
+    }
+
+    case 'claim': {
+      const claimOverlay = document.getElementById('claim-overlay');
+      if (claimOverlay) claimOverlay.classList.add('open');
+      break;
+    }
+
+    case 'help': {
+      shellHelpOpen();
+      break;
+    }
   }
 }
 
@@ -5004,6 +5471,11 @@ window.dbg = function dbg(screen) {
 let G_dbgLastScreen = 'validate';
 window.dbgSetLang = function(lang) {
   window.setLang(lang);
+};
+window.dbgSetIphone = function(on) {
+  document.body.classList.toggle('iphone-mode', on);
+  // Reflow current screen after mode switch
+  setTimeout(() => { if (G_dbgLastScreen) window.dbg(G_dbgLastScreen); }, 50);
 };
 window.dbgSetAI = function(on) {
   G_aiEnabled = on;
@@ -5323,6 +5795,8 @@ function showUpdateBubble() {
   el.classList.add('show');
 }
 
+let _updateAvailable = false;
+
 async function checkForUpdate() {
   if (G.screen !== 'home') return;
   try {
@@ -5335,8 +5809,15 @@ async function checkForUpdate() {
     const html = await res.text();
     const m = html.match(/v(\d{6}\.\d+)(?!-tmp)/);
     if (!m) return;
-    if (CURRENT_VERSION && m[1] !== CURRENT_VERSION) showUpdateBubble();
+    if (CURRENT_VERSION && m[1] !== CURRENT_VERSION) {
+      _updateAvailable = true;
+      showUpdateBubble();
+    }
   } catch(e) { /* silent */ }
+}
+
+function reloadIfOutdated() {
+  if (_updateAvailable) location.reload(true);
 }
 
 setTimeout(checkForUpdate, 5000);
@@ -5392,10 +5873,17 @@ applyLang();
 document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.getAttribute('onclick').includes("'"+LANG+"'")));
 try { const s=JSON.parse(localStorage.getItem('alto_session')||'{}'); const _n=document.getElementById('inp-name'); if(_n && !_n.value) { if(s.name) _n.value=s.name; else { const _saved=localStorage.getItem('alto_name'); if(_saved) _n.value=_saved; } } if(_n && _n.value) scheduleNameCheck(_n.value); } catch(e){}
 tryRestore();
+// Ensure daily button played state wins any init timing race (especially iOS)
+setTimeout(() => updateDailyButtonDate(), 350);
+// Fix iOS bfcache: re-run when page is restored from back/forward cache
+window.addEventListener('pageshow', (e) => { if (e.persisted) updateDailyButtonDate(); });
+document.addEventListener('visibilitychange', () => { if (!document.hidden) updateDailyButtonDate(); });
+// Cross-device played check via Firebase (runs once per device per day)
+checkDailyPlayedCrossDevice();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260907.157-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v260912.207-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
@@ -5431,11 +5919,17 @@ tryRestore();
       <input type="checkbox" id="dbg-demo" onchange="dbgSetDemocratic(this.checked)" style="cursor:pointer">
       🗳️ Democratic
     </label>
+    <!-- iPhone mode toggle -->
+    <label style="color:#eee;font-size: 11px;display:flex;align-items:center;gap:3px;cursor:pointer">
+      <input type="checkbox" id="dbg-iphone" onchange="dbgSetIphone(this.checked)" style="cursor:pointer">
+      📱 iPhone
+    </label>
     <!-- Refresh current screen -->
     <button class="dbtn" onclick="dbgRefresh()" style="margin-left:auto">🔄 Refresh</button>
   </div>
-  <!-- Screen buttons -->
-  <div style="display:flex;flex-wrap:wrap;gap:4px">
+  <!-- Screen buttons — Multiplayer -->
+  <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:4px">
+    <span style="color:#888;font-size:10px;align-self:center;flex-shrink:0">MULTI:</span>
     <button class="dbtn" onclick="dbg('home')">🏠 Home</button>
     <button class="dbtn" onclick="dbg('welcome')">👋 Welcome</button>
     <button class="dbtn" onclick="dbg('quickjoin')">🔗 QuickJoin</button>
@@ -5444,12 +5938,31 @@ tryRestore();
     <button class="dbtn" onclick="dbg('playing')">✏️ Playing</button>
     <button class="dbtn" onclick="dbg('playing-stop')">🛑 Playing+Stop</button>
     <button class="dbtn" onclick="dbg('validate')">🤖 Validate</button>
+    <button class="dbtn" onclick="dbg('validate-noai')">🚫🤖 Validate (no AI)</button>
     <button class="dbtn" onclick="dbg('validate-demo')">🗳️ Validate Demo</button>
     <button class="dbtn" onclick="dbg('waiting')">⏳ Waiting</button>
-    <button class="dbtn" onclick="dbg('scores')">📊 Scores</button>
+    <button class="dbtn" onclick="dbg('waiting-demo')">⏳🗳️ Waiting Demo</button>
+    <button class="dbtn" onclick="dbg('scores')">📊 Scores Host</button>
+    <button class="dbtn" onclick="dbg('scores-guest')">📊 Scores Guest</button>
     <button class="dbtn" onclick="dbg('scores-last')">📊 Scores Last</button>
-    <button class="dbtn" onclick="dbg('final')">🏆 Final</button>
+    <button class="dbtn" onclick="dbg('final')">🏆 Final Host</button>
+    <button class="dbtn" onclick="dbg('final-guest')">🏆 Final Guest</button>
     <button class="dbtn" onclick="dbg('leaderboard')">🌍 Leaderboard</button>
+  </div>
+  <!-- Screen buttons — Daily / Practice -->
+  <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:4px">
+    <span style="color:#888;font-size:10px;align-self:center;flex-shrink:0">DAILY:</span>
+    <button class="dbtn" onclick="dbg('daily-play')">📅 Daily Play</button>
+    <button class="dbtn" onclick="dbg('daily-result')">📅 Daily Result</button>
+    <button class="dbtn" onclick="dbg('practice-play')">✏️ Practice Play</button>
+    <button class="dbtn" onclick="dbg('practice-result')">✏️ Practice Result</button>
+  </div>
+  <!-- Overlay buttons -->
+  <div style="display:flex;flex-wrap:wrap;gap:4px">
+    <span style="color:#888;font-size:10px;align-self:center;flex-shrink:0">OVERLAY:</span>
+    <button class="dbtn" onclick="dbg('countdown')">⏱️ Countdown</button>
+    <button class="dbtn" onclick="dbg('claim')">🔒 Claim Name</button>
+    <button class="dbtn" onclick="dbg('help')">❓ Help</button>
   </div>
 </div>
 <style>
