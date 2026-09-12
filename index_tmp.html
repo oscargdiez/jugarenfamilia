@@ -3973,7 +3973,8 @@ function buildValidationHTML(room, invalidMap) {
       const dictBtn = ans ? `<button class="dict-btn" id="gdictbtn_${key}" onclick="lookupWordGuest('${gSafeAns}','${key}')">${'📖'}</button>` : '';
       const voteHtml = ans ? renderVotes(key, votes[key]||{}, mode, players, false) : '';
       const emojiHtml = renderEntryEmojis(key, entryReactions[key]||{}, false);
-      html += `<div class="val-entry${isInvalid?' invalid':''}" id="ve_${key}">
+      const gEntryClass = isInvalid ? 'val-entry invalid' : (ans ? 'val-entry democratic-valid' : 'val-entry');
+      html += `<div class="${gEntryClass}" id="ve_${key}">
         <div class="val-entry-top">
           <span class="val-name">${p}</span>
           <span class="ans-disp">${ans||'<span style="color:var(--ink-muted)">—</span>'}</span>
@@ -4038,7 +4039,8 @@ function showValidation(room) {
       const aiCls = existingAI ? ('ai-result show ' + (existingAI.cls || (existingAI.html.includes('✅') ? 'valid' : existingAI.html.includes('❌') ? 'invalid' : 'unsure'))) : 'ai-result';
       const aiRes = ans ? `<div class="ai-result ${aiCls}" id="ai_res_${key}">${existingAI ? existingAI.html : ''}</div>` : '';
       const voteHtml = ans ? renderVotes(key, {}, G_validationMode, players, true) : '';
-      html += `<div class="val-entry" id="ve_${key}">
+      const entryClass = ans ? 'val-entry democratic-valid' : 'val-entry';
+      html += `<div class="${entryClass}" id="ve_${key}">
         <div class="val-entry-top">
           <span class="val-name">${p}</span>
           <span class="ans-disp">${ans||'<span style="color:var(--ink-muted)">—</span>'}</span>
@@ -4541,7 +4543,7 @@ function applyQuickJoinLang() {
 }
 
 // ── Per-entry reactions & voting ─────────────────────
-const ENTRY_EMOJIS = ['👏','😂','😬'];
+const ENTRY_EMOJIS = ['👏','😂','😬','🤬'];
 let G_validationMode = 'host'; // 'host' or 'democratic'
 let G_myVotes = {}; // key -> 'up' or 'down'
 let G_myEntryEmojis = {}; // key+emoji -> true
@@ -4667,23 +4669,27 @@ function applyVotesAndReactions(room, isHost) {
   if (isHost && mode === 'democratic') {
     const majority = Math.floor(players.length / 2) + 1;
     let changed = false;
-    Object.entries(votes).forEach(([key, playerVotes]) => {
+    // Collect all keys that need checking: keys in votes AND keys already invalidated
+    const keysToCheck = new Set([
+      ...Object.keys(votes),
+      ...Object.keys(G.invalidAnswers).filter(k => G.invalidAnswers[k])
+    ]);
+    keysToCheck.forEach(key => {
+      const playerVotes = votes[key] || {};
       const downs = Object.values(playerVotes).filter(v => v === 'down').length;
       const majorityAgainst = downs >= majority;
       const isCurrentlyInvalid = !!G.invalidAnswers[key];
       const entry = document.getElementById('ve_' + key);
       const ib = document.getElementById('ib_' + key);
       if (majorityAgainst && !isCurrentlyInvalid) {
-        // Majority voted against — invalidate
         G.invalidAnswers[key] = true;
         changed = true;
-        if (entry) entry.classList.add('invalid');
+        if (entry) { entry.classList.add('invalid'); entry.classList.remove('democratic-valid'); }
         if (ib) ib.textContent = '↩';
       } else if (!majorityAgainst && isCurrentlyInvalid) {
-        // Votes swung back — restore
         G.invalidAnswers[key] = false;
         changed = true;
-        if (entry) entry.classList.remove('invalid');
+        if (entry) { entry.classList.remove('invalid'); entry.classList.add('democratic-valid'); }
         if (ib) ib.textContent = '✕';
       }
     });
@@ -4763,8 +4769,8 @@ window.toggleInvalid = (key, pts) => {
   G.invalidAnswers[key] = isNowInvalid;
   const entry = document.getElementById('ve_'+key);
   const ib = document.getElementById('ib_'+key);
-  if (isNowInvalid) { entry.classList.add('invalid'); ib.textContent='↩'; }
-  else { entry.classList.remove('invalid'); ib.textContent='✕'; }
+  if (isNowInvalid) { entry.classList.add('invalid'); entry.classList.remove('democratic-valid'); ib.textContent='↩'; }
+  else { entry.classList.remove('invalid'); entry.classList.add('democratic-valid'); ib.textContent='✕'; }
   update(roomRef(G.roomCode), {invalidAnswers:G.invalidAnswers});
 };
 
@@ -5887,7 +5893,7 @@ checkDailyPlayedCrossDevice();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260912.213-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v260912.214-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
