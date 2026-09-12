@@ -1907,6 +1907,84 @@ window.shellLogoClick = function() {
 // Room pill is a non-interactive badge — copy is handled in lobby
 
 // Help overlay
+function homeRulesHTML() {
+  const d = {
+    es: {
+      h1: '🎲 Clásico — multijugador',
+      r1: 'Se elige una letra al azar para cada ronda. Todas las respuestas deben empezar por esa letra',
+      r2: 'Rellena todas las categorías lo más rápido posible',
+      r3: 'El primero en terminar pulsa ¡Alto!',
+      r4: 'Ideal para jugar en grupo',
+      val: 'Validación: modo <b>Normal</b> → el anfitrión decide · modo <b>Democrático</b> → votación entre todos',
+      s: 'Puntuación:', u: 'Respuesta única', rep: 'Respuesta repetida', e: 'Sin respuesta',
+      h2: '📅 Reto diario &amp; Práctica — un jugador',
+      d1: 'Una letra y 6 categorías fijas, iguales para todo el mundo cada día. Todas las respuestas deben empezar por esa letra',
+      d2: 'Práctica: mismas reglas pero letra aleatoria y sin límite de intentos',
+      d3: 'Pulsa ¡Alto! cuando termines — ¡cuanto antes, mejor para el bonus de velocidad!',
+      d4: 'El Robot valida cada respuesta — su decisión es definitiva',
+      ds: 'Puntuación:', dv: 'Respuesta válida', dspd: 'Bonus velocidad', dorig: 'Originalidad (respuesta única entre todos)', de: 'Respuesta inválida o en blanco',
+    },
+    en: {
+      h1: '🎲 Classic — multiplayer',
+      r1: 'A random letter is chosen each round. All answers must start with that letter',
+      r2: 'Fill all categories as fast as you can',
+      r3: 'First to finish taps Stop!',
+      r4: 'Best played in a group',
+      val: 'Validation: <b>Normal</b> mode → the host decides · <b>Democratic</b> mode → everyone votes',
+      s: 'Scoring:', u: 'Unique answer', rep: 'Duplicate answer', e: 'No answer',
+      h2: '📅 Daily challenge &amp; Practice — single player',
+      d1: 'One letter, 6 fixed categories — the same for everyone each day. All answers must start with that letter',
+      d2: 'Practice: same rules but a random letter and unlimited attempts',
+      d3: "Tap Stop! when you're done — the sooner the better for the speed bonus!",
+      d4: 'The Robot validates each answer — its decision is final',
+      ds: 'Scoring:', dv: 'Valid answer', dspd: 'Speed bonus', dorig: 'Originality bonus (unique answer among all players)', de: 'Invalid or blank answer',
+    },
+    fr: {
+      h1: '🎲 Classique — multijoueur',
+      r1: 'Une lettre aléatoire est choisie à chaque manche. Toutes les réponses doivent commencer par cette lettre',
+      r2: 'Remplis toutes les catégories le plus vite possible',
+      r3: 'Le premier à finir appuie sur Stop!',
+      r4: 'Idéal pour jouer en groupe',
+      val: "Validation: mode <b>Normal</b> → l'hôte décide · mode <b>Démocratique</b> → tout le monde vote",
+      s: 'Points:', u: 'Réponse unique', rep: 'Réponse en double', e: 'Sans réponse',
+      h2: '📅 Défi du jour &amp; Pratique — un joueur',
+      d1: 'Une lettre et 6 catégories fixes, identiques pour tout le monde chaque jour. Toutes les réponses doivent commencer par cette lettre',
+      d2: 'Pratique: mêmes règles mais lettre aléatoire et tentatives illimitées',
+      d3: 'Appuie sur Stop! quand tu as fini — plus vite tu le fais, meilleur est le bonus de vitesse!',
+      d4: 'Le Robot valide chaque réponse — sa décision est définitive',
+      ds: 'Points:', dv: 'Réponse valide', dspd: 'Bonus de vitesse', dorig: "Bonus d'originalité (réponse unique parmi tous les joueurs)", de: 'Réponse invalide ou vide',
+    },
+  };
+  const r = d[LANG] || d.es;
+  const divider = '<div style="margin:1.25rem 0;border-top:2px dashed var(--border)"></div>';
+  return `
+    <div style="font-family:'Caveat',cursive;font-size:22px;font-weight:700;color:var(--ink);margin-bottom:10px">${r.h1}</div>
+    <div class="rules-step"><span class="rules-icon" style="opacity:0">·</span><span class="rules-text">${r.r1}</span></div>
+    <div class="rules-step"><span class="rules-icon">✏️</span><span class="rules-text">${r.r2}</span></div>
+    <div class="rules-step"><span class="rules-icon">🏆</span><span class="rules-text">${r.r3}</span></div>
+    <div class="rules-step"><span class="rules-icon">👥</span><span class="rules-text">${r.r4}</span></div>
+    <div style="margin:8px 0 10px;padding:7px 10px;background:var(--paper-dark);border-radius:var(--radius);font-size:12px;color:var(--ink-sec);line-height:1.5">${r.val}</div>
+    <div class="rules-scoring">
+      <div class="rules-score-row"><span>${r.s}</span></div>
+      <div class="rules-score-row"><span>${r.u}</span><span class="rules-pts">100 pts</span></div>
+      <div class="rules-score-row"><span>${r.rep}</span><span class="rules-pts">50 pts</span></div>
+      <div class="rules-score-row"><span>${r.e}</span><span class="rules-pts">0 pts</span></div>
+    </div>
+    ${divider}
+    <div style="font-family:'Caveat',cursive;font-size:22px;font-weight:700;color:var(--ink);margin-bottom:10px">${r.h2}</div>
+    <div class="rules-step"><span class="rules-icon" style="opacity:0">·</span><span class="rules-text">${r.d1}</span></div>
+    <div class="rules-step"><span class="rules-icon">✏️</span><span class="rules-text">${r.d2}</span></div>
+    <div class="rules-step"><span class="rules-icon">🏆</span><span class="rules-text">${r.d3}</span></div>
+    <div class="rules-step"><span class="rules-icon">🤖</span><span class="rules-text">${r.d4}</span></div>
+    <div class="rules-scoring">
+      <div class="rules-score-row"><span>${r.ds}</span></div>
+      <div class="rules-score-row"><span>${r.dv}</span><span class="rules-pts">100 pts</span></div>
+      <div class="rules-score-row"><span>${r.dspd}</span><span class="rules-pts">×1.0–2.0</span></div>
+      <div class="rules-score-row"><span>${r.dorig}</span><span class="rules-pts">+50 pts</span></div>
+      <div class="rules-score-row"><span>${r.de}</span><span class="rules-pts">0 pts</span></div>
+    </div>`;
+}
+
 window.shellHelpOpen = function() {
   const overlay  = document.getElementById('help-overlay');
   const body     = document.getElementById('help-panel-body');
@@ -1915,9 +1993,12 @@ window.shellHelpOpen = function() {
   if (title) title.textContent = t('rulesTitle');
   const closeLabels = {es:'Cerrar',en:'Close',fr:'Fermer'};
   if (closeBtn) closeBtn.textContent = closeLabels[LANG] || closeLabels.es;
+  const isHomeScreen  = ['home','welcome'].includes(G.screen);
   const isDailyScreen = ['daily-play','daily-result'].includes(G.screen);
   if (body) {
-    if (isDailyScreen) {
+    if (isHomeScreen) {
+      body.innerHTML = homeRulesHTML();
+    } else if (isDailyScreen) {
       body.innerHTML = dailyRulesHTML();
     } else {
       body.innerHTML = rulesHTML() + '<div style="margin-top:1.5rem;border-top:2px dashed var(--border);padding-top:1.25rem">' + helpHTML() + '</div>';
@@ -5615,7 +5696,7 @@ checkDailyPlayedCrossDevice();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260912.199</div>
+  <div style="font-size: 11px;opacity:0.5">v260912.202</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
