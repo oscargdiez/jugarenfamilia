@@ -4531,6 +4531,9 @@ const ENTRY_EMOJIS = ['👏','😂','😬'];
 let G_validationMode = 'host'; // 'host' or 'democratic'
 let G_myVotes = {}; // key -> 'up' or 'down'
 let G_myEntryEmojis = {}; // key+emoji -> true
+let G_cachedVotes = {};   // last known votes from Firebase, for optimistic UI
+let G_cachedPlayers = []; // last known player list, for optimistic UI
+let G_cachedVoteMode = 'host'; // last known validation mode, for optimistic UI
 
 window.setValidationMode = (mode) => {
   G_validationMode = mode;
@@ -4556,14 +4559,17 @@ window.setValidationMode = (mode) => {
 
 window.voteEntry = async (key, dir) => {
   const prev = G_myVotes[key];
-  // Toggle off if same vote
-  if (prev === dir) {
-    G_myVotes[key] = null;
-    await update(roomRef(G.roomCode), { [`votes/${key}/${G.playerName}`]: null });
-  } else {
-    G_myVotes[key] = dir;
-    await update(roomRef(G.roomCode), { [`votes/${key}/${G.playerName}`]: dir });
-  }
+  const newDir = prev === dir ? null : dir; // toggle off if same
+  // Update local state immediately
+  G_myVotes[key] = newDir;
+  // Optimistic UI — build a synthetic votes object reflecting the local change
+  const optimisticVotes = Object.assign({}, G_cachedVotes[key] || {});
+  if (newDir) optimisticVotes[G.playerName] = newDir;
+  else delete optimisticVotes[G.playerName];
+  const voteEl = document.getElementById('votes_' + key);
+  if (voteEl) voteEl.innerHTML = renderVotes(key, optimisticVotes, G_cachedVoteMode, G_cachedPlayers, G.isHost);
+  // Write to Firebase (Firebase echo will confirm/correct)
+  await update(roomRef(G.roomCode), { [`votes/${key}/${G.playerName}`]: newDir || null });
 };
 
 window.reactToEntry = async (key, emoji) => {
@@ -4632,6 +4638,10 @@ function applyVotesAndReactions(room, isHost) {
   const entryReactions = room.entryReactions || {};
   const players = Object.keys(room.players || {});
   const mode = room.validationMode || 'host';
+  // Cache for optimistic UI in voteEntry
+  G_cachedVotes = votes;
+  G_cachedPlayers = players;
+  G_cachedVoteMode = mode;
 
   // Update my votes from Firebase (in case rejoining)
   Object.entries(votes).forEach(([key, playerVotes]) => {
@@ -5883,7 +5893,7 @@ checkDailyPlayedCrossDevice();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260912.208-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v260912.209-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
