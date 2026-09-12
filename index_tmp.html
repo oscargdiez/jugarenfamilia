@@ -708,7 +708,6 @@ body.screen-home .page, body.screen-welcome .page { padding-bottom: 2rem; }
 .entry-emoji-btn.active { opacity: 1; background: var(--paper-dark); }
 .vote-btn { font-size: 13px; height: 32px; padding: 0 8px; border-radius: var(--radius); border: 1.5px solid var(--border); background: transparent; cursor: pointer; font-family: monospace; display: inline-flex; align-items: center; gap: 3px; transition: all .1s; }
 .vote-btn:hover { background: var(--paper-dark); }
-.vote-btn.thumbs-up.voted { background: var(--success-bg); border-color: var(--success); color: var(--success); }
 .vote-btn.thumbs-down.voted { background: var(--danger-bg); border-color: var(--danger); color: var(--danger); }
 .vote-count { font-size: 11px; font-weight: 700; }
 .democratic-badge { font-size:11px; font-family: 'Special Elite', monospace; color: var(--ink-muted); padding: 1px 5px; border-radius: 3px; border: 1px solid var(--border); }
@@ -1565,7 +1564,7 @@ function helpHTML() {
       b1: 'Después de cada ronda el anfitrión revisa las respuestas:',
       l1: ['📖 Busca la definición en Wikipedia', '🤖 Consulta al asistente Robot — su opinión es orientativa, el anfitrión decide', '✕ El anfitrión puede anular una respuesta manualmente'],
       t2: '🗳️ Modo democrático',
-      b2: 'En lugar de que el anfitrión decida solo, los jugadores votan con 👍👎. Si la mayoría vota en contra, la respuesta se anula automáticamente.',
+      b2: 'Las respuestas se consideran válidas por defecto. Los jugadores pueden votar 👎 en contra. Si la mayoría vota en contra, la respuesta se anula automáticamente.',
       t3: '🤖 Asistente Robot',
       b3: 'El anfitrión activa el asistente Robot. Su opinión es orientativa — el anfitrión tiene la última palabra.',
       l3: ['🟢 Relajada — se aceptan respuestas borderline y creativas', '🔴 Estricta — solo respuestas claras e indiscutibles', '✏️ Faltas de ortografía — activar si queréis ser más permisivos con la escritura'],
@@ -1580,7 +1579,7 @@ function helpHTML() {
       b1: 'After each round the host reviews all answers:',
       l1: ['📖 Look up the definition on Wikipedia', '🤖 Ask the Robot assistant — its opinion is a guide, the host decides', '✕ The host can manually invalidate an answer'],
       t2: '🗳️ Democratic mode',
-      b2: 'Instead of the host deciding alone, players vote 👍👎. If the majority votes against, the answer is automatically invalidated.',
+      b2: 'Answers are valid by default. Players can vote 👎 against any answer. If the majority votes against, the answer is automatically invalidated.',
       t3: '🤖 Robot Assistant',
       b3: 'The host enables the Robot assistant. Its opinion is a guide — the host always has the final say.',
       l3: ['🟢 Relaxed — borderline and creative answers accepted', '🔴 Strict — only clear and unambiguous answers accepted', '✏️ Spelling mistakes — enable if you want to be more lenient with spelling'],
@@ -1595,7 +1594,7 @@ function helpHTML() {
       b1: "Après chaque manche l'hôte vérifie toutes les réponses:",
       l1: ["📖 Cherche la définition sur Wikipedia", "🤖 Consulte l'assistant Robot — son avis est indicatif, l'hôte décide", "✕ L'hôte peut annuler une réponse manuellement"],
       t2: '🗳️ Mode démocratique',
-      b2: "Au lieu que l'hôte décide seul, les joueurs votent 👍👎. Si la majorité vote contre, la réponse est automatiquement annulée.",
+      b2: "Les réponses sont valides par défaut. Les joueurs peuvent voter 👎 contre une réponse. Si la majorité vote contre, la réponse est automatiquement annulée.",
       t3: '🤖 Assistant Robot',
       b3: "L'hôte active l'assistant Robot. Son avis est indicatif — l'hôte a toujours le dernier mot.",
       l3: ['🟢 Détendue — réponses créatives et limites acceptées', '🔴 Stricte — uniquement des réponses claires et indiscutables', '✏️ Fautes d\'orthographe — activez si vous voulez être plus permissifs avec l\'écriture'],
@@ -4547,7 +4546,7 @@ window.setValidationMode = (mode) => {
   const sub1 = document.getElementById('lbl-validate-sub1');
   const sub2 = document.getElementById('lbl-validate-sub2');
   if (mode === 'democratic') {
-    const s1 = {es:'👍👎 votar · 📖 Wikipedia · 🤖 Robot', en:'👍👎 vote · 📖 Wikipedia · 🤖 Robot', fr:'👍👎 voter · 📖 Wikipedia · 🤖 Robot'}[LANG] || '👍👎 votar · 📖 Wikipedia · 🤖 Robot';
+    const s1 = {es:'👎 votar · 📖 Wikipedia · 🤖 Robot', en:'👎 vote · 📖 Wikipedia · 🤖 Robot', fr:'👎 voter · 📖 Wikipedia · 🤖 Robot'}[LANG] || '👎 votar · 📖 Wikipedia · 🤖 Robot';
     const s2 = {es:'única = 100 pts · repetida = 50 pts · anulada = 0 pts', en:'unique = 100 pts · duplicate = 50 pts · invalid = 0 pts', fr:'unique = 100 pts · doublon = 50 pts · annulé = 0 pts'}[LANG] || 'única = 100 pts · repetida = 50 pts · anulada = 0 pts';
     if (sub1) sub1.textContent = s1;
     if (sub2) sub2.textContent = s2;
@@ -4589,30 +4588,20 @@ window.reactToEntry = async (key, emoji) => {
 
 function renderVotes(key, votes, mode, players, isHost) {
   const voteData = votes || {};
-  const ups = Object.values(voteData).filter(v => v === 'up').length;
   const downs = Object.values(voteData).filter(v => v === 'down').length;
-  const total = ups + downs;
   const myVote = G_myVotes[key];
   const totalPlayers = players.length;
 
   let democraticResult = '';
-  if (mode === 'democratic' && total > 0) {
+  if (mode === 'democratic' && downs > 0) {
     const majority = Math.floor(totalPlayers / 2) + 1;
-    const lblValid   = {es:'Válido',  en:'Valid',   fr:'Valide'}[LANG]  || 'Válido';
-    const lblInvalid = {es:'Inválido',en:'Invalid', fr:'Invalide'}[LANG] || 'Inválido';
-    const lblTie     = {es:'Empate',  en:'Tie',     fr:'Égalité'}[LANG] || 'Empate';
-    if (ups >= majority) democraticResult = '<span class="democratic-result valid">✅</span>';
-    else if (downs >= majority) democraticResult = '<span class="democratic-result invalid">❌</span>';
-    else if (total >= totalPlayers) democraticResult = '<span class="democratic-result tie">🤝</span>';
-    // else: not everyone has voted yet — show nothing
+    if (downs >= majority) democraticResult = '<span class="democratic-result invalid">❌</span>';
   }
 
-  const upClass = myVote === 'up' ? 'vote-btn thumbs-up voted' : 'vote-btn thumbs-up';
   const downClass = myVote === 'down' ? 'vote-btn thumbs-down voted' : 'vote-btn thumbs-down';
   // Thumbs only shown in democratic mode
   if (mode !== 'democratic') return '';
-  return `${democraticResult}<button class="${upClass}" onclick="voteEntry('${key}','up')">👍 <span class="vote-count">${ups}</span></button>
-    <button class="${downClass}" onclick="voteEntry('${key}','down')">👎 <span class="vote-count">${downs}</span></button>`;
+  return `${democraticResult}<button class="${downClass}" onclick="voteEntry('${key}','down')">👎 <span class="vote-count">${downs}</span></button>`;
 }
 
 function renderEntryEmojis(key, entryReactions, isHost) {
@@ -4664,20 +4653,11 @@ function applyVotesAndReactions(room, isHost) {
     const majority = Math.floor(players.length / 2) + 1;
     let changed = false;
     Object.entries(votes).forEach(([key, playerVotes]) => {
-      const ups = Object.values(playerVotes).filter(v => v === 'up').length;
       const downs = Object.values(playerVotes).filter(v => v === 'down').length;
-      const totalPlayers = players.length;
       const majorityAgainst = downs >= majority;
-      const majorityFor = ups >= majority;
-      const isDraw = !majorityFor && !majorityAgainst && (ups + downs) >= totalPlayers;
       const isCurrentlyInvalid = !!G.invalidAnswers[key];
       const entry = document.getElementById('ve_' + key);
       const ib = document.getElementById('ib_' + key);
-      // Update tint classes
-      if (entry) {
-        entry.classList.toggle('democratic-valid', majorityFor && !majorityAgainst);
-        entry.classList.toggle('democratic-draw', isDraw);
-      }
       if (majorityAgainst && !isCurrentlyInvalid) {
         // Majority voted against — invalidate
         G.invalidAnswers[key] = true;
@@ -4685,9 +4665,7 @@ function applyVotesAndReactions(room, isHost) {
         if (entry) entry.classList.add('invalid');
         if (ib) ib.textContent = '↩';
       } else if (!majorityAgainst && isCurrentlyInvalid) {
-        // Votes swung back — restore (only if it was auto-invalidated by democratic mode,
-        // not manually invalidated by host — we can't distinguish, but democratic mode
-        // takes precedence over manual when mode is active)
+        // Votes swung back — restore
         G.invalidAnswers[key] = false;
         changed = true;
         if (entry) entry.classList.remove('invalid');
@@ -5893,7 +5871,7 @@ checkDailyPlayedCrossDevice();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260912.209-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v260912.210-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
