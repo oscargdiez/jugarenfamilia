@@ -2691,7 +2691,7 @@ window.dailySubmit = async function(fromTimer = false) {
   };
   if (!dailyPlayerName.startsWith('__') && !G_daily.practiceMode) {
     localStorage.setItem('alto_daily_' + G_daily.key + '_' + LANG, JSON.stringify(saveData));
-    localStorage.setItem('alto_daily_played_' + G_daily.key, JSON.stringify({ name: G_daily.displayName || dailyPlayerName }));
+    localStorage.setItem('alto_daily_played_' + G_daily.key, JSON.stringify({ name: G_daily.displayName || dailyPlayerName, lang: LANG }));
   }
 
   // Submit to Firebase — scoped by language
@@ -3356,7 +3356,9 @@ function updateDailyButtonDate() {
 
   const key = getDailyKey();
   const _playedRaw = localStorage.getItem('alto_daily_played_' + key);
-  const played = !!_playedRaw || !!localStorage.getItem('alto_daily_' + key + '_' + LANG);
+  const _playedData = _playedRaw ? JSON.parse(_playedRaw) : null;
+  const _agnosticMatch = _playedData && (_playedData.lang === LANG || !_playedData.lang);
+  const played = _agnosticMatch || !!localStorage.getItem('alto_daily_' + key + '_' + LANG);
 
   const labels = { es:'Reto diario', en:'Daily challenge', fr:'Défi du jour' };
   const doneLabels = {
@@ -5696,7 +5698,7 @@ checkDailyPlayedCrossDevice();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260912.204</div>
+  <div style="font-size: 11px;opacity:0.5">v260912.205</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
