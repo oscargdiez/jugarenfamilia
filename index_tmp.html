@@ -1665,7 +1665,12 @@ window.applyLang = function() {
     }
   }
   // Welcome
-  s('wb-continue', t('continueBtn'));
+  const _wbName = document.getElementById('wb-name')?.textContent || '';
+  if (G.screen === 'welcome' && _wbName) {
+    s('wb-continue', t('toastBack') + ' →');
+  } else {
+    s('wb-continue', t('continueBtn'));
+  }
   s('btn-not-me', t('notMe'));
   s('lbl-wb-emoji', t('chooseEmoji') + ' ');
   // Lobby
@@ -5898,7 +5903,7 @@ checkDailyPlayedCrossDevice();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260912.217-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v260912.218-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
