@@ -2157,6 +2157,9 @@ function resetGDaily(practiceMode) {
   G_daily.theme         = null;
   G_daily.myRank        = null;
   G_daily.submitTime    = null;
+  // Reset submit button DOM — may be left disabled/Validating from previous run
+  const _sb = document.getElementById("btn-daily-submit");
+  if (_sb) { _sb.disabled = false; _sb.textContent = { es:"¡Alto! →", en:"Stop! →", fr:"Stop! →" }[LANG] || "¡Alto! →"; }
 }
 
 window.startDailyChallenge = async function() {
@@ -5605,7 +5608,7 @@ checkDailyPlayedCrossDevice();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260912.196</div>
+  <div style="font-size: 11px;opacity:0.5">v260912.197</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
