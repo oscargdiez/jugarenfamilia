@@ -1422,7 +1422,14 @@ const T = {
   },
 };
 
-let LANG = localStorage.getItem('alto_lang') || 'es';
+// Detect browser language for first-time visitors (localStorage takes over after first manual pick)
+function _detectBrowserLang() {
+  const bl = (navigator.language || navigator.userLanguage || '').toLowerCase();
+  if (bl.startsWith('fr')) return 'fr';
+  if (bl.startsWith('en')) return 'en';
+  return null;
+}
+let LANG = localStorage.getItem('alto_lang') || _detectBrowserLang() || 'es';
 
 function t(key) { return (T[LANG]||T.es)[key] || T.es[key] || key; }
 
@@ -5608,7 +5615,7 @@ checkDailyPlayedCrossDevice();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260912.197</div>
+  <div style="font-size: 11px;opacity:0.5">v260912.198</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
