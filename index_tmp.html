@@ -2306,7 +2306,7 @@ function resetGDaily(practiceMode) {
   G_daily.submitTime    = null;
   // Reset submit button DOM — may be left disabled/Validating from previous run
   const _sb = document.getElementById("btn-daily-submit");
-  if (_sb) { _sb.disabled = false; _sb.textContent = { es:"¡Alto! →", en:"Stop! →", fr:"Stop! →" }[LANG] || "¡Alto! →"; }
+  if (_sb) { _sb.disabled = false; _sb.textContent = { es:"¡Alto! →", en:"¡Alto! →", fr:"¡Alto! →" }[LANG] || "¡Alto! →"; }
 }
 
 window.startDailyChallenge = async function() {
@@ -2679,7 +2679,7 @@ window.dailySubmit = async function(fromTimer = false) {
       toast(msg[LANG] || msg.es);
       // Re-enable submit button (was disabled by inline onclick)
       const submitBtn = document.getElementById('btn-daily-submit');
-      if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = { es:'¡Alto! →', en:'Stop! →', fr:'Stop! →' }[LANG] || '¡Alto! →'; }
+      if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = { es:'¡Alto! →', en:'¡Alto! →', fr:'¡Alto! →' }[LANG] || '¡Alto! →'; }
       return;
     }
   }
@@ -3332,7 +3332,7 @@ const DAILY_LABELS = {
   en: {
     yourAnswers: 'your answers', leaderboard: 'leaderboard',
     backHome: '← Back to home',
-    dailySubmitBtn: 'Stop! →', dailyPlayLabel: 'Daily challenge',
+    dailySubmitBtn: '¡Alto! →', dailyPlayLabel: 'Daily challenge',
     refreshBtn: '↻ refresh', validating: 'Validating…',
     noResults: 'No results yet', errorLb: 'Error loading leaderboard',
     speedLabel: 'speed', baseLabel: 'base', origLabel: 'originality', sep: '· · ·',
@@ -3343,7 +3343,7 @@ const DAILY_LABELS = {
   fr: {
     yourAnswers: 'tes réponses', leaderboard: 'classement',
     backHome: '← Retour',
-    dailySubmitBtn: 'Stop! →', dailyPlayLabel: 'Défi du jour',
+    dailySubmitBtn: '¡Alto! →', dailyPlayLabel: 'Défi du jour',
     refreshBtn: '↻ actualiser', validating: 'Validation…',
     noResults: 'Pas encore de résultats', errorLb: 'Erreur de chargement',
     speedLabel: 'vitesse', baseLabel: 'base', origLabel: 'originalité', sep: '· · ·',
@@ -5898,7 +5898,7 @@ checkDailyPlayedCrossDevice();
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260912.215-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v260912.216-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
