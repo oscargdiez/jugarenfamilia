@@ -638,9 +638,9 @@ body.screen-home .page, body.screen-welcome .page { padding-bottom: 2rem; }
 .daily-lb-answer-pts { font-family: 'Special Elite', monospace; font-size:11px; color: var(--success); flex-shrink: 0; min-width: 24px; text-align: right; }
 .daily-lb-answer-pts.zero { color: var(--ink-muted); }
 .daily-result-orig { font-family: 'Special Elite', monospace; font-size:11px; color: var(--ink-muted); flex-shrink: 0; }
-.daily-reconsider-btn { font-size:13px; padding: 1px 4px; border-radius: 4px; border: 1px solid var(--border); background: transparent; cursor: pointer; opacity: 0.7; flex-shrink: 0; line-height:1; font-family:'Special Elite',monospace; }
-.daily-reconsider-btn:hover { opacity:1; background: var(--paper-dark); }
-.daily-reconsider-btn:disabled { opacity:0.3; cursor:default; }
+.daily-reconsider-btn { font-size:11px; padding: 0; border: none; background: transparent; cursor: pointer; opacity: 0.5; flex-shrink: 0; line-height:1; font-family:'Special Elite',monospace; color:var(--ink-sec); text-decoration: underline; text-underline-offset: 2px; }
+.daily-reconsider-btn:hover { opacity:1; }
+.daily-reconsider-btn:disabled { opacity:0.3; cursor:default; text-decoration:none; }
 .daily-already-played { text-align: center; padding: 1.5rem 0; }
 .daily-already-score { font-family: 'Caveat', cursive; font-size: 48px; font-weight: 700; color: var(--red); }
 
@@ -2871,7 +2871,7 @@ async function showDailyResult(answers, baseScore, totalScore, aiResults, secsLe
       <span class="daily-result-word">${word || '<span style="opacity:0.4">—</span>'}</span>
       <span class="daily-result-ai" id="daily-ai-${i}">${aiIcon[res] || '🤔'}</span>
       ${base ? `<span class="daily-result-pts" id="daily-pts-${i}">+${base}</span>` : `<span class="daily-result-pts" id="daily-pts-${i}" style="display:none"></span>`}
-      ${canContest ? `<button class="daily-reconsider-btn" id="daily-reconsider-${i}" onclick="recontest(${i},'${word.replace(/'/g,"\\'")}','${cat}')">⚖️</button>` : ''}
+      ${canContest ? `<button class="daily-reconsider-btn" id="daily-reconsider-${i}" onclick="recontest(${i},'${word.replace(/'/g,"\\'")}',' ${cat}')">${{es:'¿Error?',en:'Error?',fr:'Erreur?'}[LANG]||'¿Error?'}</button>` : ''}
       <span class="daily-result-orig" id="daily-orig-${i}"></span>
     </div>`;
   }).join('');
@@ -2929,7 +2929,7 @@ window.recontest = async (idx, word, cat) => {
 
   // Disable all reconsider buttons while running
   document.querySelectorAll('.daily-reconsider-btn').forEach(b => b.disabled = true);
-  btn.textContent = '⏳';
+  btn.style.opacity = '0.3';
 
   try {
     const langNames = {es:'Spanish',en:'English',fr:'French'};
@@ -2972,10 +2972,9 @@ window.recontest = async (idx, word, cat) => {
     await set(ref(db, contestPath), used + 1).catch(() => {});
 
     if (newRes === 'invalid') {
-      // Confirmed invalid — just update button to show result
-      btn.textContent = '❌';
-      btn.style.opacity = '0.4';
-      btn.disabled = true;
+      // Confirmed invalid — replace button with muted reviewed label
+      const reviewedLabel = {es:'revisado',en:'reviewed',fr:'révisé'}[LANG]||'revisado';
+      if (btn) { btn.textContent = reviewedLabel; btn.disabled = true; btn.style.textDecoration = 'none'; btn.style.cursor = 'default'; }
       toast({ es:'Confirmado: respuesta inválida', en:'Confirmed: invalid answer', fr:'Confirmé : réponse invalide' }[LANG]);
     } else {
       // Overturned — update UI and Firebase score
@@ -3034,7 +3033,7 @@ window.recontest = async (idx, word, cat) => {
     });
 
   } catch(e) {
-    btn.textContent = '⚖️';
+    btn.style.opacity = '0.5';
     document.querySelectorAll('.daily-reconsider-btn').forEach(b => b.disabled = false);
     toast({ es:'Error al consultar — inténtalo de nuevo', en:'Error checking — try again', fr:'Erreur — réessaie' }[LANG]);
   }
@@ -6121,7 +6120,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) upda
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260913.235-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v260913.236-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
