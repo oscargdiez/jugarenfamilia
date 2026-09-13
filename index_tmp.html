@@ -392,6 +392,8 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
 .theme-btn.active { border-color: var(--red); background: var(--red-light); color: var(--red); font-weight: 700; }
 .cat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px,1fr)); gap: 6px; }
 .cat-lbl { display: flex; align-items: center; gap: 7px; font-family: 'Caveat', cursive; font-size:20px; color: var(--ink-sec); }
+.group-pill { padding: 4px 10px; border-radius: 20px; border: 1.5px solid var(--border); background: var(--paper); transition: all .15s; }
+.group-pill.active { border-color: var(--red); background: var(--red-light); color: var(--red); font-weight: 700; }
 
 /* ── Range ── */
 .range-row { display: flex; gap: 10px; align-items: center; }
@@ -948,7 +950,7 @@ document.addEventListener('DOMContentLoaded', function() {
           <!-- 19px exception to 6-slot font system: needed to fit Daily+Practice on one line on small iPhone screens -->
           <button onclick="startDailyChallenge()" class="green" style="width:100%;font-size:19px;padding:14px;line-height:1;font-weight:400" id="btn-daily"><span style="font-size:17px">📅</span> <span id="btn-daily-text">Reto diario · cargando…</span></button>
           <div style="font-family:'Special Elite',monospace;font-size:11px;color:var(--ink-muted);text-align:center;letter-spacing:1px;margin:2px 0 0" id="lbl-daily-sub">TÚ CONTRA EL MUNDO · UN RETO POR DÍA</div>
-          <div id="daily-played-warning" style="display:none;margin-top:6px;padding:8px 10px;border-left:3px solid var(--red);background:var(--red-light);border-radius:0 4px 4px 0;font-family:'Special Elite',monospace;font-size:11px;color:var(--ink);line-height:1.4"></div>
+
         </div>
         <button onclick="startPractice()" style="flex:0 0 auto;font-size:19px;padding:14px 8px;line-height:1;border:1.5px solid var(--border);border-radius:var(--radius);background:transparent;font-family:'Caveat',cursive;font-weight:400;cursor:pointer;white-space:nowrap" id="btn-practice"><span style="font-size:17px">✏️</span> <span id="btn-practice-text">Práctica</span></button>
       </div>
@@ -1041,9 +1043,10 @@ document.addEventListener('DOMContentLoaded', function() {
       <div class="card">
         <p class="lbl" id="lbl-theme">tema</p>
         <div class="themes" id="theme-btns"></div>
-        <div id="cat-custom" style="display:none">
-          <p class="lbl" style="margin-top:6px">categorías</p>
-          <div class="cat-grid" id="cat-grid"></div>
+        <div id="cat-random" style="display:none">
+          <p class="lbl" id="lbl-cat-random" style="margin-top:6px">grupos de categorías</p>
+          <div class="cat-grid" id="group-grid" style="margin-top:6px"></div>
+          <p id="lbl-group-hint-random" style="font-size:11px;opacity:.6;margin-top:6px;font-family:'Special Elite',monospace">mínimo 3 grupos · 6 categorías aleatorias por ronda</p>
         </div>
         <div id="cat-free" style="display:none">
           <p class="lbl" id="lbl-cat-free" style="margin-top:6px">escribe tus categorías (una por línea)</p>
@@ -1252,51 +1255,42 @@ const LETTERS_EASY = {
 const THEMES_ALL = {
   es: {
     '🎲 Clásico':    ['Nombre','Apellido','Ciudad','País','Animal','Objeto','Fruta','Color'],
-    '🌍 Geografía':  ['Ciudad','País','Capital','Río','Montaña','Continente','Mar','Isla'],
-    '🎵 Música':     ['Cantante','Canción','Banda','Instrumento','Género','Álbum','Festival','Baile'],
-    '🎬 Cine & TV':  ['Película','Serie','Actor','Actriz','Director','Personaje','Canal','Premio'],
-    '🍽️ Gastro':     ['Plato','Fruta','Verdura','Bebida','Postre','Especia','Restaurante','País'],
-    '🌱 Naturaleza': ['Animal','Planta','Insecto','Ave','Árbol','Flor','Mar','Montaña'],
-    '⚽ Deportes':   ['Deporte','Equipo','Jugador','País','Estadio','Trofeo','Marca','Liga'],
-    '✏️ Categorías': null,
+    '✏️ Categorías': 'random',
     '✍️ Libre':      'free',
   },
   en: {
     '🎲 Classic':    ['Name','Surname','City','Country','Animal','Object','Fruit','Colour'],
-    '🌍 Geography':  ['City','Country','Capital','River','Mountain','Continent','Sea','Island'],
-    '🎵 Music':      ['Singer','Song','Band','Instrument','Genre','Album','Festival','Dance'],
-    '🎬 Film & TV':  ['Film','Series','Actor','Actress','Director','Character','Channel','Award'],
-    '🍽️ Food':       ['Dish','Fruit','Vegetable','Drink','Dessert','Spice','Restaurant','Country'],
-    '🌱 Nature':     ['Animal','Plant','Insect','Bird','Tree','Flower','Sea','Mountain'],
-    '⚽ Sports':     ['Sport','Team','Player','Country','Stadium','Trophy','Brand','League'],
-    '✏️ Categories': null,
+    '✏️ Categories': 'random',
     '✍️ Free':       'free',
   },
   fr: {
     '🎲 Classique':  ['Prénom','Nom','Ville','Pays','Animal','Objet','Fruit','Couleur'],
-    '🌍 Géographie': ['Ville','Pays','Capitale','Fleuve','Montagne','Continent','Mer','Île'],
-    '🎵 Musique':    ['Chanteur','Chanson','Groupe','Instrument','Genre','Album','Festival','Danse'],
-    '🎬 Cinéma':     ['Film','Série','Acteur','Actrice','Réalisateur','Personnage','Chaîne','Prix'],
-    '🍽️ Cuisine':    ['Plat','Fruit','Légume','Boisson','Dessert','Épice','Restaurant','Pays'],
-    '🌱 Nature':     ['Animal','Plante','Insecte','Oiseau','Arbre','Fleur','Mer','Montagne'],
-    '⚽ Sports':     ['Sport','Équipe','Joueur','Pays','Stade','Trophée','Marque','Ligue'],
-    '✏️ Catégories': null,
+    '✏️ Catégories': 'random',
     '✍️ Libre':      'free',
   },
 };
 
-const CUSTOM_CATS_ALL = {
-  es: ['Nombre','Apellido','Ciudad','País','Animal','Objeto','Fruta','Color','Flor','Profesión','Comida','Marca','Deporte','Película'],
-  en: ['Name','Surname','City','Country','Animal','Object','Fruit','Colour','Flower','Profession','Food','Brand','Sport','Film'],
-  fr: ['Prénom','Nom','Ville','Pays','Animal','Objet','Fruit','Couleur','Fleur','Profession','Nourriture','Marque','Sport','Film'],
-};
+// 13 category groups from the daily pack — id, emoji, translated names
+const CAT_GROUPS = [
+  { id:'animales',          emoji:'🐾', es:'Animales',       en:'Animals',       fr:'Animaux'        },
+  { id:'geografia',         emoji:'🌍', es:'Geografía',      en:'Geography',     fr:'Géographie'     },
+  { id:'comida',            emoji:'🍽️', es:'Comida',         en:'Food',          fr:'Cuisine'        },
+  { id:'arte_musica',       emoji:'🎵', es:'Arte & Música',  en:'Art & Music',   fr:'Art & Musique'  },
+  { id:'historia_cultura',  emoji:'📚', es:'Historia',       en:'History',       fr:'Histoire'       },
+  { id:'ciencia',           emoji:'🔬', es:'Ciencia',        en:'Science',       fr:'Science'        },
+  { id:'deporte',           emoji:'⚽', es:'Deporte',        en:'Sport',         fr:'Sport'          },
+  { id:'ciudad_urbanismo',  emoji:'🏙️', es:'Ciudad',         en:'City Life',     fr:'Ville'          },
+  { id:'naturaleza',        emoji:'🌿', es:'Naturaleza',     en:'Nature',        fr:'Nature'         },
+  { id:'hogar_objetos',     emoji:'🏠', es:'Hogar',          en:'Home',          fr:'Maison'         },
+  { id:'identidad_sociedad',emoji:'👥', es:'Sociedad',       en:'Society',       fr:'Société'        },
+  { id:'entretenimiento',   emoji:'🎬', es:'Entretenimiento',en:'Entertainment', fr:'Divertissement' },
+  { id:'marcas',            emoji:'🏷️', es:'Marcas',         en:'Brands',        fr:'Marques'        },
+];
 
 function getThemes() { return THEMES_ALL[LANG] || THEMES_ALL.es; }
-function getCustomCats() { return CUSTOM_CATS_ALL[LANG] || CUSTOM_CATS_ALL.es; }
 
 // Keep backwards compat
 const THEMES = new Proxy({}, { get: (_, k) => getThemes()[k] });
-const CUSTOM_CATS = new Proxy([], { get: (_, k) => (getCustomCats())[k] });
 const MEDALS = ['🥇','🥈','🥉'];
 const LANG_FLAGS = {es:'🇪🇸', en:'🇬🇧', fr:'🇫🇷'};
 
@@ -1346,6 +1340,9 @@ const T = {
     toastNotFound: 'Sala no encontrada. Verifica el código.',
     toastCats: 'Selecciona al menos una categoría',
     toastFreeCats: 'Escribe al menos 2 categorías',
+    toastFewGroups: 'Selecciona al menos 3 grupos',
+    catRandomLabel: 'grupos de categorías',
+    catRandomHint: 'mínimo 3 grupos · 6 categorías aleatorias por ronda',
     toastHostOnly: 'Solo el anfitrión puede reiniciar',
     toastStopFill: 'Rellena todas las respuestas antes de llamar al ¡Alto!',
     hostRevisingScores: 'el anfitrión está revisando de nuevo ✏️',
@@ -1405,6 +1402,9 @@ const T = {
     toastNotFound: 'Room not found. Check the code.',
     toastCats: 'Select at least one category',
     toastFreeCats: 'Enter at least 2 categories',
+    toastFewGroups: 'Select at least 3 groups',
+    catRandomLabel: 'category groups',
+    catRandomHint: 'min 3 groups · 6 random categories per round',
     toastHostOnly: 'Only the host can restart',
     toastStopFill: 'Fill in all answers before calling ¡Alto!',
     hostRevisingScores: 'host is revising answers ✏️',
@@ -1464,6 +1464,9 @@ const T = {
     toastNotFound: 'Salle introuvable. Vérifie le code.',
     toastCats: 'Sélectionne au moins une catégorie',
     toastFreeCats: 'Entre au moins 2 catégories',
+    toastFewGroups: 'Sélectionne au moins 3 groupes',
+    catRandomLabel: 'groupes de catégories',
+    catRandomHint: 'min 3 groupes · 6 catégories aléatoires par manche',
     toastHostOnly: "Seul l'hôte peut recommencer",
     toastStopFill: 'Remplis toutes les réponses avant de crier ¡Alto !',
     hostRevisingScores: "l'hôte révise les réponses ✏️",
@@ -1710,6 +1713,9 @@ window.applyLang = function() {
   s('ft-rnd-of', t('of'));
   s('lbl-cat-free', t('freeCatLabel'));
   const freeCats = document.getElementById('free-cats'); if(freeCats) freeCats.placeholder = t('freeCatPlaceholder');
+  s('lbl-cat-random', t('catRandomLabel'));
+  s('lbl-group-hint-random', t('catRandomHint'));
+  if (document.getElementById('group-grid')?.children.length) buildGroupGrid();
   const stopBtn = document.querySelector('.stop-btn'); if(stopBtn) stopBtn.textContent = t('stop');
   // Validate
   s('lbl-validate-title', t('validate'));
@@ -1733,10 +1739,16 @@ window.applyLang = function() {
   s('btn-show-lb', t('leaderboard'));
   // Rebuild theme picker if in lobby (language changed)
   if (G.screen === 'lobby' && G.isHost) {
-    // Reset selectedTheme to first theme of new language
-    const firstTheme = Object.keys(getThemes())[0];
-    G.selectedTheme = firstTheme;
-    G.selectedCats = [...(getThemes()[firstTheme] || [])];
+    // Theme names differ per language — preserve selection by position (0=classic,1=random,2=free)
+    if (!getThemes()[G.selectedTheme]) {
+      const allThemes = Object.keys(getThemes());
+      const prevAllLangs = ['es','en','fr'].flatMap(l => Object.keys(THEMES_ALL[l]));
+      const prevIdx = prevAllLangs.indexOf(G.selectedTheme);
+      const posInLang = prevIdx >= 0 ? prevIdx % allThemes.length : 0;
+      G.selectedTheme = allThemes[posInLang] || allThemes[0];
+      const val = getThemes()[G.selectedTheme];
+      if (val && val !== 'free' && val !== 'random') G.selectedCats = [...val];
+    }
     buildThemePicker();
   }
   // Rules & lang bar
@@ -1890,6 +1902,7 @@ let G = {
   roomCode:'', playerName:'', isHost:false,
   selectedCats:['Nombre','Apellido','Ciudad','País','Animal','Objeto','Fruta','Color'],
   selectedTheme:'🎲 Clásico',
+  selectedGroups: CAT_GROUPS.map(g => g.id), // all groups active by default
   easyLetters:true,
   playerEmoji:'🎲',
   screen:'home', timerInterval:null, unsubscribe:null,
@@ -2318,47 +2331,6 @@ window.startDailyChallenge = async function() {
   const _nameCheck = document.getElementById('inp-name')?.value?.trim();
   if (!_nameCheck) { toast(t('toastName')); return; }
 
-  // Check if already played today on this device under a different name
-  const _agnosticKey = 'alto_daily_played_' + getDailyKey();
-  let _playedRaw = localStorage.getItem(_agnosticKey);
-  // Fall back to lang-specific key if agnostic key not yet written (pre-v184 plays)
-  if (!_playedRaw) {
-    for (const _l of ['es','en','fr']) {
-      const _langKey = localStorage.getItem('alto_daily_' + getDailyKey() + '_' + _l);
-      if (_langKey) {
-        try {
-          const _langData = JSON.parse(_langKey);
-          const _fallbackName = (_langData.playerName || '') + (_langData.playerEmoji ? ' ' + _langData.playerEmoji : '');
-          _playedRaw = JSON.stringify({ name: _fallbackName || localStorage.getItem('alto_name') || '' });
-        } catch(e) { _playedRaw = JSON.stringify({ name: localStorage.getItem('alto_name') || '' }); }
-        break;
-      }
-    }
-  }
-  if (_playedRaw) {
-    let _playedName = '';
-    try {
-      const _parsed = JSON.parse(_playedRaw);
-      _playedName = (typeof _parsed === 'object' ? _parsed.name : '') || '';
-    } catch(e) { _playedName = ''; }
-    // Don't fall back to alto_name — it may have changed since playing
-    const _playedSafe = claimSafeName(_playedName);
-    const _currentSafe = claimSafeName(_nameCheck);
-    if (_playedSafe && _currentSafe && _playedSafe !== _currentSafe) {
-      const _alreadyMsg = {
-        es: `El reto diario ya fue jugado hoy en este dispositivo con el nombre ${_playedName}. Espera a mañana para jugar con otro nombre.`,
-        en: `Today's challenge was already played on this device as ${_playedName}. Wait until tomorrow to play with a different name.`,
-        fr: `Le défi du jour a déjà été joué sur cet appareil sous le nom ${_playedName}. Attends demain pour jouer avec un autre nom.`,
-      };
-      const _warn = document.getElementById('daily-played-warning');
-      if (_warn) { _warn.textContent = _alreadyMsg[LANG] || _alreadyMsg.es; _warn.style.display = 'block'; }
-      return;
-    } else {
-      const _warn = document.getElementById('daily-played-warning');
-      if (_warn) { _warn.style.display = 'none'; _warn.textContent = ''; }
-    }
-  }
-
   reloadIfOutdated();
   resetGDaily(false);
   const key = getDailyKey();
@@ -2375,53 +2347,43 @@ window.startDailyChallenge = async function() {
     } catch(e) {}
   }
 
-  // Check Firebase for same name already played today (cross-device dedup)
-  if (!_debugMode && _playerNameRaw) {
+  // Cross-device played check: _playedLangs is populated by fetchPlayedState() on load.
+  // If already played in this lang on any device, retrieve and show their score from Firebase.
+  if (!_debugMode && _playedLangs[LANG]) {
     try {
-      const safeName = _playerNameRaw.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim()
-        .replace(/[^a-z0-9 ]/g,'_').replace(/\s+/g,'_').replace(/_+/g,'_').replace(/^_|_$/g,'');
-      if (safeName) {
-        const playerSnap = await get(ref(db, 'daily/' + key + '/' + LANG + '/players/' + safeName));
-        if (playerSnap.exists()) {
-          // Name already played today — try to retrieve their score from Firebase
-          // (covers reserved names on Device 2 that have no localStorage entry)
-          try {
-            const scoresSnap = await get(ref(db, 'daily/' + key + '/' + LANG + '/scores'));
-            if (scoresSnap.exists()) {
-              const allScores = scoresSnap.val();
-              // Find entry by safeName field (primary) or normalised name match (fallback)
-              const entry = Object.values(allScores).find(e =>
-                (e.safeName && e.safeName === safeName) ||
-                (!e.safeName && e.name && e.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().replace(/[^a-z0-9 ]/g,'_').replace(/\s+/g,'_').replace(/_+/g,'_').replace(/^_|_$/g,'').startsWith(safeName))
-              );
-              if (entry) {
-                G_daily.displayName = entry.name || (_playerNameRaw + ' 🎲');
-                const _setup = getDailySetup();
-                G_daily.letter = _setup.letter;
-                G_daily.key = key;
-                G_daily.categories = getDailyCatNames(_setup.categories);
-                G_daily.theme = _setup.theme || null;
-                showDailyResult(
-                  entry.answers || {},
-                  entry.baseScore || entry.score || 0,
-                  entry.totalScore || entry.score || 0,
-                  entry.aiResults || {},
-                  0,
-                  entry.totalScore && entry.baseScore ? entry.totalScore / entry.baseScore : 1
-                );
-                return;
-              }
-            }
-          } catch(e2) { /* score retrieval failed — fall through to toast */ }
-          const alreadyPlayedMsg = { es: 'Ya jugaste hoy con este nombre', en: 'You already played today with this name', fr: 'Tu as déjà joué aujourd\'hui avec ce nom' };
-          toast(alreadyPlayedMsg[LANG] || alreadyPlayedMsg.es);
+      const safeName = claimSafeName(_playerNameRaw);
+      const scoresSnap = await get(ref(db, 'daily/' + key + '/' + LANG + '/scores'));
+      if (scoresSnap.exists()) {
+        const allScores = scoresSnap.val();
+        const entry = Object.values(allScores).find(e =>
+          (e.safeName && e.safeName === safeName) ||
+          (!e.safeName && e.name && claimSafeName(e.name) === safeName)
+        );
+        if (entry) {
+          G_daily.displayName = entry.name || (_playerNameRaw + ' 🎲');
+          const _setup = getDailySetup();
+          G_daily.letter = _setup.letter;
+          G_daily.key = key;
+          G_daily.categories = getDailyCatNames(_setup.categories);
+          G_daily.theme = _setup.theme || null;
+          showDailyResult(
+            entry.answers || {},
+            entry.baseScore || entry.score || 0,
+            entry.totalScore || entry.score || 0,
+            entry.aiResults || {},
+            0,
+            entry.totalScore && entry.baseScore ? entry.totalScore / entry.baseScore : 1
+          );
           return;
         }
       }
-    } catch(e) { /* silent — if check fails, let them play */ }
+    } catch(e) { /* score retrieval failed — fall through */ }
+    const alreadyPlayedMsg = { es: 'Ya jugaste hoy con este nombre', en: 'You already played today with this name', fr: 'Tu as déjà joué aujourd\'hui avec ce nom' };
+    toast(alreadyPlayedMsg[LANG] || alreadyPlayedMsg.es);
+    return;
   }
   // In debug mode, clear stored result so we can replay
-  if (_debugMode && stored) { localStorage.removeItem('alto_daily_' + key + '_' + LANG); localStorage.removeItem('alto_daily_played_' + key); }
+  if (_debugMode && stored) { localStorage.removeItem('alto_daily_' + key + '_' + LANG); }
 
   // Check localStorage for in-progress game (handles page refresh)
   const inProgressKey = 'alto_daily_inprogress_' + key + '_' + LANG;
@@ -2755,7 +2717,6 @@ window.dailySubmit = async function(fromTimer = false) {
   };
   if (!dailyPlayerName.startsWith('__') && !G_daily.practiceMode) {
     localStorage.setItem('alto_daily_' + G_daily.key + '_' + LANG, JSON.stringify(saveData));
-    localStorage.setItem('alto_daily_played_' + G_daily.key, JSON.stringify({ name: G_daily.displayName || dailyPlayerName, lang: LANG }));
   }
 
   // Submit to Firebase — scoped by language
@@ -2782,8 +2743,13 @@ window.dailySubmit = async function(fromTimer = false) {
       categories: G_daily.categories || [],
       timestamp: Date.now()
     });
-    // Write name index for cross-device dedup
+    // Write name index for cross-device dedup (legacy — kept for backfill)
     if (safeNameIdx) await set(ref(db, 'daily/' + G_daily.key + '/' + LANG + '/players/' + safeNameIdx), true);
+    // Write played state to names path — cross-device source of truth
+    if (safeNameIdx) {
+      await set(ref(db, 'names/' + safeNameIdx + '/played/' + G_daily.key + '/' + LANG), true).catch(() => {});
+      _playedLangs[LANG] = true; // update in-memory cache immediately
+    }
     } // end !_isTestMode
     G_daily.playerKey = playerKey;
   } catch(e) { console.warn('Daily Firebase write failed:', e); }
@@ -3156,6 +3122,10 @@ async function computeAndUpdateOriginality(allScores, key) {
 // Historical leaderboard navigation state
 let _lbDate = null; // null = today; set to YYYY-MM-DD when browsing history
 
+// Cross-device played state cache — populated by fetchPlayedState()
+// Keys: 'es'|'en'|'fr', value: true if played today under current safeName
+let _playedLangs = {};
+
 function _lbEffectiveDate() { return _lbDate || getDailyKey(); }
 
 function _lbUpdateNavUI() {
@@ -3374,8 +3344,6 @@ function applyDailyLang() {
   s2('btn-daily-share', l.shareBtn || 'Compartir');
   s2('btn-practice-text', l.practiceLabel || 'Práctica');
   _lbUpdateNavUI();
-  const _warn = document.getElementById('daily-played-warning');
-  if (_warn) { _warn.style.display = 'none'; _warn.textContent = ''; }
 }
 
 // ══ END DAILY CHALLENGE ═════════════════════════════════════════════════════
@@ -3419,10 +3387,9 @@ function updateDailyButtonDate() {
   if (!span) return;
 
   const key = getDailyKey();
-  const _playedRaw = localStorage.getItem('alto_daily_played_' + key);
-  const _playedData = _playedRaw ? JSON.parse(_playedRaw) : null;
-  const _agnosticMatch = _playedData && (_playedData.lang === LANG || !_playedData.lang);
-  const played = _agnosticMatch || !!localStorage.getItem('alto_daily_' + key + '_' + LANG);
+  // Primary: cross-device cache populated by fetchPlayedState()
+  // Fallback: same-device localStorage (available immediately before async fetch resolves)
+  const played = !!_playedLangs[LANG] || !!localStorage.getItem('alto_daily_' + key + '_' + LANG);
 
   const labels = { es:'Reto diario', en:'Daily challenge', fr:'Défi du jour' };
   const doneLabels = {
@@ -3442,32 +3409,39 @@ function updateDailyButtonDate() {
   } else {
     if (sub) sub.textContent = ''; // restored by applyLang via t('dailySub')
     if (btn) btn.style.opacity = '1';
-    // Hide any mismatch warning when not played
-    const _warn = document.getElementById('daily-played-warning');
-    if (_warn) { _warn.style.display = 'none'; _warn.textContent = ''; }
   }
 }
 
-// Check Firebase across all langs to see if this player has played today on any device
-async function checkDailyPlayedCrossDevice() {
-  const key = getDailyKey();
-  const agnosticKey = 'alto_daily_played_' + key;
-  if (localStorage.getItem(agnosticKey)) return; // already know
-  const name = localStorage.getItem('alto_name') || '';
-  if (!name) return;
-  const safeName = claimSafeName(name);
+// Fetch which langs the current player has played today — device-independent.
+// Reads names/{safeName}/played/{date}, backfills from legacy players/ index
+// for any lang not yet recorded there (self-healing for today's plays).
+async function fetchPlayedState(safeName) {
   if (!safeName) return;
+  const key = getDailyKey();
+  _playedLangs = {}; // reset cache for this name
   try {
-    const langs = ['es','en','fr'];
+    const playedSnap = await get(ref(db, 'names/' + safeName + '/played/' + key));
+    const playedVal = playedSnap.exists() ? playedSnap.val() : {};
+    const langs = ['es', 'en', 'fr'];
+    const backfillWrites = {};
     for (const l of langs) {
-      const snap = await get(ref(db, 'daily/' + key + '/' + l + '/players/' + safeName));
-      if (snap.exists()) {
-        localStorage.setItem(agnosticKey, JSON.stringify({ name: localStorage.getItem('alto_name') || name, lang: l }));
-        updateDailyButtonDate();
-        return;
+      if (playedVal[l]) {
+        _playedLangs[l] = true;
+      } else {
+        // Backfill: check legacy players/ index for today's plays before new path existed
+        const legacySnap = await get(ref(db, 'daily/' + key + '/' + l + '/players/' + safeName));
+        if (legacySnap.exists()) {
+          _playedLangs[l] = true;
+          backfillWrites['names/' + safeName + '/played/' + key + '/' + l] = true;
+        }
       }
     }
-  } catch(e) { /* silent */ }
+    // Write any backfilled langs to the new path so future loads are instant
+    if (Object.keys(backfillWrites).length) {
+      await update(ref(db), backfillWrites).catch(() => {});
+    }
+  } catch(e) { /* silent — fall back to localStorage check in updateDailyButtonDate */ }
+  updateDailyButtonDate();
 }
 
 function toast(msg) {
@@ -3531,7 +3505,8 @@ function handleRoom(room) {
     }
     if (allAnswered(room) && room.phase === 'playing') {
       if (G.isHost) {
-        update(roomRef(G.roomCode), {phase:'validate'});
+        // Clear stale invalidAnswers/votes from Firebase so all clients start clean
+        update(roomRef(G.roomCode), {phase:'validate', invalidAnswers: {}, votes: {}});
         G.invalidAnswers = {};
         showValidation(room);
       } else {
@@ -3666,7 +3641,6 @@ function renderPlayers(players, langs={}) {
 }
 
 function buildThemePicker() {
-  // Re-initialize selectedTheme to matching theme in current language
   const themes = getThemes();
   const firstTheme = Object.keys(themes)[0];
   if (!themes[G.selectedTheme]) {
@@ -3683,31 +3657,56 @@ window.selectTheme = (name) => {
   G.selectedTheme = name;
   document.querySelectorAll('.theme-btn').forEach(b => b.classList.toggle('active', b.textContent===name));
   const themeVal = getThemes()[name];
-  if (themeVal && themeVal !== 'free' && themeVal !== null) G.selectedCats = [...themeVal];
+  if (themeVal && themeVal !== 'free' && themeVal !== 'random') G.selectedCats = [...themeVal];
   updateCatVisibility();
 };
 
 function updateCatVisibility() {
   const currentThemeVal = getThemes()[G.selectedTheme];
-  // If theme name changed with language, find by value pattern
-  const isCustom = currentThemeVal === null || (G.selectedCats && G.selectedCats.length === 0 && currentThemeVal === undefined);
+  const isRandom = currentThemeVal === 'random';
   const isFree = currentThemeVal === 'free';
-  document.getElementById('cat-custom').style.display = isCustom ? 'block' : 'none';
+  document.getElementById('cat-random').style.display = isRandom ? 'block' : 'none';
   document.getElementById('cat-free').style.display = isFree ? 'block' : 'none';
-  if (isCustom) buildCatGrid();
+  if (isRandom) buildGroupGrid();
 }
 
-function buildCatGrid() {
-  document.getElementById('cat-grid').innerHTML = getCustomCats().map(c => {
-    const chk = G.selectedCats.includes(c) ? 'checked' : '';
-    return `<label class="cat-lbl"><input type="checkbox" ${chk} value="${c}" onchange="toggleCat('${c}',this.checked)"> ${c}</label>`;
+function buildGroupGrid() {
+  const langKey = LANG === 'en' ? 'en' : LANG === 'fr' ? 'fr' : 'es';
+  document.getElementById('group-grid').innerHTML = CAT_GROUPS.map(g => {
+    const active = G.selectedGroups.includes(g.id);
+    return `<label class="cat-lbl group-pill${active?' active':''}" onclick="toggleGroup('${g.id}',this)" style="cursor:pointer;user-select:none">
+      <input type="checkbox" ${active?'checked':''} style="display:none"> ${g.emoji} ${g[langKey]}
+    </label>`;
   }).join('');
 }
 
-window.toggleCat = (cat, on) => {
-  if (on) { if (!G.selectedCats.includes(cat)) G.selectedCats.push(cat); }
-  else G.selectedCats = G.selectedCats.filter(c => c!==cat);
+window.toggleGroup = (id, el) => {
+  const idx = G.selectedGroups.indexOf(id);
+  if (idx >= 0) {
+    if (G.selectedGroups.length <= 3) { toast(t('toastFewGroups')); return; }
+    G.selectedGroups.splice(idx, 1);
+    el.classList.remove('active');
+    el.querySelector('input').checked = false;
+  } else {
+    G.selectedGroups.push(id);
+    el.classList.add('active');
+    el.querySelector('input').checked = true;
+  }
 };
+
+// Pick 6 random categories from DAILY_CAT_DATA filtered by active groups + letter validity.
+// Returns Spanish keys (same format as daily cats). Returns null if pool too small.
+function pickRandomCats(letter, groups) {
+  const pool = Object.entries(DAILY_CAT_DATA).filter(([_, d]) =>
+    groups.includes(d.group) && d[LANG] && d[LANG].includes(letter)
+  );
+  if (pool.length < 6) return null;
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  return pool.slice(0, 6).map(([key]) => key);
+}
 
 window.toggleEasyLetters = (on) => { G.easyLetters = on; };
 
@@ -3719,21 +3718,29 @@ window.copyLink = () => {
 window.startGame = async () => {
   let cats;
   const themeValue = getThemes()[G.selectedTheme];
-  if (themeValue === null) {
-    cats = getCustomCats().filter(c => { const el = document.querySelector(`input[value="${c}"]`); return el && el.checked; });
-  } else if (themeValue === 'free') {
-    const raw = document.getElementById('free-cats').value;
-    cats = [...new Set(raw.split('\n').map(s=>s.trim()).filter(Boolean))];
-    if (cats.length < 2) { toast(t('toastFreeCats')); return; }
-  } else {
-    cats = [...G.selectedCats];
-  }
-  if (!cats || cats.length === 0) { toast(t('toastCats')); return; }
+  const isRandom = themeValue === 'random';
+  const easy = document.getElementById('easy-letters').checked;
   const rounds = parseInt(document.getElementById('sl-rounds').value);
   const time = parseInt(document.getElementById('sl-time').value);
-  const easy = document.getElementById('easy-letters').checked;
   const penalty = parseInt(document.getElementById('sl-penalty').value);
   const groupName = document.getElementById('inp-group').value.trim();
+
+  if (isRandom) {
+    // cats picked fresh each round in nextRound; pick first round here
+    const letter = pickLetter([], easy);
+    const rawCats = pickRandomCats(letter, G.selectedGroups);
+    if (!rawCats) { toast(t('toastFewGroups')); return; }
+    cats = { letter, displayCats: getDailyCatNames(rawCats) };
+  } else if (themeValue === 'free') {
+    const raw = document.getElementById('free-cats').value;
+    const freeCats = [...new Set(raw.split('\n').map(s=>s.trim()).filter(Boolean))];
+    if (freeCats.length < 2) { toast(t('toastFreeCats')); return; }
+    cats = { letter: pickLetter([], easy), displayCats: freeCats };
+  } else {
+    if (!G.selectedCats || G.selectedCats.length === 0) { toast(t('toastCats')); return; }
+    cats = { letter: pickLetter([], easy), displayCats: [...G.selectedCats] };
+  }
+
   saveGroupName(groupName);
   const snap = await get(roomRef(G.roomCode));
   const room = snap.val();
@@ -3741,13 +3748,16 @@ window.startGame = async () => {
   if (G_validationMode === 'democratic' && playerCount < 3) { toast(t('toastDemoMin')); return; }
   const scores = {};
   Object.keys(room.players).forEach(p => scores[p] = 0);
-  const letter = pickLetter([], easy);
   await update(roomRef(G.roomCode), {
-    categories:cats, rounds, timePerRound:time,
-    currentRound:1, phase:'countdown', countdownStart:Date.now(),
-    currentLetter:letter, usedLetters:[letter],
-    roundStartTime:null, allAnswers:{}, calledStop:false, stopCaller:'',
-    scores, easyLetters:easy, stopPenalty:penalty, groupName:groupName, aiEnabled:G_aiEnabled, aiStrictness:G_aiStrictness, aiSpelling:G_aiSpelling, validationMode:G_validationMode, gameLang:LANG,
+    categories: cats.displayCats, rounds, timePerRound: time,
+    currentRound: 1, phase: 'countdown', countdownStart: Date.now(),
+    currentLetter: cats.letter, usedLetters: [cats.letter],
+    roundStartTime: null, allAnswers: {}, calledStop: false, stopCaller: '',
+    scores, easyLetters: easy, stopPenalty: penalty, groupName, aiEnabled: G_aiEnabled,
+    aiStrictness: G_aiStrictness, aiSpelling: G_aiSpelling, validationMode: G_validationMode,
+    gameLang: LANG,
+    catMode: isRandom ? 'random' : 'fixed',
+    selectedGroups: isRandom ? G.selectedGroups : null,
   });
 };
 
@@ -4877,9 +4887,18 @@ window.nextRound = async () => {
   const used = room.usedLetters||[];
   const letter = pickLetter(used, room.easyLetters!==false);
   used.push(letter);
+  // In random mode: pick 6 fresh categories for this round's letter
+  let newCats = room.categories;
+  if (room.catMode === 'random' && room.selectedGroups) {
+    const rawCats = pickRandomCats(letter, room.selectedGroups);
+    if (rawCats) newCats = getDailyCatNames(rawCats);
+    // If pool too small for this letter (edge case), keep previous cats silently
+  }
   await update(roomRef(G.roomCode), {
-    currentRound:room.currentRound+1, currentLetter:letter, usedLetters:used,
-    phase:'countdown', countdownStart:Date.now(), roundStartTime:null, allAnswers:{}, calledStop:false, stopCaller:'', aiResults:{}, votes:{}, entryReactions:{},
+    currentRound: room.currentRound+1, currentLetter: letter, usedLetters: used,
+    categories: newCats,
+    phase: 'countdown', countdownStart: Date.now(), roundStartTime: null,
+    allAnswers: {}, calledStop: false, stopCaller: '', aiResults: {}, votes: {}, entryReactions: {},
   });
 };
 
@@ -5086,7 +5105,7 @@ async function tryRestore() {
       buildQuickJoinEmojiGrid();
       applyQuickJoinLang();
       const qjName = document.getElementById('qj-name');
-      if (qjName && savedSession.name) qjName.value = savedSession.name;
+      if (qjName) qjName.value = savedSession.name || localStorage.getItem('alto_name') || '';
       const codeLabel = document.getElementById('qj-room-code');
       if (codeLabel) codeLabel.textContent = code;
       window.show('quickjoin');
@@ -5232,7 +5251,6 @@ window.dbg = function dbg(screen) {
       document.getElementById('lob-role').textContent = 'anfitrión · sala DBUG';
       renderPlayers(DBG.players, {});
       buildThemePicker();
-      buildCatGrid();
       break;
 
     case 'lobby-guest':
@@ -5626,8 +5644,15 @@ function scheduleNameCheck(name) {
   pill.className = '';
   pill.style.display = 'none';
   _claimState = null;
+  // Reset played cache immediately so buttons don't show stale state for old name
+  _playedLangs = {};
+  updateDailyButtonDate();
   if (!name || name.length < 2) return;
-  _claimDebounceTimer = setTimeout(() => checkClaimStatus(name), 800);
+  _claimDebounceTimer = setTimeout(() => {
+    checkClaimStatus(name);
+    const _safe = claimSafeName(name);
+    if (_safe) fetchPlayedState(_safe);
+  }, 800);
 }
 
 async function checkClaimStatus(name) {
@@ -5898,12 +5923,12 @@ setTimeout(() => updateDailyButtonDate(), 350);
 // Fix iOS bfcache: re-run when page is restored from back/forward cache
 window.addEventListener('pageshow', (e) => { if (e.persisted) updateDailyButtonDate(); });
 document.addEventListener('visibilitychange', () => { if (!document.hidden) updateDailyButtonDate(); });
-// Cross-device played check via Firebase (runs once per device per day)
-checkDailyPlayedCrossDevice();
+// Cross-device played state: fetch which langs this player has played today
+{ const _initName = localStorage.getItem('alto_name') || ''; const _initSafe = claimSafeName(_initName); if (_initSafe) fetchPlayedState(_initSafe); }
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260912.218-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v260913.221-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
