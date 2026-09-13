@@ -638,6 +638,9 @@ body.screen-home .page, body.screen-welcome .page { padding-bottom: 2rem; }
 .daily-lb-answer-pts { font-family: 'Special Elite', monospace; font-size:11px; color: var(--success); flex-shrink: 0; min-width: 24px; text-align: right; }
 .daily-lb-answer-pts.zero { color: var(--ink-muted); }
 .daily-result-orig { font-family: 'Special Elite', monospace; font-size:11px; color: var(--ink-muted); flex-shrink: 0; }
+.daily-reconsider-btn { font-size:13px; padding: 1px 4px; border-radius: 4px; border: 1px solid var(--border); background: transparent; cursor: pointer; opacity: 0.7; flex-shrink: 0; line-height:1; font-family:'Special Elite',monospace; }
+.daily-reconsider-btn:hover { opacity:1; background: var(--paper-dark); }
+.daily-reconsider-btn:disabled { opacity:0.3; cursor:default; }
 .daily-already-played { text-align: center; padding: 1.5rem 0; }
 .daily-already-score { font-family: 'Caveat', cursive; font-size: 48px; font-weight: 700; color: var(--red); }
 
@@ -2853,16 +2856,22 @@ async function showDailyResult(answers, baseScore, totalScore, aiResults, secsLe
   G_daily.aiResults = aiResults;
   G_daily.baseScore = baseScore;
   G_daily.totalScore = totalScore;
+  G_daily.speedMultiplier = speedMultiplier || 1;
+
+  const isToday = !G_daily.practiceMode && (_lbDate === null || _lbDate === getDailyKey());
+  const safeName = claimSafeName(document.getElementById('inp-name')?.value?.trim() || '');
 
   list.innerHTML = cats.map((cat, i) => {
     const word = answers[i] || '';
     const res = aiResults[i] || (word ? 'unsure' : 'empty');
     const base = (word && res === 'valid') ? 100 : (word && res === 'unsure') ? 50 : 0;
+    const canContest = isToday && res === 'invalid' && word && safeName;
     return `<div class="daily-result-row" id="daily-row-${i}">
       <span class="daily-result-cat">${cat}</span>
       <span class="daily-result-word">${word || '<span style="opacity:0.4">—</span>'}</span>
-      <span class="daily-result-ai">${aiIcon[res] || '🤔'}</span>
-      ${base ? `<span class="daily-result-pts" id="daily-pts-${i}">+${base}</span>` : ''}
+      <span class="daily-result-ai" id="daily-ai-${i}">${aiIcon[res] || '🤔'}</span>
+      ${base ? `<span class="daily-result-pts" id="daily-pts-${i}">+${base}</span>` : `<span class="daily-result-pts" id="daily-pts-${i}" style="display:none"></span>`}
+      ${canContest ? `<button class="daily-reconsider-btn" id="daily-reconsider-${i}" onclick="recontest(${i},'${word.replace(/'/g,"\\'")}','${cat}')">⚖️</button>` : ''}
       <span class="daily-result-orig" id="daily-orig-${i}"></span>
     </div>`;
   }).join('');
@@ -2900,6 +2909,132 @@ async function showDailyResult(answers, baseScore, totalScore, aiResults, secsLe
     loadDailyLeaderboard(getDailyKey()).then(() => reapplyOriginality());
   }
 }
+
+// Contest an invalid Robot decision — second model call, max 2 per lang per day
+window.recontest = async (idx, word, cat) => {
+  const btn = document.getElementById('daily-reconsider-' + idx);
+  if (!btn || btn.disabled) return;
+  const safeName = claimSafeName(document.getElementById('inp-name')?.value?.trim() || '');
+  if (!safeName) return;
+  const key = getDailyKey();
+  const contestPath = 'names/' + safeName + '/contests/' + key + '/' + LANG;
+
+  // Check contest count
+  const countSnap = await get(ref(db, contestPath)).catch(() => null);
+  const used = countSnap?.exists() ? (countSnap.val() || 0) : 0;
+  if (used >= 2) {
+    toast({ es:'Ya usaste tus 2 revisiones de hoy', en:'You\'ve used both reviews for today', fr:'Tu as utilisé tes 2 révisions d\'aujourd\'hui' }[LANG]);
+    btn.remove(); return;
+  }
+
+  // Disable all reconsider buttons while running
+  document.querySelectorAll('.daily-reconsider-btn').forEach(b => b.disabled = true);
+  btn.textContent = '⏳';
+
+  try {
+    const langNames = {es:'Spanish',en:'English',fr:'French'};
+    const gameLang = langNames[LANG] || 'Spanish';
+    const letter = G_daily.letter || '';
+    const systemPrompt = `You are a fair and careful judge of a ${gameLang}-language word game. A previous judge ruled an answer INVALID. Reconsider independently and carefully. Rules: (1) Ignore accents and tildes. (2) The answer must start with the letter "${letter}". (3) It must clearly belong to the category. (4) Be fair — overturn if there is a genuine case for validity. Reply with exactly one word: VALIDO, INVALIDO, or DUDOSO.`;
+    const prompt = `${gameLang}-language game. Letter: "${letter}". Category: "${cat}". Answer: "${word}". The previous judge said INVALIDO. Reconsider carefully. Reply with ONE word only: VALIDO, INVALIDO, or DUDOSO.`;
+
+    const response = await fetch('https://api.oscar-g-diez.workers.dev/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      signal: AbortSignal.timeout(15000),
+      body: JSON.stringify({
+        models: [
+          'nvidia/nemotron-3-super-120b-a12b:free',
+          'inclusionai/ling-3.0-flash-fin:free',
+          'z-ai/glm-5.2:free'
+        ],
+        messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: prompt }],
+        max_tokens: 10,
+        temperature: 0
+      })
+    });
+    const data = await response.json();
+    const msg = data.choices?.[0]?.message || {};
+    const rawContent = msg.content?.trim() || msg.reasoning?.trim() || '';
+    const text = rawContent.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+    const norm = text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z]/g, ' ').trim();
+    let newRes = 'invalid';
+    if (/\binvalid(o)?\b/.test(norm)) newRes = 'invalid';
+    else if (/\bvalid(o)?\b/.test(norm)) newRes = 'valid';
+    else if (/\bdudoso\b|\bunsure\b|\bdouteux\b/.test(norm)) newRes = 'unsure';
+    else newRes = 'unsure'; // generous fallback on ambiguous response
+
+    // Update contest count in Firebase
+    await set(ref(db, contestPath), used + 1).catch(() => {});
+
+    if (newRes === 'invalid') {
+      // Confirmed invalid — just update button to show result
+      btn.textContent = '❌';
+      btn.style.opacity = '0.4';
+      btn.disabled = true;
+      toast({ es:'Confirmado: respuesta inválida', en:'Confirmed: invalid answer', fr:'Confirmé : réponse invalide' }[LANG]);
+    } else {
+      // Overturned — update UI and Firebase score
+      const aiIcon = { valid:'✅', unsure:'🤔' };
+      const aiEl = document.getElementById('daily-ai-' + idx);
+      const ptsEl = document.getElementById('daily-pts-' + idx);
+      const addedPts = newRes === 'valid' ? 100 : 50;
+      if (aiEl) aiEl.textContent = aiIcon[newRes];
+      if (ptsEl) { ptsEl.textContent = '+' + addedPts; ptsEl.style.display = ''; }
+      btn.remove();
+
+      // Update G_daily state
+      G_daily.aiResults[idx] = newRes;
+      const oldTotal = G_daily.totalScore || 0;
+      G_daily.baseScore = (G_daily.baseScore || 0) + addedPts;
+      // Recalculate total with speed multiplier
+      const mult = G_daily.speedMultiplier || 1;
+      G_daily.totalScore = Math.round(G_daily.baseScore * mult);
+      const totalEl = document.getElementById('daily-total-score');
+      if (totalEl) totalEl.textContent = (G_daily.totalScore * 10) + ' pts';
+
+      // Update speed summary
+      const speedEl = document.getElementById('daily-speed-text');
+      const _dl2 = dl();
+      if (speedEl) speedEl.innerHTML = `${_dl2.baseLabel} ${G_daily.baseScore*10} pts ×${mult.toFixed(2)}⚡→ <strong>${G_daily.totalScore*10} pts</strong>`;
+
+      // Update Firebase score entry
+      if (G_daily.playerKey) {
+        const scoreRef = ref(db, 'daily/' + key + '/' + LANG + '/scores/' + G_daily.playerKey);
+        await update(scoreRef, {
+          [`aiResults/${idx}`]: newRes,
+          baseScore: G_daily.baseScore,
+          totalScore: G_daily.totalScore,
+        }).catch(() => {});
+        // Also update localStorage
+        const stored = localStorage.getItem('alto_daily_' + key + '_' + LANG);
+        if (stored) {
+          try {
+            const d = JSON.parse(stored);
+            d.aiResults = G_daily.aiResults;
+            d.baseScore = G_daily.baseScore;
+            d.totalScore = G_daily.totalScore;
+            localStorage.setItem('alto_daily_' + key + '_' + LANG, JSON.stringify(d));
+          } catch(e) {}
+        }
+      }
+      toast({ es:'¡Decisión revisada! +' + addedPts*10 + ' pts', en:'Decision overturned! +' + addedPts*10 + ' pts', fr:'Décision révisée ! +' + addedPts*10 + ' pts' }[LANG]);
+      loadDailyLeaderboard(key); // refresh leaderboard
+    }
+
+    // Re-enable remaining buttons (if any), hide if limit reached
+    const newUsed = used + 1;
+    document.querySelectorAll('.daily-reconsider-btn').forEach(b => {
+      if (newUsed >= 2) b.remove();
+      else b.disabled = false;
+    });
+
+  } catch(e) {
+    btn.textContent = '⚖️';
+    document.querySelectorAll('.daily-reconsider-btn').forEach(b => b.disabled = false);
+    toast({ es:'Error al consultar — inténtalo de nuevo', en:'Error checking — try again', fr:'Erreur — réessaie' }[LANG]);
+  }
+};
 
 async function loadDailyLeaderboard(key, lbLang) {
   lbLang = lbLang || LANG;
@@ -3630,6 +3765,7 @@ window.joinRoom = async () => {
 
 function enterLobby(room) {
   stopConfetti();
+  stopReactions();
   show('lobby');
   if (G.isHost) { window.setAIEnabled(G_aiEnabled); window.setAIStrictness(G_aiStrictness); window.setAISpelling(G_aiSpelling); }
   // Apply host's game language for guests
@@ -3736,18 +3872,18 @@ window.toggleGroup = (id, el) => {
   saveLobbyConfig();
 };
 
-// Pick 6 random categories from DAILY_CAT_DATA filtered by active groups + letter validity.
+// Pick 8 random categories from DAILY_CAT_DATA filtered by active groups + letter validity.
 // Returns Spanish keys (same format as daily cats). Returns null if pool too small.
 function pickRandomCats(letter, groups) {
   const pool = Object.entries(DAILY_CAT_DATA).filter(([_, d]) =>
     groups.includes(d.group) && d[LANG] && d[LANG].includes(letter)
   );
-  if (pool.length < 6) return null;
+  if (pool.length < 8) return null;
   for (let i = pool.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [pool[i], pool[j]] = [pool[j], pool[i]];
   }
-  return pool.slice(0, 6).map(([key]) => key);
+  return pool.slice(0, 8).map(([key]) => key);
 }
 
 window.toggleEasyLetters = (on) => { G.easyLetters = on; };
@@ -3867,6 +4003,7 @@ function closeCountdown() {
 
 function enterPlaying(room) {
   G.submitted = false; G.stopHandled = false;
+  stopReactions();
   // Enforce game language
   if (!G.isHost && room.gameLang && room.gameLang !== LANG) {
     window.setLang(room.gameLang);
@@ -4367,6 +4504,12 @@ function stopConfetti() {
   if (stage) stage.innerHTML = '';
 }
 
+function stopReactions() {
+  const stage = document.getElementById('reactions-stage');
+  if (stage) stage.innerHTML = '';
+  G_shownReactions.clear();
+}
+
 
 // ── AI Validation ─────────────────────────────────────
 let G_aiEnabled = true; // ON by default
@@ -4607,7 +4750,7 @@ function applyQuickJoinLang() {
 }
 
 // ── Per-entry reactions & voting ─────────────────────
-const ENTRY_EMOJIS = ['👏','😂','😬','🤬'];
+const ENTRY_EMOJIS = ['🔥','👏','😂','😬','🤬'];
 let G_validationMode = 'host'; // 'host' or 'democratic'
 let G_myVotes = {}; // key -> 'up' or 'down'
 let G_myEntryEmojis = {}; // key+emoji -> true
@@ -4927,6 +5070,7 @@ window.goBackToValidation = async () => {
 };
 
 window.nextRound = async () => {
+  stopReactions();
   const snap = await get(roomRef(G.roomCode));
   const room = snap.val();
   const used = room.usedLetters||[];
@@ -5973,7 +6117,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) upda
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260913.226-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v260913.233-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
