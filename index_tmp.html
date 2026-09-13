@@ -1047,7 +1047,6 @@ document.addEventListener('DOMContentLoaded', function() {
         <div id="cat-random" style="display:none">
           <p class="lbl" id="lbl-cat-random" style="margin-top:6px">grupos de categorías</p>
           <div class="group-pills-row" id="group-grid" style="margin-top:6px"></div>
-          <p id="lbl-group-hint-random" style="font-size:11px;opacity:.6;margin-top:6px;font-family:'Special Elite',monospace">mínimo 3 grupos · 6 categorías aleatorias por ronda</p>
         </div>
         <div id="cat-free" style="display:none">
           <p class="lbl" id="lbl-cat-free" style="margin-top:6px">escribe tus categorías (una por línea)</p>
@@ -1343,7 +1342,6 @@ const T = {
     toastFreeCats: 'Escribe al menos 2 categorías',
     toastFewGroups: 'Selecciona al menos 3 grupos',
     catRandomLabel: 'grupos de categorías',
-    catRandomHint: 'mínimo 3 grupos · 6 categorías aleatorias por ronda',
     toastHostOnly: 'Solo el anfitrión puede reiniciar',
     toastStopFill: 'Rellena todas las respuestas antes de llamar al ¡Alto!',
     hostRevisingScores: 'el anfitrión está revisando de nuevo ✏️',
@@ -1405,7 +1403,6 @@ const T = {
     toastFreeCats: 'Enter at least 2 categories',
     toastFewGroups: 'Select at least 3 groups',
     catRandomLabel: 'category groups',
-    catRandomHint: 'min 3 groups · 6 random categories per round',
     toastHostOnly: 'Only the host can restart',
     toastStopFill: 'Fill in all answers before calling ¡Alto!',
     hostRevisingScores: 'host is revising answers ✏️',
@@ -1467,7 +1464,6 @@ const T = {
     toastFreeCats: 'Entre au moins 2 catégories',
     toastFewGroups: 'Sélectionne au moins 3 groupes',
     catRandomLabel: 'groupes de catégories',
-    catRandomHint: 'min 3 groupes · 6 catégories aléatoires par manche',
     toastHostOnly: "Seul l'hôte peut recommencer",
     toastStopFill: 'Remplis toutes les réponses avant de crier ¡Alto !',
     hostRevisingScores: "l'hôte révise les réponses ✏️",
@@ -1715,7 +1711,6 @@ window.applyLang = function() {
   s('lbl-cat-free', t('freeCatLabel'));
   const freeCats = document.getElementById('free-cats'); if(freeCats) freeCats.placeholder = t('freeCatPlaceholder');
   s('lbl-cat-random', t('catRandomLabel'));
-  s('lbl-group-hint-random', t('catRandomHint'));
   if (document.getElementById('group-grid')?.children.length) buildGroupGrid();
   const stopBtn = document.querySelector('.stop-btn'); if(stopBtn) stopBtn.textContent = t('stop');
   // Validate
@@ -5963,7 +5958,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) upda
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260913.224-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v260913.225-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
