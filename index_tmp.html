@@ -2972,10 +2972,9 @@ window.recontest = async (idx, word, cat) => {
     await set(ref(db, contestPath), used + 1).catch(() => {});
 
     if (newRes === 'invalid') {
-      // Confirmed invalid — replace button with muted reviewed label
-      const reviewedLabel = {es:'revisado',en:'reviewed',fr:'révisé'}[LANG]||'revisado';
-      if (btn) { btn.textContent = reviewedLabel; btn.disabled = true; btn.style.textDecoration = 'none'; btn.style.cursor = 'default'; }
-      toast({ es:'Confirmado: respuesta inválida', en:'Confirmed: invalid answer', fr:'Confirmé : réponse invalide' }[LANG]);
+      // Confirmed invalid — remove button, toast is enough
+      if (btn) btn.remove();
+      toast({ es:'Revisado: respuesta inválida', en:'Reviewed: invalid answer', fr:'Révisé : réponse invalide' }[LANG]);
     } else {
       // Overturned — update UI and Firebase score
       const aiIcon = { valid:'✅', unsure:'🤔' };
@@ -3025,11 +3024,9 @@ window.recontest = async (idx, word, cat) => {
       loadDailyLeaderboard(key); // refresh leaderboard
     }
 
-    // Re-enable remaining buttons (if any), hide if limit reached
-    const newUsed = used + 1;
+    // Remove all other reconsider buttons (limit reached after 1 use)
     document.querySelectorAll('.daily-reconsider-btn').forEach(b => {
-      if (newUsed >= 1) b.remove();
-      else b.disabled = false;
+      if (b.id !== 'daily-reconsider-' + idx) b.remove();
     });
 
   } catch(e) {
@@ -6120,7 +6117,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) upda
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260913.236-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v260913.238-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
