@@ -2959,14 +2959,14 @@ window.recontest = async (idx, word, cat) => {
       })
     }).then(r => r.json());
 
-    // Two independent model calls — both must return valid to overturn
-    const [res1, res2] = await Promise.all([
+    // Three independent model calls — 2 of 3 must return valid to overturn
+    const [res1, res2, res3] = await Promise.all([
       workerCall('nvidia/nemotron-3-super-120b-a12b:free'),
       workerCall('inclusionai/ling-3.0-flash-fin:free'),
+      workerCall('z-ai/glm-5.2:free'),
     ]);
-    const v1 = parseVerdict(res1);
-    const v2 = parseVerdict(res2);
-    const newRes = (v1 === 'valid' && v2 === 'valid') ? 'valid' : 'invalid';
+    const votes = [res1, res2, res3].map(parseVerdict).filter(v => v === 'valid').length;
+    const newRes = votes >= 2 ? 'valid' : 'invalid';
 
     // Update contest count in Firebase
     await set(ref(db, contestPath), used + 1).catch(() => {});
@@ -6117,7 +6117,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) upda
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260913.238-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v260913.239-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
