@@ -127,6 +127,9 @@ State the version clearly when presenting deploy files.
 ### 2. T object corruption ← THE MOST COMMON CAUSE
 Many strings appear TWICE in the file: once as a value in the T translation object, and once hardcoded in a JS function. When replacing hardcoded strings with `t()`, ALWAYS target the specific JS function context. **Never replace the bare string.**
 
+**T object str_replace safety rule ← LEARNED IN SESSION 14:**
+The T objects are long single lines. When inserting new keys, ALWAYS use a unique anchor that appears only once in the file (e.g. `toastHostOnly: 'Solo el anfitrión'`). NEVER use `continueBtn` or other keys that appear in all 3 lang blocks as anchors — the str_replace will only catch the first occurrence and silently drop keys from the other langs. After any T object edit, verify with `grep -c 'continueBtn' file.html` = 3 (one per lang).
+
 ### 3. JS syntax errors
 A single syntax error in the `<script type="module">` block kills ALL buttons and emojis silently. ALWAYS run `node --check` before deploying.
 
@@ -151,13 +154,17 @@ The claim pill uses CSS-only show/hide (`#claim-pill { display:none }` / `#claim
 ### 10. finishValidation bases scores on preRoundScores ← LEARNED IN SESSION 14
 `finishValidation` always starts from `room.preRoundScores` (not `room.scores`) to prevent double-counting when host goes back to validation and recalculates. `goBackToValidation` does NOT write scores to Firebase — scores remain visible to guests during re-validation.
 
+### 11. applyLang and context-sensitive buttons ← LEARNED IN SESSION 14
+`applyLang` runs on every language switch and overwrites button text. For buttons whose text depends on app state (e.g. `wb-continue` showing "Volviendo como →" on the welcome screen), check `G.screen` and relevant state inside `applyLang` before setting the text — don't blindly set to the generic translation key.
+
 **Mandatory pre-deploy checklist:**
 - Version string updated ✅
-- File size < 300KB ✅ (currently ~303KB due to debug infrastructure — watch for further growth)
+- File size < 300KB ✅ (currently ~305KB due to debug infrastructure — watch for further growth)
 - Init block present (`buildEmojiGrid`, `tryRestore`) ✅
 - No `-tmp` in version string for production ✅
 - All 12 screen IDs present (`grep -c 'id="s-'` = 12) ✅
 - JS syntax clean (`node --check`) ✅
+- T object keys intact (`grep -c 'continueBtn'` = 3, `grep -c 'notMe'` = 3+) ✅
 
 **Always start from the uploaded working file** — never from a local copy that may have drifted.
 **First thing every session — make a backup:** `cp index.html index_backup_sN.html` before any edits.
@@ -220,10 +227,12 @@ Two fonts, six slots. **Do not add new sizes outside these slots.**
 - Robot result shows coloured verdict: green=válido, red=inválido, amber=no sé (all 3 langs)
 - Automatic validation ON by default, Estricta by default
 - 👎 Per-entry voting (democratic mode only — thumbs down only, answers valid by default)
-- 👏😂😬 Per-entry emoji reactions (3 emojis: clap, laugh, grimace)
+- 👏😂😬🤬 Per-entry emoji reactions (4 emojis: clap, laugh, grimace, rage)
+- All validation entries start green (`democratic-valid` class), turn red on invalidation, back to green on restore
 - 🛑 Stop caller banner: shows on host validate AND guest waiting screen
-- 🗳️ Democratic mode: majority 👎 votes auto-invalidates. Valid by default. Min 3 players (guard TODO next session)
-- ← Revisar: undo scoring — scores stay visible to guests during re-validation, recalculates cleanly from preRoundScores
+- 🗳️ Democratic mode: majority 👎 votes auto-invalidates. Valid by default. Requires min 3 players (guard in `startGame`).
+- ← Revisar: undo scoring — scores stay visible to guests during re-validation, recalculates cleanly from `preRoundScores`
+- Democratic vote optimistic UI: single click updates immediately, Firebase echo confirms
 
 ### Guest Waiting Screen
 - Title "Esperando..." / "Waiting..." / "En attente..."
@@ -251,6 +260,7 @@ Two fonts, six slots. **Do not add new sizes outside these slots.**
 - Originality shows on initial load (not just after flag tap)
 - Originality badges (+50✨) shown per answer in ALL players' panels
 - Accent-insensitive originality check
+- Submit button always says ¡Alto! → in all 3 langs
 - Letter validity sanity check on in-progress restore
 - Double-submit race guard (`_submitting` flag)
 - PlayerKey has random suffix to prevent collision
@@ -306,6 +316,7 @@ Two fonts, six slots. **Do not add new sizes outside these slots.**
 - 🇪🇸 ES 🇬🇧 EN 🇫🇷 FR
 - Full UI + categories + themes + rules translated
 - All AI/IA references replaced with Robot throughout all 3 languages
+- ¡Alto! used consistently throughout — never "Stop" in any language
 - **Rule for new features:** always add translations for all 3 languages immediately
 
 ### Debug Mode (overhauled Session 14)
@@ -329,9 +340,7 @@ Two fonts, six slots. **Do not add new sizes outside these slots.**
 - Daily challenge same-device replay block stores player name at submit time — pre-v184 plays fall back to checking all 3 lang keys; may not catch edge cases from old plays
 - Update bubble on iOS appears slower than on Windows (Safari caching) — working correctly, just slower
 - Unverified name label not yet implemented — old scores have no `verified` field (treat as verified when built)
-- File size ~303KB — 3KB over 300KB soft limit due to debug infrastructure. Watch for further growth.
-- Democratic mode minimum player guard not yet built — should block start with < 3 players (next session)
-- Solo normal game (1 player) should behave like practice — not yet implemented (next session)
+- File size ~305KB — over 300KB soft limit due to debug infrastructure. Watch for further growth.
 
 ---
 
@@ -347,11 +356,6 @@ Two fonts, six slots. **Do not add new sizes outside these slots.**
 - 10s countdown before daily starts — add cancel/back button
 - No penalty — game not started yet, no localStorage/Firebase written
 - User returns to home screen cleanly
-
-### Democratic Mode Minimum Players Guard (next session)
-- Block starting game in democratic mode if fewer than 3 players in lobby
-- Toast in all 3 langs explaining why
-- Mode toggle stays available in lobby — only start button blocks
 
 ### Solo Normal Game = Practice (next session)
 - If 1 player in lobby + normal mode → start button says "Empezar práctica solo"
@@ -383,7 +387,7 @@ Two fonts, six slots. **Do not add new sizes outside these slots.**
 - Round scores + cumulative total clearly separated
 - Final screen: same cards, totals across all rounds, winner highlighted
 - Share/reshare button consistent with daily share format
-- Shown on round scores screen AND final screen
+- Alto bonus shown on round scores screen AND final screen
 
 #### Game history:
 - Firebase path: `history/{gameId}` with ~2 week retention (purge entries older than 14 days on game start)
@@ -391,7 +395,7 @@ Two fonts, six slots. **Do not add new sizes outside these slots.**
 - Navigate previous games with ◀ ▶ (chronological, not by date)
 - Each card shows: group name (or unlabelled if no group), date/time, mode, host badge, players+final scores
 - Tap to expand full detail (round by round, answers, originality, Alto bonus)
-- ~2 weeks retention
+- ~2 weeks retention, purge on game start
 - Solo/practice games excluded
 - Players who leave mid-game → null scores from that point
 - All players can access history
@@ -487,30 +491,31 @@ UI/Language fixes: Robot throughout, error messages translated, button casing, d
 **Home screen UX:** `🎲 Clásico. Crear sala →`, orange tinted daily button, `¡Hecho!` label, compact date, 19px font exception for iOS, Practice button same row as Daily.
 **Name input:** auto-capitalise via `addEventListener` (inline oninput suppresses events — learned the hard way), restores from localStorage on page refresh.
 **Daily submit guard:** blocks if zero answers filled.
-**Bug fix:** inline `oninput` with value reassignment suppresses subsequent events on iOS/Windows — moved to `addEventListener`.
 **Last version deployed: v260907.156**
 
 ### Session 13 (Sep 8-9)
-**Reserved name Firebase identity:** Device 2 with a verified name now sees their result screen instead of a dead-end toast. `safeName` field written into every Firebase score entry. Score retrieved by `safeName` match (primary) or normalised name fallback.
-**Historical daily leaderboard:** Prev/next date nav on result screen. Shows `DD/MM/YY` for past days, "hoy/today/aujourd'hui" for today. Originality/refresh suppressed when viewing history. Lang switch uses currently viewed date. `_lbDate` resets to today on result screen entry.
-**Emoji independence:** Leaderboard row highlight and originality matching now use `safeName` first, name-trim fallback for old entries.
-**Leaderboard label:** "clasificacion / leaderboard / classement" (removed "del dia").
-**Share result:** "Compartir/Share/Partager" button on answers card. Copies formatted text: name, letter, date+time, rank, answers with validation icons, score summary. Works for daily and practice.
+**Reserved name Firebase identity:** Device 2 with a verified name now sees their result screen instead of a dead-end toast.
+**Historical daily leaderboard:** Prev/next date nav on result screen.
+**Emoji independence:** Leaderboard row highlight and originality matching use `safeName` first.
+**Leaderboard label:** "clasificacion / leaderboard / classement".
+**Share result:** Compartir/Share/Partager button, formatted text with answers, validation icons, score summary.
 **Multiplayer display name restore:** Verified names auto-correct to accented form on `createRoom`/`joinRoom`.
 **Version check before game start:** `reloadIfOutdated()` on all five entry points.
-**No-name guard:** `startDailyChallenge` and `startPractice` block and toast if name empty.
-**Same-device daily replay block:** inline warning banner below daily button for different name on same device.
-**Cross-device played check:** `checkDailyPlayedCrossDevice()` on page init.
-**Timer expiry with empty answers:** `dailySubmit(fromTimer)` bypasses fill guard.
-**Double timer interval bug fixed:** `clearInterval` before all `setInterval` calls in resume paths.
+**No-name guard, same-device replay block, cross-device played check.**
+**Timer expiry with empty answers, double timer interval bug fixed.**
 **Last version deployed: v260907.195**
 
 ### Session 14 (Sep 12-13)
-**Debug bar overhaul:** iPhone mode toggle (390×844 phone frame, notch, all fixed elements scoped inside), screen buttons reorganised into MULTI/DAILY/OVERLAY rows, added Validate (no AI), Validate Demo, Waiting Demo, Scores Guest, Scores Last, Final Guest, Daily Play, Daily Result, Practice Play, Practice Result, Countdown overlay, Claim Name overlay, Help overlay.
-**Emoji reactions reduced:** 5 → 3 emojis (👏😂😬 — clap, laugh, grimace). Applies to normal and democratic mode.
-**Democratic mode — thumbs down only:** Removed 👍 button. Answers valid by default, 👎 majority invalidates. Rules panel updated all 3 langs. Validation subtitle updated. Auto-invalidate logic simplified (no ups/majorityFor/isDraw). Orphan CSS removed.
-**Democratic vote optimistic UI:** `voteEntry` now immediately updates DOM before Firebase echo — single click highlights + counts. `G_cachedVotes`, `G_cachedPlayers`, `G_cachedVoteMode` globals cache state for optimistic render.
-**Alto guard:** `callStop` checks all `.ans-inp` inputs have `trim().length >= 2` before doing anything. Toast in all 3 langs. Timer not cleared on early return.
-**Scores freeze on back-to-validation:** `finishValidation` now bases calculation on `room.preRoundScores` (not `room.scores`) — safe to recalculate multiple times without double-counting. `goBackToValidation` no longer writes scores to Firebase. Guest scores screen shows "el anfitrión está revisando de nuevo ✏️" banner when phase flips back to validate, scores frozen until phase returns to scores.
-**New translation keys:** `toastStopFill`, `hostRevisingScores` — all 3 langs.
-**Last version deployed: v260912.213-tmp (staging) — pending production promotion**
+**Debug bar overhaul:** iPhone mode toggle (390×844 phone frame, notch), screen buttons reorganised into MULTI/DAILY/OVERLAY rows. Added Validate (no AI), Waiting Demo, Scores Guest, Final Guest, Daily Play, Daily Result, Practice Play, Practice Result, Countdown, Claim Name, Help overlays.
+**Emoji reactions:** 5 → 4 emojis: 👏😂😬🤬 (clap, laugh, grimace, rage).
+**Validation entry cards:** All entries start green (`democratic-valid`) by default. Turn red on invalidation, back to green on restore. Applies to normal and democratic mode.
+**Democratic mode — thumbs down only:** Removed 👍. Answers valid by default, 👎 majority invalidates. Rules updated all 3 langs. Min 3 players guard in `startGame`. Toast in all 3 langs.
+**Democratic vote optimistic UI:** Single click highlights + counts immediately. `G_cachedVotes/Players/Mode` globals for optimistic render.
+**Un-vote bug fixed:** Restore logic now checks all previously-invalidated keys, not just keys still in `votes` — un-voting to zero correctly restores green.
+**Alto guard:** `callStop` checks all `.ans-inp` have `trim().length >= 2`. Toast in all 3 langs. Timer not cleared on early return.
+**Scores freeze on back-to-validation:** `finishValidation` bases calculation on `room.preRoundScores` — safe to recalculate multiple times. `goBackToValidation` no longer writes scores to Firebase. Guest scores screen shows banner, scores frozen.
+**Stop → ¡Alto!:** All EN/FR "Stop! →" occurrences replaced — daily submit button, dl() labels.
+**T object bug fix:** `continueBtn` and `notMe` keys were accidentally dropped during session edits — restored in all 3 langs.
+**Welcome screen lang fix:** `applyLang` now preserves "Volviendo como →" text when on welcome screen with stored name, rather than overwriting with generic `continueBtn`.
+**New translation keys:** `toastStopFill`, `hostRevisingScores`, `toastDemoMin` — all 3 langs.
+**Last version deployed: v260912.218**

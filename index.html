@@ -948,7 +948,7 @@ document.addEventListener('DOMContentLoaded', function() {
           <!-- 19px exception to 6-slot font system: needed to fit Daily+Practice on one line on small iPhone screens -->
           <button onclick="startDailyChallenge()" class="green" style="width:100%;font-size:19px;padding:14px;line-height:1;font-weight:400" id="btn-daily"><span style="font-size:17px">📅</span> <span id="btn-daily-text">Reto diario · cargando…</span></button>
           <div style="font-family:'Special Elite',monospace;font-size:11px;color:var(--ink-muted);text-align:center;letter-spacing:1px;margin:2px 0 0" id="lbl-daily-sub">TÚ CONTRA EL MUNDO · UN RETO POR DÍA</div>
-          <div id="daily-played-warning" style="display:none;margin-top:6px;padding:8px 10px;border-left:3px solid var(--red);background:var(--red-light);border-radius:0 4px 4px 0;font-family:'Special Elite',monospace;font-size:11px;color:var(--ink);line-height:1.4"></div>
+
         </div>
         <button onclick="startPractice()" style="flex:0 0 auto;font-size:19px;padding:14px 8px;line-height:1;border:1.5px solid var(--border);border-radius:var(--radius);background:transparent;font-family:'Caveat',cursive;font-weight:400;cursor:pointer;white-space:nowrap" id="btn-practice"><span style="font-size:17px">✏️</span> <span id="btn-practice-text">Práctica</span></button>
       </div>
@@ -2318,47 +2318,6 @@ window.startDailyChallenge = async function() {
   const _nameCheck = document.getElementById('inp-name')?.value?.trim();
   if (!_nameCheck) { toast(t('toastName')); return; }
 
-  // Check if already played today on this device under a different name
-  const _agnosticKey = 'alto_daily_played_' + getDailyKey();
-  let _playedRaw = localStorage.getItem(_agnosticKey);
-  // Fall back to lang-specific key if agnostic key not yet written (pre-v184 plays)
-  if (!_playedRaw) {
-    for (const _l of ['es','en','fr']) {
-      const _langKey = localStorage.getItem('alto_daily_' + getDailyKey() + '_' + _l);
-      if (_langKey) {
-        try {
-          const _langData = JSON.parse(_langKey);
-          const _fallbackName = (_langData.playerName || '') + (_langData.playerEmoji ? ' ' + _langData.playerEmoji : '');
-          _playedRaw = JSON.stringify({ name: _fallbackName || localStorage.getItem('alto_name') || '' });
-        } catch(e) { _playedRaw = JSON.stringify({ name: localStorage.getItem('alto_name') || '' }); }
-        break;
-      }
-    }
-  }
-  if (_playedRaw) {
-    let _playedName = '';
-    try {
-      const _parsed = JSON.parse(_playedRaw);
-      _playedName = (typeof _parsed === 'object' ? _parsed.name : '') || '';
-    } catch(e) { _playedName = ''; }
-    // Don't fall back to alto_name — it may have changed since playing
-    const _playedSafe = claimSafeName(_playedName);
-    const _currentSafe = claimSafeName(_nameCheck);
-    if (_playedSafe && _currentSafe && _playedSafe !== _currentSafe) {
-      const _alreadyMsg = {
-        es: `El reto diario ya fue jugado hoy en este dispositivo con el nombre ${_playedName}. Espera a mañana para jugar con otro nombre.`,
-        en: `Today's challenge was already played on this device as ${_playedName}. Wait until tomorrow to play with a different name.`,
-        fr: `Le défi du jour a déjà été joué sur cet appareil sous le nom ${_playedName}. Attends demain pour jouer avec un autre nom.`,
-      };
-      const _warn = document.getElementById('daily-played-warning');
-      if (_warn) { _warn.textContent = _alreadyMsg[LANG] || _alreadyMsg.es; _warn.style.display = 'block'; }
-      return;
-    } else {
-      const _warn = document.getElementById('daily-played-warning');
-      if (_warn) { _warn.style.display = 'none'; _warn.textContent = ''; }
-    }
-  }
-
   reloadIfOutdated();
   resetGDaily(false);
   const key = getDailyKey();
@@ -2375,53 +2334,43 @@ window.startDailyChallenge = async function() {
     } catch(e) {}
   }
 
-  // Check Firebase for same name already played today (cross-device dedup)
-  if (!_debugMode && _playerNameRaw) {
+  // Cross-device played check: _playedLangs is populated by fetchPlayedState() on load.
+  // If already played in this lang on any device, retrieve and show their score from Firebase.
+  if (!_debugMode && _playedLangs[LANG]) {
     try {
-      const safeName = _playerNameRaw.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim()
-        .replace(/[^a-z0-9 ]/g,'_').replace(/\s+/g,'_').replace(/_+/g,'_').replace(/^_|_$/g,'');
-      if (safeName) {
-        const playerSnap = await get(ref(db, 'daily/' + key + '/' + LANG + '/players/' + safeName));
-        if (playerSnap.exists()) {
-          // Name already played today — try to retrieve their score from Firebase
-          // (covers reserved names on Device 2 that have no localStorage entry)
-          try {
-            const scoresSnap = await get(ref(db, 'daily/' + key + '/' + LANG + '/scores'));
-            if (scoresSnap.exists()) {
-              const allScores = scoresSnap.val();
-              // Find entry by safeName field (primary) or normalised name match (fallback)
-              const entry = Object.values(allScores).find(e =>
-                (e.safeName && e.safeName === safeName) ||
-                (!e.safeName && e.name && e.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().replace(/[^a-z0-9 ]/g,'_').replace(/\s+/g,'_').replace(/_+/g,'_').replace(/^_|_$/g,'').startsWith(safeName))
-              );
-              if (entry) {
-                G_daily.displayName = entry.name || (_playerNameRaw + ' 🎲');
-                const _setup = getDailySetup();
-                G_daily.letter = _setup.letter;
-                G_daily.key = key;
-                G_daily.categories = getDailyCatNames(_setup.categories);
-                G_daily.theme = _setup.theme || null;
-                showDailyResult(
-                  entry.answers || {},
-                  entry.baseScore || entry.score || 0,
-                  entry.totalScore || entry.score || 0,
-                  entry.aiResults || {},
-                  0,
-                  entry.totalScore && entry.baseScore ? entry.totalScore / entry.baseScore : 1
-                );
-                return;
-              }
-            }
-          } catch(e2) { /* score retrieval failed — fall through to toast */ }
-          const alreadyPlayedMsg = { es: 'Ya jugaste hoy con este nombre', en: 'You already played today with this name', fr: 'Tu as déjà joué aujourd\'hui avec ce nom' };
-          toast(alreadyPlayedMsg[LANG] || alreadyPlayedMsg.es);
+      const safeName = claimSafeName(_playerNameRaw);
+      const scoresSnap = await get(ref(db, 'daily/' + key + '/' + LANG + '/scores'));
+      if (scoresSnap.exists()) {
+        const allScores = scoresSnap.val();
+        const entry = Object.values(allScores).find(e =>
+          (e.safeName && e.safeName === safeName) ||
+          (!e.safeName && e.name && claimSafeName(e.name) === safeName)
+        );
+        if (entry) {
+          G_daily.displayName = entry.name || (_playerNameRaw + ' 🎲');
+          const _setup = getDailySetup();
+          G_daily.letter = _setup.letter;
+          G_daily.key = key;
+          G_daily.categories = getDailyCatNames(_setup.categories);
+          G_daily.theme = _setup.theme || null;
+          showDailyResult(
+            entry.answers || {},
+            entry.baseScore || entry.score || 0,
+            entry.totalScore || entry.score || 0,
+            entry.aiResults || {},
+            0,
+            entry.totalScore && entry.baseScore ? entry.totalScore / entry.baseScore : 1
+          );
           return;
         }
       }
-    } catch(e) { /* silent — if check fails, let them play */ }
+    } catch(e) { /* score retrieval failed — fall through */ }
+    const alreadyPlayedMsg = { es: 'Ya jugaste hoy con este nombre', en: 'You already played today with this name', fr: 'Tu as déjà joué aujourd\'hui avec ce nom' };
+    toast(alreadyPlayedMsg[LANG] || alreadyPlayedMsg.es);
+    return;
   }
   // In debug mode, clear stored result so we can replay
-  if (_debugMode && stored) { localStorage.removeItem('alto_daily_' + key + '_' + LANG); localStorage.removeItem('alto_daily_played_' + key); }
+  if (_debugMode && stored) { localStorage.removeItem('alto_daily_' + key + '_' + LANG); }
 
   // Check localStorage for in-progress game (handles page refresh)
   const inProgressKey = 'alto_daily_inprogress_' + key + '_' + LANG;
@@ -2755,7 +2704,6 @@ window.dailySubmit = async function(fromTimer = false) {
   };
   if (!dailyPlayerName.startsWith('__') && !G_daily.practiceMode) {
     localStorage.setItem('alto_daily_' + G_daily.key + '_' + LANG, JSON.stringify(saveData));
-    localStorage.setItem('alto_daily_played_' + G_daily.key, JSON.stringify({ name: G_daily.displayName || dailyPlayerName, lang: LANG }));
   }
 
   // Submit to Firebase — scoped by language
@@ -2782,8 +2730,13 @@ window.dailySubmit = async function(fromTimer = false) {
       categories: G_daily.categories || [],
       timestamp: Date.now()
     });
-    // Write name index for cross-device dedup
+    // Write name index for cross-device dedup (legacy — kept for backfill)
     if (safeNameIdx) await set(ref(db, 'daily/' + G_daily.key + '/' + LANG + '/players/' + safeNameIdx), true);
+    // Write played state to names path — cross-device source of truth
+    if (safeNameIdx) {
+      await set(ref(db, 'names/' + safeNameIdx + '/played/' + G_daily.key + '/' + LANG), true).catch(() => {});
+      _playedLangs[LANG] = true; // update in-memory cache immediately
+    }
     } // end !_isTestMode
     G_daily.playerKey = playerKey;
   } catch(e) { console.warn('Daily Firebase write failed:', e); }
@@ -3156,6 +3109,10 @@ async function computeAndUpdateOriginality(allScores, key) {
 // Historical leaderboard navigation state
 let _lbDate = null; // null = today; set to YYYY-MM-DD when browsing history
 
+// Cross-device played state cache — populated by fetchPlayedState()
+// Keys: 'es'|'en'|'fr', value: true if played today under current safeName
+let _playedLangs = {};
+
 function _lbEffectiveDate() { return _lbDate || getDailyKey(); }
 
 function _lbUpdateNavUI() {
@@ -3374,8 +3331,6 @@ function applyDailyLang() {
   s2('btn-daily-share', l.shareBtn || 'Compartir');
   s2('btn-practice-text', l.practiceLabel || 'Práctica');
   _lbUpdateNavUI();
-  const _warn = document.getElementById('daily-played-warning');
-  if (_warn) { _warn.style.display = 'none'; _warn.textContent = ''; }
 }
 
 // ══ END DAILY CHALLENGE ═════════════════════════════════════════════════════
@@ -3419,10 +3374,9 @@ function updateDailyButtonDate() {
   if (!span) return;
 
   const key = getDailyKey();
-  const _playedRaw = localStorage.getItem('alto_daily_played_' + key);
-  const _playedData = _playedRaw ? JSON.parse(_playedRaw) : null;
-  const _agnosticMatch = _playedData && (_playedData.lang === LANG || !_playedData.lang);
-  const played = _agnosticMatch || !!localStorage.getItem('alto_daily_' + key + '_' + LANG);
+  // Primary: cross-device cache populated by fetchPlayedState()
+  // Fallback: same-device localStorage (available immediately before async fetch resolves)
+  const played = !!_playedLangs[LANG] || !!localStorage.getItem('alto_daily_' + key + '_' + LANG);
 
   const labels = { es:'Reto diario', en:'Daily challenge', fr:'Défi du jour' };
   const doneLabels = {
@@ -3442,32 +3396,39 @@ function updateDailyButtonDate() {
   } else {
     if (sub) sub.textContent = ''; // restored by applyLang via t('dailySub')
     if (btn) btn.style.opacity = '1';
-    // Hide any mismatch warning when not played
-    const _warn = document.getElementById('daily-played-warning');
-    if (_warn) { _warn.style.display = 'none'; _warn.textContent = ''; }
   }
 }
 
-// Check Firebase across all langs to see if this player has played today on any device
-async function checkDailyPlayedCrossDevice() {
-  const key = getDailyKey();
-  const agnosticKey = 'alto_daily_played_' + key;
-  if (localStorage.getItem(agnosticKey)) return; // already know
-  const name = localStorage.getItem('alto_name') || '';
-  if (!name) return;
-  const safeName = claimSafeName(name);
+// Fetch which langs the current player has played today — device-independent.
+// Reads names/{safeName}/played/{date}, backfills from legacy players/ index
+// for any lang not yet recorded there (self-healing for today's plays).
+async function fetchPlayedState(safeName) {
   if (!safeName) return;
+  const key = getDailyKey();
+  _playedLangs = {}; // reset cache for this name
   try {
-    const langs = ['es','en','fr'];
+    const playedSnap = await get(ref(db, 'names/' + safeName + '/played/' + key));
+    const playedVal = playedSnap.exists() ? playedSnap.val() : {};
+    const langs = ['es', 'en', 'fr'];
+    const backfillWrites = {};
     for (const l of langs) {
-      const snap = await get(ref(db, 'daily/' + key + '/' + l + '/players/' + safeName));
-      if (snap.exists()) {
-        localStorage.setItem(agnosticKey, JSON.stringify({ name: localStorage.getItem('alto_name') || name, lang: l }));
-        updateDailyButtonDate();
-        return;
+      if (playedVal[l]) {
+        _playedLangs[l] = true;
+      } else {
+        // Backfill: check legacy players/ index for today's plays before new path existed
+        const legacySnap = await get(ref(db, 'daily/' + key + '/' + l + '/players/' + safeName));
+        if (legacySnap.exists()) {
+          _playedLangs[l] = true;
+          backfillWrites['names/' + safeName + '/played/' + key + '/' + l] = true;
+        }
       }
     }
-  } catch(e) { /* silent */ }
+    // Write any backfilled langs to the new path so future loads are instant
+    if (Object.keys(backfillWrites).length) {
+      await update(ref(db), backfillWrites).catch(() => {});
+    }
+  } catch(e) { /* silent — fall back to localStorage check in updateDailyButtonDate */ }
+  updateDailyButtonDate();
 }
 
 function toast(msg) {
@@ -5626,8 +5587,15 @@ function scheduleNameCheck(name) {
   pill.className = '';
   pill.style.display = 'none';
   _claimState = null;
+  // Reset played cache immediately so buttons don't show stale state for old name
+  _playedLangs = {};
+  updateDailyButtonDate();
   if (!name || name.length < 2) return;
-  _claimDebounceTimer = setTimeout(() => checkClaimStatus(name), 800);
+  _claimDebounceTimer = setTimeout(() => {
+    checkClaimStatus(name);
+    const _safe = claimSafeName(name);
+    if (_safe) fetchPlayedState(_safe);
+  }, 800);
 }
 
 async function checkClaimStatus(name) {
@@ -5898,12 +5866,12 @@ setTimeout(() => updateDailyButtonDate(), 350);
 // Fix iOS bfcache: re-run when page is restored from back/forward cache
 window.addEventListener('pageshow', (e) => { if (e.persisted) updateDailyButtonDate(); });
 document.addEventListener('visibilitychange', () => { if (!document.hidden) updateDailyButtonDate(); });
-// Cross-device played check via Firebase (runs once per device per day)
-checkDailyPlayedCrossDevice();
+// Cross-device played state: fetch which langs this player has played today
+{ const _initName = localStorage.getItem('alto_name') || ''; const _initSafe = claimSafeName(_initName); if (_initSafe) fetchPlayedState(_initSafe); }
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260912.218</div>
+  <div style="font-size: 11px;opacity:0.5">v260913.219</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
