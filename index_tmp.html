@@ -2935,34 +2935,38 @@ window.recontest = async (idx, word, cat) => {
     const langNames = {es:'Spanish',en:'English',fr:'French'};
     const gameLang = langNames[LANG] || 'Spanish';
     const letter = G_daily.letter || '';
-    const systemPrompt = `You are a fair and careful judge of a ${gameLang}-language word game. A previous judge ruled an answer INVALID. Reconsider independently and carefully. Rules: (1) Ignore accents and tildes. (2) The answer must start with the letter "${letter}". (3) It must clearly belong to the category. (4) Be fair — overturn if there is a genuine case for validity. Reply with exactly one word: VALIDO, INVALIDO, or DUDOSO.`;
-    const prompt = `${gameLang}-language game. Letter: "${letter}". Category: "${cat}". Answer: "${word}". The previous judge said INVALIDO. Reconsider carefully. Reply with ONE word only: VALIDO, INVALIDO, or DUDOSO.`;
+    const systemPrompt = `You are a strict and precise judge of a ${gameLang}-language word game. A previous judge ruled an answer INVALID. Only overturn if you are confident the answer is genuinely valid — do not give the benefit of the doubt. Rules: (1) Ignore accents and tildes. (2) The answer must start with the letter "${letter}". (3) It must clearly and unambiguously belong to the category. Reply with exactly one word: VALIDO, INVALIDO, or DUDOSO.`;
+    const prompt = `${gameLang}-language game. Letter: "${letter}". Category: "${cat}". Answer: "${word}". Previous judge said INVALIDO. Only reply VALIDO if you are certain. Reply with ONE word only: VALIDO, INVALIDO, or DUDOSO.`;
 
-    const response = await fetch('https://api.oscar-g-diez.workers.dev/', {
+    const parseVerdict = (data) => {
+      const msg = data.choices?.[0]?.message || {};
+      const raw = (msg.content?.trim() || msg.reasoning?.trim() || '').replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+      const norm = raw.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z]/g, ' ').trim();
+      if (/\binvalid(o)?\b/.test(norm)) return 'invalid';
+      if (/\bvalid(o)?\b/.test(norm)) return 'valid';
+      return 'invalid'; // treat DUDOSO and anything ambiguous as invalid for recontest
+    };
+
+    const workerCall = (model) => fetch('https://api.oscar-g-diez.workers.dev/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       signal: AbortSignal.timeout(15000),
       body: JSON.stringify({
-        models: [
-          'nvidia/nemotron-3-super-120b-a12b:free',
-          'inclusionai/ling-3.0-flash-fin:free',
-          'z-ai/glm-5.2:free'
-        ],
+        models: [model],
         messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: prompt }],
         max_tokens: 10,
         temperature: 0
       })
-    });
-    const data = await response.json();
-    const msg = data.choices?.[0]?.message || {};
-    const rawContent = msg.content?.trim() || msg.reasoning?.trim() || '';
-    const text = rawContent.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
-    const norm = text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z]/g, ' ').trim();
-    let newRes = 'invalid';
-    if (/\binvalid(o)?\b/.test(norm)) newRes = 'invalid';
-    else if (/\bvalid(o)?\b/.test(norm)) newRes = 'valid';
-    else if (/\bdudoso\b|\bunsure\b|\bdouteux\b/.test(norm)) newRes = 'unsure';
-    else newRes = 'unsure'; // generous fallback on ambiguous response
+    }).then(r => r.json());
+
+    // Two independent model calls — both must return valid to overturn
+    const [res1, res2] = await Promise.all([
+      workerCall('nvidia/nemotron-3-super-120b-a12b:free'),
+      workerCall('inclusionai/ling-3.0-flash-fin:free'),
+    ]);
+    const v1 = parseVerdict(res1);
+    const v2 = parseVerdict(res2);
+    const newRes = (v1 === 'valid' && v2 === 'valid') ? 'valid' : 'invalid';
 
     // Update contest count in Firebase
     await set(ref(db, contestPath), used + 1).catch(() => {});
@@ -6117,7 +6121,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) upda
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260913.233-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v260913.234-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
