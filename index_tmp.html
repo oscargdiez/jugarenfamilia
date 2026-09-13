@@ -1062,17 +1062,17 @@ document.addEventListener('DOMContentLoaded', function() {
         </label>
         <p class="lbl" style="margin-top:14px" id="lbl-rounds">rondas</p>
         <div class="range-row">
-          <input type="range" min="3" max="12" value="5" id="sl-rounds" oninput="document.getElementById('v-rounds').textContent=this.value">
+          <input type="range" min="3" max="12" value="5" id="sl-rounds" oninput="document.getElementById('v-rounds').textContent=this.value;saveLobbyConfig()">
           <span class="range-val" id="v-rounds">5</span>
         </div>
         <p class="lbl" style="margin-top:14px" id="lbl-seconds">segundos por ronda</p>
         <div class="range-row">
-          <input type="range" min="30" max="120" step="10" value="90" id="sl-time" oninput="document.getElementById('v-time').textContent=this.value">
+          <input type="range" min="30" max="120" step="10" value="90" id="sl-time" oninput="document.getElementById('v-time').textContent=this.value;saveLobbyConfig()">
           <span class="range-val" id="v-time">90</span>
         </div>
         <p class="lbl" style="margin-top:14px" id="lbl-penalty">penalización por ¡Alto! inválido</p>
         <div class="range-row">
-          <input type="range" min="0" max="200" step="50" value="50" id="sl-penalty" oninput="document.getElementById('v-penalty').textContent=this.value">
+          <input type="range" min="0" max="200" step="50" value="50" id="sl-penalty" oninput="document.getElementById('v-penalty').textContent=this.value;saveLobbyConfig()">
           <span class="range-val" id="v-penalty">50</span>
         </div>
         <div style="margin-top:16px;border-top:1px dashed var(--border);padding-top:12px">
@@ -3484,6 +3484,38 @@ function saveSession() {
 }
 function clearSession() { localStorage.removeItem('alto_session'); }
 
+function saveLobbyConfig() {
+  const rounds = document.getElementById('sl-rounds')?.value;
+  const time = document.getElementById('sl-time')?.value;
+  const penalty = document.getElementById('sl-penalty')?.value;
+  localStorage.setItem('alto_lobby_config', JSON.stringify({
+    theme: G.selectedTheme,
+    groups: G.selectedGroups,
+    rounds: rounds ? parseInt(rounds) : 5,
+    time: time ? parseInt(time) : 90,
+    penalty: penalty ? parseInt(penalty) : 50,
+    validationMode: G_validationMode,
+    aiStrictness: G_aiStrictness,
+    aiSpelling: G_aiSpelling,
+  }));
+}
+
+function restoreLobbyConfig() {
+  try {
+    const raw = localStorage.getItem('alto_lobby_config');
+    if (!raw) return;
+    const c = JSON.parse(raw);
+    if (c.theme) G.selectedTheme = c.theme;
+    if (c.groups && Array.isArray(c.groups) && c.groups.length >= 3) G.selectedGroups = c.groups;
+    if (c.rounds) { const el = document.getElementById('sl-rounds'); if (el) { el.value = c.rounds; document.getElementById('v-rounds').textContent = c.rounds; } }
+    if (c.time) { const el = document.getElementById('sl-time'); if (el) { el.value = c.time; document.getElementById('v-time').textContent = c.time; } }
+    if (c.penalty !== undefined) { const el = document.getElementById('sl-penalty'); if (el) { el.value = c.penalty; document.getElementById('v-penalty').textContent = c.penalty; } }
+    if (c.validationMode) { G_validationMode = c.validationMode; window.setValidationMode(c.validationMode); }
+    if (c.aiStrictness) { G_aiStrictness = c.aiStrictness; window.setAIStrictness(c.aiStrictness); }
+    if (c.aiSpelling !== undefined) { G_aiSpelling = c.aiSpelling; window.setAISpelling(c.aiSpelling); }
+  } catch(e) { /* silent — corrupt config, start fresh */ }
+}
+
 function subscribe(code) {
   if (G.unsubscribe) G.unsubscribe();
   G.unsubscribe = onValue(roomRef(code), snap => {
@@ -3620,6 +3652,7 @@ function enterLobby(room) {
     document.getElementById('lob-role').textContent = t('host');
     document.getElementById('host-panel').style.display = 'block';
     document.getElementById('guest-panel').style.display = 'none';
+    restoreLobbyConfig();
     buildThemePicker();
     prefillGroup();
   } else {
@@ -3660,6 +3693,7 @@ window.selectTheme = (name) => {
   const themeVal = getThemes()[name];
   if (themeVal && themeVal !== 'free' && themeVal !== 'random') G.selectedCats = [...themeVal];
   updateCatVisibility();
+  saveLobbyConfig();
 };
 
 function updateCatVisibility() {
@@ -3689,6 +3723,7 @@ window.toggleGroup = (id, el) => {
     G.selectedGroups.push(id);
     el.classList.add('active');
   }
+  saveLobbyConfig();
 };
 
 // Pick 6 random categories from DAILY_CAT_DATA filtered by active groups + letter validity.
@@ -4347,6 +4382,7 @@ window.setAIStrictness = (level) => {
     estrictoBtn.style.borderColor = '#c0392b'; estrictoBtn.style.background = '#fdf0ee';
     relajadoBtn.style.borderColor = 'var(--border-strong)'; relajadoBtn.style.background = 'var(--paper-dark)';
   }
+  saveLobbyConfig();
 };
 
 window.setAISpelling = (allow) => {
@@ -4361,6 +4397,7 @@ window.setAISpelling = (allow) => {
     noBtn.style.borderColor = '#c0392b'; noBtn.style.background = '#fdf0ee';
     siBtn.style.borderColor = 'var(--border-strong)'; siBtn.style.background = 'var(--paper-dark)';
   }
+  saveLobbyConfig();
 };
 
 window.askAI = async (word, category, letter, key) => {
@@ -4588,6 +4625,7 @@ window.setValidationMode = (mode) => {
     if (sub1) sub1.innerHTML = t('validateSub1');
     if (sub2) sub2.textContent = t('validateSub2');
   }
+  saveLobbyConfig();
 };
 
 window.voteEntry = async (key, dir) => {
@@ -5925,7 +5963,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) upda
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260913.222-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v260913.224-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
