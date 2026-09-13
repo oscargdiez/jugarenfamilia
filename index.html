@@ -392,6 +392,9 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
 .theme-btn.active { border-color: var(--red); background: var(--red-light); color: var(--red); font-weight: 700; }
 .cat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px,1fr)); gap: 6px; }
 .cat-lbl { display: flex; align-items: center; gap: 7px; font-family: 'Caveat', cursive; font-size:20px; color: var(--ink-sec); }
+.group-pills-row { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+.group-pill { padding: 3px 8px; border-radius: 20px; border: 1.5px solid var(--border); background: var(--paper); font-family: 'Special Elite', monospace; font-size: 11px; color: var(--ink-sec); cursor: pointer; user-select: none; transition: all .15s; }
+.group-pill.active { border-color: var(--red); background: var(--red-light); color: var(--red); font-weight: 700; }
 
 /* ── Range ── */
 .range-row { display: flex; gap: 10px; align-items: center; }
@@ -1041,9 +1044,13 @@ document.addEventListener('DOMContentLoaded', function() {
       <div class="card">
         <p class="lbl" id="lbl-theme">tema</p>
         <div class="themes" id="theme-btns"></div>
-        <div id="cat-custom" style="display:none">
-          <p class="lbl" style="margin-top:6px">categorías</p>
-          <div class="cat-grid" id="cat-grid"></div>
+        <div id="cat-classic" style="display:none">
+          <p class="lbl" id="lbl-cat-classic" style="margin-top:6px">8 categorías fijas del juego original</p>
+          <div class="group-pills-row" id="classic-grid" style="margin-top:6px"></div>
+        </div>
+        <div id="cat-random" style="display:none">
+          <p class="lbl" id="lbl-cat-random" style="margin-top:6px">grupos de categorías</p>
+          <div class="group-pills-row" id="group-grid" style="margin-top:6px"></div>
         </div>
         <div id="cat-free" style="display:none">
           <p class="lbl" id="lbl-cat-free" style="margin-top:6px">escribe tus categorías (una por línea)</p>
@@ -1058,17 +1065,17 @@ document.addEventListener('DOMContentLoaded', function() {
         </label>
         <p class="lbl" style="margin-top:14px" id="lbl-rounds">rondas</p>
         <div class="range-row">
-          <input type="range" min="3" max="12" value="5" id="sl-rounds" oninput="document.getElementById('v-rounds').textContent=this.value">
+          <input type="range" min="3" max="12" value="5" id="sl-rounds" oninput="document.getElementById('v-rounds').textContent=this.value;saveLobbyConfig()">
           <span class="range-val" id="v-rounds">5</span>
         </div>
         <p class="lbl" style="margin-top:14px" id="lbl-seconds">segundos por ronda</p>
         <div class="range-row">
-          <input type="range" min="30" max="120" step="10" value="90" id="sl-time" oninput="document.getElementById('v-time').textContent=this.value">
+          <input type="range" min="30" max="120" step="10" value="90" id="sl-time" oninput="document.getElementById('v-time').textContent=this.value;saveLobbyConfig()">
           <span class="range-val" id="v-time">90</span>
         </div>
         <p class="lbl" style="margin-top:14px" id="lbl-penalty">penalización por ¡Alto! inválido</p>
         <div class="range-row">
-          <input type="range" min="0" max="200" step="50" value="50" id="sl-penalty" oninput="document.getElementById('v-penalty').textContent=this.value">
+          <input type="range" min="0" max="200" step="50" value="50" id="sl-penalty" oninput="document.getElementById('v-penalty').textContent=this.value;saveLobbyConfig()">
           <span class="range-val" id="v-penalty">50</span>
         </div>
         <div style="margin-top:16px;border-top:1px dashed var(--border);padding-top:12px">
@@ -1252,51 +1259,42 @@ const LETTERS_EASY = {
 const THEMES_ALL = {
   es: {
     '🎲 Clásico':    ['Nombre','Apellido','Ciudad','País','Animal','Objeto','Fruta','Color'],
-    '🌍 Geografía':  ['Ciudad','País','Capital','Río','Montaña','Continente','Mar','Isla'],
-    '🎵 Música':     ['Cantante','Canción','Banda','Instrumento','Género','Álbum','Festival','Baile'],
-    '🎬 Cine & TV':  ['Película','Serie','Actor','Actriz','Director','Personaje','Canal','Premio'],
-    '🍽️ Gastro':     ['Plato','Fruta','Verdura','Bebida','Postre','Especia','Restaurante','País'],
-    '🌱 Naturaleza': ['Animal','Planta','Insecto','Ave','Árbol','Flor','Mar','Montaña'],
-    '⚽ Deportes':   ['Deporte','Equipo','Jugador','País','Estadio','Trofeo','Marca','Liga'],
-    '✏️ Categorías': null,
+    '✏️ Categorías': 'random',
     '✍️ Libre':      'free',
   },
   en: {
     '🎲 Classic':    ['Name','Surname','City','Country','Animal','Object','Fruit','Colour'],
-    '🌍 Geography':  ['City','Country','Capital','River','Mountain','Continent','Sea','Island'],
-    '🎵 Music':      ['Singer','Song','Band','Instrument','Genre','Album','Festival','Dance'],
-    '🎬 Film & TV':  ['Film','Series','Actor','Actress','Director','Character','Channel','Award'],
-    '🍽️ Food':       ['Dish','Fruit','Vegetable','Drink','Dessert','Spice','Restaurant','Country'],
-    '🌱 Nature':     ['Animal','Plant','Insect','Bird','Tree','Flower','Sea','Mountain'],
-    '⚽ Sports':     ['Sport','Team','Player','Country','Stadium','Trophy','Brand','League'],
-    '✏️ Categories': null,
+    '✏️ Categories': 'random',
     '✍️ Free':       'free',
   },
   fr: {
     '🎲 Classique':  ['Prénom','Nom','Ville','Pays','Animal','Objet','Fruit','Couleur'],
-    '🌍 Géographie': ['Ville','Pays','Capitale','Fleuve','Montagne','Continent','Mer','Île'],
-    '🎵 Musique':    ['Chanteur','Chanson','Groupe','Instrument','Genre','Album','Festival','Danse'],
-    '🎬 Cinéma':     ['Film','Série','Acteur','Actrice','Réalisateur','Personnage','Chaîne','Prix'],
-    '🍽️ Cuisine':    ['Plat','Fruit','Légume','Boisson','Dessert','Épice','Restaurant','Pays'],
-    '🌱 Nature':     ['Animal','Plante','Insecte','Oiseau','Arbre','Fleur','Mer','Montagne'],
-    '⚽ Sports':     ['Sport','Équipe','Joueur','Pays','Stade','Trophée','Marque','Ligue'],
-    '✏️ Catégories': null,
+    '✏️ Catégories': 'random',
     '✍️ Libre':      'free',
   },
 };
 
-const CUSTOM_CATS_ALL = {
-  es: ['Nombre','Apellido','Ciudad','País','Animal','Objeto','Fruta','Color','Flor','Profesión','Comida','Marca','Deporte','Película'],
-  en: ['Name','Surname','City','Country','Animal','Object','Fruit','Colour','Flower','Profession','Food','Brand','Sport','Film'],
-  fr: ['Prénom','Nom','Ville','Pays','Animal','Objet','Fruit','Couleur','Fleur','Profession','Nourriture','Marque','Sport','Film'],
-};
+// 13 category groups from the daily pack — id, emoji, translated names
+const CAT_GROUPS = [
+  { id:'animales',          emoji:'🐾', es:'Animales',       en:'Animals',       fr:'Animaux'        },
+  { id:'geografia',         emoji:'🌍', es:'Geografía',      en:'Geography',     fr:'Géographie'     },
+  { id:'comida',            emoji:'🍽️', es:'Comida',         en:'Food',          fr:'Cuisine'        },
+  { id:'arte_musica',       emoji:'🎵', es:'Arte & Música',  en:'Art & Music',   fr:'Art & Musique'  },
+  { id:'historia_cultura',  emoji:'📚', es:'Historia',       en:'History',       fr:'Histoire'       },
+  { id:'ciencia',           emoji:'🔬', es:'Ciencia',        en:'Science',       fr:'Science'        },
+  { id:'deporte',           emoji:'⚽', es:'Deporte',        en:'Sport',         fr:'Sport'          },
+  { id:'ciudad_urbanismo',  emoji:'🏙️', es:'Ciudad',         en:'City Life',     fr:'Ville'          },
+  { id:'naturaleza',        emoji:'🌿', es:'Naturaleza',     en:'Nature',        fr:'Nature'         },
+  { id:'hogar_objetos',     emoji:'🏠', es:'Hogar',          en:'Home',          fr:'Maison'         },
+  { id:'identidad_sociedad',emoji:'👥', es:'Sociedad',       en:'Society',       fr:'Société'        },
+  { id:'entretenimiento',   emoji:'🎬', es:'Entretenimiento',en:'Entertainment', fr:'Divertissement' },
+  { id:'marcas',            emoji:'🏷️', es:'Marcas',         en:'Brands',        fr:'Marques'        },
+];
 
 function getThemes() { return THEMES_ALL[LANG] || THEMES_ALL.es; }
-function getCustomCats() { return CUSTOM_CATS_ALL[LANG] || CUSTOM_CATS_ALL.es; }
 
 // Keep backwards compat
 const THEMES = new Proxy({}, { get: (_, k) => getThemes()[k] });
-const CUSTOM_CATS = new Proxy([], { get: (_, k) => (getCustomCats())[k] });
 const MEDALS = ['🥇','🥈','🥉'];
 const LANG_FLAGS = {es:'🇪🇸', en:'🇬🇧', fr:'🇫🇷'};
 
@@ -1346,6 +1344,9 @@ const T = {
     toastNotFound: 'Sala no encontrada. Verifica el código.',
     toastCats: 'Selecciona al menos una categoría',
     toastFreeCats: 'Escribe al menos 2 categorías',
+    toastFewGroups: 'Selecciona al menos 3 grupos',
+    catRandomLabel: 'grupos de categorías',
+    catClassicLabel: '8 categorías fijas del juego original',
     toastHostOnly: 'Solo el anfitrión puede reiniciar',
     toastStopFill: 'Rellena todas las respuestas antes de llamar al ¡Alto!',
     hostRevisingScores: 'el anfitrión está revisando de nuevo ✏️',
@@ -1405,6 +1406,9 @@ const T = {
     toastNotFound: 'Room not found. Check the code.',
     toastCats: 'Select at least one category',
     toastFreeCats: 'Enter at least 2 categories',
+    toastFewGroups: 'Select at least 3 groups',
+    catRandomLabel: 'category groups',
+    catClassicLabel: '8 fixed categories from the original game',
     toastHostOnly: 'Only the host can restart',
     toastStopFill: 'Fill in all answers before calling ¡Alto!',
     hostRevisingScores: 'host is revising answers ✏️',
@@ -1464,6 +1468,9 @@ const T = {
     toastNotFound: 'Salle introuvable. Vérifie le code.',
     toastCats: 'Sélectionne au moins une catégorie',
     toastFreeCats: 'Entre au moins 2 catégories',
+    toastFewGroups: 'Sélectionne au moins 3 groupes',
+    catRandomLabel: 'groupes de catégories',
+    catClassicLabel: '8 catégories fixes du jeu original',
     toastHostOnly: "Seul l'hôte peut recommencer",
     toastStopFill: 'Remplis toutes les réponses avant de crier ¡Alto !',
     hostRevisingScores: "l'hôte révise les réponses ✏️",
@@ -1710,6 +1717,9 @@ window.applyLang = function() {
   s('ft-rnd-of', t('of'));
   s('lbl-cat-free', t('freeCatLabel'));
   const freeCats = document.getElementById('free-cats'); if(freeCats) freeCats.placeholder = t('freeCatPlaceholder');
+  s('lbl-cat-random', t('catRandomLabel'));
+  s('lbl-cat-classic', t('catClassicLabel'));
+  if (document.getElementById('group-grid')?.children.length) buildGroupGrid();
   const stopBtn = document.querySelector('.stop-btn'); if(stopBtn) stopBtn.textContent = t('stop');
   // Validate
   s('lbl-validate-title', t('validate'));
@@ -1733,10 +1743,16 @@ window.applyLang = function() {
   s('btn-show-lb', t('leaderboard'));
   // Rebuild theme picker if in lobby (language changed)
   if (G.screen === 'lobby' && G.isHost) {
-    // Reset selectedTheme to first theme of new language
-    const firstTheme = Object.keys(getThemes())[0];
-    G.selectedTheme = firstTheme;
-    G.selectedCats = [...(getThemes()[firstTheme] || [])];
+    // Theme names differ per language — preserve selection by position (0=classic,1=random,2=free)
+    if (!getThemes()[G.selectedTheme]) {
+      const allThemes = Object.keys(getThemes());
+      const prevAllLangs = ['es','en','fr'].flatMap(l => Object.keys(THEMES_ALL[l]));
+      const prevIdx = prevAllLangs.indexOf(G.selectedTheme);
+      const posInLang = prevIdx >= 0 ? prevIdx % allThemes.length : 0;
+      G.selectedTheme = allThemes[posInLang] || allThemes[0];
+      const val = getThemes()[G.selectedTheme];
+      if (val && val !== 'free' && val !== 'random') G.selectedCats = [...val];
+    }
     buildThemePicker();
   }
   // Rules & lang bar
@@ -1890,6 +1906,7 @@ let G = {
   roomCode:'', playerName:'', isHost:false,
   selectedCats:['Nombre','Apellido','Ciudad','País','Animal','Objeto','Fruta','Color'],
   selectedTheme:'🎲 Clásico',
+  selectedGroups: CAT_GROUPS.map(g => g.id), // all groups active by default
   easyLetters:true,
   playerEmoji:'🎲',
   screen:'home', timerInterval:null, unsubscribe:null,
@@ -3470,6 +3487,38 @@ function saveSession() {
 }
 function clearSession() { localStorage.removeItem('alto_session'); }
 
+function saveLobbyConfig() {
+  const rounds = document.getElementById('sl-rounds')?.value;
+  const time = document.getElementById('sl-time')?.value;
+  const penalty = document.getElementById('sl-penalty')?.value;
+  localStorage.setItem('alto_lobby_config', JSON.stringify({
+    theme: G.selectedTheme,
+    groups: G.selectedGroups,
+    rounds: rounds ? parseInt(rounds) : 5,
+    time: time ? parseInt(time) : 90,
+    penalty: penalty ? parseInt(penalty) : 50,
+    validationMode: G_validationMode,
+    aiStrictness: G_aiStrictness,
+    aiSpelling: G_aiSpelling,
+  }));
+}
+
+function restoreLobbyConfig() {
+  try {
+    const raw = localStorage.getItem('alto_lobby_config');
+    if (!raw) return;
+    const c = JSON.parse(raw);
+    if (c.theme) G.selectedTheme = c.theme;
+    if (c.groups && Array.isArray(c.groups) && c.groups.length >= 3) G.selectedGroups = c.groups;
+    if (c.rounds) { const el = document.getElementById('sl-rounds'); if (el) { el.value = c.rounds; document.getElementById('v-rounds').textContent = c.rounds; } }
+    if (c.time) { const el = document.getElementById('sl-time'); if (el) { el.value = c.time; document.getElementById('v-time').textContent = c.time; } }
+    if (c.penalty !== undefined) { const el = document.getElementById('sl-penalty'); if (el) { el.value = c.penalty; document.getElementById('v-penalty').textContent = c.penalty; } }
+    if (c.validationMode) { G_validationMode = c.validationMode; window.setValidationMode(c.validationMode); }
+    if (c.aiStrictness) { G_aiStrictness = c.aiStrictness; window.setAIStrictness(c.aiStrictness); }
+    if (c.aiSpelling !== undefined) { G_aiSpelling = c.aiSpelling; window.setAISpelling(c.aiSpelling); }
+  } catch(e) { /* silent — corrupt config, start fresh */ }
+}
+
 function subscribe(code) {
   if (G.unsubscribe) G.unsubscribe();
   G.unsubscribe = onValue(roomRef(code), snap => {
@@ -3606,6 +3655,7 @@ function enterLobby(room) {
     document.getElementById('lob-role').textContent = t('host');
     document.getElementById('host-panel').style.display = 'block';
     document.getElementById('guest-panel').style.display = 'none';
+    restoreLobbyConfig();
     buildThemePicker();
     prefillGroup();
   } else {
@@ -3628,7 +3678,6 @@ function renderPlayers(players, langs={}) {
 }
 
 function buildThemePicker() {
-  // Re-initialize selectedTheme to matching theme in current language
   const themes = getThemes();
   const firstTheme = Object.keys(themes)[0];
   if (!themes[G.selectedTheme]) {
@@ -3645,31 +3694,61 @@ window.selectTheme = (name) => {
   G.selectedTheme = name;
   document.querySelectorAll('.theme-btn').forEach(b => b.classList.toggle('active', b.textContent===name));
   const themeVal = getThemes()[name];
-  if (themeVal && themeVal !== 'free' && themeVal !== null) G.selectedCats = [...themeVal];
+  if (themeVal && themeVal !== 'free' && themeVal !== 'random') G.selectedCats = [...themeVal];
   updateCatVisibility();
+  saveLobbyConfig();
 };
 
 function updateCatVisibility() {
   const currentThemeVal = getThemes()[G.selectedTheme];
-  // If theme name changed with language, find by value pattern
-  const isCustom = currentThemeVal === null || (G.selectedCats && G.selectedCats.length === 0 && currentThemeVal === undefined);
+  const isRandom = currentThemeVal === 'random';
   const isFree = currentThemeVal === 'free';
-  document.getElementById('cat-custom').style.display = isCustom ? 'block' : 'none';
+  const isClassic = Array.isArray(currentThemeVal);
+  document.getElementById('cat-classic').style.display = isClassic ? 'block' : 'none';
+  document.getElementById('cat-random').style.display = isRandom ? 'block' : 'none';
   document.getElementById('cat-free').style.display = isFree ? 'block' : 'none';
-  if (isCustom) buildCatGrid();
+  if (isRandom) buildGroupGrid();
+  if (isClassic) {
+    document.getElementById('classic-grid').innerHTML = G.selectedCats.map(c =>
+      `<div class="group-pill active" style="opacity:.7;cursor:default">${c}</div>`
+    ).join('');
+  }
 }
 
-function buildCatGrid() {
-  document.getElementById('cat-grid').innerHTML = getCustomCats().map(c => {
-    const chk = G.selectedCats.includes(c) ? 'checked' : '';
-    return `<label class="cat-lbl"><input type="checkbox" ${chk} value="${c}" onchange="toggleCat('${c}',this.checked)"> ${c}</label>`;
+function buildGroupGrid() {
+  const langKey = LANG === 'en' ? 'en' : LANG === 'fr' ? 'fr' : 'es';
+  document.getElementById('group-grid').innerHTML = CAT_GROUPS.map(g => {
+    const active = G.selectedGroups.includes(g.id);
+    return `<div class="group-pill${active?' active':''}" onclick="toggleGroup('${g.id}',this)">${g.emoji} ${g[langKey]}</div>`;
   }).join('');
 }
 
-window.toggleCat = (cat, on) => {
-  if (on) { if (!G.selectedCats.includes(cat)) G.selectedCats.push(cat); }
-  else G.selectedCats = G.selectedCats.filter(c => c!==cat);
+window.toggleGroup = (id, el) => {
+  const idx = G.selectedGroups.indexOf(id);
+  if (idx >= 0) {
+    if (G.selectedGroups.length <= 3) { toast(t('toastFewGroups')); return; }
+    G.selectedGroups.splice(idx, 1);
+    el.classList.remove('active');
+  } else {
+    G.selectedGroups.push(id);
+    el.classList.add('active');
+  }
+  saveLobbyConfig();
 };
+
+// Pick 6 random categories from DAILY_CAT_DATA filtered by active groups + letter validity.
+// Returns Spanish keys (same format as daily cats). Returns null if pool too small.
+function pickRandomCats(letter, groups) {
+  const pool = Object.entries(DAILY_CAT_DATA).filter(([_, d]) =>
+    groups.includes(d.group) && d[LANG] && d[LANG].includes(letter)
+  );
+  if (pool.length < 6) return null;
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  return pool.slice(0, 6).map(([key]) => key);
+}
 
 window.toggleEasyLetters = (on) => { G.easyLetters = on; };
 
@@ -3681,21 +3760,29 @@ window.copyLink = () => {
 window.startGame = async () => {
   let cats;
   const themeValue = getThemes()[G.selectedTheme];
-  if (themeValue === null) {
-    cats = getCustomCats().filter(c => { const el = document.querySelector(`input[value="${c}"]`); return el && el.checked; });
-  } else if (themeValue === 'free') {
-    const raw = document.getElementById('free-cats').value;
-    cats = [...new Set(raw.split('\n').map(s=>s.trim()).filter(Boolean))];
-    if (cats.length < 2) { toast(t('toastFreeCats')); return; }
-  } else {
-    cats = [...G.selectedCats];
-  }
-  if (!cats || cats.length === 0) { toast(t('toastCats')); return; }
+  const isRandom = themeValue === 'random';
+  const easy = document.getElementById('easy-letters').checked;
   const rounds = parseInt(document.getElementById('sl-rounds').value);
   const time = parseInt(document.getElementById('sl-time').value);
-  const easy = document.getElementById('easy-letters').checked;
   const penalty = parseInt(document.getElementById('sl-penalty').value);
   const groupName = document.getElementById('inp-group').value.trim();
+
+  if (isRandom) {
+    // cats picked fresh each round in nextRound; pick first round here
+    const letter = pickLetter([], easy);
+    const rawCats = pickRandomCats(letter, G.selectedGroups);
+    if (!rawCats) { toast(t('toastFewGroups')); return; }
+    cats = { letter, displayCats: getDailyCatNames(rawCats) };
+  } else if (themeValue === 'free') {
+    const raw = document.getElementById('free-cats').value;
+    const freeCats = [...new Set(raw.split('\n').map(s=>s.trim()).filter(Boolean))];
+    if (freeCats.length < 2) { toast(t('toastFreeCats')); return; }
+    cats = { letter: pickLetter([], easy), displayCats: freeCats };
+  } else {
+    if (!G.selectedCats || G.selectedCats.length === 0) { toast(t('toastCats')); return; }
+    cats = { letter: pickLetter([], easy), displayCats: [...G.selectedCats] };
+  }
+
   saveGroupName(groupName);
   const snap = await get(roomRef(G.roomCode));
   const room = snap.val();
@@ -3703,13 +3790,16 @@ window.startGame = async () => {
   if (G_validationMode === 'democratic' && playerCount < 3) { toast(t('toastDemoMin')); return; }
   const scores = {};
   Object.keys(room.players).forEach(p => scores[p] = 0);
-  const letter = pickLetter([], easy);
   await update(roomRef(G.roomCode), {
-    categories:cats, rounds, timePerRound:time,
-    currentRound:1, phase:'countdown', countdownStart:Date.now(),
-    currentLetter:letter, usedLetters:[letter],
-    roundStartTime:null, allAnswers:{}, calledStop:false, stopCaller:'',
-    scores, easyLetters:easy, stopPenalty:penalty, groupName:groupName, aiEnabled:G_aiEnabled, aiStrictness:G_aiStrictness, aiSpelling:G_aiSpelling, validationMode:G_validationMode, gameLang:LANG,
+    categories: cats.displayCats, rounds, timePerRound: time,
+    currentRound: 1, phase: 'countdown', countdownStart: Date.now(),
+    currentLetter: cats.letter, usedLetters: [cats.letter],
+    roundStartTime: null, allAnswers: {}, calledStop: false, stopCaller: '',
+    scores, easyLetters: easy, stopPenalty: penalty, groupName, aiEnabled: G_aiEnabled,
+    aiStrictness: G_aiStrictness, aiSpelling: G_aiSpelling, validationMode: G_validationMode,
+    gameLang: LANG,
+    catMode: isRandom ? 'random' : 'fixed',
+    selectedGroups: isRandom ? G.selectedGroups : null,
   });
 };
 
@@ -4302,6 +4392,7 @@ window.setAIStrictness = (level) => {
     estrictoBtn.style.borderColor = '#c0392b'; estrictoBtn.style.background = '#fdf0ee';
     relajadoBtn.style.borderColor = 'var(--border-strong)'; relajadoBtn.style.background = 'var(--paper-dark)';
   }
+  saveLobbyConfig();
 };
 
 window.setAISpelling = (allow) => {
@@ -4316,6 +4407,7 @@ window.setAISpelling = (allow) => {
     noBtn.style.borderColor = '#c0392b'; noBtn.style.background = '#fdf0ee';
     siBtn.style.borderColor = 'var(--border-strong)'; siBtn.style.background = 'var(--paper-dark)';
   }
+  saveLobbyConfig();
 };
 
 window.askAI = async (word, category, letter, key) => {
@@ -4543,6 +4635,7 @@ window.setValidationMode = (mode) => {
     if (sub1) sub1.innerHTML = t('validateSub1');
     if (sub2) sub2.textContent = t('validateSub2');
   }
+  saveLobbyConfig();
 };
 
 window.voteEntry = async (key, dir) => {
@@ -4839,9 +4932,18 @@ window.nextRound = async () => {
   const used = room.usedLetters||[];
   const letter = pickLetter(used, room.easyLetters!==false);
   used.push(letter);
+  // In random mode: pick 6 fresh categories for this round's letter
+  let newCats = room.categories;
+  if (room.catMode === 'random' && room.selectedGroups) {
+    const rawCats = pickRandomCats(letter, room.selectedGroups);
+    if (rawCats) newCats = getDailyCatNames(rawCats);
+    // If pool too small for this letter (edge case), keep previous cats silently
+  }
   await update(roomRef(G.roomCode), {
-    currentRound:room.currentRound+1, currentLetter:letter, usedLetters:used,
-    phase:'countdown', countdownStart:Date.now(), roundStartTime:null, allAnswers:{}, calledStop:false, stopCaller:'', aiResults:{}, votes:{}, entryReactions:{},
+    currentRound: room.currentRound+1, currentLetter: letter, usedLetters: used,
+    categories: newCats,
+    phase: 'countdown', countdownStart: Date.now(), roundStartTime: null,
+    allAnswers: {}, calledStop: false, stopCaller: '', aiResults: {}, votes: {}, entryReactions: {},
   });
 };
 
@@ -5194,7 +5296,6 @@ window.dbg = function dbg(screen) {
       document.getElementById('lob-role').textContent = 'anfitrión · sala DBUG';
       renderPlayers(DBG.players, {});
       buildThemePicker();
-      buildCatGrid();
       break;
 
     case 'lobby-guest':
@@ -5872,7 +5973,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) upda
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260913.220</div>
+  <div style="font-size: 11px;opacity:0.5">v260913.227</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
