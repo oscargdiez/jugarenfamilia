@@ -2922,8 +2922,8 @@ window.recontest = async (idx, word, cat) => {
   // Check contest count
   const countSnap = await get(ref(db, contestPath)).catch(() => null);
   const used = countSnap?.exists() ? (countSnap.val() || 0) : 0;
-  if (used >= 2) {
-    toast({ es:'Ya usaste tus 2 revisiones de hoy', en:'You\'ve used both reviews for today', fr:'Tu as utilisé tes 2 révisions d\'aujourd\'hui' }[LANG]);
+  if (used >= 1) {
+    toast({ es:'Ya usaste tu revisión de hoy', en:'You\'ve already used your review for today', fr:'Tu as déjà utilisé ta révision d\'aujourd\'hui' }[LANG]);
     btn.remove(); return;
   }
 
@@ -3029,7 +3029,7 @@ window.recontest = async (idx, word, cat) => {
     // Re-enable remaining buttons (if any), hide if limit reached
     const newUsed = used + 1;
     document.querySelectorAll('.daily-reconsider-btn').forEach(b => {
-      if (newUsed >= 2) b.remove();
+      if (newUsed >= 1) b.remove();
       else b.disabled = false;
     });
 
@@ -6121,7 +6121,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) upda
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260913.234-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v260913.235-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
