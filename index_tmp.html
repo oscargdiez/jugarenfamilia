@@ -392,7 +392,8 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
 .theme-btn.active { border-color: var(--red); background: var(--red-light); color: var(--red); font-weight: 700; }
 .cat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px,1fr)); gap: 6px; }
 .cat-lbl { display: flex; align-items: center; gap: 7px; font-family: 'Caveat', cursive; font-size:20px; color: var(--ink-sec); }
-.group-pill { padding: 4px 10px; border-radius: 20px; border: 1.5px solid var(--border); background: var(--paper); transition: all .15s; }
+.group-pills-row { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+.group-pill { padding: 3px 8px; border-radius: 20px; border: 1.5px solid var(--border); background: var(--paper); font-family: 'Special Elite', monospace; font-size: 11px; color: var(--ink-sec); cursor: pointer; user-select: none; transition: all .15s; }
 .group-pill.active { border-color: var(--red); background: var(--red-light); color: var(--red); font-weight: 700; }
 
 /* ── Range ── */
@@ -1045,7 +1046,7 @@ document.addEventListener('DOMContentLoaded', function() {
         <div class="themes" id="theme-btns"></div>
         <div id="cat-random" style="display:none">
           <p class="lbl" id="lbl-cat-random" style="margin-top:6px">grupos de categorías</p>
-          <div class="cat-grid" id="group-grid" style="margin-top:6px"></div>
+          <div class="group-pills-row" id="group-grid" style="margin-top:6px"></div>
           <p id="lbl-group-hint-random" style="font-size:11px;opacity:.6;margin-top:6px;font-family:'Special Elite',monospace">mínimo 3 grupos · 6 categorías aleatorias por ronda</p>
         </div>
         <div id="cat-free" style="display:none">
@@ -3674,9 +3675,7 @@ function buildGroupGrid() {
   const langKey = LANG === 'en' ? 'en' : LANG === 'fr' ? 'fr' : 'es';
   document.getElementById('group-grid').innerHTML = CAT_GROUPS.map(g => {
     const active = G.selectedGroups.includes(g.id);
-    return `<label class="cat-lbl group-pill${active?' active':''}" onclick="toggleGroup('${g.id}',this)" style="cursor:pointer;user-select:none">
-      <input type="checkbox" ${active?'checked':''} style="display:none"> ${g.emoji} ${g[langKey]}
-    </label>`;
+    return `<div class="group-pill${active?' active':''}" onclick="toggleGroup('${g.id}',this)">${g.emoji} ${g[langKey]}</div>`;
   }).join('');
 }
 
@@ -3686,11 +3685,9 @@ window.toggleGroup = (id, el) => {
     if (G.selectedGroups.length <= 3) { toast(t('toastFewGroups')); return; }
     G.selectedGroups.splice(idx, 1);
     el.classList.remove('active');
-    el.querySelector('input').checked = false;
   } else {
     G.selectedGroups.push(id);
     el.classList.add('active');
-    el.querySelector('input').checked = true;
   }
 };
 
@@ -5928,7 +5925,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) upda
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260913.221-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v260913.222-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
