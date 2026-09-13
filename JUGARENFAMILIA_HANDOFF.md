@@ -1,5 +1,5 @@
 # JugarEnFamilia.es — Project Handoff Document
-*Last updated: September 2026 — Session 14*
+*Last updated: September 2026 — Session 15*
 
 ---
 
@@ -40,12 +40,14 @@ A multiplayer browser-based version of the classic Spanish word game "Stop/Tutti
 - **Database URL:** `https://stop-9f0ea-default-rtdb.europe-west1.firebasedatabase.app`
 - **Config:** embedded in HTML (public, protected by Firebase rules)
 - **Schema additions (Session 12):**
-  - `daily/{date}/{lang}/players/{safeName}: true` — cross-device daily dedup index
+  - `daily/{date}/{lang}/players/{safeName}: true` — legacy cross-device dedup index (still written, used for backfill by fetchPlayedState)
   - `names/{safeName}/secret: hash` — SHA-256 hash of email or PIN for name claim
   - `names/{safeName}/displayName: string` — original display name with accents
 - **Schema additions (Session 13):**
   - `daily/{date}/{lang}/scores/{playerKey}/safeName: string` — for emoji-independent matching
   - `daily/{date}/{lang}/scores/{playerKey}/verified: bool` — (TODO: not yet written) for unverified label
+- **Schema additions (Session 15):**
+  - `names/{safeName}/played/{date}/{lang}: true` — cross-device played state, per language, source of truth for Hecho button label
 
 ### OpenRouter API
 - **Key:** stored in Cloudflare Worker only — never in the HTML or GitHub repo
@@ -127,9 +129,6 @@ State the version clearly when presenting deploy files.
 ### 2. T object corruption ← THE MOST COMMON CAUSE
 Many strings appear TWICE in the file: once as a value in the T translation object, and once hardcoded in a JS function. When replacing hardcoded strings with `t()`, ALWAYS target the specific JS function context. **Never replace the bare string.**
 
-**T object str_replace safety rule ← LEARNED IN SESSION 14:**
-The T objects are long single lines. When inserting new keys, ALWAYS use a unique anchor that appears only once in the file (e.g. `toastHostOnly: 'Solo el anfitrión'`). NEVER use `continueBtn` or other keys that appear in all 3 lang blocks as anchors — the str_replace will only catch the first occurrence and silently drop keys from the other langs. After any T object edit, verify with `grep -c 'continueBtn' file.html` = 3 (one per lang).
-
 ### 3. JS syntax errors
 A single syntax error in the `<script type="module">` block kills ALL buttons and emojis silently. ALWAYS run `node --check` before deploying.
 
@@ -154,17 +153,16 @@ The claim pill uses CSS-only show/hide (`#claim-pill { display:none }` / `#claim
 ### 10. finishValidation bases scores on preRoundScores ← LEARNED IN SESSION 14
 `finishValidation` always starts from `room.preRoundScores` (not `room.scores`) to prevent double-counting when host goes back to validation and recalculates. `goBackToValidation` does NOT write scores to Firebase — scores remain visible to guests during re-validation.
 
-### 11. applyLang and context-sensitive buttons ← LEARNED IN SESSION 14
-`applyLang` runs on every language switch and overwrites button text. For buttons whose text depends on app state (e.g. `wb-continue` showing "Volviendo como →" on the welcome screen), check `G.screen` and relevant state inside `applyLang` before setting the text — don't blindly set to the generic translation key.
+### 11. _playedLangs cache — do not read before fetchPlayedState resolves ← SESSION 15
+`_playedLangs` is a module-level object `{ es: bool, en: bool, fr: bool }` populated async by `fetchPlayedState(safeName)`. It is empty on page load until the Firebase read completes. `updateDailyButtonDate()` falls back to localStorage (`alto_daily_{date}_{lang}`) as a fast same-device path while the fetch is in flight. Never treat `_playedLangs[lang] === undefined` as "not played" without also checking localStorage.
 
 **Mandatory pre-deploy checklist:**
 - Version string updated ✅
-- File size < 300KB ✅ (currently ~305KB due to debug infrastructure — watch for further growth)
+- File size < 300KB ✅ (currently ~302.5KB — watch for growth)
 - Init block present (`buildEmojiGrid`, `tryRestore`) ✅
 - No `-tmp` in version string for production ✅
 - All 12 screen IDs present (`grep -c 'id="s-'` = 12) ✅
 - JS syntax clean (`node --check`) ✅
-- T object keys intact (`grep -c 'continueBtn'` = 3, `grep -c 'notMe'` = 3+) ✅
 
 **Always start from the uploaded working file** — never from a local copy that may have drifted.
 **First thing every session — make a backup:** `cp index.html index_backup_sN.html` before any edits.
@@ -227,12 +225,10 @@ Two fonts, six slots. **Do not add new sizes outside these slots.**
 - Robot result shows coloured verdict: green=válido, red=inválido, amber=no sé (all 3 langs)
 - Automatic validation ON by default, Estricta by default
 - 👎 Per-entry voting (democratic mode only — thumbs down only, answers valid by default)
-- 👏😂😬🤬 Per-entry emoji reactions (4 emojis: clap, laugh, grimace, rage)
-- All validation entries start green (`democratic-valid` class), turn red on invalidation, back to green on restore
+- 👏😂😬 Per-entry emoji reactions (3 emojis: clap, laugh, grimace)
 - 🛑 Stop caller banner: shows on host validate AND guest waiting screen
-- 🗳️ Democratic mode: majority 👎 votes auto-invalidates. Valid by default. Requires min 3 players (guard in `startGame`).
-- ← Revisar: undo scoring — scores stay visible to guests during re-validation, recalculates cleanly from `preRoundScores`
-- Democratic vote optimistic UI: single click updates immediately, Firebase echo confirms
+- 🗳️ Democratic mode: majority 👎 votes auto-invalidates. Valid by default. Min 3 players (guard TODO next session)
+- ← Revisar: undo scoring — scores stay visible to guests during re-validation, recalculates cleanly from preRoundScores
 
 ### Guest Waiting Screen
 - Title "Esperando..." / "Waiting..." / "En attente..."
@@ -260,14 +256,13 @@ Two fonts, six slots. **Do not add new sizes outside these slots.**
 - Originality shows on initial load (not just after flag tap)
 - Originality badges (+50✨) shown per answer in ALL players' panels
 - Accent-insensitive originality check
-- Submit button always says ¡Alto! → in all 3 langs
 - Letter validity sanity check on in-progress restore
 - Double-submit race guard (`_submitting` flag)
 - PlayerKey has random suffix to prevent collision
 - **Test mode** — name starting with `__` skips Firebase write + localStorage save, can replay unlimited
 - **DAILY_OVERRIDES** — add entries keyed by `YYYY-MM-DD` to override normal picker for themed days
 - **Submit guard** — blocks submit if zero answers filled (toast in all 3 langs)
-- **Cross-device dedup** — Firebase `players/{safeName}` index prevents same name playing twice per day
+- **Cross-device played state** — `names/{safeName}/played/{date}/{lang}: true` written on submit. `fetchPlayedState()` reads this on load and on name change, caches in `_playedLangs`. Hecho label is per-lang and device-independent.
 - Daily button: orange tinted outlined style, compact date (`7 sep`), 19px font
 
 ### Practice Mode (Session 12)
@@ -316,7 +311,6 @@ Two fonts, six slots. **Do not add new sizes outside these slots.**
 - 🇪🇸 ES 🇬🇧 EN 🇫🇷 FR
 - Full UI + categories + themes + rules translated
 - All AI/IA references replaced with Robot throughout all 3 languages
-- ¡Alto! used consistently throughout — never "Stop" in any language
 - **Rule for new features:** always add translations for all 3 languages immediately
 
 ### Debug Mode (overhauled Session 14)
@@ -337,25 +331,79 @@ Two fonts, six slots. **Do not add new sizes outside these slots.**
 - Session restore on same device/browser: host and guest share localStorage
 - Font sizes: Caveat x-height smaller than Special Elite — visually looks different at same px
 - iCloud Safari sync: iPhone + iPad share localStorage if Safari sync enabled — player may not be able to replay on second Apple device
-- Daily challenge same-device replay block stores player name at submit time — pre-v184 plays fall back to checking all 3 lang keys; may not catch edge cases from old plays
 - Update bubble on iOS appears slower than on Windows (Safari caching) — working correctly, just slower
 - Unverified name label not yet implemented — old scores have no `verified` field (treat as verified when built)
-- File size ~305KB — over 300KB soft limit due to debug infrastructure. Watch for further growth.
+- File size ~302.5KB — just over 300KB soft limit due to debug infrastructure. Watch for further growth.
+- Democratic mode minimum player guard not yet built — should block start with < 3 players (next session)
+- Solo normal game (1 player) should behave like practice — not yet implemented (next session)
+- `daily/{date}/{lang}/players/{safeName}` legacy index still being written on submit — kept for backfill compatibility, can be retired once `names/{safeName}/played/` has been live for a few weeks and no old-format plays remain
 
 ---
 
 ## 🗺 Flagged for Future
 
-### Unverified Name Label (designed Session 13, not yet built)
-- Write `verified: true/false` to score entry at submit
-- If `entry.verified === false` → display as `Peter? 🎸` in muted grey on leaderboard
-- If `entry.verified` is `undefined` (old entries) → treat as verified (no badge)
-- Incentivises registration without blocking play
+### Registration Gate (discussed Session 15 — NOT YET BUILT)
+
+**Decision:** require a registered name (green pill — email or PIN verified) to play Daily, Practice, or Multiplayer. Any mode. No exceptions.
+
+**What this enables:**
+- Played state (`_playedLangs`) is always meaningful — no anonymous players to track
+- `daily/{date}/{lang}/players/{safeName}` dedup index becomes redundant — can be dropped
+- Score restoration on Device 2 is guaranteed by safeName — no fallback logic needed
+- Unverified name label (see below) becomes unnecessary — every player is verified
+
+**UX flow:**
+- Name field typed → pill debounces → orange/green/red
+- Any game entry point tapped without green pill → claim overlay opens with a one-line explanation, not a blocking error toast
+- After successful registration → proceed directly into the game they tried to start
+- Multiplayer: same gate on `createRoom` and `joinRoom`
+
+**Strings to write (all 3 langs):**
+- Overlay subtitle when opened as a gate (vs voluntarily): e.g. `"Reserva tu nombre para empezar — solo tarda un momento"` — friendly, not punishing
+- DO NOT reuse the existing claim overlay title verbatim — it was written for voluntary registration
+
+**Code locations to change:**
+- `startDailyChallenge()` — replace name-empty toast with gate check: if `_claimState !== 'mine'` → `claimOpen()` instead of toast
+- `startPractice()` — same gate
+- `createRoom()` — same gate
+- `joinRoom()` / quick join — same gate
+- `claimOpen()` — needs to know WHY it was opened (voluntary vs gated) to show the right subtitle. Add an optional `reason` parameter.
+
+**External copy to update (BEFORE shipping):**
+- `<meta name="description">` (line 16): currently `"Multijugador, sin registro, gratis."` → needs rewrite
+- `<meta property="og:description">` (line 18): currently `"No sign up needed. Just share a link and play!"` → needs rewrite
+- `<meta name="twitter:description">` (line 33): same as OG → needs rewrite
+- `claim-privacy` overlay text (lines 5498/5519/5540): currently framed as reassurance for optional action — needs reframe as benefit copy ("tu nombre, tus puntuaciones, en todos tus dispositivos") since registration is now required
+
+**What does NOT need changing:**
+- Tagline `"el juego de siempre, con los de siempre"` — fine, no registration promise
+- `lbl-create-sub` `MULTIJUGADOR · CON FAMILIA Y AMIGOS` — fine
+- `lbl-daily-sub` `TÚ CONTRA EL MUNDO · UN RETO POR DÍA` — fine
+- Rules panels — no registration mention anywhere
+- Footer — just copyright
+- The `free` string throughout codebase — refers to "free categories" game mode, unrelated
+
+**Firebase cleanup once shipped:**
+- Stop writing `daily/{date}/{lang}/players/{safeName}` index
+- Remove backfill logic from `fetchPlayedState()` (the legacy branch)
+- `_playedLangs` fetch becomes simpler — no backfill, just read `names/{safeName}/played/{date}`
+
+---
+
+### Unverified Name Label (designed Session 13, superseded by Registration Gate)
+- Originally: write `verified: true/false` to score entry, show `Peter? 🎸` in muted grey for unverified
+- If Registration Gate ships, this becomes unnecessary — all players will be verified
+- Still worth building if gate is delayed — incentivises registration without blocking play
 
 ### Cancel Button on Daily Countdown
 - 10s countdown before daily starts — add cancel/back button
 - No penalty — game not started yet, no localStorage/Firebase written
 - User returns to home screen cleanly
+
+### Democratic Mode Minimum Players Guard (next session)
+- Block starting game in democratic mode if fewer than 3 players in lobby
+- Toast in all 3 langs explaining why
+- Mode toggle stays available in lobby — only start button blocks
 
 ### Solo Normal Game = Practice (next session)
 - If 1 player in lobby + normal mode → start button says "Empezar práctica solo"
@@ -387,7 +435,7 @@ Two fonts, six slots. **Do not add new sizes outside these slots.**
 - Round scores + cumulative total clearly separated
 - Final screen: same cards, totals across all rounds, winner highlighted
 - Share/reshare button consistent with daily share format
-- Alto bonus shown on round scores screen AND final screen
+- Shown on round scores screen AND final screen
 
 #### Game history:
 - Firebase path: `history/{gameId}` with ~2 week retention (purge entries older than 14 days on game start)
@@ -395,7 +443,7 @@ Two fonts, six slots. **Do not add new sizes outside these slots.**
 - Navigate previous games with ◀ ▶ (chronological, not by date)
 - Each card shows: group name (or unlabelled if no group), date/time, mode, host badge, players+final scores
 - Tap to expand full detail (round by round, answers, originality, Alto bonus)
-- ~2 weeks retention, purge on game start
+- ~2 weeks retention
 - Solo/practice games excluded
 - Players who leave mid-game → null scores from that point
 - All players can access history
@@ -488,34 +536,38 @@ UI/Language fixes: Robot throughout, error messages translated, button casing, d
 **Name claim system:** orange/green/red pill on home screen, overlay with email/PIN, SHA-256 hash in Firebase, displayName restore after verify, fully translated ES/EN/FR.
 **Cross-device daily dedup:** Firebase `players/{safeName}` index, name normalised (lowercase + accent-strip).
 **Update bubble:** version polling, opacity CSS transition (iOS-safe), home-screen only guard.
-**Home screen UX:** `🎲 Clásico. Crear sala →`, orange tinted daily button, `¡Hecho!` label, compact date, 19px font exception for iOS, Practice button same row as Daily.
+**Home screen UX:** `🎲 Clasico. Crear sala ->`, orange tinted daily button, `Hecho!` label, compact date, 19px font exception for iOS, Practice button same row as Daily.
 **Name input:** auto-capitalise via `addEventListener` (inline oninput suppresses events — learned the hard way), restores from localStorage on page refresh.
 **Daily submit guard:** blocks if zero answers filled.
+**Bug fix:** inline `oninput` with value reassignment suppresses subsequent events on iOS/Windows — moved to `addEventListener`.
 **Last version deployed: v260907.156**
 
 ### Session 13 (Sep 8-9)
-**Reserved name Firebase identity:** Device 2 with a verified name now sees their result screen instead of a dead-end toast.
-**Historical daily leaderboard:** Prev/next date nav on result screen.
-**Emoji independence:** Leaderboard row highlight and originality matching use `safeName` first.
-**Leaderboard label:** "clasificacion / leaderboard / classement".
-**Share result:** Compartir/Share/Partager button, formatted text with answers, validation icons, score summary.
+**Reserved name Firebase identity:** Device 2 with a verified name now sees their result screen instead of a dead-end toast. `safeName` field written into every Firebase score entry. Score retrieved by `safeName` match (primary) or normalised name fallback.
+**Historical daily leaderboard:** Prev/next date nav on result screen. Shows `DD/MM/YY` for past days, "hoy/today/aujourd'hui" for today. Originality/refresh suppressed when viewing history. Lang switch uses currently viewed date. `_lbDate` resets to today on result screen entry.
+**Emoji independence:** Leaderboard row highlight and originality matching now use `safeName` first, name-trim fallback for old entries.
+**Leaderboard label:** "clasificacion / leaderboard / classement" (removed "del dia").
+**Share result:** "Compartir/Share/Partager" button on answers card. Copies formatted text: name, letter, date+time, rank, answers with validation icons, score summary. Works for daily and practice.
 **Multiplayer display name restore:** Verified names auto-correct to accented form on `createRoom`/`joinRoom`.
 **Version check before game start:** `reloadIfOutdated()` on all five entry points.
-**No-name guard, same-device replay block, cross-device played check.**
-**Timer expiry with empty answers, double timer interval bug fixed.**
+**No-name guard:** `startDailyChallenge` and `startPractice` block and toast if name empty.
+**Same-device daily replay block:** inline warning banner below daily button for different name on same device.
+**Cross-device played check:** `checkDailyPlayedCrossDevice()` on page init.
+**Timer expiry with empty answers:** `dailySubmit(fromTimer)` bypasses fill guard.
+**Double timer interval bug fixed:** `clearInterval` before all `setInterval` calls in resume paths.
 **Last version deployed: v260907.195**
 
 ### Session 14 (Sep 12-13)
-**Debug bar overhaul:** iPhone mode toggle (390×844 phone frame, notch), screen buttons reorganised into MULTI/DAILY/OVERLAY rows. Added Validate (no AI), Waiting Demo, Scores Guest, Final Guest, Daily Play, Daily Result, Practice Play, Practice Result, Countdown, Claim Name, Help overlays.
-**Emoji reactions:** 5 → 4 emojis: 👏😂😬🤬 (clap, laugh, grimace, rage).
-**Validation entry cards:** All entries start green (`democratic-valid`) by default. Turn red on invalidation, back to green on restore. Applies to normal and democratic mode.
-**Democratic mode — thumbs down only:** Removed 👍. Answers valid by default, 👎 majority invalidates. Rules updated all 3 langs. Min 3 players guard in `startGame`. Toast in all 3 langs.
-**Democratic vote optimistic UI:** Single click highlights + counts immediately. `G_cachedVotes/Players/Mode` globals for optimistic render.
-**Un-vote bug fixed:** Restore logic now checks all previously-invalidated keys, not just keys still in `votes` — un-voting to zero correctly restores green.
-**Alto guard:** `callStop` checks all `.ans-inp` have `trim().length >= 2`. Toast in all 3 langs. Timer not cleared on early return.
-**Scores freeze on back-to-validation:** `finishValidation` bases calculation on `room.preRoundScores` — safe to recalculate multiple times. `goBackToValidation` no longer writes scores to Firebase. Guest scores screen shows banner, scores frozen.
-**Stop → ¡Alto!:** All EN/FR "Stop! →" occurrences replaced — daily submit button, dl() labels.
-**T object bug fix:** `continueBtn` and `notMe` keys were accidentally dropped during session edits — restored in all 3 langs.
-**Welcome screen lang fix:** `applyLang` now preserves "Volviendo como →" text when on welcome screen with stored name, rather than overwriting with generic `continueBtn`.
-**New translation keys:** `toastStopFill`, `hostRevisingScores`, `toastDemoMin` — all 3 langs.
-**Last version deployed: v260912.218**
+**Debug bar overhaul:** iPhone mode toggle (390x844 phone frame, notch, all fixed elements scoped inside), screen buttons reorganised into MULTI/DAILY/OVERLAY rows, added Validate (no AI), Validate Demo, Waiting Demo, Scores Guest, Scores Last, Final Guest, Daily Play, Daily Result, Practice Play, Practice Result, Countdown overlay, Claim Name overlay, Help overlay.
+**Emoji reactions reduced:** 5 -> 3 emojis (clap, laugh, grimace). Applies to normal and democratic mode.
+**Democratic mode — thumbs down only:** Removed thumbs up button. Answers valid by default, majority thumbs down invalidates. Rules panel updated all 3 langs. Validation subtitle updated. Auto-invalidate logic simplified. Orphan CSS removed.
+**Democratic vote optimistic UI:** `voteEntry` now immediately updates DOM before Firebase echo. `G_cachedVotes`, `G_cachedPlayers`, `G_cachedVoteMode` globals cache state for optimistic render.
+**Alto guard:** `callStop` checks all `.ans-inp` inputs have `trim().length >= 2` before doing anything. Toast in all 3 langs. Timer not cleared on early return.
+**Scores freeze on back-to-validation:** `finishValidation` now bases calculation on `room.preRoundScores`. `goBackToValidation` no longer writes scores to Firebase. Guest scores screen shows host-revising banner, scores frozen until phase returns to scores.
+**New translation keys:** `toastStopFill`, `hostRevisingScores` — all 3 langs.
+**Last version deployed: v260912.213-tmp (staging) — promoted to v260912.218 production**
+
+### Session 15 (Sep 13)
+**Cross-device played state overhaul:** Replaced broken `alto_daily_played_{date}` agnostic localStorage key with Firebase `names/{safeName}/played/{date}/{lang}: true`. New `fetchPlayedState(safeName)` reads this on load and on name change, caches in `_playedLangs` module-level object. `updateDailyButtonDate()` checks cache first, falls back to `alto_daily_{date}_{lang}` localStorage for same-device fast path. Self-healing backfill: if new path missing but legacy `daily/{date}/{lang}/players/{safeName}` exists, writes new path automatically (covers today's plays on deploy day). `_playedLangs` reset and refetched on name change via `scheduleNameCheck`. Deleted: `checkDailyPlayedCrossDevice()`, `alto_daily_played_` write/read, agnostic match logic, same-device-different-name warning banner (HTML + all JS). File size down to 302.5KB.
+**Handoff doc:** Registration gate fully documented in Flagged for Future — all code locations, external copy, Firebase cleanup, and UX flow specified.
+**Last version deployed: v260913.219**
