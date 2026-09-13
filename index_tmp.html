@@ -1044,6 +1044,10 @@ document.addEventListener('DOMContentLoaded', function() {
       <div class="card">
         <p class="lbl" id="lbl-theme">tema</p>
         <div class="themes" id="theme-btns"></div>
+        <div id="cat-classic" style="display:none">
+          <p class="lbl" id="lbl-cat-classic" style="margin-top:6px">8 categorías fijas del juego original</p>
+          <div class="group-pills-row" id="classic-grid" style="margin-top:6px"></div>
+        </div>
         <div id="cat-random" style="display:none">
           <p class="lbl" id="lbl-cat-random" style="margin-top:6px">grupos de categorías</p>
           <div class="group-pills-row" id="group-grid" style="margin-top:6px"></div>
@@ -1342,6 +1346,7 @@ const T = {
     toastFreeCats: 'Escribe al menos 2 categorías',
     toastFewGroups: 'Selecciona al menos 3 grupos',
     catRandomLabel: 'grupos de categorías',
+    catClassicLabel: '8 categorías fijas del juego original',
     toastHostOnly: 'Solo el anfitrión puede reiniciar',
     toastStopFill: 'Rellena todas las respuestas antes de llamar al ¡Alto!',
     hostRevisingScores: 'el anfitrión está revisando de nuevo ✏️',
@@ -1403,6 +1408,7 @@ const T = {
     toastFreeCats: 'Enter at least 2 categories',
     toastFewGroups: 'Select at least 3 groups',
     catRandomLabel: 'category groups',
+    catClassicLabel: '8 fixed categories from the original game',
     toastHostOnly: 'Only the host can restart',
     toastStopFill: 'Fill in all answers before calling ¡Alto!',
     hostRevisingScores: 'host is revising answers ✏️',
@@ -1464,6 +1470,7 @@ const T = {
     toastFreeCats: 'Entre au moins 2 catégories',
     toastFewGroups: 'Sélectionne au moins 3 groupes',
     catRandomLabel: 'groupes de catégories',
+    catClassicLabel: '8 catégories fixes du jeu original',
     toastHostOnly: "Seul l'hôte peut recommencer",
     toastStopFill: 'Remplis toutes les réponses avant de crier ¡Alto !',
     hostRevisingScores: "l'hôte révise les réponses ✏️",
@@ -1711,6 +1718,7 @@ window.applyLang = function() {
   s('lbl-cat-free', t('freeCatLabel'));
   const freeCats = document.getElementById('free-cats'); if(freeCats) freeCats.placeholder = t('freeCatPlaceholder');
   s('lbl-cat-random', t('catRandomLabel'));
+  s('lbl-cat-classic', t('catClassicLabel'));
   if (document.getElementById('group-grid')?.children.length) buildGroupGrid();
   const stopBtn = document.querySelector('.stop-btn'); if(stopBtn) stopBtn.textContent = t('stop');
   // Validate
@@ -3695,9 +3703,16 @@ function updateCatVisibility() {
   const currentThemeVal = getThemes()[G.selectedTheme];
   const isRandom = currentThemeVal === 'random';
   const isFree = currentThemeVal === 'free';
+  const isClassic = Array.isArray(currentThemeVal);
+  document.getElementById('cat-classic').style.display = isClassic ? 'block' : 'none';
   document.getElementById('cat-random').style.display = isRandom ? 'block' : 'none';
   document.getElementById('cat-free').style.display = isFree ? 'block' : 'none';
   if (isRandom) buildGroupGrid();
+  if (isClassic) {
+    document.getElementById('classic-grid').innerHTML = G.selectedCats.map(c =>
+      `<div class="group-pill active" style="opacity:.7;cursor:default">${c}</div>`
+    ).join('');
+  }
 }
 
 function buildGroupGrid() {
@@ -5958,7 +5973,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) upda
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260913.225-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v260913.226-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
