@@ -3630,6 +3630,7 @@ window.joinRoom = async () => {
 
 function enterLobby(room) {
   stopConfetti();
+  stopReactions();
   show('lobby');
   if (G.isHost) { window.setAIEnabled(G_aiEnabled); window.setAIStrictness(G_aiStrictness); window.setAISpelling(G_aiSpelling); }
   // Apply host's game language for guests
@@ -3867,6 +3868,7 @@ function closeCountdown() {
 
 function enterPlaying(room) {
   G.submitted = false; G.stopHandled = false;
+  stopReactions();
   // Enforce game language
   if (!G.isHost && room.gameLang && room.gameLang !== LANG) {
     window.setLang(room.gameLang);
@@ -4365,6 +4367,12 @@ function stopConfetti() {
   if (G_confettiInterval) { clearInterval(G_confettiInterval); G_confettiInterval = null; }
   const stage = document.getElementById('confetti-stage');
   if (stage) stage.innerHTML = '';
+}
+
+function stopReactions() {
+  const stage = document.getElementById('reactions-stage');
+  if (stage) stage.innerHTML = '';
+  G_shownReactions.clear();
 }
 
 
@@ -4927,6 +4935,7 @@ window.goBackToValidation = async () => {
 };
 
 window.nextRound = async () => {
+  stopReactions();
   const snap = await get(roomRef(G.roomCode));
   const room = snap.val();
   const used = room.usedLetters||[];
@@ -5973,7 +5982,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) upda
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260913.229</div>
+  <div style="font-size: 11px;opacity:0.5">v260913.230</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
