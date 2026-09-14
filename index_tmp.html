@@ -1154,6 +1154,7 @@ document.addEventListener('DOMContentLoaded', function() {
       <button id="btn-lb-hist-next" onclick="lbHistNav(1)" disabled style="font-family:'Special Elite',monospace;font-size:13px;padding:2px 10px;border:1px solid var(--border);border-radius:4px;background:transparent;cursor:pointer;color:var(--ink-sec);opacity:0.35">▶</button>
     </div>
     <div id="daily-lb-list"></div>
+    <div id="daily-lb-not-played" style="display:none;font-family:'Special Elite',monospace;font-size:11px;color:var(--ink-muted);text-align:center;padding:4px 0 8px;opacity:0.7"></div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
       <button onclick="refreshDailyOriginality()" style="font-family:'Special Elite',monospace;font-size:11px;padding:3px 8px;border:1px solid var(--border);border-radius:4px;background:transparent;cursor:pointer;color:var(--ink-sec)" id="btn-daily-refresh">↻ actualizar</button>
     </div>
@@ -1350,6 +1351,7 @@ const T = {
     toastFewGroups: 'Selecciona al menos 3 grupos',
     catRandomLabel: 'grupos de categorías',
     catClassicLabel: '8 categorías fijas del juego original',
+    lbNotPlayed: 'Juega para ver las respuestas',
     toastHostOnly: 'Solo el anfitrión puede reiniciar',
     toastStopFill: 'Rellena todas las respuestas antes de llamar al ¡Alto!',
     hostRevisingScores: 'el anfitrión está revisando de nuevo ✏️',
@@ -1412,6 +1414,7 @@ const T = {
     toastFewGroups: 'Select at least 3 groups',
     catRandomLabel: 'category groups',
     catClassicLabel: '8 fixed categories from the original game',
+    lbNotPlayed: 'Play to see the answers',
     toastHostOnly: 'Only the host can restart',
     toastStopFill: 'Fill in all answers before calling ¡Alto!',
     hostRevisingScores: 'host is revising answers ✏️',
@@ -1474,6 +1477,7 @@ const T = {
     toastFewGroups: 'Sélectionne au moins 3 groupes',
     catRandomLabel: 'groupes de catégories',
     catClassicLabel: '8 catégories fixes du jeu original',
+    lbNotPlayed: 'Joue pour voir les réponses',
     toastHostOnly: "Seul l'hôte peut recommencer",
     toastStopFill: 'Remplis toutes les réponses avant de crier ¡Alto !',
     hostRevisingScores: "l'hôte révise les réponses ✏️",
@@ -3036,8 +3040,9 @@ window.recontest = async (idx, word, cat) => {
   }
 };
 
-async function loadDailyLeaderboard(key, lbLang) {
+async function loadDailyLeaderboard(key, lbLang, hideAnswers) {
   lbLang = lbLang || LANG;
+  hideAnswers = !!hideAnswers;
   const lbEl = document.getElementById('daily-lb-list');
   if (!lbEl) return;
   const l = (typeof DAILY_LABELS !== 'undefined' ? DAILY_LABELS[LANG] : null) || { noResults: 'Sin resultados aún', errorLb: 'Error cargando clasificación' };
@@ -3046,7 +3051,7 @@ async function loadDailyLeaderboard(key, lbLang) {
     const snap = await get(ref(db, 'daily/' + key + '/' + lbLang + '/scores'));
     if (!snap.exists()) { lbEl.innerHTML = `<div style="text-align:center;opacity:0.5;font-size:13px">${l.noResults}</div>`; return; }
     const allScores = snap.val();
-    renderLeaderboard(allScores);
+    renderLeaderboard(allScores, hideAnswers);
     if (lbLang === LANG) computeAndUpdateOriginality(allScores, key);
   } catch(e) {
     console.warn('Leaderboard load failed:', e);
@@ -3054,7 +3059,7 @@ async function loadDailyLeaderboard(key, lbLang) {
   }
 }
 
-function renderLeaderboard(allScores) {
+function renderLeaderboard(allScores, hideAnswers) {
   const lbEl = document.getElementById('daily-lb-list');
   if (!lbEl) return;
   const myName = G_daily.displayName || ((G.playerName || '') + ' ' + (G.playerEmoji || ''));
@@ -3144,26 +3149,29 @@ function renderLeaderboard(allScores) {
   let html = top10.map((e, i) => {
     const _isMe = isMe(e);
     const orig = e.originality > 0 ? `<span class="daily-lb-orig">+${e.originality*10}✨</span>` : '';
-    return `<div class="daily-lb-row${_isMe ? ' daily-lb-me' : ''}" id="daily-row-${i}" onclick="toggleDailyAnswers(${i})">
+    const chevron = hideAnswers ? '' : `<span class="daily-lb-chevron">▶</span>`;
+    const clickHandler = hideAnswers ? '' : ` onclick="toggleDailyAnswers(${i})"`;
+    return `<div class="daily-lb-row${_isMe ? ' daily-lb-me' : ''}" id="daily-row-${i}"${clickHandler}>
       <span class="daily-lb-rank">${medals[i] || (i+1)}</span>
       <span class="daily-lb-name">${e.name}</span>
       <span class="daily-lb-score">${e.totalScore*10} pts</span>
-      ${speedTag(e)}${orig}<span class="daily-lb-chevron">▶</span>
-    </div>${buildAnswerPanel(e, i)}`;
+      ${speedTag(e)}${orig}${chevron}
+    </div>${hideAnswers ? '' : buildAnswerPanel(e, i)}`;
   }).join('');
 
   // Show my row if outside top 10
   if (!isInTop10 && myIdx >= 0) {
     const me = entries[myIdx];
     const orig = me.originality > 0 ? `<span class="daily-lb-orig">+${me.originality*10}✨</span>` : '';
-    const sepIdx = 'me';
+    const chevron = hideAnswers ? '' : `<span class="daily-lb-chevron">▶</span>`;
+    const clickHandler = hideAnswers ? '' : ` onclick="toggleDailyAnswers('me')"`;
     html += `<div class="daily-lb-sep">· · ·</div>`;
-    html += `<div class="daily-lb-row daily-lb-me" id="daily-row-me" onclick="toggleDailyAnswers('me')">
+    html += `<div class="daily-lb-row daily-lb-me" id="daily-row-me"${clickHandler}>
       <span class="daily-lb-rank">${myIdx+1}</span>
       <span class="daily-lb-name">${me.name}</span>
       <span class="daily-lb-score">${me.totalScore*10} pts</span>
-      ${speedTag(me)}${orig}<span class="daily-lb-chevron">▶</span>
-    </div>${buildAnswerPanel(me, 'me')}`;
+      ${speedTag(me)}${orig}${chevron}
+    </div>${hideAnswers ? '' : buildAnswerPanel(me, 'me')}`;
   }
 
   lbEl.innerHTML = html;
@@ -3306,7 +3314,13 @@ window.lbHistNav = function(dir) {
 // Manual refresh button
 window.switchDailyLbLang = function(lang) {
   document.querySelectorAll(".daily-lb-lang-btn").forEach(b => b.classList.toggle("active", b.dataset.lang === lang));
-  loadDailyLeaderboard(_lbEffectiveDate(), lang).then(() => { if (!_lbDate) reapplyOriginality(); });
+  const notPlayed = !_playedLangs[lang];
+  const hintEl = document.getElementById('daily-lb-not-played');
+  if (hintEl) {
+    hintEl.style.display = notPlayed ? 'block' : 'none';
+    if (notPlayed) hintEl.textContent = t('lbNotPlayed');
+  }
+  loadDailyLeaderboard(_lbEffectiveDate(), lang, notPlayed).then(() => { if (!_lbDate && !notPlayed) reapplyOriginality(); });
 };
 
 window.shareDailyResult = function() {
@@ -6117,7 +6131,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) upda
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260913.239-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v260913.241-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
