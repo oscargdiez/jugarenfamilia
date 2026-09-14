@@ -517,11 +517,33 @@ Cross-device played state overhaul (Firebase names path, fetchPlayedState, backf
 **Democratic stale state fix:** `phase:validate` transition atomically clears `invalidAnswers:{}` and `votes:{}` — guests no longer see stale invalidations from previous rounds.
 **Quick join name fallback:** pre-fills from `alto_session.name` OR `alto_name`.
 **Floating reaction cleanup:** `stopReactions()` clears reactions-stage and G_shownReactions on lobby/round/playing transitions.
-**Category modes overhaul:** 7 old themes replaced with 3 clean modes — Clásico (fixed 8, shown as pills), Categorías (13 group toggles, 8 random per round, letter-filtered from daily pack, no max-1-per-group), Libre (free text). CAT_GROUPS with emoji+translated names. pickRandomCats(). catMode+selectedGroups written to Firebase. nextRound picks fresh cats when random.
+**Category modes overhaul:** 7 old themes replaced with 3 clean modes — Clásico (fixed 8, shown as pills), Categorías (13 group toggles, 8 random per round, letter-filtered from daily pack, no max-1-per-group, similarity filter avoids e.g. País + País Americano), Libre (free text). CAT_GROUPS with emoji+translated names. pickRandomCats(). catMode+selectedGroups written to Firebase. nextRound picks fresh cats when random.
 **Lobby config persistence:** all settings (theme, groups, rounds, time, penalty, validationMode, aiStrictness, aiSpelling) saved to `alto_lobby_config` localStorage on every change, restored on enterLobby.
 **Classic category pills:** Clásico mode shows the 8 fixed categories as muted non-interactive pills with translated label.
 **5 entry reactions:** added 🔥 as first emoji (was 4, now 5: 🔥👏😂😬🤬).
-**Daily recontest:** `¿Error?`/`Error?`/`Erreur?` text link on invalid daily result rows. 3 models in parallel via Cloudflare Worker, 2-of-3 majority to overturn. Max 1 per lang per day (Firebase counter). Score/leaderboard updated on overturn. G_daily.speedMultiplier stored for recalculation.
-**Registration gate:** discussed, deferred — toast reminder approach considered but not built.
-**File size warning:** ~315KB — significantly over 300KB soft limit.
-**Last version deployed: v260913.240**
+**Daily recontest:** `¿Error?`/`Error?`/`Erreur?` text link on invalid daily result rows. 3 models in parallel via Cloudflare Worker, 2-of-3 majority to overturn. Max 1 per lang per day (Firebase counter at `names/{safeName}/contests/{date}/{lang}`). Score/leaderboard updated on overturn. Toast on upheld. G_daily.speedMultiplier stored for recalculation.
+**Leaderboard spoiler guard:** switching to an unplayed lang hides answer panels and chevrons, shows `Juega para ver las respuestas` / `Play to see the answers` / `Joue pour voir les réponses` hint above the list. Scores still visible.
+**AI prompt tuning:** documented in Flagged for Future — data accumulating in Firebase, contestOutcome flag needed to complete the pipeline.
+**File size warning:** ~317KB — significantly over 300KB soft limit.
+**Last version deployed: v260913.243**
+
+### AI Prompt Tuning via Score Data (future — data accumulating now)
+
+Firebase already stores everything needed to study AI mistakes and tune prompts:
+- `daily/{date}/{lang}/scores/{playerKey}` — answers, aiResults, categories, letter, safeName
+- `names/{safeName}/contests/{date}/{lang}: N` — which answers players felt strongly enough to challenge
+
+**The tuning loop:**
+1. Pull all score entries → flatten to rows of `(category, letter, answer, aiVerdict)`
+2. Cross-reference with contest data — contested answers that were overturned by 2-of-3 models = confirmed AI mistakes
+3. Use those as a labelled dataset to identify prompt weaknesses
+4. The recontest prompt is already separate from the main validation prompt — tune independently
+
+**What's missing to make this complete:**
+- A `contestOutcome: 'overturned'|'upheld'` field written to the score entry when a recontest completes — currently the score updates but no explicit outcome flag is stored
+- Add this when building the tuning pipeline
+
+**How to extract:**
+A simple script fetches `daily/` subtree, flattens entries to CSV. Could also be a one-off HTML page that reads Firebase and exports. No backend needed.
+
+**Note:** data is accumulating now. The longer the game runs, the more valuable this dataset becomes. Don't wait too long before doing a first pass.
