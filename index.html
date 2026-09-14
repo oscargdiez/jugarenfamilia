@@ -3893,11 +3893,32 @@ function pickRandomCats(letter, groups) {
     groups.includes(d.group) && d[LANG] && d[LANG].includes(letter)
   );
   if (pool.length < 8) return null;
+  // Fisher-Yates shuffle
   for (let i = pool.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [pool[i], pool[j]] = [pool[j], pool[i]];
   }
-  return pool.slice(0, 8).map(([key]) => key);
+  // Pick 8, skipping any whose display name is a substring of (or contains) an already-selected one
+  const norm = s => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+  const selected = [];
+  const selectedNames = [];
+  for (const [key, d] of pool) {
+    if (selected.length >= 8) break;
+    const displayName = norm(LANG === 'en' ? (d.name_en || key) : LANG === 'fr' ? (d.name_fr || key) : key);
+    const tooSimilar = selectedNames.some(n => n.includes(displayName) || displayName.includes(n));
+    if (!tooSimilar) {
+      selected.push(key);
+      selectedNames.push(displayName);
+    }
+  }
+  // If similarity filter left us short, top up without the filter
+  if (selected.length < 8) {
+    for (const [key] of pool) {
+      if (selected.length >= 8) break;
+      if (!selected.includes(key)) selected.push(key);
+    }
+  }
+  return selected;
 }
 
 window.toggleEasyLetters = (on) => { G.easyLetters = on; };
@@ -6131,7 +6152,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) upda
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260913.242</div>
+  <div style="font-size: 11px;opacity:0.5">v260913.243</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
