@@ -2383,7 +2383,7 @@ window.startDailyChallenge = async function() {
             entry.totalScore || entry.score || 0,
             entry.aiResults || {},
             0,
-            entry.totalScore && entry.baseScore ? entry.totalScore / entry.baseScore : 1
+            entry.speedMultiplier || (entry.totalScore && entry.baseScore ? entry.totalScore / entry.baseScore : 1) || 1
           );
           return;
         }
@@ -2748,7 +2748,7 @@ window.dailySubmit = async function(fromTimer = false) {
     await set(dailyRef, {
       name: displayName,
       safeName: safeNameIdx || '',
-      baseScore, totalScore, originality: 0,
+      baseScore, totalScore, originality: 0, speedMultiplier,
       answers: answersObj,
       aiResults: aiResults,
       categories: G_daily.categories || [],
@@ -2918,6 +2918,7 @@ async function showDailyResult(answers, baseScore, totalScore, aiResults, secsLe
 window.recontest = async (idx, word, cat) => {
   const btn = document.getElementById('daily-reconsider-' + idx);
   if (!btn || btn.disabled) return;
+  if (G_daily.practiceMode) return;
   const safeName = claimSafeName(document.getElementById('inp-name')?.value?.trim() || '');
   if (!safeName) return;
   const key = getDailyKey();
@@ -2939,8 +2940,8 @@ window.recontest = async (idx, word, cat) => {
     const langNames = {es:'Spanish',en:'English',fr:'French'};
     const gameLang = langNames[LANG] || 'Spanish';
     const letter = G_daily.letter || '';
-    const systemPrompt = `You are a strict and precise judge of a ${gameLang}-language word game. A previous judge ruled an answer INVALID. Only overturn if you are confident the answer is genuinely valid — do not give the benefit of the doubt. Rules: (1) Ignore accents and tildes. (2) The answer must start with the letter "${letter}". (3) It must clearly and unambiguously belong to the category. Reply with exactly one word: VALIDO, INVALIDO, or DUDOSO.`;
-    const prompt = `${gameLang}-language game. Letter: "${letter}". Category: "${cat}". Answer: "${word}". Previous judge said INVALIDO. Only reply VALIDO if you are certain. Reply with ONE word only: VALIDO, INVALIDO, or DUDOSO.`;
+    const systemPrompt = `You are a fair judge of a ${gameLang}-language word game. A previous judge ruled an answer INVALID. Give the benefit of the doubt — if the answer could reasonably be valid, overturn it. Rules: (1) Ignore accents and tildes. (2) The answer must start with the letter "${letter}". (3) It should reasonably belong to the category. Reply with exactly one word: VALIDO, INVALIDO, or DUDOSO.`;
+    const prompt = `${gameLang}-language game. Letter: "${letter}". Category: "${cat}". Answer: "${word}". Previous judge said INVALIDO. Reply VALIDO if the answer could reasonably be valid. Reply with ONE word only: VALIDO, INVALIDO, or DUDOSO.`;
 
     const parseVerdict = (data) => {
       const msg = data.choices?.[0]?.message || {};
@@ -2948,7 +2949,7 @@ window.recontest = async (idx, word, cat) => {
       const norm = raw.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z]/g, ' ').trim();
       if (/\binvalid(o)?\b/.test(norm)) return 'invalid';
       if (/\bvalid(o)?\b/.test(norm)) return 'valid';
-      return 'invalid'; // treat DUDOSO and anything ambiguous as invalid for recontest
+      return 'valid'; // benefit of the doubt — DUDOSO counts as valid for recontest
     };
 
     const workerCall = (model) => fetch('https://api.oscar-g-diez.workers.dev/', {
@@ -2980,51 +2981,75 @@ window.recontest = async (idx, word, cat) => {
       if (btn) btn.remove();
       toast({ es:'Revisado: respuesta inválida', en:'Reviewed: invalid answer', fr:'Révisé : réponse invalide' }[LANG]);
     } else {
-      // Overturned — update UI and Firebase score
-      const aiIcon = { valid:'✅', unsure:'🤔' };
-      const aiEl = document.getElementById('daily-ai-' + idx);
-      const ptsEl = document.getElementById('daily-pts-' + idx);
-      const addedPts = newRes === 'valid' ? 100 : 50;
-      if (aiEl) aiEl.textContent = aiIcon[newRes];
-      if (ptsEl) { ptsEl.textContent = '+' + addedPts; ptsEl.style.display = ''; }
-      btn.remove();
+      // Overturned — recalculate score from scratch, write Firebase first, then update UI
+      const aiIcon = { valid:'✅', unsure:'🤔', invalid:'❌' };
+      const oldBaseScore = G_daily.baseScore;
+
+      // Scratch recount — update aiResults then count all answered slots
+      G_daily.aiResults[String(idx)] = newRes;
+      let validCount = 0, unsureCount = 0;
+      for (let i = 0; i < (G_daily.categories.length || 6); i++) {
+        const v = G_daily.aiResults[String(i)] || G_daily.aiResults[i];
+        if (G_daily.answers[i]) {
+          if (v === 'valid') validCount++;
+          else if (v === 'unsure') unsureCount++;
+        }
+      }
+      const newBaseScore = validCount * 10 + unsureCount * 5;
+      const mult = G_daily.speedMultiplier || (G_daily.totalScore / G_daily.baseScore) || 1;
+      const newTotalScore = Math.round(newBaseScore * mult);
+      const toastPts = (newBaseScore - oldBaseScore) * 10;
+
+      // Write Firebase first — revert G_daily on failure
+      if (G_daily.playerKey) {
+        const scoreRef = ref(db, 'daily/' + key + '/' + LANG + '/scores/' + G_daily.playerKey);
+        try {
+          await update(scoreRef, {
+            [`aiResults/${String(idx)}`]: newRes,
+            baseScore: newBaseScore,
+            totalScore: newTotalScore,
+            speedMultiplier: mult,
+          });
+        } catch(e) {
+          // Revert in-memory state and re-enable buttons on failure
+          G_daily.aiResults[String(idx)] = 'invalid';
+          btn.disabled = false;
+          btn.style.opacity = '';
+          document.querySelectorAll('.daily-reconsider-btn').forEach(b => b.disabled = false);
+          toast({ es:'Error al guardar — inténtalo de nuevo', en:'Error saving — try again', fr:'Erreur lors de la sauvegarde — réessaie' }[LANG]);
+          return;
+        }
+        // Update localStorage after successful Firebase write
+        try {
+          const lsKey = 'alto_daily_' + key + '_' + LANG;
+          const lsStored = localStorage.getItem(lsKey);
+          const d = lsStored ? JSON.parse(lsStored) : {};
+          if (!d.aiResults) d.aiResults = {};
+          d.aiResults[String(idx)] = newRes;
+          d.baseScore = newBaseScore;
+          d.totalScore = newTotalScore;
+          d.speedMultiplier = mult;
+          localStorage.setItem(lsKey, JSON.stringify(d));
+        } catch(e) {}
+      }
 
       // Update G_daily state
-      G_daily.aiResults[idx] = newRes;
-      const oldTotal = G_daily.totalScore || 0;
-      G_daily.baseScore = (G_daily.baseScore || 0) + addedPts;
-      // Recalculate total with speed multiplier
-      const mult = G_daily.speedMultiplier || 1;
-      G_daily.totalScore = Math.round(G_daily.baseScore * mult);
+      G_daily.baseScore = newBaseScore;
+      G_daily.totalScore = newTotalScore;
+
+      // Update UI
+      const aiEl = document.getElementById('daily-ai-' + idx);
+      const ptsEl = document.getElementById('daily-pts-' + idx);
+      if (aiEl) aiEl.textContent = aiIcon[newRes];
+      if (ptsEl) { ptsEl.textContent = '+' + (toastPts); ptsEl.style.display = ''; }
+      btn.remove();
       const totalEl = document.getElementById('daily-total-score');
       if (totalEl) totalEl.textContent = (G_daily.totalScore * 10) + ' pts';
-
-      // Update speed summary
       const speedEl = document.getElementById('daily-speed-text');
       const _dl2 = dl();
       if (speedEl) speedEl.innerHTML = `${_dl2.baseLabel} ${G_daily.baseScore*10} pts ×${mult.toFixed(2)}⚡→ <strong>${G_daily.totalScore*10} pts</strong>`;
 
-      // Update Firebase score entry
-      if (G_daily.playerKey) {
-        const scoreRef = ref(db, 'daily/' + key + '/' + LANG + '/scores/' + G_daily.playerKey);
-        await update(scoreRef, {
-          [`aiResults/${idx}`]: newRes,
-          baseScore: G_daily.baseScore,
-          totalScore: G_daily.totalScore,
-        }).catch(() => {});
-        // Also update localStorage
-        const stored = localStorage.getItem('alto_daily_' + key + '_' + LANG);
-        if (stored) {
-          try {
-            const d = JSON.parse(stored);
-            d.aiResults = G_daily.aiResults;
-            d.baseScore = G_daily.baseScore;
-            d.totalScore = G_daily.totalScore;
-            localStorage.setItem('alto_daily_' + key + '_' + LANG, JSON.stringify(d));
-          } catch(e) {}
-        }
-      }
-      toast({ es:'¡Decisión revisada! +' + addedPts*10 + ' pts', en:'Decision overturned! +' + addedPts*10 + ' pts', fr:'Décision révisée ! +' + addedPts*10 + ' pts' }[LANG]);
+      toast({ es:'¡Decisión revisada! +' + toastPts + ' pts', en:'Decision overturned! +' + toastPts + ' pts', fr:'Décision révisée ! +' + toastPts + ' pts' }[LANG]);
       loadDailyLeaderboard(key); // refresh leaderboard
     }
 
@@ -6152,7 +6177,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) upda
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260916.251</div>
+  <div style="font-size: 11px;opacity:0.5">v260916.252</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
