@@ -2126,7 +2126,8 @@ function mulberry32(seed) {
 
 // Category pool — 26 universal categories, translated in all 6 languages
 // DAILY_CONSENSUS: set true to use 2-model consensus + tiebreaker, false for single model
-const DAILY_CONSENSUS = false;
+// Switched ON: 2026-09-16 (v260916.246) -- was single model (ling only). Monitor Firebase for improvement in false positive rate (was 31% invalid overall, FR worst at 35%).
+const DAILY_CONSENSUS = true;
 
 const DAILY_CAT_DATA = {
   "Mamífero": {group:"animales",es:"ABCDEFGHIJLMNOPRSTV",en:"ABCDEFGHIJKLMNOPRSTV",fr:"ABCDEFGHIJLMNOPRSTV",name_en:"Mammal",name_fr:"Mammifère"},
@@ -6152,7 +6153,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) upda
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260916.245</div>
+  <div style="font-size: 11px;opacity:0.5">v260916.246</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
