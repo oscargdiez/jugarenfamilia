@@ -2126,7 +2126,7 @@ function mulberry32(seed) {
 
 // Category pool — 26 universal categories, translated in all 6 languages
 // DAILY_CONSENSUS: set true to use 2-model consensus + tiebreaker, false for single model
-// Switched ON: 2026-09-16 (v260916.248) -- was single model (ling only). Monitor Firebase for improvement in false positive rate (was 31% invalid overall, FR worst at 35%).
+// Switched ON: 2026-09-16 (v260916.249) -- was single model (ling only). Monitor Firebase for improvement in false positive rate (was 31% invalid overall, FR worst at 35%).
 const DAILY_CONSENSUS = true;
 
 const DAILY_CAT_DATA = {
@@ -3016,17 +3016,17 @@ window.recontest = async (idx, word, cat, currentVerdict) => {
           baseScore: G_daily.baseScore,
           totalScore: G_daily.totalScore,
         }).catch(() => {});
-        // Also update localStorage
-        const stored = localStorage.getItem('alto_daily_' + key + '_' + LANG);
-        if (stored) {
-          try {
-            const d = JSON.parse(stored);
-            d.aiResults = G_daily.aiResults;
-            d.baseScore = G_daily.baseScore;
-            d.totalScore = G_daily.totalScore;
-            localStorage.setItem('alto_daily_' + key + '_' + LANG, JSON.stringify(d));
-          } catch(e) {}
-        }
+        // Also update localStorage — use string key to match JSON round-trip
+        try {
+          const lsKey = 'alto_daily_' + key + '_' + LANG;
+          const stored = localStorage.getItem(lsKey);
+          const d = stored ? JSON.parse(stored) : {};
+          if (!d.aiResults) d.aiResults = {};
+          d.aiResults[String(idx)] = newRes;
+          d.baseScore = G_daily.baseScore;
+          d.totalScore = G_daily.totalScore;
+          localStorage.setItem(lsKey, JSON.stringify(d));
+        } catch(e) {}
       }
       toast({ es:'¡Decisión revisada! +' + addedPts*10 + ' pts', en:'Decision overturned! +' + addedPts*10 + ' pts', fr:'Décision révisée ! +' + addedPts*10 + ' pts' }[LANG]);
       loadDailyLeaderboard(key); // refresh leaderboard
@@ -6156,7 +6156,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) upda
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260916.248</div>
+  <div style="font-size: 11px;opacity:0.5">v260916.249</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
