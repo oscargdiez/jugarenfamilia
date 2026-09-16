@@ -2939,8 +2939,8 @@ window.recontest = async (idx, word, cat) => {
     const langNames = {es:'Spanish',en:'English',fr:'French'};
     const gameLang = langNames[LANG] || 'Spanish';
     const letter = G_daily.letter || '';
-    const systemPrompt = `You are a strict and precise judge of a ${gameLang}-language word game. A previous judge ruled an answer INVALID. Only overturn if you are confident the answer is genuinely valid — do not give the benefit of the doubt. Rules: (1) Ignore accents and tildes. (2) The answer must start with the letter "${letter}". (3) It must clearly and unambiguously belong to the category. Reply with exactly one word: VALIDO, INVALIDO, or DUDOSO.`;
-    const prompt = `${gameLang}-language game. Letter: "${letter}". Category: "${cat}". Answer: "${word}". Previous judge said INVALIDO. Only reply VALIDO if you are certain. Reply with ONE word only: VALIDO, INVALIDO, or DUDOSO.`;
+    const systemPrompt = `You are a strict and precise judge of a ${gameLang}-language word game. A previous judge ruled an answer INVALID. Give the benefit of the doubt — if the answer could reasonably be valid, rule VALIDO. Rules: (1) Ignore accents and tildes. (2) The answer must start with the letter "${letter}". (3) It must clearly and unambiguously belong to the category. Reply with exactly one word: VALIDO, INVALIDO, or DUDOSO.`;
+    const prompt = `${gameLang}-language game. Letter: "${letter}". Category: "${cat}". Answer: "${word}". Previous judge said INVALIDO. Give the benefit of the doubt. Reply with ONE word only: VALIDO, INVALIDO, or DUDOSO.`;
 
     const parseVerdict = (data) => {
       const msg = data.choices?.[0]?.message || {};
@@ -2948,7 +2948,7 @@ window.recontest = async (idx, word, cat) => {
       const norm = raw.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z]/g, ' ').trim();
       if (/\binvalid(o)?\b/.test(norm)) return 'invalid';
       if (/\bvalid(o)?\b/.test(norm)) return 'valid';
-      return 'invalid'; // treat DUDOSO and anything ambiguous as invalid for recontest
+      return 'valid'; // treat DUDOSO and anything ambiguous as valid for recontest (benefit of the doubt)
     };
 
     const workerCall = (model) => fetch('https://api.oscar-g-diez.workers.dev/', {
@@ -2963,14 +2963,14 @@ window.recontest = async (idx, word, cat) => {
       })
     }).then(r => r.json());
 
-    // Three independent model calls — 2 of 3 must return valid to overturn
+    // Three independent model calls — 1 of 3 valid (or DUDOSO) is enough to overturn
     const [res1, res2, res3] = await Promise.all([
       workerCall('nvidia/nemotron-3-super-120b-a12b:free'),
       workerCall('inclusionai/ling-3.0-flash-fin:free'),
       workerCall('z-ai/glm-5.2:free'),
     ]);
     const votes = [res1, res2, res3].map(parseVerdict).filter(v => v === 'valid').length;
-    const newRes = votes >= 2 ? 'valid' : 'invalid';
+    const newRes = votes >= 1 ? 'valid' : 'invalid';
 
     // Update contest count in Firebase
     await set(ref(db, contestPath), used + 1).catch(() => {});
@@ -6152,7 +6152,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) upda
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260916.244</div>
+  <div style="font-size: 11px;opacity:0.5">v260916.245</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
