@@ -2126,7 +2126,7 @@ function mulberry32(seed) {
 
 // Category pool — 26 universal categories, translated in all 6 languages
 // DAILY_CONSENSUS: set true to use 2-model consensus + tiebreaker, false for single model
-// Switched ON: 2026-09-16 (v260916.249) -- was single model (ling only). Monitor Firebase for improvement in false positive rate (was 31% invalid overall, FR worst at 35%).
+// Switched ON: 2026-09-16 (v260916.250) -- was single model (ling only). Monitor Firebase for improvement in false positive rate (was 31% invalid overall, FR worst at 35%).
 const DAILY_CONSENSUS = true;
 
 const DAILY_CAT_DATA = {
@@ -2986,18 +2986,18 @@ window.recontest = async (idx, word, cat, currentVerdict) => {
       const aiIcon = { valid:'✅', unsure:'🤔' };
       const aiEl = document.getElementById('daily-ai-' + idx);
       const ptsEl = document.getElementById('daily-pts-' + idx);
-      const prevPts = currentVerdict === 'unsure' ? 50 : 0; // points already awarded before contest
-      const addedPts = (newRes === 'valid' ? 100 : 50) - prevPts; // delta only
+      // baseScore units: 10 per valid, 5 per unsure (display multiplies by 10)
+      const prevBase = currentVerdict === 'unsure' ? 5 : 0; // base units already awarded
+      const addedBase = (newRes === 'valid' ? 10 : 5) - prevBase; // base unit delta
+      const finalPtsDisplay = newRes === 'valid' ? 100 : 50; // display value (base * 10)
       if (aiEl) aiEl.textContent = aiIcon[newRes];
-      const finalPts = newRes === 'valid' ? 100 : 50;
-      if (ptsEl) { ptsEl.textContent = '+' + finalPts; ptsEl.style.display = ''; }
+      if (ptsEl) { ptsEl.textContent = '+' + finalPtsDisplay; ptsEl.style.display = ''; }
       btn.remove();
 
       // Update G_daily state
       G_daily.aiResults[idx] = newRes;
-      const oldTotal = G_daily.totalScore || 0;
-      G_daily.baseScore = (G_daily.baseScore || 0) + addedPts;
-      // Recalculate total with speed multiplier
+      G_daily.baseScore = (G_daily.baseScore || 0) + addedBase;
+      // Recalculate total with speed multiplier (multiplier is fixed at game time)
       const mult = G_daily.speedMultiplier || 1;
       G_daily.totalScore = Math.round(G_daily.baseScore * mult);
       const totalEl = document.getElementById('daily-total-score');
@@ -3028,7 +3028,7 @@ window.recontest = async (idx, word, cat, currentVerdict) => {
           localStorage.setItem(lsKey, JSON.stringify(d));
         } catch(e) {}
       }
-      toast({ es:'¡Decisión revisada! +' + addedPts*10 + ' pts', en:'Decision overturned! +' + addedPts*10 + ' pts', fr:'Décision révisée ! +' + addedPts*10 + ' pts' }[LANG]);
+      toast({ es:'¡Decisión revisada! +' + addedBase*10 + ' pts', en:'Decision overturned! +' + addedBase*10 + ' pts', fr:'Décision révisée ! +' + addedBase*10 + ' pts' }[LANG]);
       loadDailyLeaderboard(key); // refresh leaderboard
     }
 
@@ -6156,7 +6156,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) upda
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260916.249</div>
+  <div style="font-size: 11px;opacity:0.5">v260916.250</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
