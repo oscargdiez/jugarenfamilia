@@ -2126,7 +2126,7 @@ function mulberry32(seed) {
 
 // Category pool — 26 universal categories, translated in all 6 languages
 // DAILY_CONSENSUS: set true to use 2-model consensus + tiebreaker, false for single model
-// Switched ON: 2026-09-16 (v260916.246) -- was single model (ling only). Monitor Firebase for improvement in false positive rate (was 31% invalid overall, FR worst at 35%).
+// Switched ON: 2026-09-16 (v260916.248) -- was single model (ling only). Monitor Firebase for improvement in false positive rate (was 31% invalid overall, FR worst at 35%).
 const DAILY_CONSENSUS = true;
 
 const DAILY_CAT_DATA = {
@@ -2870,13 +2870,13 @@ async function showDailyResult(answers, baseScore, totalScore, aiResults, secsLe
     const word = answers[i] || '';
     const res = aiResults[i] || (word ? 'unsure' : 'empty');
     const base = (word && res === 'valid') ? 100 : (word && res === 'unsure') ? 50 : 0;
-    const canContest = isToday && res === 'invalid' && word && safeName;
+    const canContest = isToday && (res === 'invalid' || res === 'unsure') && word && safeName;
     return `<div class="daily-result-row" id="daily-row-${i}">
       <span class="daily-result-cat">${cat}</span>
       <span class="daily-result-word">${word || '<span style="opacity:0.4">—</span>'}</span>
       <span class="daily-result-ai" id="daily-ai-${i}">${aiIcon[res] || '🤔'}</span>
       ${base ? `<span class="daily-result-pts" id="daily-pts-${i}">+${base}</span>` : `<span class="daily-result-pts" id="daily-pts-${i}" style="display:none"></span>`}
-      ${canContest ? `<button class="daily-reconsider-btn" id="daily-reconsider-${i}" onclick="recontest(${i},'${word.replace(/'/g,"\\'")}',' ${cat}')">${{es:'¿Error?',en:'Error?',fr:'Erreur?'}[LANG]||'¿Error?'}</button>` : ''}
+      ${canContest ? `<button class="daily-reconsider-btn" id="daily-reconsider-${i}" onclick="recontest(${i},'${word.replace(/'/g,"\\'")}',' ${cat}','${res}')">${{es:'¿Error?',en:'Error?',fr:'Erreur?'}[LANG]||'¿Error?'}</button>` : ''}
       <span class="daily-result-orig" id="daily-orig-${i}"></span>
     </div>`;
   }).join('');
@@ -2915,8 +2915,8 @@ async function showDailyResult(answers, baseScore, totalScore, aiResults, secsLe
   }
 }
 
-// Contest an invalid Robot decision — second model call, max 2 per lang per day
-window.recontest = async (idx, word, cat) => {
+// Contest an invalid or unsure Robot decision — 3 models parallel, 1-of-3 valid enough to overturn, max 1 per lang per day
+window.recontest = async (idx, word, cat, currentVerdict) => {
   const btn = document.getElementById('daily-reconsider-' + idx);
   if (!btn || btn.disabled) return;
   const safeName = claimSafeName(document.getElementById('inp-name')?.value?.trim() || '');
@@ -2940,8 +2940,9 @@ window.recontest = async (idx, word, cat) => {
     const langNames = {es:'Spanish',en:'English',fr:'French'};
     const gameLang = langNames[LANG] || 'Spanish';
     const letter = G_daily.letter || '';
-    const systemPrompt = `You are a strict and precise judge of a ${gameLang}-language word game. A previous judge ruled an answer INVALID. Give the benefit of the doubt — if the answer could reasonably be valid, rule VALIDO. Rules: (1) Ignore accents and tildes. (2) The answer must start with the letter "${letter}". (3) It must clearly and unambiguously belong to the category. Reply with exactly one word: VALIDO, INVALIDO, or DUDOSO.`;
-    const prompt = `${gameLang}-language game. Letter: "${letter}". Category: "${cat}". Answer: "${word}". Previous judge said INVALIDO. Give the benefit of the doubt. Reply with ONE word only: VALIDO, INVALIDO, or DUDOSO.`;
+    const prevVerdict = currentVerdict === 'unsure' ? 'DUDOSO' : 'INVALIDO';
+    const systemPrompt = `You are a strict and precise judge of a ${gameLang}-language word game. A previous judge ruled an answer ${prevVerdict}. Give the benefit of the doubt — if the answer could reasonably be valid, rule VALIDO. Rules: (1) Ignore accents and tildes. (2) The answer must start with the letter "${letter}". (3) It must clearly and unambiguously belong to the category. Reply with exactly one word: VALIDO, INVALIDO, or DUDOSO.`;
+    const prompt = `${gameLang}-language game. Letter: "${letter}". Category: "${cat}". Answer: "${word}". Previous judge said ${prevVerdict}. Give the benefit of the doubt. Reply with ONE word only: VALIDO, INVALIDO, or DUDOSO.`;
 
     const parseVerdict = (data) => {
       const msg = data.choices?.[0]?.message || {};
@@ -2985,9 +2986,11 @@ window.recontest = async (idx, word, cat) => {
       const aiIcon = { valid:'✅', unsure:'🤔' };
       const aiEl = document.getElementById('daily-ai-' + idx);
       const ptsEl = document.getElementById('daily-pts-' + idx);
-      const addedPts = newRes === 'valid' ? 100 : 50;
+      const prevPts = currentVerdict === 'unsure' ? 50 : 0; // points already awarded before contest
+      const addedPts = (newRes === 'valid' ? 100 : 50) - prevPts; // delta only
       if (aiEl) aiEl.textContent = aiIcon[newRes];
-      if (ptsEl) { ptsEl.textContent = '+' + addedPts; ptsEl.style.display = ''; }
+      const finalPts = newRes === 'valid' ? 100 : 50;
+      if (ptsEl) { ptsEl.textContent = '+' + finalPts; ptsEl.style.display = ''; }
       btn.remove();
 
       // Update G_daily state
@@ -6153,7 +6156,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) upda
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260916.246</div>
+  <div style="font-size: 11px;opacity:0.5">v260916.248</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
