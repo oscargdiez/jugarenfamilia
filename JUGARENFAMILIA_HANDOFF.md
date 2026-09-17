@@ -619,3 +619,60 @@ After initial v252 deploy:
 - **v260916.254:** contest log written to Firebase (`names/{safeName}/contests/{date}/{lang}_log`), playerKey stored in Firebase played path (instead of `true`), fetchPlayedState preserves playerKey string, Step 2 fast path implemented (cross-device restore fetches score directly by playerKey, falls back to safeName scan for legacy)
 
 **Last version deployed: v260916.254**
+
+### Grammar-based categories (concept, flagged Sep 17)
+
+**Idea:** add grammar categories to the category pool — Verbo, Sustantivo, Adjetivo, Adverbio, Sustantivo abstracto, etc.
+
+**Why appealing:**
+- Grammar categories are more objective than semantic ones — "is this a verb?" is a cleaner AI validation question than "is this a monument?"
+- Fewer false negatives/positives expected
+- Adds variety and difficulty to the game
+
+**Key design constraint:** category viability varies by letter. Some work for almost any letter (Verbo, Sustantivo), others would be very hard for certain letters (Adverbio con F in French, for example). Category definitions would need to specify which letters they're valid for — similar to how DAILY_CAT_DATA already has per-language letter validity strings.
+
+**Before building:** need to design the full list of grammar categories and map out letter validity per language (ES/EN/FR) carefully. This is a design task before a coding task.
+
+**Likely approach:** mixed mode — grammar categories as occasional entries in the existing pool rather than a grammar-only mode, so they appear alongside semantic categories like Animal or Ciudad.
+
+### Session 18 — further deploys (Sep 17, continued)
+
+**v260916.255:** cap `secsLeft = Math.max(0, G_daily.secsRemaining)` at submit time — prevents sub-1.0 speed multiplier from JavaScript `setInterval` timer jitter (confirmed by historical ×0.97 score). Timer jitter can cause `secsRemaining` to go negative on slow/busy devices.
+
+**v260916.256:** speed multiplier display now reads `entry.speedMultiplier` / `G_daily.speedMultiplier` directly in all 4 places (leaderboard `speedTag`, `computeAndUpdateOriginality` speed text, share result text, result screen). Previously all derived from `totalScore / baseScore` ratio which was wrong (totalScore includes originality, making ratio inflated). Legacy fallback to ratio derivation kept for entries without `speedMultiplier` field.
+
+**Root cause of Sylvie's ×1.25 display:** she never presses Alto (timer runs out, `secsLeft=0`, `speedMultiplier=1.0` stored correctly in Firebase), but leaderboard was deriving 1.25 from `totalScore/baseScore`. Fixed in v256 — now shows no speed badge (correct).
+
+**Last version deployed this session: v260916.256**
+
+### Known issue — speed multiplier positive drift (unresolved)
+Some players consistently get speed multipliers of 1.17, 1.20 etc without pressing Alto. Timer jitter on busy devices can cause `setInterval` to fire late or skip ticks. The negative case (sub-1.0) is now fixed. The positive drift case (multiplier slightly above 1.0 without pressing Alto) is not yet explained or fixed — likely same root cause (interval imprecision) but in the other direction. Flagged for future investigation.
+
+### Session 18 — further deploys (Sep 17, continued again)
+
+**v260916.257:** `computeAndUpdateOriginality` — read `aiResults` from Firebase (`myData.aiResults`) not in-memory (`G_daily.aiResults`), so manual Firebase corrections reflect in originality recompute.
+
+**v260916.258:** `computeAndUpdateOriginality` — fix string key access for `answers` and `aiResults` (Firebase returns string keys after JSON round-trip, e.g. `"0"`, `"1"`); use `myData.totalScore` from Firebase instead of `G_daily.totalScore` from memory for `totalWithOrig` calculation; fix other players' answers key access too.
+
+**v260916.259:** `computeAndUpdateOriginality` — now fires for any lang the player has played in (`_playedLangs[lbLang]`), not just when `lbLang === LANG` (UI language). `lbLang` passed through function signature and used in Firebase write path. Fixed in both `loadDailyLeaderboard` and `actualizar` call sites.
+
+**Last version deployed this session: v260916.259**
+
+---
+
+### KNOWN ISSUE — Originality recompute is per-viewer, not global (next session priority)
+
+**Problem:** `computeAndUpdateOriginality` only recomputes originality for the current viewer's own entry. Other players' originality badges in the leaderboard come from whatever was last written to their Firebase entry. This means:
+- If Player A and Player B both answer "Ferrari", Player A's +50✨ only disappears when Player A themselves loads the leaderboard
+- Other viewers see stale originality badges for players who haven't loaded the page yet
+- The leaderboard is never globally consistent
+
+**Correct fix:** rewrite `computeAndUpdateOriginality` to compute originality for ALL players at once on every leaderboard load, update all Firebase entries, and re-render. The function already has `allScores` — it just needs to loop over every player instead of finding `myEntry` only.
+
+**Approach:**
+1. For each player entry in `allScores`, compute their originality by comparing their valid answers against all other players
+2. Batch-update Firebase for any entries where originality changed
+3. Re-render leaderboard once with updated values
+4. Remove the `myEntry` / `mySafeName` matching logic — process everyone
+
+**Risk:** MEDIUM. More Firebase writes per leaderboard load (one update per player whose originality changed). At current scale (5-10 players/day) this is fine. Add a guard to skip if no originality values changed.
