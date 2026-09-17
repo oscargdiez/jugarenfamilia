@@ -3278,11 +3278,12 @@ async function computeAndUpdateOriginality(allScores, key) {
   const uniqueIndices = [];
 
   G_daily.categories.forEach((cat, i) => {
-    const myAnswer = normalize(myData.answers[i] || '');
-    if (!myAnswer || (myData.aiResults?.[i] || myData.aiResults?.[String(i)]) !== 'valid') return;
+    const myAnswer = normalize(myData.answers[i] || myData.answers[String(i)] || '');
+    const myVerdict = myData.aiResults?.[i] || myData.aiResults?.[String(i)];
+    if (!myAnswer || myVerdict !== 'valid') return;
     // Check if any other player gave the same answer for this category
     const isUnique = !otherEntries.some(e => {
-      const theirAnswer = normalize(e.answers?.[i] || '');
+      const theirAnswer = normalize(e.answers?.[i] || e.answers?.[String(i)] || '');
       return theirAnswer === myAnswer;
     });
     if (isUnique) {
@@ -3295,9 +3296,10 @@ async function computeAndUpdateOriginality(allScores, key) {
   });
 
   // Save to G_daily so reapplyOriginality() can use it on lang switch
+  const myBaseTotal = myData.totalScore || G_daily.totalScore || 0;
   G_daily.originality = originality;
   G_daily.uniqueIndices = uniqueIndices;
-  G_daily.totalWithOrig = G_daily.totalScore + originality;
+  G_daily.totalWithOrig = myBaseTotal + originality;
   // Update total score display
   const newTotal = G_daily.totalWithOrig;
   const totalEl = document.getElementById('daily-total-score');
@@ -6204,7 +6206,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) upda
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260916.257</div>
+  <div style="font-size: 11px;opacity:0.5">v260916.258</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
