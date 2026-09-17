@@ -2362,31 +2362,46 @@ window.startDailyChallenge = async function() {
   // If already played in this lang on any device, retrieve and show their score from Firebase.
   if (!_debugMode && _playedLangs[LANG]) {
     try {
-      const safeName = claimSafeName(_playerNameRaw);
-      const scoresSnap = await get(ref(db, 'daily/' + key + '/' + LANG + '/scores'));
-      if (scoresSnap.exists()) {
-        const allScores = scoresSnap.val();
-        const entry = Object.values(allScores).find(e =>
-          (e.safeName && e.safeName === safeName) ||
-          (!e.safeName && e.name && claimSafeName(e.name) === safeName)
-        );
-        if (entry) {
-          G_daily.displayName = entry.name || (_playerNameRaw + ' 🎲');
-          const _setup = getDailySetup();
-          G_daily.letter = _setup.letter;
-          G_daily.key = key;
-          G_daily.categories = getDailyCatNames(_setup.categories);
-          G_daily.theme = _setup.theme || null;
-          showDailyResult(
-            entry.answers || {},
-            entry.baseScore || entry.score || 0,
-            entry.totalScore || entry.score || 0,
-            entry.aiResults || {},
-            0,
-            entry.speedMultiplier || (entry.totalScore && entry.baseScore ? entry.totalScore / entry.baseScore : 1) || 1
-          );
-          return;
+      const _setup = getDailySetup();
+      G_daily.letter = _setup.letter;
+      G_daily.key = key;
+      G_daily.categories = getDailyCatNames(_setup.categories);
+      G_daily.theme = _setup.theme || null;
+      // _playedLangs[LANG] is playerKey (string) for new submits, or true for legacy
+      const storedPlayerKey = typeof _playedLangs[LANG] === 'string' ? _playedLangs[LANG] : null;
+      let entry = null;
+      if (storedPlayerKey) {
+        // Fast path: fetch score directly by playerKey
+        const scoreSnap = await get(ref(db, 'daily/' + key + '/' + LANG + '/scores/' + storedPlayerKey)).catch(() => null);
+        if (scoreSnap && scoreSnap.exists()) {
+          entry = scoreSnap.val();
+          G_daily.playerKey = storedPlayerKey;
         }
+      }
+      if (!entry) {
+        // Fallback: scan all scores by safeName (legacy or playerKey fetch failed)
+        const safeName = claimSafeName(_playerNameRaw);
+        const scoresSnap = await get(ref(db, 'daily/' + key + '/' + LANG + '/scores')).catch(() => null);
+        if (scoresSnap && scoresSnap.exists()) {
+          const allScores = scoresSnap.val();
+          const found = Object.entries(allScores).find(([k, e]) =>
+            (e.safeName && e.safeName === safeName) ||
+            (!e.safeName && e.name && claimSafeName(e.name) === safeName)
+          );
+          if (found) { entry = found[1]; G_daily.playerKey = found[0]; }
+        }
+      }
+      if (entry) {
+        G_daily.displayName = entry.name || (_playerNameRaw + ' 🎲');
+        showDailyResult(
+          entry.answers || {},
+          entry.baseScore || entry.score || 0,
+          entry.totalScore || entry.score || 0,
+          entry.aiResults || {},
+          0,
+          entry.speedMultiplier || (entry.totalScore && entry.baseScore ? entry.totalScore / entry.baseScore : 1) || 1
+        );
+        return;
       }
     } catch(e) { /* score retrieval failed — fall through */ }
     const alreadyPlayedMsg = { es: 'Ya jugaste hoy con este nombre', en: 'You already played today with this name', fr: 'Tu as déjà joué aujourd\'hui avec ce nom' };
@@ -2758,7 +2773,7 @@ window.dailySubmit = async function(fromTimer = false) {
     if (safeNameIdx) await set(ref(db, 'daily/' + G_daily.key + '/' + LANG + '/players/' + safeNameIdx), true);
     // Write played state to names path — cross-device source of truth
     if (safeNameIdx) {
-      await set(ref(db, 'names/' + safeNameIdx + '/played/' + G_daily.key + '/' + LANG), true).catch(() => {});
+      await set(ref(db, 'names/' + safeNameIdx + '/played/' + G_daily.key + '/' + LANG), playerKey).catch(() => {});
       _playedLangs[LANG] = true; // update in-memory cache immediately
     }
     } // end !_isTestMode
@@ -2975,6 +2990,17 @@ window.recontest = async (idx, word, cat) => {
 
     // Update contest count in Firebase
     await set(ref(db, contestPath), used + 1).catch(() => {});
+    // Log contest outcome for AI tuning analysis
+    await set(ref(db, contestPath + '_log'), {
+      idx: String(idx),
+      category: cat,
+      letter: G_daily.letter || '',
+      word,
+      originalVerdict: 'invalid',
+      newVerdict: newRes,
+      votes,
+      timestamp: Date.now()
+    }).catch(() => {});
 
     if (newRes === 'invalid') {
       // Confirmed invalid — remove button, toast is enough
@@ -3604,7 +3630,8 @@ async function fetchPlayedState(safeName) {
     const backfillWrites = {};
     for (const l of langs) {
       if (playedVal[l]) {
-        _playedLangs[l] = true;
+        // Store playerKey string if available (new format), else true (legacy)
+        _playedLangs[l] = typeof playedVal[l] === 'string' ? playedVal[l] : true;
       } else {
         // Backfill: check legacy players/ index for today's plays before new path existed
         const legacySnap = await get(ref(db, 'daily/' + key + '/' + l + '/players/' + safeName));
@@ -6177,7 +6204,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) upda
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260916.253</div>
+  <div style="font-size: 11px;opacity:0.5">v260916.254</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
