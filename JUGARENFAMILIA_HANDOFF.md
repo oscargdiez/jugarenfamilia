@@ -660,19 +660,47 @@ Some players consistently get speed multipliers of 1.17, 1.20 etc without pressi
 
 ---
 
-### KNOWN ISSUE — Originality recompute is per-viewer, not global (next session priority)
+### KNOWN ISSUE — Originality recompute is per-viewer, not global ✅ FIXED SESSION 19
 
-**Problem:** `computeAndUpdateOriginality` only recomputes originality for the current viewer's own entry. Other players' originality badges in the leaderboard come from whatever was last written to their Firebase entry. This means:
-- If Player A and Player B both answer "Ferrari", Player A's +50✨ only disappears when Player A themselves loads the leaderboard
-- Other viewers see stale originality badges for players who haven't loaded the page yet
-- The leaderboard is never globally consistent
+---
 
-**Correct fix:** rewrite `computeAndUpdateOriginality` to compute originality for ALL players at once on every leaderboard load, update all Firebase entries, and re-render. The function already has `allScores` — it just needs to loop over every player instead of finding `myEntry` only.
+### Session 19 (Sep 17)
 
-**Approach:**
-1. For each player entry in `allScores`, compute their originality by comparing their valid answers against all other players
-2. Batch-update Firebase for any entries where originality changed
-3. Re-render leaderboard once with updated values
-4. Remove the `myEntry` / `mySafeName` matching logic — process everyone
+**Global originality recompute — full rewrite of `computeAndUpdateOriginality`:**
 
-**Risk:** MEDIUM. More Firebase writes per leaderboard load (one update per player whose originality changed). At current scale (5-10 players/day) this is fine. Add a guard to skip if no originality values changed.
+- `computeUniqueness()` extracted from inside `renderLeaderboard` to module scope — pure function, shared by both `renderLeaderboard` and `computeAndUpdateOriginality`
+- `computeAndUpdateOriginality` now loops ALL players in `allScores`, not just the viewer's own entry
+- Firebase updates batched in parallel (`Promise.all`) — only writes `{ originality }`, never `totalScore`
+- After writes: mutates `allScores` in memory with corrected values, calls `renderLeaderboard(allScores, false)` — no re-fetch (avoids partial snapshot risk)
+- Viewer's own result screen (`G_daily.*`, `reapplyOriginality()`) still updated as before
+- Guard: if no entries need updating, returns early — no writes, no re-render
+
+**`totalScore` contamination fix:**
+- Old code wrote `totalScore: baseScore*speed + originality` to Firebase in `computeAndUpdateOriginality` — this skewed the leaderboard sort and inflated the speed multiplier fallback ratio
+- New code never writes `totalScore` from this function — `totalScore` in Firebase is always pure `baseScore × speedMultiplier` from now on
+- Today's entries (Sep 17) may still show contaminated scores in the leaderboard — pre-existing data, self-heals from tomorrow
+
+**Score display fix — `showDailyResult` recompute:**
+- `baseScore` and `totalScore` are now recomputed from `aiResults` at the start of `showDailyResult` — never trusted from localStorage/Firebase which can be stale after a recontest
+- `G_daily.speedMultiplier` is the only value trusted from storage (cannot be derived)
+- Fixes the `300 × 1.08 → 370` mismatch caused by localStorage `totalScore` getting out of sync with `aiResults` after a recontest
+
+**Originality badge guard:**
+- `+50✨` badge on result screen only shown if `G_daily.aiResults[i] === 'valid'` (what the screen actually shows)
+- Same guard added to `reapplyOriginality()` for lang-switch path
+- Prevents badge appearing on an answer shown as ❌ when Firebase aiResults diverges from localStorage (e.g. after a recontest that changed Firebase but the screen reloaded from localStorage)
+
+**Speed line format cleanup:**
+- Removed intermediate total from speed breakdown line in all 3 places
+- Before: `base 300 pts ×1.08⚡→ 370 pts +100 originalidad✨`
+- After: `base 300 pts ×1.08⚡ +100 originalidad✨`
+- Fits better on iPhone, less redundant with the header total
+
+**`myBaseTotal` fix in `computeAndUpdateOriginality`:**
+- Now prefers `G_daily.totalScore` (in-memory, from recomputed `showDailyResult`) over `myData.totalScore` (Firebase, potentially contaminated by old code)
+- Prevents double-counting originality in the header total for players whose Firebase `totalScore` was already inflated
+
+**Last version deployed: v260917.265**
+
+### Known issue — same-device reload reads from localStorage not Firebase (backlog)
+`startDailyChallenge` hits localStorage first if `stored` exists on this device — Firebase is only read on the cross-device path. So a recontest overturn on Device 2 won't be reflected when the player reloads on Device 1 (they see the old localStorage result). The `showDailyResult` recompute fix (Session 19) makes the display consistent with whatever `aiResults` is in localStorage — but if localStorage `aiResults` itself is stale, the score will still be wrong. Full fix: same-device reload should read from Firebase. Flagged in Session 15 backlog, still not built.
