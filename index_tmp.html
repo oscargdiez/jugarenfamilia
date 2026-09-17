@@ -3282,8 +3282,12 @@ async function computeAndUpdateOriginality(allScores, key, lbLang) {
     // uniqueIndices must be numeric (used by shareDailyResult with Array.includes(numericIdx))
     const uniqueIndices = Object.entries(myUnique).filter(([,v]) => v).map(([k]) => parseInt(k, 10));
     const originality = uniqueIndices.length * 5;
-    // Update per-answer badges on result screen
+    // Update per-answer badges on result screen — only if answer shows as valid on screen
+    // (G_daily.aiResults is in-memory/localStorage; myUnique comes from Firebase — they can diverge
+    // if a recontest changed Firebase but localStorage wasn't updated, or vice versa)
     uniqueIndices.forEach(i => {
+      const screenVerdict = G_daily.aiResults[String(i)] || G_daily.aiResults[i];
+      if (screenVerdict !== 'valid') return;
       const origEl = document.getElementById('daily-orig-' + i);
       if (origEl) origEl.textContent = '+50✨';
     });
@@ -6212,7 +6216,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) upda
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260917.260-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v260917.261-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
