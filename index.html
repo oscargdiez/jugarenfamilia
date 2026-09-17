@@ -3103,7 +3103,7 @@ async function loadDailyLeaderboard(key, lbLang, hideAnswers) {
     if (!snap.exists()) { lbEl.innerHTML = `<div style="text-align:center;opacity:0.5;font-size:13px">${l.noResults}</div>`; return; }
     const allScores = snap.val();
     renderLeaderboard(allScores, hideAnswers);
-    if (lbLang === LANG) computeAndUpdateOriginality(allScores, key);
+    if (lbLang === LANG || _playedLangs[lbLang]) computeAndUpdateOriginality(allScores, key, lbLang);
   } catch(e) {
     console.warn('Leaderboard load failed:', e);
     lbEl.innerHTML = `<div style="text-align:center;opacity:0.5;font-size:13px">${l.errorLb}</div>`;
@@ -3258,7 +3258,8 @@ function reapplyOriginality() {
   }
 }
 
-async function computeAndUpdateOriginality(allScores, key) {
+async function computeAndUpdateOriginality(allScores, key, lbLang) {
+  lbLang = lbLang || LANG;
   // For each of my valid answers, check if it's unique among all players
   const myName = G_daily.displayName || ((G.playerName || '') + ' ' + (G.playerEmoji || ''));
   const mySafeName = claimSafeName(G.playerName || document.getElementById('inp-name')?.value?.trim() || '');
@@ -3310,7 +3311,7 @@ async function computeAndUpdateOriginality(allScores, key) {
   // Update Firebase if originality changed
   if (originality !== (myData.originality || 0)) {
     try {
-      await update(ref(db, 'daily/' + key + '/' + LANG + '/scores/' + myKey), {
+      await update(ref(db, 'daily/' + key + '/' + lbLang + '/scores/' + myKey), {
         originality, totalScore: newTotal
       });
       // Note: do NOT re-fetch and re-render here — caller already has the full list rendered.
@@ -3481,7 +3482,7 @@ window.refreshDailyOriginality = async function() {
     const snap = await get(ref(db, 'daily/' + key + '/' + activeLang + '/scores'));
     if (snap.exists()) {
       renderLeaderboard(snap.val());
-      if (!_lbDate) await computeAndUpdateOriginality(snap.val(), key);
+      if (!_lbDate) await computeAndUpdateOriginality(snap.val(), key, activeLang);
     }
   } catch(e) { console.warn('Refresh failed:', e); }
   const _dlRefresh = dl();
@@ -6206,7 +6207,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) upda
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260916.258</div>
+  <div style="font-size: 11px;opacity:0.5">v260916.259</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
