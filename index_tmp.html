@@ -3241,9 +3241,11 @@ window.toggleDailyAnswers = function(idx) {
 function reapplyOriginality() {
   if (!G_daily.originality || G_daily.originality <= 0) return;
   const originality = G_daily.originality;
-  // Re-apply per-answer badges for unique answers only
+  // Re-apply per-answer badges for unique answers only — guard against Firebase/localStorage divergence
   const _uniqueIdx = G_daily.uniqueIndices || [];
   _uniqueIdx.forEach(i => {
+    const screenVerdict = G_daily.aiResults[String(i)] || G_daily.aiResults[i];
+    if (screenVerdict !== 'valid') return;
     const origEl = document.getElementById('daily-orig-' + i);
     if (origEl) origEl.textContent = '+50✨';
   });
@@ -3292,7 +3294,7 @@ async function computeAndUpdateOriginality(allScores, key, lbLang) {
       if (origEl) origEl.textContent = '+50✨';
     });
     // Save to G_daily so reapplyOriginality() works on lang switch
-    const myBaseTotal = myData.totalScore || G_daily.totalScore || 0;
+    const myBaseTotal = G_daily.totalScore || myData.totalScore || 0; // prefer in-memory (localStorage) over Firebase to avoid contaminated totalScore
     G_daily.originality = originality;
     G_daily.uniqueIndices = uniqueIndices;
     G_daily.totalWithOrig = myBaseTotal + originality;
@@ -6216,7 +6218,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) upda
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260917.261-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v260917.262-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
