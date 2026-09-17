@@ -2915,7 +2915,7 @@ async function showDailyResult(answers, baseScore, totalScore, aiResults, secsLe
   const mult = recomputedMult.toFixed(2);
   const _dl = dl();
   list.innerHTML += `<div id="daily-speed-summary" style="text-align:right;font-family:'Special Elite',monospace;font-size:11px;color:var(--ink-muted);padding-top:6px">
-    <span id="daily-speed-text">${_dl.baseLabel} ${baseScore*10} pts ×${mult}⚡→ <strong>${totalScore*10} pts</strong></span>
+    <span id="daily-speed-text">${_dl.baseLabel} ${baseScore*10} pts ×${mult}⚡</span>
   </div>`;
 
   // Total score
@@ -3089,7 +3089,7 @@ window.recontest = async (idx, word, cat) => {
       if (totalEl) totalEl.textContent = (G_daily.totalScore * 10) + ' pts';
       const speedEl = document.getElementById('daily-speed-text');
       const _dl2 = dl();
-      if (speedEl) speedEl.innerHTML = `${_dl2.baseLabel} ${G_daily.baseScore*10} pts ×${mult.toFixed(2)}⚡→ <strong>${G_daily.totalScore*10} pts</strong>`;
+      if (speedEl) speedEl.innerHTML = `${_dl2.baseLabel} ${G_daily.baseScore*10} pts ×${mult.toFixed(2)}⚡`;
 
       toast({ es:'¡Decisión revisada! +' + toastPts + ' pts', en:'Decision overturned! +' + toastPts + ' pts', fr:'Décision révisée ! +' + toastPts + ' pts' }[LANG]);
       loadDailyLeaderboard(key); // refresh leaderboard
@@ -3274,7 +3274,7 @@ function reapplyOriginality() {
   if (speedTextEl) {
     const _dlr = dl();
     const mult = G_daily.speedMultiplier ? G_daily.speedMultiplier.toFixed(2) : (G_daily.totalScore && G_daily.baseScore ? (G_daily.totalScore / G_daily.baseScore).toFixed(2) : '1.00');
-    speedTextEl.innerHTML = `${_dlr.baseLabel} ${G_daily.baseScore*10} pts ×${mult}⚡→ <strong>${G_daily.totalScore*10} pts</strong> +${originality*10} ${_dlr.origLabel}✨`;
+    speedTextEl.innerHTML = `${_dlr.baseLabel} ${G_daily.baseScore*10} pts ×${mult}⚡ +${originality*10} ${_dlr.origLabel}✨`;
   }
 }
 
@@ -6234,7 +6234,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) upda
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260917.263-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v260917.264-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
