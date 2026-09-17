@@ -2870,12 +2870,28 @@ async function showDailyResult(answers, baseScore, totalScore, aiResults, secsLe
   const cats = G_daily.practiceMode ? G_daily.categories : getDailyCatNames(getDailySetup().categories);
   const aiIcon = { valid:'✅', invalid:'❌', unsure:'🤔', empty:'—' };
 
+  // Recompute baseScore and totalScore from aiResults — never trust stored values
+  // (localStorage/Firebase can be stale if a recontest changed verdicts inconsistently)
+  let recomputedValid = 0, recomputedUnsure = 0;
+  Object.keys(aiResults).forEach(i => {
+    const res = aiResults[i];
+    const word = answers[i] || answers[Number(i)] || '';
+    if (!word) return;
+    if (res === 'valid') recomputedValid++;
+    else if (res === 'unsure') recomputedUnsure++;
+  });
+  const recomputedBase = (recomputedValid * 10) + (recomputedUnsure * 5);
+  const recomputedMult = speedMultiplier || 1;
+  const recomputedTotal = Math.round(recomputedBase * recomputedMult);
+  baseScore = recomputedBase;
+  totalScore = recomputedTotal;
+
   // Store for originality recompute
   G_daily.answers = answers;
   G_daily.aiResults = aiResults;
   G_daily.baseScore = baseScore;
   G_daily.totalScore = totalScore;
-  G_daily.speedMultiplier = speedMultiplier || 1;
+  G_daily.speedMultiplier = recomputedMult;
 
   const isToday = !G_daily.practiceMode && (_lbDate === null || _lbDate === getDailyKey());
   const safeName = claimSafeName(document.getElementById('inp-name')?.value?.trim() || '');
@@ -2896,10 +2912,10 @@ async function showDailyResult(answers, baseScore, totalScore, aiResults, secsLe
   }).join('');
 
   // Speed summary + share button on same line
-  const mult = speedMultiplier ? speedMultiplier.toFixed(2) : '1.00';
+  const mult = recomputedMult.toFixed(2);
   const _dl = dl();
   list.innerHTML += `<div id="daily-speed-summary" style="text-align:right;font-family:'Special Elite',monospace;font-size:11px;color:var(--ink-muted);padding-top:6px">
-    <span id="daily-speed-text">${_dl.baseLabel} ${baseScore*10} pts ×${mult}⚡→ <strong>${totalScore*10} pts</strong></span>
+    <span id="daily-speed-text">${_dl.baseLabel} ${baseScore*10} pts ×${mult}⚡</span>
   </div>`;
 
   // Total score
@@ -3073,7 +3089,7 @@ window.recontest = async (idx, word, cat) => {
       if (totalEl) totalEl.textContent = (G_daily.totalScore * 10) + ' pts';
       const speedEl = document.getElementById('daily-speed-text');
       const _dl2 = dl();
-      if (speedEl) speedEl.innerHTML = `${_dl2.baseLabel} ${G_daily.baseScore*10} pts ×${mult.toFixed(2)}⚡→ <strong>${G_daily.totalScore*10} pts</strong>`;
+      if (speedEl) speedEl.innerHTML = `${_dl2.baseLabel} ${G_daily.baseScore*10} pts ×${mult.toFixed(2)}⚡`;
 
       toast({ es:'¡Decisión revisada! +' + toastPts + ' pts', en:'Decision overturned! +' + toastPts + ' pts', fr:'Décision révisée ! +' + toastPts + ' pts' }[LANG]);
       loadDailyLeaderboard(key); // refresh leaderboard
@@ -3110,6 +3126,38 @@ async function loadDailyLeaderboard(key, lbLang, hideAnswers) {
   }
 }
 
+// Compute uniqueness map for all entries — keyed by e.name, per slot boolean.
+// Pure function, no side effects. Used by renderLeaderboard and computeAndUpdateOriginality.
+function computeUniqueness(allEntries) {
+  // For each category slot, collect all valid answers (normalised)
+  const answerSets = {};
+  allEntries.forEach(e => {
+    if (!e.answers) return;
+    Object.keys(e.answers).forEach(i => {
+      const val = normalize(e.answers[i] || '');
+      const ai = e.aiResults ? e.aiResults[i] : null;
+      if (val && ai === 'valid') {
+        if (!answerSets[i]) answerSets[i] = [];
+        answerSets[i].push(val);
+      }
+    });
+  });
+  // An answer is unique if it appears exactly once across all players
+  const unique = {};
+  allEntries.forEach(e => {
+    if (!e.answers) return;
+    unique[e.name] = {};
+    Object.keys(e.answers).forEach(i => {
+      const val = normalize(e.answers[i] || '');
+      const ai = e.aiResults ? e.aiResults[i] : null;
+      if (val && ai === 'valid') {
+        unique[e.name][i] = (answerSets[i] || []).filter(v => v === val).length === 1;
+      }
+    });
+  });
+  return unique;
+}
+
 function renderLeaderboard(allScores, hideAnswers) {
   const lbEl = document.getElementById('daily-lb-list');
   if (!lbEl) return;
@@ -3139,36 +3187,6 @@ function renderLeaderboard(allScores, hideAnswers) {
     if (!e.baseScore || !e.totalScore || e.baseScore === e.totalScore) return '';
     const mult = e.speedMultiplier ? e.speedMultiplier.toFixed(2) : (e.totalScore / e.baseScore).toFixed(2);
     return `<span class="daily-lb-speed">⚡×${mult}</span>`;
-  }
-  // Pre-compute unique answers across all entries (for originality badges)
-  function computeUniqueness(allEntries) {
-    // For each category slot, collect all valid answers (normalised)
-    const answerSets = {};
-    allEntries.forEach(e => {
-      if (!e.answers) return;
-      Object.keys(e.answers).forEach(i => {
-        const val = normalize(e.answers[i] || '');
-        const ai = e.aiResults ? e.aiResults[i] : null;
-        if (val && ai === 'valid') {
-          if (!answerSets[i]) answerSets[i] = [];
-          answerSets[i].push(val);
-        }
-      });
-    });
-    // An answer is unique if it appears exactly once across all players
-    const unique = {};
-    allEntries.forEach(e => {
-      if (!e.answers) return;
-      unique[e.name] = {};
-      Object.keys(e.answers).forEach(i => {
-        const val = normalize(e.answers[i] || '');
-        const ai = e.aiResults ? e.aiResults[i] : null;
-        if (val && ai === 'valid') {
-          unique[e.name][i] = (answerSets[i] || []).filter(v => v === val).length === 1;
-        }
-      });
-    });
-    return unique;
   }
 
   const uniqueness = computeUniqueness(entries);
@@ -3239,9 +3257,11 @@ window.toggleDailyAnswers = function(idx) {
 function reapplyOriginality() {
   if (!G_daily.originality || G_daily.originality <= 0) return;
   const originality = G_daily.originality;
-  // Re-apply per-answer badges for unique answers only
+  // Re-apply per-answer badges for unique answers only — guard against Firebase/localStorage divergence
   const _uniqueIdx = G_daily.uniqueIndices || [];
   _uniqueIdx.forEach(i => {
+    const screenVerdict = G_daily.aiResults[String(i)] || G_daily.aiResults[i];
+    if (screenVerdict !== 'valid') return;
     const origEl = document.getElementById('daily-orig-' + i);
     if (origEl) origEl.textContent = '+50✨';
   });
@@ -3254,70 +3274,77 @@ function reapplyOriginality() {
   if (speedTextEl) {
     const _dlr = dl();
     const mult = G_daily.speedMultiplier ? G_daily.speedMultiplier.toFixed(2) : (G_daily.totalScore && G_daily.baseScore ? (G_daily.totalScore / G_daily.baseScore).toFixed(2) : '1.00');
-    speedTextEl.innerHTML = `${_dlr.baseLabel} ${G_daily.baseScore*10} pts ×${mult}⚡→ <strong>${G_daily.totalScore*10} pts</strong> +${originality*10} ${_dlr.origLabel}✨`;
+    speedTextEl.innerHTML = `${_dlr.baseLabel} ${G_daily.baseScore*10} pts ×${mult}⚡ +${originality*10} ${_dlr.origLabel}✨`;
   }
 }
 
 async function computeAndUpdateOriginality(allScores, key, lbLang) {
   lbLang = lbLang || LANG;
-  // For each of my valid answers, check if it's unique among all players
+
+  // Build filtered entries array (same filter as renderLeaderboard)
+  const entries = Object.values(allScores).filter(e => e && e.name);
+
+  // Compute uniqueness for every player from the snapshot
+  const uniqueness = computeUniqueness(entries);
+
+  // --- Update G_daily for the current viewer (for result screen badges + reapplyOriginality) ---
   const myName = G_daily.displayName || ((G.playerName || '') + ' ' + (G.playerEmoji || ''));
   const mySafeName = claimSafeName(G.playerName || document.getElementById('inp-name')?.value?.trim() || '');
-  // Match by safeName first (emoji-independent), fall back to exact name match for old entries
   const myEntry = Object.entries(allScores).find(([k,v]) =>
     (mySafeName && v.safeName && v.safeName === mySafeName) ||
     (v.name && v.name.trim() === myName.trim())
   );
-  if (!myEntry) return;
-  const [myKey, myData] = myEntry;
-  if (!myData.answers) return;
-
-  const otherEntries = Object.values(allScores).filter(e =>
-    (mySafeName && e.safeName) ? e.safeName !== mySafeName : (e.name && e.name.trim() !== myName.trim())
-  );
-  let originality = 0;
-  const uniqueIndices = [];
-
-  G_daily.categories.forEach((cat, i) => {
-    const myAnswer = normalize(myData.answers[i] || myData.answers[String(i)] || '');
-    const myVerdict = myData.aiResults?.[i] || myData.aiResults?.[String(i)];
-    if (!myAnswer || myVerdict !== 'valid') return;
-    // Check if any other player gave the same answer for this category
-    const isUnique = !otherEntries.some(e => {
-      const theirAnswer = normalize(e.answers?.[i] || e.answers?.[String(i)] || '');
-      return theirAnswer === myAnswer;
-    });
-    if (isUnique) {
-      originality += 5;
-      uniqueIndices.push(i);
-      // Update UI badge on answer row
+  if (myEntry) {
+    const [, myData] = myEntry;
+    const myUnique = uniqueness[myData.name] || {};
+    // uniqueIndices must be numeric (used by shareDailyResult with Array.includes(numericIdx))
+    const uniqueIndices = Object.entries(myUnique).filter(([,v]) => v).map(([k]) => parseInt(k, 10));
+    const originality = uniqueIndices.length * 5;
+    // Update per-answer badges on result screen — only if answer shows as valid on screen
+    // (G_daily.aiResults is in-memory/localStorage; myUnique comes from Firebase — they can diverge
+    // if a recontest changed Firebase but localStorage wasn't updated, or vice versa)
+    uniqueIndices.forEach(i => {
+      const screenVerdict = G_daily.aiResults[String(i)] || G_daily.aiResults[i];
+      if (screenVerdict !== 'valid') return;
       const origEl = document.getElementById('daily-orig-' + i);
       if (origEl) origEl.textContent = '+50✨';
+    });
+    // Save to G_daily so reapplyOriginality() works on lang switch
+    const myBaseTotal = G_daily.totalScore || myData.totalScore || 0; // prefer in-memory (localStorage) over Firebase to avoid contaminated totalScore
+    G_daily.originality = originality;
+    G_daily.uniqueIndices = uniqueIndices;
+    G_daily.totalWithOrig = myBaseTotal + originality;
+    // Update total score display and speed breakdown on result screen
+    const totalEl = document.getElementById('daily-total-score');
+    if (totalEl) totalEl.textContent = (G_daily.totalWithOrig * 10) + ' pts';
+    reapplyOriginality();
+  }
+
+  // --- Update Firebase originality for ALL players whose stored value is stale ---
+  const updates = [];
+  Object.entries(allScores).forEach(([playerKey, entry]) => {
+    if (!entry || !entry.name) return;
+    const correctOriginality = Object.values(uniqueness[entry.name] || {}).filter(Boolean).length * 5;
+    if (correctOriginality !== (entry.originality || 0)) {
+      updates.push({ playerKey, correctOriginality });
     }
   });
 
-  // Save to G_daily so reapplyOriginality() can use it on lang switch
-  const myBaseTotal = myData.totalScore || G_daily.totalScore || 0;
-  G_daily.originality = originality;
-  G_daily.uniqueIndices = uniqueIndices;
-  G_daily.totalWithOrig = myBaseTotal + originality;
-  // Update total score display
-  const newTotal = G_daily.totalWithOrig;
-  const totalEl = document.getElementById('daily-total-score');
-  if (totalEl) totalEl.textContent = (newTotal*10) + ' pts';
-  // Update speed breakdown line with originality label
-  reapplyOriginality();
+  if (updates.length === 0) return; // nothing stale — no writes, no re-render needed
 
-  // Update Firebase if originality changed
-  if (originality !== (myData.originality || 0)) {
-    try {
-      await update(ref(db, 'daily/' + key + '/' + lbLang + '/scores/' + myKey), {
-        originality, totalScore: newTotal
-      });
-      // Note: do NOT re-fetch and re-render here — caller already has the full list rendered.
-      // A second get() immediately after update() can return a partial snapshot and shrink the list.
-    } catch(e) { console.warn('Originality update failed:', e); }
-  }
+  // Fire all updates in parallel — only write originality, never totalScore
+  await Promise.all(updates.map(({ playerKey, correctOriginality }) =>
+    update(ref(db, 'daily/' + key + '/' + lbLang + '/scores/' + playerKey), {
+      originality: correctOriginality
+    }).catch(e => console.warn('Originality update failed for', playerKey, e))
+  ));
+
+  // Mutate allScores in memory with corrected values, then re-render leaderboard
+  // (no re-fetch — avoids partial snapshot risk documented in Session 18)
+  updates.forEach(({ playerKey, correctOriginality }) => {
+    if (allScores[playerKey]) allScores[playerKey].originality = correctOriginality;
+  });
+  renderLeaderboard(allScores, false);
 }
 
 // Historical leaderboard navigation state
@@ -6207,7 +6234,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) upda
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260916.259</div>
+  <div style="font-size: 11px;opacity:0.5">v260917.265</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
