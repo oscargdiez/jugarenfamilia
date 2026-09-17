@@ -595,3 +595,27 @@ Leaderboard spoiler guard fix: switching to an unplayed lang hides answer panels
 - **Recontest full rewrite:** practice mode guard, benefit-of-the-doubt prompt, DUDOSO→valid, scratch recount, Firebase-first write with rollback on failure, localStorage update includes speedMultiplier, aiIcon map includes invalid, correct toast pts, String(idx) keys throughout
 - Handoff restored from Session 16 version after Session 17 truncation
 **Last version deployed: v260916.252**
+
+### Alto button — require all categories filled (flagged Sep 17, needs design decision)
+
+**Problem:** current speed multiplier formula `1.0 + (secsLeft / totalSecs)` can be unfair. A player who answers 3 categories and calls Alto early can outscore a player who answered 5 categories but took longer. Speed bonus shouldn't reward abandoning categories.
+
+**Proposed fix:** block the Alto button until all categories have 2+ characters (consistent with existing 2-char guard). This removes the strategic incentive to call Alto early with fewer answers.
+
+**Design question not yet resolved:** what happens if a player genuinely can't think of an answer for one category?
+- **Option A — Strict:** must attempt every category (even if invalid). Simple, no new UI.
+- **Option B — Skip button per category:** marks category as intentionally blank, counts as "filled" for Alto guard. Cleaner UX but adds complexity.
+- **Option C — Speed bonus only if all categories filled:** keep Alto available anytime, but speedMultiplier = 1.0 if any category blank. No UI change needed.
+- **Option D — Per-answer speed bonus:** `mult = 1.0 + (secsLeft / totalSecs) × (answered / totalCats)`. Proportional reward.
+
+**Current preference:** Option A (strict) or Option C (no mult if blank) — need to decide before building.
+
+**Also related:** Scolopendre (myriapode) marked invalid as "Insecte ou arachnide" FR — correct rejection. Stellaire marked invalid as "Fleur" FR — likely false negative (Stellaria is a real flower). Both observed Sep 17.
+
+### Session 18 — additional deploys (Sep 17)
+
+After initial v252 deploy:
+- **v260916.253:** recontest prompt tightened — unambiguous category match required, spelling mistakes not grounds to overturn, DUDOSO upholds original invalid verdict
+- **v260916.254:** contest log written to Firebase (`names/{safeName}/contests/{date}/{lang}_log`), playerKey stored in Firebase played path (instead of `true`), fetchPlayedState preserves playerKey string, Step 2 fast path implemented (cross-device restore fetches score directly by playerKey, falls back to safeName scan for legacy)
+
+**Last version deployed: v260916.254**
