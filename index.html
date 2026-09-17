@@ -3137,7 +3137,7 @@ function renderLeaderboard(allScores, hideAnswers) {
   const cats = G_daily.categories || [];
   function speedTag(e) {
     if (!e.baseScore || !e.totalScore || e.baseScore === e.totalScore) return '';
-    const mult = (e.totalScore / e.baseScore).toFixed(2);
+    const mult = e.speedMultiplier ? e.speedMultiplier.toFixed(2) : (e.totalScore / e.baseScore).toFixed(2);
     return `<span class="daily-lb-speed">⚡×${mult}</span>`;
   }
   // Pre-compute unique answers across all entries (for originality badges)
@@ -3253,7 +3253,7 @@ function reapplyOriginality() {
   const speedTextEl = document.getElementById('daily-speed-text');
   if (speedTextEl) {
     const _dlr = dl();
-    const mult = G_daily.totalScore && G_daily.baseScore ? (G_daily.totalScore / G_daily.baseScore).toFixed(2) : '1.00';
+    const mult = G_daily.speedMultiplier ? G_daily.speedMultiplier.toFixed(2) : (G_daily.totalScore && G_daily.baseScore ? (G_daily.totalScore / G_daily.baseScore).toFixed(2) : '1.00');
     speedTextEl.innerHTML = `${_dlr.baseLabel} ${G_daily.baseScore*10} pts ×${mult}⚡→ <strong>${G_daily.totalScore*10} pts</strong> +${originality*10} ${_dlr.origLabel}✨`;
   }
 }
@@ -3431,7 +3431,7 @@ window.shareDailyResult = function() {
   // Score summary
   const baseScore = G_daily.baseScore || 0;
   const totalScore = G_daily.totalScore || 0;
-  const mult = baseScore > 0 ? (totalScore / baseScore).toFixed(2) : '1.00';
+  const mult = G_daily.speedMultiplier ? G_daily.speedMultiplier.toFixed(2) : (baseScore > 0 ? (totalScore / baseScore).toFixed(2) : '1.00');
   const origPts = (totalScore - baseScore) * 10;
   const origLine = origPts > 0
     ? `${baseScore * 10} pts ×${mult}⚡→ ${totalScore * 10} pts +${origPts} ${l.origLabel || 'originalidad'} ⚡`
@@ -6204,7 +6204,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) upda
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260916.255</div>
+  <div style="font-size: 11px;opacity:0.5">v260916.256</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
