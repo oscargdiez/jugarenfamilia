@@ -2711,7 +2711,7 @@ window.dailySubmit = async function(fromTimer = false) {
   // ── Scoring: base × speed multiplier ─────────────────────────────────────
   // Base: 10 pts per valid answer
   // Speed multiplier: 1.0 (finish at 0s) to 2.0 (finish at 90s), linear
-  const secsLeft = G_daily.secsRemaining;
+  const secsLeft = Math.max(0, G_daily.secsRemaining);
   const totalSecs = G_daily.totalSecs;
   const speedMultiplier = 1.0 + (secsLeft / totalSecs); // 1.0–2.0
   let validCount = 0;
@@ -6204,7 +6204,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) upda
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260916.254</div>
+  <div style="font-size: 11px;opacity:0.5">v260916.255</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
