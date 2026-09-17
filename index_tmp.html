@@ -2870,12 +2870,28 @@ async function showDailyResult(answers, baseScore, totalScore, aiResults, secsLe
   const cats = G_daily.practiceMode ? G_daily.categories : getDailyCatNames(getDailySetup().categories);
   const aiIcon = { valid:'✅', invalid:'❌', unsure:'🤔', empty:'—' };
 
+  // Recompute baseScore and totalScore from aiResults — never trust stored values
+  // (localStorage/Firebase can be stale if a recontest changed verdicts inconsistently)
+  let recomputedValid = 0, recomputedUnsure = 0;
+  Object.keys(aiResults).forEach(i => {
+    const res = aiResults[i];
+    const word = answers[i] || answers[Number(i)] || '';
+    if (!word) return;
+    if (res === 'valid') recomputedValid++;
+    else if (res === 'unsure') recomputedUnsure++;
+  });
+  const recomputedBase = (recomputedValid * 10) + (recomputedUnsure * 5);
+  const recomputedMult = speedMultiplier || 1;
+  const recomputedTotal = Math.round(recomputedBase * recomputedMult);
+  baseScore = recomputedBase;
+  totalScore = recomputedTotal;
+
   // Store for originality recompute
   G_daily.answers = answers;
   G_daily.aiResults = aiResults;
   G_daily.baseScore = baseScore;
   G_daily.totalScore = totalScore;
-  G_daily.speedMultiplier = speedMultiplier || 1;
+  G_daily.speedMultiplier = recomputedMult;
 
   const isToday = !G_daily.practiceMode && (_lbDate === null || _lbDate === getDailyKey());
   const safeName = claimSafeName(document.getElementById('inp-name')?.value?.trim() || '');
@@ -2896,7 +2912,7 @@ async function showDailyResult(answers, baseScore, totalScore, aiResults, secsLe
   }).join('');
 
   // Speed summary + share button on same line
-  const mult = speedMultiplier ? speedMultiplier.toFixed(2) : '1.00';
+  const mult = recomputedMult.toFixed(2);
   const _dl = dl();
   list.innerHTML += `<div id="daily-speed-summary" style="text-align:right;font-family:'Special Elite',monospace;font-size:11px;color:var(--ink-muted);padding-top:6px">
     <span id="daily-speed-text">${_dl.baseLabel} ${baseScore*10} pts ×${mult}⚡→ <strong>${totalScore*10} pts</strong></span>
@@ -6218,7 +6234,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) upda
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260917.262-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v260917.263-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
