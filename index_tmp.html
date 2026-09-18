@@ -3171,7 +3171,7 @@ function renderLeaderboard(allScores, hideAnswers) {
   const entries = Object.values(allScores)
     .filter(e => e && e.name)
     .map(e => ({ ...e, totalScore: e.totalScore ?? e.score ?? 0 }))
-    .sort((a,b) => b.totalScore - a.totalScore);
+    .sort((a,b) => (b.totalScore + (b.originality||0)) - (a.totalScore + (a.originality||0)));
   const medals = ['🥇','🥈','🥉'];
   const top10 = entries.slice(0, 10);
   const myIdx = entries.findIndex(e => isMe(e));
@@ -3183,10 +3183,15 @@ function renderLeaderboard(allScores, hideAnswers) {
     try { const s = getDailySetup(); G_daily.categories = getDailyCatNames(s.categories); } catch(e) {}
   }
   const cats = G_daily.categories || [];
-  function speedTag(e) {
-    if (!e.baseScore || !e.totalScore || e.baseScore === e.totalScore) return '';
+  function scoreTag(e) {
+    const hasSpeed = e.baseScore && e.totalScore && e.baseScore !== e.totalScore;
+    const hasOrig  = e.originality > 0;
+    if (!hasSpeed && !hasOrig) return '';
     const mult = e.speedMultiplier ? e.speedMultiplier.toFixed(2) : (e.totalScore / e.baseScore).toFixed(2);
-    return `<span class="daily-lb-speed">⚡×${mult}</span>`;
+    const speedPart = hasSpeed ? `⚡×${mult}` : '';
+    const origPart  = hasOrig  ? `+${e.originality*10}✨` : '';
+    const inner = [speedPart, origPart].filter(Boolean).join(' ');
+    return `<span class="daily-lb-speed">(${inner})</span>`;
   }
 
   const uniqueness = computeUniqueness(entries);
@@ -3217,29 +3222,29 @@ function renderLeaderboard(allScores, hideAnswers) {
 
   let html = top10.map((e, i) => {
     const _isMe = isMe(e);
-    const orig = e.originality > 0 ? `<span class="daily-lb-orig">+${e.originality*10}✨</span>` : '';
+    const grandTotal = (e.totalScore + (e.originality||0)) * 10;
     const chevron = hideAnswers ? '' : `<span class="daily-lb-chevron">▶</span>`;
     const clickHandler = hideAnswers ? '' : ` onclick="toggleDailyAnswers(${i})"`;
     return `<div class="daily-lb-row${_isMe ? ' daily-lb-me' : ''}" id="daily-row-${i}"${clickHandler}>
       <span class="daily-lb-rank">${medals[i] || (i+1)}</span>
       <span class="daily-lb-name">${e.name}</span>
-      <span class="daily-lb-score">${e.totalScore*10} pts</span>
-      ${speedTag(e)}${orig}${chevron}
+      <span class="daily-lb-score">${grandTotal} pts</span>
+      ${scoreTag(e)}${chevron}
     </div>${hideAnswers ? '' : buildAnswerPanel(e, i)}`;
   }).join('');
 
   // Show my row if outside top 10
   if (!isInTop10 && myIdx >= 0) {
     const me = entries[myIdx];
-    const orig = me.originality > 0 ? `<span class="daily-lb-orig">+${me.originality*10}✨</span>` : '';
+    const myGrandTotal = (me.totalScore + (me.originality||0)) * 10;
     const chevron = hideAnswers ? '' : `<span class="daily-lb-chevron">▶</span>`;
     const clickHandler = hideAnswers ? '' : ` onclick="toggleDailyAnswers('me')"`;
     html += `<div class="daily-lb-sep">· · ·</div>`;
     html += `<div class="daily-lb-row daily-lb-me" id="daily-row-me"${clickHandler}>
       <span class="daily-lb-rank">${myIdx+1}</span>
       <span class="daily-lb-name">${me.name}</span>
-      <span class="daily-lb-score">${me.totalScore*10} pts</span>
-      ${speedTag(me)}${orig}${chevron}
+      <span class="daily-lb-score">${myGrandTotal} pts</span>
+      ${scoreTag(me)}${chevron}
     </div>${hideAnswers ? '' : buildAnswerPanel(me, 'me')}`;
   }
 
@@ -3461,11 +3466,13 @@ window.shareDailyResult = function() {
   // Score summary
   const baseScore = G_daily.baseScore || 0;
   const totalScore = G_daily.totalScore || 0;
+  const origPts = (G_daily.originality || 0) * 10;
   const mult = G_daily.speedMultiplier ? G_daily.speedMultiplier.toFixed(2) : (baseScore > 0 ? (totalScore / baseScore).toFixed(2) : '1.00');
-  const origPts = (totalScore - baseScore) * 10;
+  const hasSpeed = baseScore > 0 && totalScore !== baseScore;
+  const speedPart = hasSpeed ? ` ×${mult}⚡` : '';
   const origLine = origPts > 0
-    ? `${baseScore * 10} pts ×${mult}⚡→ ${totalScore * 10} pts +${origPts} ${l.origLabel || 'originalidad'} ⚡`
-    : `${baseScore * 10} pts ×${mult}⚡→ ${totalScore * 10} pts`;
+    ? `${baseScore * 10} pts${speedPart} +${origPts} ${l.origLabel || 'originalidad'}✨`
+    : `${baseScore * 10} pts${speedPart}`;
 
   // Assemble
   const maxLen = Math.max(...answerLines.map(l => l.length));
@@ -6234,7 +6241,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) upda
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260917.264-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v260918.267-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
