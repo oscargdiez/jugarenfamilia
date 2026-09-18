@@ -3400,7 +3400,11 @@ window.lbHistNav = function(dir) {
 // Manual refresh button
 window.switchDailyLbLang = function(lang) {
   document.querySelectorAll(".daily-lb-lang-btn").forEach(b => b.classList.toggle("active", b.dataset.lang === lang));
-  const notPlayed = !_playedLangs[lang];
+  // History dates are always open (player can't have played a past day on this device right now).
+  // For today: check _playedLangs first (cross-device, async) then localStorage (same-device, instant)
+  // so the spoiler guard works correctly even before fetchPlayedState() resolves on refresh.
+  const isHistory = _lbDate !== null;
+  const notPlayed = !isHistory && !_playedLangs[lang] && !localStorage.getItem('alto_daily_' + getDailyKey() + '_' + lang);
   const hintEl = document.getElementById('daily-lb-not-played');
   if (hintEl) {
     hintEl.style.display = notPlayed ? 'block' : 'none';
@@ -6237,7 +6241,7 @@ setTimeout(() => updateDailyButtonDate(), 350);
 // Version freshness check — silently reload if a newer version is deployed
 // Runs once on load; does nothing if already on latest or if fetch fails
 (function() {
-  const RUNNING = 'v260918.269';
+  const RUNNING = 'v260918.270';
   if (sessionStorage.getItem('alto_ver_checked') === RUNNING) return; // already checked this session
   sessionStorage.setItem('alto_ver_checked', RUNNING);
   fetch(location.href, { cache: 'no-cache' })
@@ -6260,7 +6264,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) upda
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260918.269</div>
+  <div style="font-size: 11px;opacity:0.5">v260918.270</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
