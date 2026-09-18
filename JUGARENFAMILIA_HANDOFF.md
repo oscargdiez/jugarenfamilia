@@ -704,3 +704,37 @@ Some players consistently get speed multipliers of 1.17, 1.20 etc without pressi
 
 ### Known issue — same-device reload reads from localStorage not Firebase (backlog)
 `startDailyChallenge` hits localStorage first if `stored` exists on this device — Firebase is only read on the cross-device path. So a recontest overturn on Device 2 won't be reflected when the player reloads on Device 1 (they see the old localStorage result). The `showDailyResult` recompute fix (Session 19) makes the display consistent with whatever `aiResults` is in localStorage — but if localStorage `aiResults` itself is stale, the score will still be wrong. Full fix: same-device reload should read from Firebase. Flagged in Session 15 backlog, still not built.
+
+---
+
+### Session 20 (Sep 18)
+
+**Leaderboard grand total display:**
+- Leaderboard rows now show `totalScore + originality` as the headline number, not just `totalScore`
+- Before: `480 pts ⚡×1.20 +200✨` — score and originality badge were separate, score was base×speed only
+- After: `680 pts (⚡×1.20 +200✨)` — grand total is the headline, speed and originality in parentheses
+- `speedTag()` replaced with `scoreTag()` which builds the parenthetical from speed and/or originality
+- Format rules: `⚡×N.NN` only shown when speed multiplier > 1.00 (Alto was pressed); `+N✨` only when originality > 0; parenthetical omitted entirely when neither applies
+- Sort order updated to rank by `totalScore + originality` — previously only sorted by `totalScore`
+- Both top-10 rows and the "me outside top 10" row updated
+
+**`shareDailyResult` score summary fix:**
+- Was computing originality as `(totalScore - baseScore) * 10` — relied on old contamination assumption where totalScore included originality. Now uses `G_daily.originality * 10` directly
+- Removed `→ totalScore pts` intermediate total from share text, consistent with speed line cleanup from Session 19
+- Fixed wrong emoji in per-answer originality badge: was `+50⚡` should be `+50✨`
+
+**`totalScore` contamination note (Sep 18 data):**
+- Marina's entry was manually corrected in Firebase console — her `totalScore` was `81` (contaminated by old code) instead of `56` (correct `Math.round(500 × 1.11)`)
+- From v260917.265 onwards no new contamination occurs — `totalScore` in Firebase is always pure `base × speed`
+- Any entries written by players on cached old code before they picked up v265 may still be contaminated
+
+**Auto-reload on stale version:**
+- On every page load, fetches `index.html` with `cache: 'no-cache'` (GitHub Pages responds with `304 Not Modified` if unchanged — negligible cost)
+- Extracts version string from fetched HTML, compares with `RUNNING` constant
+- If newer version detected: removes sessionStorage guard, calls `location.reload(true)`
+- `sessionStorage` key `alto_ver_checked` prevents infinite reload loop — set to `RUNNING` before fetch, cleared before reload
+- Regex `/v(\d{6}\.\d+)(?!\d)(?!-tmp)/` — `(?!\d)` prevents partial match on longer numbers, `(?!-tmp)` excludes staging versions
+- `RUNNING` constant and display div are the only two occurrences of the version string — standard version bump updates both automatically, no extra step needed
+- Fully silent — no UI, no toast; `.catch(() => {})` means offline/blocked fetch is a no-op
+
+**Last version deployed: v260918.269**
