@@ -2349,11 +2349,38 @@ window.startDailyChallenge = async function() {
   const _debugMode = _playerNameRaw.includes('__debug__');
   const stored = localStorage.getItem('alto_daily_' + key + '_' + LANG);
   if (stored && !_debugMode) {
-    // Already played today — show result directly
+    // Already played today on this device — try Firebase first so any recontest overturns
+    // from another device are reflected. Fall back to localStorage if fetch fails.
     try {
       const data = JSON.parse(stored);
       G_daily.displayName = (data.playerName || 'Anónimo') + ' ' + (data.playerEmoji || '🎲');
-      showDailyResult(data.answers, data.baseScore || data.score || 0, data.totalScore || data.score || 0, data.aiResults || {}, data.secsLeft || 0, data.speedMultiplier || 1);
+      // Set up G_daily context (needed by recontest and originality recompute)
+      const _setup = getDailySetup();
+      G_daily.letter = _setup.letter;
+      G_daily.key = key;
+      G_daily.categories = getDailyCatNames(_setup.categories);
+      G_daily.theme = _setup.theme || null;
+      // Attempt Firebase fetch by safeName — catches recontest overturns from other devices
+      let firebaseEntry = null;
+      try {
+        const safeName = claimSafeName(_playerNameRaw);
+        if (safeName) {
+          const scoresSnap = await get(ref(db, 'daily/' + key + '/' + LANG + '/scores')).catch(() => null);
+          if (scoresSnap && scoresSnap.exists()) {
+            const allScores = scoresSnap.val();
+            const found = Object.entries(allScores).find(([k, e]) =>
+              (e.safeName && e.safeName === safeName) ||
+              (!e.safeName && e.name && claimSafeName(e.name) === safeName)
+            );
+            if (found) { firebaseEntry = found[1]; G_daily.playerKey = found[0]; }
+          }
+        }
+      } catch(e) { /* Firebase fetch failed — use localStorage below */ }
+      if (firebaseEntry) {
+        showDailyResult(firebaseEntry.answers || {}, firebaseEntry.baseScore || 0, firebaseEntry.totalScore || 0, firebaseEntry.aiResults || {}, 0, firebaseEntry.speedMultiplier || data.speedMultiplier || 1);
+      } else {
+        showDailyResult(data.answers, data.baseScore || data.score || 0, data.totalScore || data.score || 0, data.aiResults || {}, data.secsLeft || 0, data.speedMultiplier || 1);
+      }
       return;
     } catch(e) {}
   }
@@ -6241,7 +6268,7 @@ setTimeout(() => updateDailyButtonDate(), 350);
 // Version freshness check — silently reload if a newer version is deployed
 // Runs once on load; does nothing if already on latest or if fetch fails
 (function() {
-  const RUNNING = 'v260918.270';
+  const RUNNING = 'v260918.271';
   if (sessionStorage.getItem('alto_ver_checked') === RUNNING) return; // already checked this session
   sessionStorage.setItem('alto_ver_checked', RUNNING);
   fetch(location.href, { cache: 'no-cache' })
@@ -6264,7 +6291,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) upda
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260918.270</div>
+  <div style="font-size: 11px;opacity:0.5">v260918.271</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
