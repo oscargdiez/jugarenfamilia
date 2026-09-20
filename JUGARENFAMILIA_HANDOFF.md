@@ -1,5 +1,5 @@
 # JugarEnFamilia.es — Project Handoff Document
-*Last updated: September 2026 — Session 18*
+*Last updated: September 2026 — Session 21*
 
 > ⚠️ **HANDOFF INTEGRITY RULE — DO NOT DELETE CONTENT**
 > This document is append-and-update only. Never remove sections, rules, known issues, backlog items, or session log entries. Only add new content and update existing entries. A truncated handoff causes the next session to lose critical context.
@@ -738,3 +738,114 @@ Some players consistently get speed multipliers of 1.17, 1.20 etc without pressi
 - Fully silent — no UI, no toast; `.catch(() => {})` means offline/blocked fetch is a no-op
 
 **Last version deployed: v260918.269**
+
+---
+
+### Session 21 (Sep 19)
+
+**Spoiler guard fix — flag tap after page refresh (v270):**
+- `switchDailyLbLang` was computing `notPlayed = !_playedLangs[lang]` — which is always `true` on page refresh because `fetchPlayedState()` is async and hasn't resolved yet
+- Fixed: `notPlayed = !isHistory && !_playedLangs[lang] && !localStorage.getItem('alto_daily_' + getDailyKey() + '_' + lang)`
+- `isHistory = _lbDate !== null` — past dates are always open regardless
+- Mirrors the same pattern already used in `updateDailyButtonDate()`
+
+**Spoiler guard fix — refresh button bypass (v272):**
+- `refreshDailyOriginality` was calling `renderLeaderboard(snap.val())` with no `hideAnswers` argument — always showed answers regardless of active lang
+- Fixed: same `!isHistory && !_playedLangs && !localStorage` logic applied before calling `renderLeaderboard`
+- Also added `&& !hideAnswers` guard to `computeAndUpdateOriginality` call inside it — no point computing originality for an unplayed lang
+- Three functions that trigger leaderboard render: `switchDailyLbLang` (fixed v270), `lbHistNav` (always open for past dates — correct), `refreshDailyOriginality` (fixed v272). All now consistent.
+
+**Step 2 — same-device reload reads from Firebase (v271):**
+- `startDailyChallenge` localStorage path now tries Firebase first before showing result
+- Fetches by safeName scan (`daily/{date}/{lang}/scores`) — same as cross-device path
+- Falls back to localStorage silently if Firebase fails or returns no entry
+- Also sets `G_daily.key/letter/categories/theme` on this path (previously skipped — needed by recontest and originality recompute)
+- playerKey not in localStorage — uses safeName scan fallback (same as cross-device)
+- Outer try/catch wraps everything — any failure still falls through gracefully
+
+**Firebase schema addition (Session 21):**
+- `daily/{date}/{lang}/scores/{playerKey}/contestLog/{idx}: { original, overturned, timestamp }` — written on successful recontest overturn. Captures original AI verdict and overturned verdict per answer index. For AI effectiveness analysis. Written alongside existing `aiResults/${idx}` update. Original verdict captured from `G_daily.aiResults` before overwrite.
+- Note: `aiResultsOriginal` was considered and rejected — `contestLog` alone is sufficient to identify AI mistakes without cluttering Firebase.
+
+**iOS home screen cache — no fix needed:**
+- Safari has two cache layers: stored (SSD) and memory (RAM). `location.reload(true)` updates stored cache but serves from memory this session. Next launch gets fresh version.
+- Our version check is working correctly — one-session lag is unavoidable iOS limitation
+- Fix for stuck users: delete shortcut from home screen and re-add it
+
+**Multiplayer cumulative scoring fix (v274):**
+- Bug: `preRoundScores` in Firebase was never cleared between rounds. At round 3, `finishValidation` used round 1's `preRoundScores` as base (still truthy), losing round 2 entirely.
+- Fix: `preRoundScores: null` added to `nextRound()` update call. Firebase `update()` with `null` deletes the field. `finishValidation`'s `||` fallback then correctly snapshots current cumulative `room.scores` as new base.
+- Critical rule: `preRoundScores` must always be `null` between rounds and only set by `finishValidation` at scoring time.
+
+**AI verdict consistency observations:**
+- Same answer (e.g. "Electricidad", "Catherine Deneuve") can get different verdicts for different players — each player's answers validated independently at submit time with separate model calls
+- All-unsure results (all 6 answers 🤔) = likely connection failure, not genuine uncertainty
+- Electricity ruled invalid — it is a natural phenomenon, not an invention
+- Misspellings ruled invalid (e.g. "Eifel" → should be "Eiffel", "Edimbugo" → "Edimburgo")
+- Ciclisme (Catalan/Spanish) invalid in FR game — wrong language
+
+**Last version deployed: v260918.274**
+
+---
+
+## 🚩 Flagged for Next Session
+
+**A — Validation error detection:**
+If all answered slots come back `unsure` after AI validation, flag it as a likely connection failure. Either show the player a warning ("hubo un problema validando tus respuestas") or log it to Firebase for monitoring. All-unsure on 4+ answers is essentially impossible legitimately.
+
+**B — Full revalidation button:**
+If player has 2+ unsure verdicts on today's result screen, show a "Revalidar todo" button. Reruns AI validation on all unsure answers at once (same 3-model majority system as recontest). Shares existing 1-per-day recontest limit per lang. Result is final. Today only (same guard as recontest).
+
+**C — Multiplayer tied scores — medal fairness:**
+When two or more players finish with the same score, they get different medals based on arbitrary sort order. Should show the same medal to all tied players (two golds if tied for 1st, etc). Affects both `showScores` (between rounds) and `showFinal` (end screen).
+
+---
+
+### Session 21 continued (Sep 20)
+
+**v275 — Remove angry emoji, contest unsure answers:**
+- `ENTRY_EMOJIS` reduced from 5 to 4: `['🔥','👏','😂','😬']` — 🤬 removed
+- `canContest` now triggers on `invalid || unsure` — players can contest 🤔 unsure verdicts too
+- Three issues found and fixed before deploying v275 (became v276):
+  1. `originalVerdict` in contestLog was hardcoded `'invalid'` — fixed to read from `G_daily.aiResults`
+  2. `originalVerdict` declared twice (inner and outer scope) — removed inner duplicate
+  3. Firebase failure revert was hardcoding `'invalid'` — fixed to restore `originalVerdict`
+- Failed recontest on unsure stays unsure (no penalty) — toast differs: "mantenemos el resultado" vs "respuesta inválida"
+
+**v277 — Per-entry contest limit:**
+- Old system: 1 contest per lang per day (global counter) — contesting one entry removed all other ¿Error? buttons
+- New system: 1 contest per entry per day — each invalid/unsure answer can be contested independently
+- Firebase schema change: `names/{safeName}/contests/{date}/{lang}` was a number, now an object `{"0":true,"2":true}` — one boolean per slot index
+- Already-contested entries show "Ya revisado / Already reviewed / Déjà révisé" label with disabled button when tapped — no AI call made
+- Global button sweep removed — after a contest, all other buttons re-enable
+- Log path changed to `contests/{date}/{lang}_log/{idx}` — per-entry log objects
+- Old number-type Firebase entries are harmless — child reads on a number node return null, no migration needed
+- To reset for testing: delete specific idx nodes under `names/{safeName}/contests/{date}/{lang}` in Firebase console
+
+**v278 — Contest Method A/B:**
+- `const CONTEST_METHOD = 'B'` added near `DAILY_CONSENSUS` — flip to `'A'` to revert, one character change
+- Method A: strict scope, 2-of-3 threshold, DUDOSO upholds
+- Method B: generous scope only, strict spelling, 1-of-3 threshold, DUDOSO upholds
+- Both methods use same 3 models, same `parseVerdict` structure
+- `method: CONTEST_METHOD` recorded in every contestLog entry for comparison
+- Currently live: Method B
+
+**v279 — Fix per-answer pts badge after overturn:**
+- `ptsEl` was showing `toastPts` (net gain delta) instead of absolute value
+- For invalid→valid: was accidentally correct (+100 either way)
+- For unsure→valid: showed +50 (delta) instead of +100 (absolute) — the bug
+- Fixed to always show `+100` since overturned answer is always worth 100pts
+- Toast still correctly shows net gain (+50 from unsure, +100 from invalid)
+
+**v280/v281 — Tighten Method B prompt:**
+- Removed existence check ("must be a real word in the language") — incorrect for proper nouns, names, places
+- Method B gate is now spelling only: any misspelling beyond accents/tildes = INVALIDO
+- If spelling passes, generous on category scope
+- DUDOSO upholds in both methods (removed DUDOSO→valid from Method B)
+- Prompt structure: check spelling first → if passes, be generous on scope
+
+**Firebase schema additions (Session 21 continued):**
+- `names/{safeName}/contests/{date}/{lang}/{idx}: true` — per-entry contest flag (replaces counter)
+- `names/{safeName}/contests/{date}/{lang}_log/{idx}: { idx, category, letter, word, originalVerdict, newVerdict, votes, method, timestamp }` — per-entry contest log with method field
+
+**Last version deployed: v260918.281**
