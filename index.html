@@ -2981,13 +2981,14 @@ window.recontest = async (idx, word, cat) => {
   if (!safeName) return;
   const key = getDailyKey();
   const contestPath = 'names/' + safeName + '/contests/' + key + '/' + LANG;
+  const contestEntryPath = contestPath + '/' + String(idx);
 
-  // Check contest count
-  const countSnap = await get(ref(db, contestPath)).catch(() => null);
-  const used = countSnap?.exists() ? (countSnap.val() || 0) : 0;
-  if (used >= 1) {
-    toast({ es:'Ya usaste tu revisión de hoy', en:'You\'ve already used your review for today', fr:'Tu as déjà utilisé ta révision d\'aujourd\'hui' }[LANG]);
-    btn.remove(); return;
+  // Check if this specific entry has already been contested today
+  const entrySnap = await get(ref(db, contestEntryPath)).catch(() => null);
+  if (entrySnap?.exists()) {
+    btn.textContent = { es:'Ya revisado', en:'Already reviewed', fr:'Déjà révisé' }[LANG] || 'Ya revisado';
+    btn.disabled = true;
+    return;
   }
 
   // Disable all reconsider buttons while running
@@ -3031,31 +3032,34 @@ window.recontest = async (idx, word, cat) => {
     const votes = [res1, res2, res3].map(parseVerdict).filter(v => v === 'valid').length;
     const newRes = votes >= 2 ? 'valid' : 'invalid';
 
-    // Update contest count in Firebase
-    await set(ref(db, contestPath), used + 1).catch(() => {});
-    // Log contest outcome for AI tuning analysis
-    await set(ref(db, contestPath + '_log'), {
+    // Mark this entry as contested in Firebase
+    await set(ref(db, contestEntryPath), true).catch(() => {});
+    // Capture original verdict for logging and safe revert
+    const originalVerdict = G_daily.aiResults[String(idx)] || G_daily.aiResults[idx] || 'invalid';
+    // Log contest outcome for AI tuning analysis (per-entry, under same path)
+    await set(ref(db, contestPath + '_log/' + String(idx)), {
       idx: String(idx),
       category: cat,
       letter: G_daily.letter || '',
       word,
-      originalVerdict: 'invalid',
+      originalVerdict: originalVerdict,
       newVerdict: newRes,
       votes,
       timestamp: Date.now()
     }).catch(() => {});
 
     if (newRes === 'invalid') {
-      // Confirmed invalid — remove button, toast is enough
+      // Not overturned — keep original verdict (unsure stays unsure, invalid stays invalid)
       if (btn) btn.remove();
-      toast({ es:'Revisado: respuesta inválida', en:'Reviewed: invalid answer', fr:'Révisé : réponse invalide' }[LANG]);
+      const failToast = originalVerdict === 'unsure'
+        ? { es:'Revisado: mantenemos el resultado', en:'Reviewed: result upheld', fr:'Révisé : résultat maintenu' }
+        : { es:'Revisado: respuesta inválida', en:'Reviewed: invalid answer', fr:'Révisé : réponse invalide' };
+      toast(failToast[LANG]);
     } else {
       // Overturned — recalculate score from scratch, write Firebase first, then update UI
       const aiIcon = { valid:'✅', unsure:'🤔', invalid:'❌' };
       const oldBaseScore = G_daily.baseScore;
 
-      // Capture original verdict before overwriting — for contestLog
-      const originalVerdict = G_daily.aiResults[String(idx)] || G_daily.aiResults[idx] || 'invalid';
       // Scratch recount — update aiResults then count all answered slots
       G_daily.aiResults[String(idx)] = newRes;
       let validCount = 0, unsureCount = 0;
@@ -3084,7 +3088,7 @@ window.recontest = async (idx, word, cat) => {
           });
         } catch(e) {
           // Revert in-memory state and re-enable buttons on failure
-          G_daily.aiResults[String(idx)] = 'invalid';
+          G_daily.aiResults[String(idx)] = originalVerdict;
           btn.disabled = false;
           btn.style.opacity = '';
           document.querySelectorAll('.daily-reconsider-btn').forEach(b => b.disabled = false);
@@ -3125,9 +3129,11 @@ window.recontest = async (idx, word, cat) => {
       loadDailyLeaderboard(key); // refresh leaderboard
     }
 
-    // Remove all other reconsider buttons (limit reached after 1 use)
+    // Re-enable remaining reconsider buttons (each entry can be contested independently)
     document.querySelectorAll('.daily-reconsider-btn').forEach(b => {
-      if (b.id !== 'daily-reconsider-' + idx) b.remove();
+      if (!b.disabled || b.id === 'daily-reconsider-' + idx) return;
+      b.disabled = false;
+      b.style.opacity = '';
     });
 
   } catch(e) {
@@ -6274,7 +6280,7 @@ setTimeout(() => updateDailyButtonDate(), 350);
 // Version freshness check — silently reload if a newer version is deployed
 // Runs once on load; does nothing if already on latest or if fetch fails
 (function() {
-  const RUNNING = 'v260918.275';
+  const RUNNING = 'v260918.277';
   if (sessionStorage.getItem('alto_ver_checked') === RUNNING) return; // already checked this session
   sessionStorage.setItem('alto_ver_checked', RUNNING);
   fetch(location.href, { cache: 'no-cache' })
@@ -6297,7 +6303,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) upda
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260918.275</div>
+  <div style="font-size: 11px;opacity:0.5">v260918.277</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
