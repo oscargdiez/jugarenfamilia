@@ -849,3 +849,8 @@ When two or more players finish with the same score, they get different medals b
 - `names/{safeName}/contests/{date}/{lang}_log/{idx}: { idx, category, letter, word, originalVerdict, newVerdict, votes, method, timestamp }` — per-entry contest log with method field
 
 **Last version deployed: v260918.281**
+
+**v282 — Already reviewed UX:**
+- Tapping ¿Error? on an already-contested entry now shows a toast "Ya revisado hoy / Already reviewed today / Déjà révisé aujourd'hui" and removes the button — instead of showing a disabled "Ya revisado" label which was too long for iPhone
+
+**Last version deployed: v260918.282**
