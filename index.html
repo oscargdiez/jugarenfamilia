@@ -2127,7 +2127,7 @@ function mulberry32(seed) {
 // Category pool — 26 universal categories, translated in all 6 languages
 // DAILY_CONSENSUS: set true to use 2-model consensus + tiebreaker, false for single model
 const DAILY_CONSENSUS = false;
-// CONTEST_METHOD: 'A' = strict (2-of-3 valid to overturn, DUDOSO upholds) | 'B' = generous (1-of-3 valid to overturn, DUDOSO counts as valid)
+// CONTEST_METHOD: 'A' = strict scope + strict spelling, 2-of-3 threshold, DUDOSO upholds | 'B' = generous scope only, strict spelling, 1-of-3 threshold, DUDOSO upholds
 const CONTEST_METHOD = 'B';
 
 const DAILY_CAT_DATA = {
@@ -3003,12 +3003,12 @@ window.recontest = async (idx, word, cat) => {
     const letter = G_daily.letter || '';
 
     // Method A: strict scope, 2-of-3 threshold, DUDOSO upholds
-    // Method B: generous scope, 1-of-3 threshold, DUDOSO counts as valid
+    // Method B: generous scope only, 1-of-3 threshold, DUDOSO upholds, spelling always strict
     const systemPrompt = CONTEST_METHOD === 'B'
-      ? `You are a generous judge of a ${gameLang}-language word game. A previous judge ruled an answer INVALID. Overturn (VALIDO) if: the answer is a real, genuine example of the category — be broad and inclusive with the category definition. Strict on spelling only — any misspelling beyond accents or tildes is INVALIDO. If in doubt about scope, rule VALIDO. Reply with exactly one word: VALIDO, INVALIDO, or DUDOSO.`
+      ? `You are a judge of a ${gameLang}-language word game. A previous judge ruled an answer INVALID. STRICT RULE on spelling: any spelling mistake beyond accents or tildes is INVALIDO — wrong letters, missing letters, or added letters are never acceptable (applies to common words; proper nouns like names and places must also be spelled correctly). If spelling is correct, be generous with the category scope — if the answer could reasonably belong to the category, rule VALIDO. If in doubt about spelling, rule INVALIDO. If in doubt about category fit only, rule VALIDO. Reply with exactly one word: VALIDO, INVALIDO, or DUDOSO.`
       : `You are a fair judge of a ${gameLang}-language word game. A previous judge ruled an answer INVALID. Overturn only if: (1) the answer clearly and unambiguously belongs to the category — do not stretch the category definition; and (2) any error is limited to accents or tildes only — spelling mistakes, wrong letters, or missing letters are NOT grounds to overturn. If in doubt, uphold the original INVALIDO verdict. Reply with exactly one word: VALIDO, INVALIDO, or DUDOSO.`;
     const prompt = CONTEST_METHOD === 'B'
-      ? `${gameLang}-language game. Letter: "${letter}". Category: "${cat}". Answer: "${word}". Previous judge said INVALIDO. Overturn (VALIDO) if the answer is a real example of the category — be generous with scope. Spelling beyond accents is INVALIDO. If in doubt about scope, say VALIDO. Reply with ONE word only: VALIDO, INVALIDO, or DUDOSO.`
+      ? `${gameLang}-language game. Letter: "${letter}". Category: "${cat}". Answer: "${word}". Previous judge said INVALIDO. Check spelling first — any misspelling beyond accents is INVALIDO. If spelling is correct, be generous with category scope and rule VALIDO if it could reasonably fit. Reply with ONE word only: VALIDO, INVALIDO, or DUDOSO.`
       : `${gameLang}-language game. Letter: "${letter}". Category: "${cat}". Answer: "${word}". Previous judge said INVALIDO. Overturn (VALIDO) only if the answer unambiguously fits the category AND any error is accents/tildes only. Spelling mistakes are INVALIDO. Reply with ONE word only: VALIDO, INVALIDO, or DUDOSO.`;
 
     const parseVerdict = (data) => {
@@ -3017,8 +3017,8 @@ window.recontest = async (idx, word, cat) => {
       const norm = raw.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z]/g, ' ').trim();
       if (/\binvalid(o)?\b/.test(norm)) return 'invalid';
       if (/\bvalid(o)?\b/.test(norm)) return 'valid';
-      // DUDOSO: Method B counts as valid (benefit of doubt), Method A upholds (invalid)
-      return CONTEST_METHOD === 'B' ? 'valid' : 'invalid';
+      // DUDOSO always upholds in both methods — models must actively say VALIDO to overturn
+      return 'invalid';
     };
 
     const workerCall = (model) => fetch('https://api.oscar-g-diez.workers.dev/', {
@@ -6292,7 +6292,7 @@ setTimeout(() => updateDailyButtonDate(), 350);
 // Version freshness check — silently reload if a newer version is deployed
 // Runs once on load; does nothing if already on latest or if fetch fails
 (function() {
-  const RUNNING = 'v260918.279';
+  const RUNNING = 'v260918.281';
   if (sessionStorage.getItem('alto_ver_checked') === RUNNING) return; // already checked this session
   sessionStorage.setItem('alto_ver_checked', RUNNING);
   fetch(location.href, { cache: 'no-cache' })
@@ -6315,7 +6315,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) upda
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260918.279</div>
+  <div style="font-size: 11px;opacity:0.5">v260918.281</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
