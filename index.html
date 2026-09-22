@@ -3033,14 +3033,10 @@ window.recontest = async (idx, word, cat) => {
       })
     }).then(r => r.json());
 
-    // Three independent model calls
-    const [res1, res2, res3] = await Promise.all([
-      workerCall('nvidia/nemotron-3-super-120b-a12b:free'),
-      workerCall('inclusionai/ling-3.0-flash-fin:free'),
-      workerCall('z-ai/glm-5.2:free'),
-    ]);
-    const votes = [res1, res2, res3].map(parseVerdict).filter(v => v === 'valid').length;
-    const threshold = CONTEST_METHOD === 'B' ? 1 : 2;
+    // Single model call — same model as original daily validation
+    const res1 = await workerCall('inclusionai/ling-3.0-flash-fin:free');
+    const votes = [res1].map(parseVerdict).filter(v => v === 'valid').length;
+    const threshold = 1;
     const newRes = votes >= threshold ? 'valid' : 'invalid';
 
     // Mark this entry as contested in Firebase
@@ -6292,7 +6288,7 @@ setTimeout(() => updateDailyButtonDate(), 350);
 // Version freshness check — silently reload if a newer version is deployed
 // Runs once on load; does nothing if already on latest or if fetch fails
 (function() {
-  const RUNNING = 'v260922.284';
+  const RUNNING = 'v260922.285';
   if (sessionStorage.getItem('alto_ver_checked') === RUNNING) return; // already checked this session
   sessionStorage.setItem('alto_ver_checked', RUNNING);
   fetch(location.href, { cache: 'no-cache' })
@@ -6315,7 +6311,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) upda
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260922.284</div>
+  <div style="font-size: 11px;opacity:0.5">v260922.285</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
