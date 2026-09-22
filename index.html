@@ -3013,11 +3013,22 @@ window.recontest = async (idx, word, cat) => {
 
     const parseVerdict = (data) => {
       const msg = data.choices?.[0]?.message || {};
-      const raw = (msg.content?.trim() || msg.reasoning?.trim() || '').replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
-      const norm = raw.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z]/g, ' ').trim();
+      // Prefer content; fall back to reasoning only if content is absent
+      const text = msg.content?.trim() || '';
+      const reasoning = msg.reasoning?.trim() || '';
+      // Strip <think> blocks from either
+      const clean = (text || reasoning).replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+      if (!clean) return 'invalid';
+      // Look at the LAST word only — reasoning models write a verdict at the end
+      const lastWord = clean.split(/\s+/).pop().toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z]/g, '');
+      if (lastWord === 'invalido' || lastWord === 'invalid') return 'invalid';
+      if (lastWord === 'valido' || lastWord === 'valid') return 'valid';
+      if (lastWord === 'dudoso') return 'invalid'; // DUDOSO upholds
+      // Last word not conclusive — scan full text, prefer content over reasoning
+      const norm = (text || clean).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z]/g, ' ').trim();
       if (/\binvalid(o)?\b/.test(norm)) return 'invalid';
       if (/\bvalid(o)?\b/.test(norm)) return 'valid';
-      // DUDOSO always upholds in both methods — models must actively say VALIDO to overturn
       return 'invalid';
     };
 
@@ -3028,7 +3039,7 @@ window.recontest = async (idx, word, cat) => {
       body: JSON.stringify({
         models: [model],
         messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: prompt }],
-        max_tokens: 10,
+        max_tokens: 300,
         temperature: 0
       })
     }).then(r => r.json());
@@ -6294,7 +6305,7 @@ setTimeout(() => updateDailyButtonDate(), 350);
 // Version freshness check — silently reload if a newer version is deployed
 // Runs once on load; does nothing if already on latest or if fetch fails
 (function() {
-  const RUNNING = 'v260922.286';
+  const RUNNING = 'v260922.287';
   if (sessionStorage.getItem('alto_ver_checked') === RUNNING) return; // already checked this session
   sessionStorage.setItem('alto_ver_checked', RUNNING);
   fetch(location.href, { cache: 'no-cache' })
@@ -6317,7 +6328,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) upda
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260922.286</div>
+  <div style="font-size: 11px;opacity:0.5">v260922.287</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
