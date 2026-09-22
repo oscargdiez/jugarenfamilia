@@ -2728,12 +2728,17 @@ window.dailySubmit = async function(fromTimer = false) {
 
   // AI validate all non-empty answers — sequential to avoid rate limits
   const aiResults = {};
+  const aiResponses = {}; // raw AI text for invalid/unsure answers only
   for (let i = 0; i < G_daily.categories.length; i++) {
     const word = G_daily.answers[i] || '';
     if (!word) { aiResults[i] = 'empty'; continue; }
-    aiResults[i] = DAILY_CONSENSUS
-      ? await dailyAIValidate(word, G_daily.categories[i], G_daily.letter)
-      : await dailyAICallModel(word, G_daily.categories[i], G_daily.letter, 'inclusionai/ling-3.0-flash-fin:free', ...dailyBuildPromptWithWord(word, G_daily.categories[i], G_daily.letter));
+    if (DAILY_CONSENSUS) {
+      aiResults[i] = await dailyAIValidate(word, G_daily.categories[i], G_daily.letter);
+    } else {
+      const { verdict, rawText } = await dailyAICallModel(word, G_daily.categories[i], G_daily.letter, 'inclusionai/ling-3.0-flash-fin:free', ...dailyBuildPromptWithWord(word, G_daily.categories[i], G_daily.letter));
+      aiResults[i] = verdict;
+      if ((verdict === 'invalid' || verdict === 'unsure') && rawText) aiResponses[i] = rawText;
+    }
   }
   G_daily.aiResults = aiResults;
 
@@ -2795,6 +2800,7 @@ window.dailySubmit = async function(fromTimer = false) {
       baseScore, totalScore, originality: 0, speedMultiplier,
       answers: answersObj,
       aiResults: aiResults,
+      ...(Object.keys(aiResponses).length ? { aiResponses } : {}),
       categories: G_daily.categories || [],
       timestamp: Date.now()
     });
@@ -2845,18 +2851,19 @@ async function dailyAICallModel(word, category, letter, model, systemPrompt, pro
         temperature: 0
       })
     });
-    if (!response.ok) return 'unsure';
+    if (!response.ok) return { verdict: 'unsure', rawText: null };
     const data = await response.json();
     const msg = data.choices?.[0]?.message || {};
     const combined = (msg.content?.trim() || msg.reasoning?.trim() || '');
     const text = combined.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
     const norm = text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z]/g, ' ').trim();
-    if (/\binvalid(o)?\b/.test(norm)) return 'invalid';
-    if (/\bvalid(o)?\b/.test(norm)) return 'valid';
-    if (/\byes\b|\bcorrect\b|\bsi\b|\bcorrecto\b/.test(norm)) return 'valid';
-    if (/\bno\b|\bincorrect\b|\bwrong\b|\bincorrecto\b/.test(norm)) return 'invalid';
-    return 'unsure';
-  } catch(e) { console.error('[Daily AI] error:', e.message); return 'unsure'; }
+    let verdict = 'unsure';
+    if (/\binvalid(o)?\b/.test(norm)) verdict = 'invalid';
+    else if (/\bvalid(o)?\b/.test(norm)) verdict = 'valid';
+    else if (/\byes\b|\bcorrect\b|\bsi\b|\bcorrecto\b/.test(norm)) verdict = 'valid';
+    else if (/\bno\b|\bincorrect\b|\bwrong\b|\bincorrecto\b/.test(norm)) verdict = 'invalid';
+    return { verdict, rawText: text.slice(0, 1000) || null };
+  } catch(e) { console.error('[Daily AI] error:', e.message); return { verdict: 'unsure', rawText: null }; }
 }
 
 // Consensus: 2 models in parallel, tiebreaker only if split
@@ -2869,11 +2876,12 @@ async function dailyAIValidate(word, category, letter) {
     'z-ai/glm-5.2:free'
   ];
 
-  // Call first 2 in parallel
-  const [r1, r2] = await Promise.all([
+  // Call first 2 in parallel — destructure verdict only (rawText not needed in consensus path)
+  const [res1, res2] = await Promise.all([
     dailyAICallModel(word, category, letter, MODELS[0], systemPrompt, userPrompt),
     dailyAICallModel(word, category, letter, MODELS[1], systemPrompt, userPrompt),
   ]);
+  const r1 = res1.verdict, r2 = res2.verdict;
 
   // If they agree — done
   if (r1 === r2) return r1;
@@ -2883,7 +2891,8 @@ async function dailyAIValidate(word, category, letter) {
   if (r2 === 'unsure') return r1;
 
   // Split (valid vs invalid) — call tiebreaker
-  const r3 = await dailyAICallModel(word, category, letter, MODELS[2], systemPrompt, userPrompt);
+  const res3 = await dailyAICallModel(word, category, letter, MODELS[2], systemPrompt, userPrompt);
+  const r3 = res3.verdict;
 
   // Majority vote
   const votes = [r1, r2, r3];
@@ -3061,6 +3070,8 @@ window.recontest = async (idx, word, cat) => {
     // Capture original verdict for logging and safe revert
     const originalVerdict = G_daily.aiResults[String(idx)] || G_daily.aiResults[idx] || 'invalid';
     // Log contest outcome for AI tuning analysis (per-entry, under same path)
+    const msg1 = res1?.choices?.[0]?.message || {};
+    const aiRaw = (msg1.content?.trim() || msg1.reasoning?.trim() || '').replace(/<think>[\s\S]*?<\/think>/gi, '').trim().slice(0, 1000);
     await set(ref(db, contestPath + '_log/' + String(idx)), {
       idx: String(idx),
       category: cat,
@@ -3070,6 +3081,7 @@ window.recontest = async (idx, word, cat) => {
       newVerdict: newRes,
       votes,
       method: CONTEST_METHOD,
+      aiResponse: aiRaw || null,
       timestamp: Date.now()
     }).catch(() => {});
 
@@ -6305,7 +6317,7 @@ setTimeout(() => updateDailyButtonDate(), 350);
 // Version freshness check — silently reload if a newer version is deployed
 // Runs once on load; does nothing if already on latest or if fetch fails
 (function() {
-  const RUNNING = 'v260922.288';
+  const RUNNING = 'v260922.291';
   if (sessionStorage.getItem('alto_ver_checked') === RUNNING) return; // already checked this session
   sessionStorage.setItem('alto_ver_checked', RUNNING);
   fetch(location.href, { cache: 'no-cache' })
@@ -6328,7 +6340,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) upda
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260922.288</div>
+  <div style="font-size: 11px;opacity:0.5">v260922.291</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
