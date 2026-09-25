@@ -229,7 +229,7 @@ Two fonts, six slots. **Do not add new sizes outside these slots.**
 - Real-time multiplayer via Firebase (room codes, host/guest model)
 - Session restore / welcome-back screen with emoji picker
 - Collision-safe room code generation (`genUniqueCode()`)
-- Room auto-deleted from Firebase 5 minutes after game ends (extended from 60s in Session 22). Delete timer stored in `G._deleteRoomTimeout` and cancelled if host taps "Jugar de nuevo".
+- Room auto-deleted from Firebase 45 minutes after game ends (extended from 60s in Session 22). Delete timer stored in `G._deleteRoomTimeout` and cancelled if host taps "Jugar de nuevo".
 - Letter selection (easy pool only — hard letters option hidden, always easy)
 - Language-aware easy pool: EN keeps K, ES/FR drop it (`LETTERS_EASY` object)
 - Correct remaining timer for rejoiners (`roundStartTime` saved in Firebase)
@@ -803,8 +803,8 @@ If player has 2+ unsure verdicts on today's result screen, show a "Revalidar tod
 **C — Multiplayer tied scores — medal fairness:**
 When two or more players finish with the same score, they get different medals based on arbitrary sort order. Should show the same medal to all tied players (two golds if tied for 1st, etc). Affects both `showScores` (between rounds) and `showFinal` (end screen).
 
-**D — WhatsApp share + Jugar de nuevo + ghost emojis + free mode examples (IN STAGING v300-tmp):**
-All built and in staging. Test, then promote to production by bumping version (drop -tmp) and deploying with deploy.bat.
+**D — WhatsApp share + Jugar de nuevo + ghost emojis + free mode examples (DEPLOYED v301):**
+All built and deployed to production in v301.
 
 **E — Free mode multiple example sets (BACKLOG):**
 Idea: multiple themed sets of 20 example categories selectable via button row above textarea. Sets planned: "Lo que te rodea" (current), "Cultura y entretenimiento", "Mundo animal", "Gente y sociedad", "Comida y fiestas". Draft categories discussed in Session 22. Save for dedicated category session.
@@ -895,35 +895,33 @@ Discussed adding new categories: Personaje de ficcion, Genero musical, Divinidad
 - Both capped at 1000 chars, `<think>` blocks stripped.
 - Firebase size impact: negligible (~3KB/player worst case, skipped for all-valid players)
 
-**WhatsApp share — host kicked out of room (DIAGNOSED, NOT YET BUILT):**
-- Root cause: `shareWhatsApp()` calls `window.open('https://wa.me/...', '_blank')`. On iOS this navigates away, triggering reload and session restore that feels like being kicked out.
-- Fix plan: use `navigator.share()` first (native OS share sheet, no navigation). Fall back to `window.open` on desktop. AbortError (user cancelled) handled silently.
-- NOT deployed — staging attempt abandoned due to reload loop bug (see below).
+**WhatsApp share — host kicked out of room (v301):**
+- Root cause: `shareWhatsApp()` called `window.open('https://wa.me/...', '_blank')`. On mobile this navigates away, triggering reload and session restore that felt like being kicked out.
+- Fix: `navigator.share()` first (native OS share sheet, no navigation). Falls back to `window.open` on desktop. AbortError (user cancelled) handled silently.
 
-**"Jugar de nuevo" broken for host and guest (DIAGNOSED, NOT YET BUILT):**
-- Root cause 1: Room deleted 60s after game end by `setTimeout`. Host taps "Jugar de nuevo", resets Firebase to `phase:'lobby'` — but 60s later delete fires anyway. `playAgain()` then calls `get(roomRef)` on deleted room, hits `!snap.exists()` -> `leaveGame()` -> home screen.
-- Root cause 2: Both host and guest see same button. Guest tap shows `toastHostOnly`. Should be split: host gets active button, guest gets disabled "Esperando al anfitrion...".
-- Fix plan: store delete timeout in `G._deleteRoomTimeout`, cancel in `playAgain()`, extend to 5 minutes. Split button with `host-only`/`guest-only`. New i18n key `waitHost` in ES/EN/FR.
-- NOT deployed — staging attempt abandoned.
+**"Jugar de nuevo" fixed (v301):**
+- Root cause 1: Room deleted 60s after game end. Host tapping "Jugar de nuevo" reset Firebase to `phase:'lobby'` — but 60s later delete fired anyway, destroying the new game.
+- Root cause 2: Both host and guest saw same button. Guest tap showed `toastHostOnly`.
+- Fix: delete timeout stored in `G._deleteRoomTimeout`, cancelled in `playAgain()`, extended to 45 minutes. Button split: host gets active "Jugar de nuevo", guest gets disabled "Esperando al anfitrion...". New i18n key `waitHost` in ES/EN/FR.
 
-**Staging reload loop — DO NOT REPEAT (root cause documented):**
-- Staging versions use a `t` suffix (e.g. `v260922.295t`). The `CURRENT_VERSION` regex `/v(\d{6}\.\d+)(?!-tmp|[0-9])/` partially matched the staging version, extracting a mismatched number, triggering `_updateAvailable = true`. Every `reloadIfOutdated()` call (room create/join) caused an infinite reload loop on staging.
-- Fix needed before next staging deploy: make `CURRENT_VERSION` return `null` when page contains a staging version. Detection regex: `/v\d{6}\.\d+t['"]/` on `document.body.innerHTML`.
-- All staging attempts (v293t-v295t) abandoned. Production untouched at v292.
+**Ghost thumbs/emojis between rounds fixed (v301):**
+- `enterPlaying` now clears `#val-content`, `#guest-val-content`, `#sc-list` at the start of each round. All three are fully rebuilt when their screens are shown — safe to clear early.
+
+**Free mode "Usar ejemplos" button (v301):**
+- Button above textarea fills it with 20 fun example categories in current language (ES/EN/FR).
+- Switching language clears the textarea (Option A — fresh start, no stale categories).
+- `FREE_CAT_EXAMPLES` object holds 20 categories × 3 languages.
+
+**Free mode "Elegir 8 al azar cada ronda" toggle (v301):**
+- Appears below textarea, enabled when 9+ categories written.
+- When active: picks fresh 8 random categories each round from full list stored in Firebase as `room.allFreeCats`.
+- Toggle state persisted in `alto_lobby_config`.
+- `createRoom` stores `catMode: 'free-random'` and `allFreeCats` in Firebase. `nextRound` handles this catMode.
 
 **Firebase schema additions (Session 22):**
-- `daily/{date}/{lang}/scores/{playerKey}/aiResponses: { idx: string }` — AI reasoning for invalid/unsure
-- `names/{safeName}/contests/{date}/{lang}_log/{idx}/aiResponse: string` — AI reasoning for recontest
-
-**Last version deployed: v260922.292 (production). Staging: v260922.300-tmp.**
-
-**Staging (v300-tmp) contains these fixes on top of v292, all untested:**
-1. WhatsApp share — `navigator.share` to avoid kicking host out of room
-2. Jugar de nuevo — 45min delete timer stored in `G._deleteRoomTimeout`, cancelled in `playAgain()`, guest sees "Esperando al anfitrion..." button
-3. Ghost thumbs/emojis — `enterPlaying` now clears `#val-content`, `#guest-val-content`, `#sc-list`
-4. Free mode "Usar ejemplos" button — fills textarea with 20 fun categories in current language
-5. Free mode "Elegir 8 al azar cada ronda" toggle — enabled when 9+ cats, persists in lobby config, picks fresh 8 each round from `room.allFreeCats`
-
-**Firebase schema additions (Session 22 staging):**
-- `room.allFreeCats: string[]` — full free-mode category list stored when random mode active
+- `daily/{date}/{lang}/scores/{playerKey}/aiResponses: { idx: string }` — AI reasoning for invalid/unsure answers
+- `names/{safeName}/contests/{date}/{lang}_log/{idx}/aiResponse: string` — AI reasoning for every recontest
+- `room.allFreeCats: string[]` — full free-mode category list when random mode active
 - `room.catMode: 'free-random'` — new catMode value for free mode random picks
+
+**Last version deployed: v260922.301**
