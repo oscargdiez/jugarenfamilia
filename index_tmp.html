@@ -1056,8 +1056,15 @@ document.addEventListener('DOMContentLoaded', function() {
           <div class="group-pills-row" id="group-grid" style="margin-top:6px"></div>
         </div>
         <div id="cat-free" style="display:none">
-          <p class="lbl" id="lbl-cat-free" style="margin-top:6px">escribe tus categorías (una por línea)</p>
-          <textarea id="free-cats" rows="5" placeholder="Jugadores del Barça&#10;Películas de terror&#10;Cosas en la cocina"></textarea>
+          <div style="display:flex;align-items:baseline;justify-content:space-between;margin-top:6px">
+            <p class="lbl" id="lbl-cat-free" style="margin:0">escribe tus categorías (una por línea)</p>
+            <button id="btn-usar-ejemplos" onclick="fillExampleCats()" style="font-size:11px;padding:3px 8px;opacity:0.7">Usar ejemplos</button>
+          </div>
+          <textarea id="free-cats" rows="5" placeholder="Jugadores del Barça&#10;Películas de terror&#10;Cosas en la cocina" oninput="saveLobbyConfig();updateFreeCatRandomToggle()"></textarea>
+          <label class="cat-lbl" id="lbl-free-cat-random" style="margin-top:6px;opacity:0.4;pointer-events:none">
+            <input type="checkbox" id="free-cat-random" disabled onchange="saveLobbyConfig()">
+            <span id="lbl-free-cat-random-text">Elegir 8 al azar cada ronda</span>
+          </label>
         </div>
       </div>
       <div class="card">
@@ -1356,7 +1363,7 @@ const T = {
     toastHostOnly: 'Solo el anfitrión puede reiniciar', waitHost: 'Esperando al anfitrión…',
     toastStopFill: 'Rellena todas las respuestas antes de llamar al ¡Alto!',
     hostRevisingScores: 'el anfitrión está revisando de nuevo ✏️',
-    toastDemoMin: 'El modo democrático requiere mínimo 3 jugadores', continueBtn: 'Continuar →', notMe: 'No soy yo — cambiar', groupHint2: 'familia, amigos, trabajo... como queráis', easyHint: '(sin K, Ñ, Q, U, W, X, Y, Z)', validate: 'Revisar', validateSub1: '📖 Wikipedia · 🤖 Asistente Robot · <span style="color:var(--red)">✕</span> anular', validateSub2: 'única = 100 pts · repetida = 50 pts · anulada = 0 pts', submitted2: 'Respuestas enviadas', waitingTitle: 'Esperando...', hostReviewing2: 'el anfitrión está revisando', leaderboardBack: '← Volver', loading: 'Cargando…', final2: '¡Fin del juego!', searching: 'Buscando...', hostSearching: 'El anfitrión está buscando...', rndLabel: 'ronda', of: 'de', freeCatLabel: 'escreve as tuas categorias (uma por linha)', freeCatPlaceholder: 'Jogadores do Barça\nFilmes de terror\nCoisas na cozinha', freeCatLabel: 'escribe tus categorías (una por línea)', freeCatPlaceholder: 'Jugadores del Barça\nPelículas de terror\nCosas en la cocina', of: 'de', freeCatLabel: 'escreve as tuas categorias (uma por linha)', freeCatPlaceholder: 'Jogadores do Barça\nFilmes de terror\nCoisas na cozinha', freeCatLabel: 'escribe tus categorías (una por línea)', freeCatPlaceholder: 'Jugadores del Barça\nPelículas de terror\nCosas en la cocina', letterLabel: 'letra', calculate: 'Calcular puntuación →', stopCallerMsg: '{name} llamó al ¡Alto!', timerRanOut: 'se acabó el tiempo', scoresTitle: 'Puntuación', lbTitle: 'Marcador',
+    toastDemoMin: 'El modo democrático requiere mínimo 3 jugadores', continueBtn: 'Continuar →', notMe: 'No soy yo — cambiar', groupHint2: 'familia, amigos, trabajo... como queráis', easyHint: '(sin K, Ñ, Q, U, W, X, Y, Z)', validate: 'Revisar', validateSub1: '📖 Wikipedia · 🤖 Asistente Robot · <span style="color:var(--red)">✕</span> anular', validateSub2: 'única = 100 pts · repetida = 50 pts · anulada = 0 pts', submitted2: 'Respuestas enviadas', waitingTitle: 'Esperando...', hostReviewing2: 'el anfitrión está revisando', leaderboardBack: '← Volver', loading: 'Cargando…', final2: '¡Fin del juego!', searching: 'Buscando...', hostSearching: 'El anfitrión está buscando...', rndLabel: 'ronda', of: 'de', freeCatLabel: 'escreve as tuas categorias (uma por linha)', freeCatPlaceholder: 'Jogadores do Barça\nFilmes de terror\nCoisas na cozinha', freeCatLabel: 'escribe tus categorías (una por línea)', freeCatPlaceholder: 'Jugadores del Barça\nPelículas de terror\nCosas en la cocina', usarEjemplos: 'Usar ejemplos', freeCatRandom: 'Elegir 8 al azar cada ronda', toastFreeCatsRandom: 'Necesitas al menos 9 categorías para el modo aleatorio', of: 'de', freeCatLabel: 'escreve as tuas categorias (uma por linha)', freeCatPlaceholder: 'Jogadores do Barça\nFilmes de terror\nCoisas na cozinha', freeCatLabel: 'escribe tus categorías (una por línea)', freeCatPlaceholder: 'Jugadores del Barça\nPelículas de terror\nCosas en la cocina', letterLabel: 'letra', calculate: 'Calcular puntuación →', stopCallerMsg: '{name} llamó al ¡Alto!', timerRanOut: 'se acabó el tiempo', scoresTitle: 'Puntuación', lbTitle: 'Marcador',
     invited: '¡Te han invitado a jugar!', rulesBtn: '¿Cómo se juega?', expBtn: '⚗️ FUNCIONES EXPERIMENTALES', aiValidation: '🤖 Asistente Robot', aiRelajado: '🟢 Relajada', aiEstricto: '🔴 Estricta', aiSpelling: '✏️ Permitir faltas de ortografía', aiYes: 'Sí', aiNo: 'No', modeHost: '👑 Normal', modeDemocratic: '🗳️ Democrático', invalidated: 'anulada', winnerLine: '{emoji} {name} gana con {pts} puntos!', wrongPwd: '❌ Contraseña incorrecta', expActivated: '⚗️ Funciones experimentales activadas', qjCodeLabel: 'sala:', gcInside: '✅ ESTÁS DENTRO', inviteMore: '+ ¿Quieres invitar a alguien más?', getReady: '¡VAMOS!',
     toastBack: 'Volviendo como', notFoundWord: '📭 No se encontró', didYouMean: '¿Quisiste decir', noDefinition: '📭 Sin definición para',
     waMsg: '¡Juega conmigo al ¡Alto! 🎮 Únete aquí:',
@@ -1419,7 +1426,7 @@ const T = {
     toastHostOnly: 'Only the host can restart', waitHost: 'Waiting for the host…',
     toastStopFill: 'Fill in all answers before calling ¡Alto!',
     hostRevisingScores: 'host is revising answers ✏️',
-    toastDemoMin: 'Democratic mode requires at least 3 players', continueBtn: 'Continue →', notMe: "That's not me — change", groupHint2: 'family, friends, work... whatever you like', easyHint: '(no Q, U, W, X, Y, Z)', validate: 'Review', validateSub1: '📖 Wikipedia · 🤖 Robot Assistant · <span style="color:var(--red)">✕</span> invalidate', validateSub2: 'unique = 100 pts · duplicate = 50 pts · invalid = 0 pts', submitted2: 'Answers submitted', waitingTitle: 'Waiting...', hostReviewing2: 'host is reviewing', leaderboardBack: '← Back', loading: 'Loading…', final2: 'Game over!', searching: 'Searching...', hostSearching: 'Host is searching...', rndLabel: 'round', of: 'di', freeCatLabel: 'scrivi le tue categorie (una per riga)', freeCatPlaceholder: 'Giocatori del Barça\nFilm horror\nCose in cucina', of: 'of', freeCatLabel: 'write your categories (one per line)', freeCatPlaceholder: 'Football players\nHorror films\nThings in the kitchen', letterLabel: 'letter', calculate: 'Calculate scores →', stopCallerMsg: '{name} called ¡Alto!', timerRanOut: 'time ran out', scoresTitle: 'Scores', lbTitle: 'Leaderboard',
+    toastDemoMin: 'Democratic mode requires at least 3 players', continueBtn: 'Continue →', notMe: "That's not me — change", groupHint2: 'family, friends, work... whatever you like', easyHint: '(no Q, U, W, X, Y, Z)', validate: 'Review', validateSub1: '📖 Wikipedia · 🤖 Robot Assistant · <span style="color:var(--red)">✕</span> invalidate', validateSub2: 'unique = 100 pts · duplicate = 50 pts · invalid = 0 pts', submitted2: 'Answers submitted', waitingTitle: 'Waiting...', hostReviewing2: 'host is reviewing', leaderboardBack: '← Back', loading: 'Loading…', final2: 'Game over!', searching: 'Searching...', hostSearching: 'Host is searching...', rndLabel: 'round', of: 'di', freeCatLabel: 'scrivi le tue categorie (una per riga)', freeCatPlaceholder: 'Giocatori del Barça\nFilm horror\nCose in cucina', of: 'of', freeCatLabel: 'write your categories (one per line)', freeCatPlaceholder: 'Football players\nHorror films\nThings in the kitchen', usarEjemplos: 'Use examples', freeCatRandom: 'Pick 8 at random each round', toastFreeCatsRandom: 'You need at least 9 categories for random mode', letterLabel: 'letter', calculate: 'Calculate scores →', stopCallerMsg: '{name} called ¡Alto!', timerRanOut: 'time ran out', scoresTitle: 'Scores', lbTitle: 'Leaderboard',
     invited: "You've been invited to play!", rulesBtn: 'How to play?', expBtn: '⚗️ EXPERIMENTAL FEATURES', aiValidation: '🤖 Robot Assistant', aiRelajado: '🟢 Relaxed', aiEstricto: '🔴 Strict', aiSpelling: '✏️ Allow spelling mistakes', aiYes: 'Yes', aiNo: 'No', modeHost: '👑 Normal', modeDemocratic: '🗳️ Democratic', invalidated: 'invalid', winnerLine: '{emoji} {name} wins with {pts} points!', wrongPwd: '❌ Wrong password', expActivated: '⚗️ Experimental features activated', qjCodeLabel: 'room:', gcInside: "✅ YOU'RE IN", inviteMore: '+ Want to invite someone?', getReady: "LET'S GO!",
     toastBack: 'Rejoining as', notFoundWord: '📭 Not found', didYouMean: 'Did you mean', noDefinition: '📭 No definition for',
     waMsg: 'Play ¡Alto! with me 🎮 Join here:',
@@ -1482,7 +1489,7 @@ const T = {
     toastHostOnly: "Seul l'hôte peut recommencer", waitHost: "En attente de l'hôte…",
     toastStopFill: 'Remplis toutes les réponses avant de crier ¡Alto !',
     hostRevisingScores: "l'hôte révise les réponses ✏️",
-    toastDemoMin: 'Le mode démocratique nécessite au moins 3 joueurs', continueBtn: 'Continuer →', notMe: "Ce n'est pas moi — changer", groupHint2: 'famille, amis, travail... comme vous voulez', easyHint: '(sans K, Q, U, W, X, Y, Z)', validate: 'Vérifier', validateSub1: '📖 Wikipedia · 🤖 Assistant Robot · <span style="color:var(--red)">✕</span> annuler', validateSub2: 'unique = 100 pts · doublon = 50 pts · annulé = 0 pts', submitted2: 'Réponses envoyées', waitingTitle: 'En attente...', hostReviewing2: "l'hôte vérifie", leaderboardBack: '← Retour', loading: 'Chargement…', final2: 'Fin de partie!', searching: 'Recherche...', hostSearching: "L'hôte cherche...", rndLabel: 'manche', of: 'sur', freeCatLabel: 'écris tes catégories (une par ligne)', freeCatPlaceholder: 'Joueurs du Barça\nFilms d\'horreur\nChoses dans la cuisine', letterLabel: 'lettre', calculate: 'Calculer les scores →', stopCallerMsg: '{name} a crié ¡Alto !', timerRanOut: 'temps écoulé', scoresTitle: 'Scores', lbTitle: 'Classement',
+    toastDemoMin: 'Le mode démocratique nécessite au moins 3 joueurs', continueBtn: 'Continuer →', notMe: "Ce n'est pas moi — changer", groupHint2: 'famille, amis, travail... comme vous voulez', easyHint: '(sans K, Q, U, W, X, Y, Z)', validate: 'Vérifier', validateSub1: '📖 Wikipedia · 🤖 Assistant Robot · <span style="color:var(--red)">✕</span> annuler', validateSub2: 'unique = 100 pts · doublon = 50 pts · annulé = 0 pts', submitted2: 'Réponses envoyées', waitingTitle: 'En attente...', hostReviewing2: "l'hôte vérifie", leaderboardBack: '← Retour', loading: 'Chargement…', final2: 'Fin de partie!', searching: 'Recherche...', hostSearching: "L'hôte cherche...", rndLabel: 'manche', of: 'sur', freeCatLabel: 'écris tes catégories (une par ligne)', freeCatPlaceholder: 'Joueurs du Barça\nFilms d\'horreur\nChoses dans la cuisine', usarEjemplos: 'Utiliser des exemples', freeCatRandom: 'Choisir 8 au hasard chaque manche', toastFreeCatsRandom: 'Il faut au moins 9 catégories pour le mode aléatoire', letterLabel: 'lettre', calculate: 'Calculer les scores →', stopCallerMsg: '{name} a crié ¡Alto !', timerRanOut: 'temps écoulé', scoresTitle: 'Scores', lbTitle: 'Classement',
     invited: 'Tu as été invité à jouer!', rulesBtn: 'Comment jouer?', expBtn: '⚗️ FONCTIONS EXPÉRIMENTALES', aiValidation: '🤖 Assistant Robot', aiRelajado: '🟢 Détendue', aiEstricto: '🔴 Stricte', aiSpelling: '✏️ Autoriser les fautes d\'orthographe', aiYes: 'Oui', aiNo: 'Non', modeHost: '👑 Normal', modeDemocratic: '🗳️ Démocratique', invalidated: 'annulée', winnerLine: '{emoji} {name} gagne avec {pts} points!', wrongPwd: '❌ Mot de passe incorrect', expActivated: '⚗️ Fonctions expérimentales activées', qjCodeLabel: 'salle:', gcInside: '✅ VOUS ÊTES DEDANS', inviteMore: "+ Inviter quelqu'un d'autre?", getReady: "C'EST PARTI!",
     toastBack: 'Reconnexion en tant que', notFoundWord: '📭 Introuvable', didYouMean: 'Vouliez-vous dire', noDefinition: '📭 Aucune définition pour',
     waMsg: 'Joue au ¡Alto! avec moi 🎮 Rejoins ici:',
@@ -1725,6 +1732,8 @@ window.applyLang = function() {
   s('ft-rnd-of', t('of'));
   s('lbl-cat-free', t('freeCatLabel'));
   const freeCats = document.getElementById('free-cats'); if(freeCats) freeCats.placeholder = t('freeCatPlaceholder');
+  s('btn-usar-ejemplos', t('usarEjemplos'));
+  s('lbl-free-cat-random-text', t('freeCatRandom'));
   s('lbl-cat-random', t('catRandomLabel'));
   s('lbl-cat-classic', t('catClassicLabel'));
   if (document.getElementById('group-grid')?.children.length) buildGroupGrid();
@@ -1811,6 +1820,97 @@ window.copyLinkGuest = () => {
   const url = document.getElementById('share-url');
   if (url) { navigator.clipboard.writeText(url.textContent); toast(t('toastCopied')); }
 };
+
+// ── Free-mode example categories ─────────────────────
+const FREE_CAT_EXAMPLES = {
+  es: [
+    'Cosa que encuentras en la playa',
+    'Animal con cola',
+    'Cosa que es roja',
+    'Lo que comes en un cumpleaños',
+    'Cosa que llevas en una mochila',
+    'Trabajo raro o chistoso',
+    'Cosa que hace ruido',
+    'Lo que ves en el cielo',
+    'Cosa que da miedo',
+    'Nombre de superhéroe',
+    'Cosa que es pegajosa',
+    'Lo que haces cuando estás aburrido',
+    'Cosa que se puede inflar',
+    'Animal que no quieres de mascota',
+    'Cosa que encuentras en un cajón',
+    'Lo que llevas a un picnic',
+    'Cosa que brilla',
+    'Juego que se juega afuera',
+    'Cosa que huele bien',
+    'Lo que dices cuando te asustas',
+  ],
+  en: [
+    'Something you find at the beach',
+    'Animal with a tail',
+    'Something that is red',
+    'What you eat at a birthday party',
+    'Something you carry in a backpack',
+    'Weird or funny job',
+    'Something that makes noise',
+    'What you see in the sky',
+    'Something that is scary',
+    'Superhero name',
+    'Something that is sticky',
+    'What you do when you are bored',
+    'Something you can inflate',
+    'Animal you would not want as a pet',
+    'Something you find in a drawer',
+    'What you bring to a picnic',
+    'Something that shines',
+    'Game you play outside',
+    'Something that smells good',
+    'What you say when you get scared',
+  ],
+  fr: [
+    'Chose qu\'on trouve à la plage',
+    'Animal avec une queue',
+    'Chose qui est rouge',
+    'Ce qu\'on mange à un anniversaire',
+    'Chose qu\'on porte dans un sac à dos',
+    'Métier bizarre ou amusant',
+    'Chose qui fait du bruit',
+    'Ce qu\'on voit dans le ciel',
+    'Chose qui fait peur',
+    'Nom de super-héros',
+    'Chose qui est collante',
+    'Ce qu\'on fait quand on s\'ennuie',
+    'Chose qu\'on peut gonfler',
+    'Animal qu\'on ne voudrait pas comme animal de compagnie',
+    'Chose qu\'on trouve dans un tiroir',
+    'Ce qu\'on apporte à un pique-nique',
+    'Chose qui brille',
+    'Jeu qu\'on joue dehors',
+    'Chose qui sent bon',
+    'Ce qu\'on dit quand on a peur',
+  ],
+};
+
+window.fillExampleCats = () => {
+  const ta = document.getElementById('free-cats');
+  if (!ta) return;
+  ta.value = (FREE_CAT_EXAMPLES[LANG] || FREE_CAT_EXAMPLES.es).join('\n');
+  updateFreeCatRandomToggle();
+  saveLobbyConfig();
+};
+
+function updateFreeCatRandomToggle() {
+  const ta = document.getElementById('free-cats');
+  const lbl = document.getElementById('lbl-free-cat-random');
+  const cb = document.getElementById('free-cat-random');
+  if (!ta || !lbl || !cb) return;
+  const count = ta.value.split('\n').map(s => s.trim()).filter(Boolean).length;
+  const enough = count >= 9;
+  lbl.style.opacity = enough ? '1' : '0.4';
+  lbl.style.pointerEvents = enough ? 'auto' : 'none';
+  cb.disabled = !enough;
+  if (!enough) cb.checked = false;
+}
 
 window.shareWhatsApp = async () => {
   const url = document.getElementById('share-url').textContent;
@@ -3808,6 +3908,7 @@ function saveLobbyConfig() {
   const rounds = document.getElementById('sl-rounds')?.value;
   const time = document.getElementById('sl-time')?.value;
   const penalty = document.getElementById('sl-penalty')?.value;
+  const freeCatRandom = document.getElementById('free-cat-random')?.checked || false;
   localStorage.setItem('alto_lobby_config', JSON.stringify({
     theme: G.selectedTheme,
     groups: G.selectedGroups,
@@ -3817,6 +3918,7 @@ function saveLobbyConfig() {
     validationMode: G_validationMode,
     aiStrictness: G_aiStrictness,
     aiSpelling: G_aiSpelling,
+    freeCatRandom,
   }));
 }
 
@@ -3833,6 +3935,7 @@ function restoreLobbyConfig() {
     if (c.validationMode) { G_validationMode = c.validationMode; window.setValidationMode(c.validationMode); }
     if (c.aiStrictness) { G_aiStrictness = c.aiStrictness; window.setAIStrictness(c.aiStrictness); }
     if (c.aiSpelling !== undefined) { G_aiSpelling = c.aiSpelling; window.setAISpelling(c.aiSpelling); }
+    if (c.freeCatRandom !== undefined) { const cb = document.getElementById('free-cat-random'); if (cb) cb.checked = c.freeCatRandom; updateFreeCatRandomToggle(); }
   } catch(e) { /* silent — corrupt config, start fresh */ }
 }
 
@@ -4116,7 +4219,14 @@ window.startGame = async () => {
     const raw = document.getElementById('free-cats').value;
     const freeCats = [...new Set(raw.split('\n').map(s=>s.trim()).filter(Boolean))];
     if (freeCats.length < 2) { toast(t('toastFreeCats')); return; }
-    cats = { letter: pickLetter([], easy), displayCats: freeCats };
+    const freeRandom = document.getElementById('free-cat-random')?.checked && freeCats.length >= 9;
+    if (freeRandom) {
+      // Pick 8 random for first round; store full list in Firebase for subsequent rounds
+      const shuffled = [...freeCats].sort(() => Math.random() - 0.5);
+      cats = { letter: pickLetter([], easy), displayCats: shuffled.slice(0, 8), allFreeCats: freeCats };
+    } else {
+      cats = { letter: pickLetter([], easy), displayCats: freeCats };
+    }
   } else {
     if (!G.selectedCats || G.selectedCats.length === 0) { toast(t('toastCats')); return; }
     cats = { letter: pickLetter([], easy), displayCats: [...G.selectedCats] };
@@ -4137,8 +4247,9 @@ window.startGame = async () => {
     scores, easyLetters: easy, stopPenalty: penalty, groupName, aiEnabled: G_aiEnabled,
     aiStrictness: G_aiStrictness, aiSpelling: G_aiSpelling, validationMode: G_validationMode,
     gameLang: LANG,
-    catMode: isRandom ? 'random' : 'fixed',
+    catMode: isRandom ? 'random' : (cats.allFreeCats ? 'free-random' : 'fixed'),
     selectedGroups: isRandom ? G.selectedGroups : null,
+    allFreeCats: cats.allFreeCats || null,
   });
 };
 
@@ -5286,12 +5397,15 @@ window.nextRound = async () => {
   const used = room.usedLetters||[];
   const letter = pickLetter(used, room.easyLetters!==false);
   used.push(letter);
-  // In random mode: pick 6 fresh categories for this round's letter
+  // In random mode: pick fresh categories each round
   let newCats = room.categories;
   if (room.catMode === 'random' && room.selectedGroups) {
     const rawCats = pickRandomCats(letter, room.selectedGroups);
     if (rawCats) newCats = getDailyCatNames(rawCats);
     // If pool too small for this letter (edge case), keep previous cats silently
+  } else if (room.catMode === 'free-random' && room.allFreeCats && room.allFreeCats.length >= 9) {
+    const shuffled = [...room.allFreeCats].sort(() => Math.random() - 0.5);
+    newCats = shuffled.slice(0, 8);
   }
   await update(roomRef(G.roomCode), {
     currentRound: room.currentRound+1, currentLetter: letter, usedLetters: used,
@@ -6332,7 +6446,7 @@ setTimeout(() => updateDailyButtonDate(), 350);
 // Version freshness check — silently reload if a newer version is deployed
 // Runs once on load; does nothing if already on latest or if fetch fails
 (function() {
-  const RUNNING = 'v260922.299-tmp';
+  const RUNNING = 'v260922.300-tmp';
   if (sessionStorage.getItem('alto_ver_checked') === RUNNING) return; // already checked this session
   sessionStorage.setItem('alto_ver_checked', RUNNING);
   fetch(location.href, { cache: 'no-cache' })
@@ -6355,7 +6469,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) upda
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260922.299-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v260922.300-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
