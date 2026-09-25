@@ -1,5 +1,5 @@
 # JugarEnFamilia.es — Project Handoff Document
-*Last updated: September 2026 — Session 21*
+*Last updated: September 2026 — Session 22*
 
 > ⚠️ **HANDOFF INTEGRITY RULE — DO NOT DELETE CONTENT**
 > This document is append-and-update only. Never remove sections, rules, known issues, backlog items, or session log entries. Only add new content and update existing entries. A truncated handoff causes the next session to lose critical context.
@@ -54,12 +54,15 @@ A multiplayer browser-based version of the classic Spanish word game "Stop/Tutti
   - `names/{safeName}/contests/{date}/{lang}: N` — count of daily recontest uses (max 1 per lang per day)
 - **Schema additions (Session 18):**
   - `daily/{date}/{lang}/scores/{playerKey}/speedMultiplier: float` — speed multiplier now saved to Firebase on submit (was localStorage only)
+- **Schema additions (Session 22):**
+  - `daily/{date}/{lang}/scores/{playerKey}/aiResponses: { "2": "...", "4": "..." }` — raw AI reasoning text for invalid/unsure answers only (capped 1000 chars, `<think>` stripped). Only written if at least one invalid/unsure answer. Valid answers excluded.
+  - `names/{safeName}/contests/{date}/{lang}_log/{idx}/aiResponse: string` — raw AI reasoning text written on every recontest, for contest quality analysis.
 
 ### OpenRouter API
 - **Key:** stored in Cloudflare Worker only — never in the HTML or GitHub repo
 - **Key name:** Alto
 - **Spending cap:** $4 (free tier only)
-- **Models:** `inclusionai/ling-3.0-flash-fin:free` → `nvidia/nemotron-3-super-120b-a12b:free` → `z-ai/glm-5.2:free`
+- **Models:** `inclusionai/ling-3.0-flash-fin:free` (primary, used for both daily validation and recontest). The nemotron and glm models were removed from recontest in Session 22 — they were silently failing and votes counted as invalid.
 - **Logs:** visible at openrouter.ai → Logs → filter by API key "Alto"
 
 ### GitHub
@@ -96,6 +99,7 @@ Claude ALWAYS checks with user BEFORE building anything.
 - When happy: promote staging to production by copying `index_tmp.html` → `index.html`, bump version (drop `-tmp`), deploy with `deploy.bat`
 - Staging is ALWAYS based on latest production — never from old stale staging file
 - **IMPORTANT:** Version check bubble only works on production (fetches `/index.html`), not staging
+- **IMPORTANT:** `gitinfo_tmp.txt` must use `BRANCH=main` — there is no separate `tmp` branch on the remote. Both production and staging deploy to the `main` branch (different files: `index.html` vs `index_tmp.html`).
 
 ### gitinfo.txt format
 ```
@@ -225,7 +229,7 @@ Two fonts, six slots. **Do not add new sizes outside these slots.**
 - Real-time multiplayer via Firebase (room codes, host/guest model)
 - Session restore / welcome-back screen with emoji picker
 - Collision-safe room code generation (`genUniqueCode()`)
-- Room auto-deleted from Firebase 60s after game ends
+- Room auto-deleted from Firebase 5 minutes after game ends (extended from 60s in Session 22). Delete timer stored in `G._deleteRoomTimeout` and cancelled if host taps "Jugar de nuevo".
 - Letter selection (easy pool only — hard letters option hidden, always easy)
 - Language-aware easy pool: EN keeps K, ES/FR drop it (`LETTERS_EASY` object)
 - Correct remaining timer for rejoiners (`roundStartTime` saved in Firebase)
@@ -799,6 +803,15 @@ If player has 2+ unsure verdicts on today's result screen, show a "Revalidar tod
 **C — Multiplayer tied scores — medal fairness:**
 When two or more players finish with the same score, they get different medals based on arbitrary sort order. Should show the same medal to all tied players (two golds if tied for 1st, etc). Affects both `showScores` (between rounds) and `showFinal` (end screen).
 
+**D — WhatsApp share + Jugar de nuevo + ghost emojis + free mode examples (IN STAGING v300-tmp):**
+All built and in staging. Test, then promote to production by bumping version (drop -tmp) and deploying with deploy.bat.
+
+**E — Free mode multiple example sets (BACKLOG):**
+Idea: multiple themed sets of 20 example categories selectable via button row above textarea. Sets planned: "Lo que te rodea" (current), "Cultura y entretenimiento", "Mundo animal", "Gente y sociedad", "Comida y fiestas". Draft categories discussed in Session 22. Save for dedicated category session.
+
+**F — Category pool expansion (BACKLOG):**
+Discussed adding new categories: Personaje de ficcion, Genero musical, Divinidad mitologica, Novela famosa, Festividad. Also discussed group size limits and daily picker logic. Save for dedicated category session.
+
 ---
 
 ### Session 21 continued (Sep 20)
@@ -854,3 +867,63 @@ When two or more players finish with the same score, they get different medals b
 - Tapping ¿Error? on an already-contested entry now shows a toast "Ya revisado hoy / Already reviewed today / Déjà révisé aujourd'hui" and removes the button — instead of showing a disabled "Ya revisado" label which was too long for iPhone
 
 **Last version deployed: v260918.282**
+
+---
+
+### Session 22 (Sep 22–25)
+
+**Recontest overhaul — was always returning invalid (0/3 votes):**
+- Root cause 1: Three recontest models (`nvidia/nemotron`, `ling`, `z-ai/glm`) were silently failing or timing out — every failure counted as an invalid vote. Fixed: recontest now uses single model `inclusionai/ling-3.0-flash-fin:free`, same as daily validation.
+- Root cause 2: `max_tokens: 10` was cutting off the model before it could output a verdict. Fixed: bumped to 800 to match normal validation.
+- Root cause 3: Model puts verdict at end of reasoning chain — `parseVerdict` was scanning full text and hitting "invalid" mentioned mid-thought. Fixed: reads last word of response first, then falls back to full-text scan on `content` only (not reasoning).
+- Root cause 4: "Previous judge said INVALIDO" anchoring in Method B user prompt primed model to uphold. Fixed: Method B now asks fresh neutral question.
+- Root cause 5: Leading space in `cat` argument passed to `recontest()` — `' ${cat}'` → `'${cat.trim()}'`.
+
+**Proper noun rule added to both prompts:**
+- Daily validation system prompt: rule 3 now explicitly states "proper nouns are international — person names, surnames, singers, actors, writers, fictional characters, song/film/TV titles, brands, cities, and countries are accepted in any language; only common nouns must be in [lang]"
+- Recontest Method B user prompt: same note added inline
+- Fixes: Lou Reed rejected as non-French, Lee Hazlewood, city/country names in wrong language
+
+**`dailyAICallModel` return shape changed:**
+- Now returns `{ verdict, rawText }` instead of plain string
+- `dailyAIValidate` (consensus path) updated to destructure `.verdict` — would have silently broken if `DAILY_CONSENSUS` ever enabled
+- Main validation loop destructures both, stores `rawText` in `aiResponses` for invalid/unsure entries
+
+**AI reasoning stored in Firebase:**
+- `scores/{playerKey}/aiResponses` — raw model reasoning for invalid/unsure answers, written at submit time. From Session 22 submissions onwards.
+- `contests/{date}/{lang}_log/{idx}/aiResponse` — raw model reasoning for every recontest. From Session 22 onwards.
+- Both capped at 1000 chars, `<think>` blocks stripped.
+- Firebase size impact: negligible (~3KB/player worst case, skipped for all-valid players)
+
+**WhatsApp share — host kicked out of room (DIAGNOSED, NOT YET BUILT):**
+- Root cause: `shareWhatsApp()` calls `window.open('https://wa.me/...', '_blank')`. On iOS this navigates away, triggering reload and session restore that feels like being kicked out.
+- Fix plan: use `navigator.share()` first (native OS share sheet, no navigation). Fall back to `window.open` on desktop. AbortError (user cancelled) handled silently.
+- NOT deployed — staging attempt abandoned due to reload loop bug (see below).
+
+**"Jugar de nuevo" broken for host and guest (DIAGNOSED, NOT YET BUILT):**
+- Root cause 1: Room deleted 60s after game end by `setTimeout`. Host taps "Jugar de nuevo", resets Firebase to `phase:'lobby'` — but 60s later delete fires anyway. `playAgain()` then calls `get(roomRef)` on deleted room, hits `!snap.exists()` -> `leaveGame()` -> home screen.
+- Root cause 2: Both host and guest see same button. Guest tap shows `toastHostOnly`. Should be split: host gets active button, guest gets disabled "Esperando al anfitrion...".
+- Fix plan: store delete timeout in `G._deleteRoomTimeout`, cancel in `playAgain()`, extend to 5 minutes. Split button with `host-only`/`guest-only`. New i18n key `waitHost` in ES/EN/FR.
+- NOT deployed — staging attempt abandoned.
+
+**Staging reload loop — DO NOT REPEAT (root cause documented):**
+- Staging versions use a `t` suffix (e.g. `v260922.295t`). The `CURRENT_VERSION` regex `/v(\d{6}\.\d+)(?!-tmp|[0-9])/` partially matched the staging version, extracting a mismatched number, triggering `_updateAvailable = true`. Every `reloadIfOutdated()` call (room create/join) caused an infinite reload loop on staging.
+- Fix needed before next staging deploy: make `CURRENT_VERSION` return `null` when page contains a staging version. Detection regex: `/v\d{6}\.\d+t['"]/` on `document.body.innerHTML`.
+- All staging attempts (v293t-v295t) abandoned. Production untouched at v292.
+
+**Firebase schema additions (Session 22):**
+- `daily/{date}/{lang}/scores/{playerKey}/aiResponses: { idx: string }` — AI reasoning for invalid/unsure
+- `names/{safeName}/contests/{date}/{lang}_log/{idx}/aiResponse: string` — AI reasoning for recontest
+
+**Last version deployed: v260922.292 (production). Staging: v260922.300-tmp.**
+
+**Staging (v300-tmp) contains these fixes on top of v292, all untested:**
+1. WhatsApp share — `navigator.share` to avoid kicking host out of room
+2. Jugar de nuevo — 45min delete timer stored in `G._deleteRoomTimeout`, cancelled in `playAgain()`, guest sees "Esperando al anfitrion..." button
+3. Ghost thumbs/emojis — `enterPlaying` now clears `#val-content`, `#guest-val-content`, `#sc-list`
+4. Free mode "Usar ejemplos" button — fills textarea with 20 fun categories in current language
+5. Free mode "Elegir 8 al azar cada ronda" toggle — enabled when 9+ cats, persists in lobby config, picks fresh 8 each round from `room.allFreeCats`
+
+**Firebase schema additions (Session 22 staging):**
+- `room.allFreeCats: string[]` — full free-mode category list stored when random mode active
+- `room.catMode: 'free-random'` — new catMode value for free mode random picks
