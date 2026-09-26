@@ -86,6 +86,7 @@ Claude ALWAYS provides `jugarenfamilia.html` + `gitinfo.txt` together.
 Claude ALWAYS states the version number clearly when presenting deploy files.
 Claude ALWAYS deploys immediately after building — no need to ask.
 Claude ALWAYS checks with user BEFORE building anything.
+Claude ALWAYS confirms a plan first even when Oscar suggests the change himself (plan → Oscar's OK → build). Added Session 24.
 
 ### Production deploy
 1. Download `jugarenfamilia.html` + `gitinfo.txt` to `C:\Users\User\Downloads\`
@@ -98,6 +99,8 @@ Claude ALWAYS checks with user BEFORE building anything.
 - Test at `https://jugarenfamilia.es/index_tmp.html`
 - When happy: promote staging to production by copying `index_tmp.html` → `index.html`, bump version (drop `-tmp`), deploy with `deploy.bat`
 - Staging is ALWAYS based on latest production — never from old stale staging file
+- **Staging deliverables are ONLY `jugarenfamilia_tmp.html` + `gitinfo_tmp.txt`.** `deploy_tmp.bat` does not copy the handoff or the design doc, so those are delivered with the production promotion only (Session 24).
+- A long feature can be built as several staging versions and promoted once, after Oscar has tested it in a real multiplayer game (done this way in Session 24).
 - **IMPORTANT:** Version check bubble only works on production (fetches `/index.html`), not staging
 - **IMPORTANT:** `gitinfo_tmp.txt` must use `BRANCH=main` — there is no separate `tmp` branch on the remote. Both production and staging deploy to the `main` branch (different files: `index.html` vs `index_tmp.html`).
 
@@ -185,8 +188,13 @@ Old code added `addedPts` (100 or 50) directly to `baseScore` which was in raw u
 - No `-tmp` in version string for production ✅
 - All 12 screen IDs present (`grep -c 'id="s-'` = 12) ✅
 - JS syntax clean (`node --check`) ✅
+- Test kit green (`D:\09_ALTO\tests\run_all.sh <file>` → `ALL GREEN`) ✅ — added Session 24, see the test kit section
+- (File size: over 300KB since Session 23 — Oscar confirmed not a concern; v260926.311 is 351KB)
 
 **Always start from the uploaded working file** — never from a local copy that may have drifted.
+
+### Test kit (Session 24)
+`D:\09_ALTO\tests\` (not committed — `deploy.bat` only adds named files; it travels in the project zip). Claude runs it in the sandbox: `./run_all.sh ../index_tmp.html`. Five Node suites (130 checks) extract the real functions from the HTML by name and run them with mocks; `restore/restore_scenarios.py` (19 checks) runs the real HTML in headless Chromium with a fake Firebase module shared between browser contexts (normal window vs incognito) and tabs. Run it before and after every build; extend it with each build. See `tests/README.md`. Also useful: rendering screens with the real CSS + real fonts (`npm pack @fontsource/caveat @fontsource/special-elite`) at 414/390/375/360/320px to check iPhone fit before shipping.
 **First thing every session — make a backup:** `cp index.html index_backup_sN.html` before any edits.
 
 ---
@@ -257,6 +265,7 @@ Three theme modes replacing the old 7 themes:
 ### Alto Caller Penalty
 - Caller penalised -50pts if they have any invalid/empty answer
 - Will be replaced by sliding bonus/penalty scale (see Flagged for Future)
+- **REPLACED in v260926.311 (Session 24):** caller gets `round10(250 x categories/8) - 100 x invalid`; lobby penalty slider removed. See Session 24.
 
 ### Validation Screen (host)
 - 📖 Wikipedia lookup (host + guests, language-aware)
@@ -265,6 +274,7 @@ Three theme modes replacing the old 7 themes:
 - Automatic validation ON by default, Estricta by default
 - 👎 Per-entry voting (democratic mode only — thumbs down only, answers valid by default)
 - 🔥👏😂😬🤬 Per-entry emoji reactions (5 emojis, fire first)
+  - **Now (v260926.311):** 4 emojis 🔥👏😂😬, one per answer per player, none on your own (faint + toast), points 🔥30 👏20 😂10 😬0 when the lobby toggle is on. See Session 24.
 - 🛑 Stop caller banner: shows on host validate AND guest waiting screen
 - 🗳️ Democratic mode: majority 👎 votes auto-invalidates. Valid by default. Min 3 players enforced.
 - ← Revisar: undo scoring — scores stay visible to guests during re-validation, recalculates cleanly from preRoundScores
@@ -391,7 +401,7 @@ Three theme modes replacing the old 7 themes:
 ## 🐛 Known Issues / Watch List
 
 - OpenRouter free tier models rotate without warning — if Robot breaks, check openrouter.ai logs
-- Session restore on same device/browser: host and guest share localStorage
+- Session restore on same device/browser: host and guest share localStorage — **FIXED v260926.309 (Session 24):** per-tab session in sessionStorage + `?room=` in the address
 - Font sizes: Caveat x-height smaller than Special Elite — visually looks different at same px
 - iCloud Safari sync: iPhone + iPad share localStorage if Safari sync enabled — player may not be able to replay on second Apple device
 - Update bubble on iOS appears slower than on Windows (Safari caching) — working correctly, just slower
@@ -965,9 +975,11 @@ Living version (Claude Doc): https://claude.ai/artifact/9bCUk2yRwx1wHQG3hmjhoV
 
 ---
 
-### Session 24 (Sep 26) - Build 1: scoring engine (STAGING)
+### Session 24 (Sep 26) - Multiplayer scoring Builds 1-4 + fixes → PRODUCTION v260926.311
 
-**Staging: v260926.302-tmp. Production unchanged at v260922.301.** Built from production v301 (the old index_tmp.html was stale v300-tmp and was not used). Follows `MULTIPLAYER_SCORING_DESIGN.md`.
+**Summary:** Builds 1-4 of `MULTIPLAYER_SCORING_DESIGN.md` built on staging (v260926.302-tmp → v260926.310-tmp), tested by Oscar in a real multiplayer game, then promoted unchanged (only the version string) to **production v260926.311**. Build 5 (groups and history) is next — see the end of this entry. Entries below are in build order.
+
+**Build 1 started from:** production v301 (the old index_tmp.html was stale v300-tmp and was not used). Follows `MULTIPLAYER_SCORING_DESIGN.md`.
 
 **Scaled ¡Alto! adjustment (replaces flat penalty):**
 - `finishValidation`: caller gets `round10(250 x n/8) - 100 x invalid`, n = categories this round. Empty answers counted as invalid defensively (the 2-char guard should prevent them).
@@ -1028,6 +1040,97 @@ Living version (Claude Doc): https://claude.ai/artifact/9bCUk2yRwx1wHQG3hmjhoV
 - `G_myVotes` / `G_myEntryEmojis` are reset in `enterPlaying` each round (previously only Revisar reset them). `applyVotesAndReactions` rebuilds the player's own reaction highlights from Firebase, so they survive reload and Revisar.
 - Tests: 18/18 on the real functions (mark 2 invalid → calculate → Revisar → marks, reactions and own highlights still there → undo one → recalc correct; host reload keeps marks and next toggle doesn't wipe; new round shows no stale marks; democratic votes kept). Build 1 suite still 35/35.
 
-**Next:** test on staging, promote to production (drop -tmp), then Build 2 (reaction bonuses).
+**Plan agreed:** keep building all 5 builds on staging, test the full feature in a real multiplayer game, fix bugs, then promote once. Handoff and design doc go up with the production promotion only (deploy_tmp.bat doesn't copy them).
 
-**Last version deployed: v260922.301 (production), v260926.303-tmp (staging)**
+**v260926.304-tmp — Build 2: reaction bonuses:**
+- Lobby checkbox `#reaction-points` "🌶️ Reacciones con puntos" (EN "Reactions score points", FR "Réactions avec points"), default on, under the seconds slider, with a language-neutral hint `🔥 +30 · 👏 +20 · 😂 +10 · 😬 0` (11px). T key `reactionPoints`; `applyLang` sets `lbl-reaction-points`. Saved as `reactionPoints` in `alto_lobby_config`; written to the room as `reactionPoints: true/false` in `startGame`. Rooms without the field count as on.
+- `reactToEntry`: one reaction per answer (each tap nulls all four of the player's emojis on that answer in the same write, then sets the chosen one; same emoji again removes). No reactions on own answers (`isOwnEntry(key)` = key starts with `playerName + '__'`). Strip redrawn instantly from `G_cachedReactions` (fixes pre-existing stale count when the last reaction on an answer was removed).
+- `renderEntryEmojis`: own answers get 4 `disabled` buttons; emojis you received get class `got` (full opacity). New CSS: `.entry-emoji-btn:disabled` (0.25 opacity, no hover), `.entry-emoji-btn:disabled.got` (opacity 1).
+- `G_cachedReactions` set in `applyVotesAndReactions`, reset in `enterPlaying`.
+- `finishValidation`: reactions present at Calculate only. Self-reactions ignored; one per reactor per answer (if an old client left several, the lowest value is kept). 🔥 +30 / 👏 +20 on valid (u/d) only; 😂 +10 on valid or invalid; 😬 0; nothing on empty. `got[ci] = {f,c,l}` always recorded (even with points off, and fire/clap on invalid answers too) for Build 4 awards. Points go to `pts.reactions` only when `room.reactionPoints !== false`.
+- Debug: `DBG.entryReactions` sample (incl. reactions on `__debug__`'s own answer to show the greyed `got` style); `dbgFakeRoom` uses it with `reactionPoints: true`.
+- Tests: 28/28 Build 2 (scoring, points on/off, self, one-per-reactor, empty, Revisar undo, tap/swap/remove, others' reactions kept, own-answer strip, name-prefix edge). Build 1 35/35, Revisar 18/18 (two expectations updated: that test room has a 🔥 that now correctly scores +30).
+- Not in Build 2: help/rules text (help pass after Build 5), reaction points shown per player (Build 3 cards).
+
+**v260926.305-tmp — Build 3: Scores cards:**
+- `showScores` renders one card per player from `room.roundLog[currentRound]` via new `scoreCardHTML()`; falls back to the old simple `.score-row` list if there is no roundLog for the round. Players missing from the roundLog get a row without a panel.
+- Collapsed row: medal + emoji (`.sc-who`), name + red A badge (`.sc-namewrap` > `.sc-name` + `.sc-alto`), round points `.sc-round` (signed), total `.sc-total`, chevron. Tap toggles (`window.toggleScoreCard(i)`, names by index in `G_scNames`).
+- Panel: per category `.sc-ans-cat` / `.sc-ans-mid` (answer `.sc-ans-val` + reactions received `.sc-ans-got`, which wraps below a long answer) / mark `.sc-ans-mark` (`+100`, `+50`, red `✕`, blank for empty with `—` answer). Breakdown `.sc-breakdown`: `respuestas N · A ±N (caller only, red) · reacciones +N (only when reactionPoints on)`. T keys `bdAnswers`, `bdReactions` (ES/EN/FR).
+- Open cards persist across re-renders (`G_scOpen`), reset when the round changes (`G_scRound`) — needed because `handleRoom` redraws the Scores screen on every room update.
+- New helpers: `escHtml()` (player text in the cards is escaped), `signed()` (uses a real minus sign).
+- iPhone layout: rendered with the real CSS + real Caveat/Special Elite fonts in headless Chromium at 414/390/375/360/320px, incl. a stress case (8 FR categories, long names/answers, 5-digit negative total, A badge). No overflow at any width. Under 360px: ` pts` unit hidden (`.sc-unit`), tighter gaps, name group min 3.5em.
+- Debug: `DBG.roundLog['2']` (Carlos caller +60 with an invalid, reactions, dups, empty); debug totals now María 690 / Carlos 560 / __debug__ 690 (tie kept); `preRoundScores` María 300; `DBG.invalidAnswers` adds `Carlos__Fruta`.
+- Tests: 18/18 Build 3 (collapsed by default, A badge only on caller, escaping, marks, breakdown parts, open persists / resets per round, points off, timeout, fallback, missing player, minus sign). Earlier suites still 35 + 18 + 28.
+- Only 11/13/20px used. Final screen unchanged until Build 4.
+
+**v260926.306-tmp — Build 4: Final screen and share:**
+- Refactor: answer rows and breakdown line pulled out of `scoreCardHTML` into shared `roundRowsHTML(d, cats)` and `breakdownHTML(pts, isCaller, room)` (Scores and Final cards use the same code).
+- `roundLogEntries(room)`: normalises `roundLog` to `[[round, entry], ...]` — Firebase returns numeric-keyed objects as arrays (`[null, r1, r2]`); only rounds 1..currentRound.
+- `computeAwards(room)`: 🔥 Popularidad = 🔥x30 + 👏x20 received on ANY answer (Oscar agreed: invalid answers count too); 😂 Risas = 😂 count; ✨ Originalidad = unique valid answers (`u`). Only players in `room.scores`; only awards > 0; ties list all names. Works with reaction points off (reads `got`).
+- Final screen: new `#final-awards` row of `.aw-chip`s under the winner line; `#final-list` now `finalCardHTML()` cards (collapsed: medal, emoji, name, final total; opened: per round `.fn-round-h` heading "Ronda N · letter [A badge] ... ±round", then answer rows + breakdown). `window.toggleFinalCard(i)`. Falls back to the old list if no roundLog. Winner/tie line and confetti unchanged.
+- Share: new `#btn-share-final` "Compartir"/"Share"/"Partager" for everyone. `finalShareText(room)`: `¡ALTO! · group · N rondas` (group omitted if empty; "1 ronda" singular via `rndLabel`), one line per player with dense medals then `4.` rank numbers (ties share), awards line `🔥 names · 😂 names · ✨ names`, `jugarenfamilia.es` (Build 5 swaps in `?g=ID`). `window.shareFinal`: `navigator.share` first (AbortError silent), else clipboard + button shows "¡Copiado!" 2s, else textarea/execCommand fallback. Stored room in `G_finalRoom`.
+- New T keys (ES/EN/FR): `awPopularity`, `awLaughter`, `awOriginality`, `shareBtn`, `copied`, `roundsWord`. Note: `DAILY_LABELS` has its own separate `shareBtn`/`shareCopied` — not a clash.
+- CSS: `.aw-row` (hidden when empty), `.aw-chip` (13px SE, names 20px Caveat), `.fn-round-h`, `.fn-round-pts`.
+- Debug: `DBG.roundLog['1']` added (timeout round, different categories P: Color/País/Objeto) so the debug Final screen shows a 2-round game; awards: Popularidad María, Risas tie María/__debug__, Originalidad __debug__.
+- iPhone: real CSS + fonts rendered at 414/390/375/360/320px, normal ES game and FR stress case (long tied names in award chips, 8 categories, all-invalid ¡Alto! −550). No overflow; at 320px the 3-button row wraps the third button to its own line (existing `.btn-row` behaviour).
+- Tests: 20/20 Build 4 (awards incl. invalid-answer fire, ties, zero, departed player; Firebase array shape; share text ES/EN/FR, singular, no group, rank numbers incl. tied 4th; final render, round headings, A badge, toggle, fallback). All suites 119/119.
+
+**v260926.307-tmp — Cards made consistent with the Daily leaderboard (Oscar's review):**
+- Scores and Final cards now REUSE the daily leaderboard classes instead of copies: `.daily-lb-row`, `.daily-lb-rank`, `.daily-lb-name`, `.daily-lb-score`, `.daily-lb-speed` (bracketed extra), `.daily-lb-chevron`, `.daily-lb-me` (own row highlight), `.daily-lb-answers` (lighter panel with border), `.daily-lb-answer-row/-cat/-val/-ai/-pts(.zero)`. Checked: no code queries these classes globally (only `.daily-lb-lang-btn`). Rows also carry `.mp-row` for multiplayer-only tweaks.
+- Shared row builder `mpRowHTML({id, rank, name, emoji, total, extra, isCaller, onclick, open})`: rank column = medal or dense rank number (`denseRanks()` helper, also used by share text), "name emoji", A badge, `N pts`, `(+round)` on Scores only (like daily's `(⚡x1.10 +100✨)`), chevron.
+- Answer marks now match daily: ✅ +100 / ✅ +50 / ❌ 0 (grey `.zero`); empty = small grey italic — with no icon/points. Reactions sit between answer and icon (`.sc-ans-mid` wrapper so they drop below a long answer).
+- Removed old card CSS (`.sc-row`, `.sc-panel`, `.sc-who`, `.sc-name`, `.sc-namewrap`, `.sc-total`, `.sc-round`, `.sc-chevron`, `.sc-ans-row/-cat/-val/-mark`). Kept: `.mp-namewrap`, `.sc-alto`, `.sc-ans-mid`, `.sc-ans-got`, `.sc-breakdown`, `.sc-unit`, `.fn-round-h`, awards CSS.
+- Name before emoji across multiplayer (matches daily): lobby chips, winner line T key `winnerLine` = '{name} {emoji} ...' (ES/EN/FR), tie line names, Scores/Final cards and fallback lists, group leaderboard rows.
+- Checked: new cards rendered directly above a daily sample at 414/390/375/360/320 px — no overflow; tests 124/124 (new: name before emoji, own-row highlight, rank column 🥇🥈🥉4 5, daily marks, empty answer, bracketed extra; winner/tie lines verified in 3 languages).
+
+**v260926.308-tmp — Reaction emoji strength (Oscar's idea, option "D2"):**
+- All tappable reaction emojis now at full strength (`.entry-emoji-btn` opacity 1; was 0.4). Your selection is shown by the existing `.active` background box.
+- Own answers: buttons get class `own` (opacity 0.4, no hover scale); reactions you received on your own answers get `own got` (full strength). Replaced the old `disabled` attribute + `:disabled` CSS so a tap still reaches the handler.
+- `reactToEntry` on your own answer shows a toast, T key `toastOwnReaction`: "No puedes reaccionar a tus propias respuestas" / "You can't react to your own answers" / "Tu ne peux pas réagir à tes propres réponses". Nothing is written.
+- Options A/B/C/D/D2 were mocked with the real validation CSS before choosing. Tests 125/125.
+
+**v260926.309-tmp — Refresh / session restore fix (bug found in Oscar's live test):**
+- Symptom: host refreshing on the Scores screen landed on home (later: on the GUEST's welcome screen). Cause: `alto_session` lived only in localStorage, one slot shared by every tab of the browser; whatever joined/restored last overwrote it. (Guest in incognito has separate storage, so something in Oscar's normal window had saved Oscarjr.) Also `tryRestore()` ran twice per load (duplicated init block — was in production too).
+- `saveSession` now writes localStorage AND sessionStorage (per tab, survives refresh) and puts `?room=CODE` in the address (`setRoomInUrl`, keeps other params like `?v=29`). `clearSession` clears both and removes `?room`.
+- `tryRestore`: with `?room=` → restores directly only with a session for that exact room, this tab's own (sessionStorage) first, shared (localStorage) as fallback; otherwise the join screen. Without `?room=` → tab session, else shared. After a successful restore the tab is pinned (sessionStorage + URL).
+- New `showQuickJoin(code, prefillName)` helper (used by tryRestore and startFresh). `OPENED_ROOM` = `?room=` at page load. "No soy yo — cambiar" (`startFresh`): if the page was opened with a room code → that room's join screen with an empty name (was: home, and with the address change the second player would have had no way back in); plain address → home as before.
+- Removed the duplicated init block (first copy, before the debug createRoom hook). `buildEmojiGrid/applyLang/tryRestore` now run once. Name prefill in init prefers the tab session.
+- Known fallback: a brand-new tab on the plain address offers "welcome back" as the last player saved anywhere in this browser (e.g. after closing the browser) — same as before.
+- Note: there is no join-by-code box on the home screen any more (`joinRoom` references `#inp-code`, which is not in the HTML) — joining is only via invite link. Left as is.
+- Tests: real-browser reproduction harness (`/tmp/repro2.py` idea: real staging HTML, fake Firebase module served via Playwright routing, shared in-memory DB, separate browser contexts for normal/incognito, tabs in same context for same window). 19/19 scenarios: host normal + guest incognito refresh; two tabs same window (second player via invite link → No soy yo → join); repeated refreshes; third tab joining; reopened tab; leaving clears address; No soy yo on plain address → home. Old build fails the same-window scenario. Unit suites 125/125; real-click reaction test still passes.
+
+**v260926.308-tmp follow-up (Oscar asked to triple-check the non-disabled own emojis):** audited all 4 render sites and the single `reactToEntry` handler; nothing depended on `disabled`; `.own` class unique; host scoring ignores self-reactions anyway. Real Chromium click test: own tap → pill in ES/EN/FR, nothing saved; other's tap saves; swap works; no JS errors.
+
+**Process note:** v308 was built without explicit plan confirmation — rule is plan → Oscar's OK → build, even when he suggests the change.
+
+**v260926.310-tmp — Breakdown line wording (Oscar's idea, refined):**
+- `breakdownHTML` now reads `base 600 pts (A +50, reacciones +60)` — same "base" wording as the daily result line. A part only for the caller (red, sign after the label: `A −150`); reactions part only when reaction points are on AND non-zero; no brackets when there are no extras (`base 700 pts`). Used by Scores cards and every round of the Final cards.
+- T key `bdAnswers` replaced by `bdBase: 'base'` (ES/EN/FR); `bdReactions` unchanged.
+- Checked: fits one line at 320px in the FR worst case (`base 350 pts (A −150, réactions +190)`); tests 130/130 incl. the four agreed examples.
+
+**v260926.311 — PRODUCTION (promotion of v260926.310-tmp):**
+- Staging file promoted unchanged; only `RUNNING` and the footer changed (`v260926.310-tmp` → `v260926.311`). The 3 remaining `-tmp` strings in the file are the version-check regexes (they exclude staging versions on purpose) — same as before.
+- Checklist: version ✅, 351KB (waived) ✅, init block once ✅, no `-tmp` in version ✅, 12 screens ✅, all 4 script blocks `node --check` ✅, test kit ALL GREEN on the production file (130 + 19) ✅.
+- Deployed with `deploy.bat` together with this handoff and the updated design doc. Test kit delivered as `tests_kit.zip` → extract into `D:\09_ALTO\` (gives `D:\09_ALTO\tests\`).
+- What changes for players: new ¡Alto! scale (no slider), reactions with points (lobby toggle, default on), one reaction per answer and none on your own, Scores cards and Final cards in the daily leaderboard style, awards and share, Revisar keeps decisions, refresh restores each tab's own player, Jugar de nuevo starts from 0, solo and unfinished games don't count, ties share medals and wins, names shown before emojis.
+- Leaderboard: still the OLD `global/` + `groups/` system until Build 5 (with the new practice / tie rules already applied). No Firebase console steps were needed for this release.
+- Mixed versions during deploy are safe: host scoring ignores self-reactions and multi-reactions from old clients; new screens fall back to the simple list for rooms without `roundLog`; the auto-reload moves everyone to v311 on their next load.
+
+---
+
+## ▶ START HERE NEXT SESSION (Session 25): Build 5 — Groups and history
+
+1. Upload the project zip (must include `tests\`). Read this handoff, then `MULTIPLAYER_SCORING_DESIGN.md` (Groups, History, Languages sections and the Build plan row for Build 5).
+2. Run the test kit on production `index.html` first — it must be ALL GREEN before starting.
+3. Plan Build 5 with Oscar before writing any code (rule above). Suggested split into two staging steps: **5a** group IDs, Mis grupos lobby picker, default group, rename, group written to the room live, `endGame` writes to `groupsMeta/` + `groupsLb/` + `history/` + `historyIndex/`, 20-game trim, yearly cleanup, clean start (clear old `alto_groups`); **5b** group page (Leaderboard screen) with history ◀ ▶ (flag + date), global leaderboard removed, `?g=ID` share link and share text link, welcome-back group fix, "partidas" T key fix.
+4. Update `suites/test_build1_scoring.mjs` endGame assertions (they check the old `global/`/`groups/` writes) in the same build, and add suites for groups/history.
+5. Oscar's manual Firebase steps when Build 5 goes to production: add `".indexOn": "lastPlayed"` on `groupsMeta` in the rules; delete `groups/`, `groupNames/`, `global/` in the console.
+
+**Open notes carried forward**
+- After Build 5: one help-page pass (ES/EN/FR) for practice games, ties, reactions, awards, groups and history (recorded in the design doc). Build 1 only updated the ¡Alto! rules text.
+- No join-by-code box on the home screen (only invite links); `joinRoom` still references a missing `#inp-code`. Decide if a code box is wanted.
+- `doSubmit` hard-codes Spanish `stopCaller:'Tiempo'` and "Respuestas enviadas. Esperando a los demás…"; `reviewSub` T key is dead.
+- The Claude Doc copy of the design (link in the design doc) has drifted from the `.md` file; the `.md` is the source of truth.
+- Handy: a `__debug__` name shows the debug bar; its Scores and Final screens now have a 2-round sample game with a tie, reactions, an A caller, a duplicate, an invalid and an empty answer.
+
+**Last version deployed: v260926.311 (production). Staging (index_tmp.html) = v260926.310-tmp, identical code.**
