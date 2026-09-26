@@ -1,6 +1,8 @@
 # Multiplayer Scoring Overhaul - Design
 
-Design complete 26 Sep 2026. Nothing built yet. Production at time of design: v260922.301. All builds go to staging (`-tmp`) first.
+Design complete 26 Sep 2026 (production at the time: v260922.301). All builds go to staging (`-tmp`) first.
+
+**Build status (Session 24):** Builds 1–4 are live in production **v260926.311**. **Build 5 (groups and history) is next.** See "Refinements made while building" below for the few places where the built version differs from this design.
 
 Living version of this doc (Claude Doc): https://claude.ai/artifact/9bCUk2yRwx1wHQG3hmjhoV
 
@@ -19,6 +21,22 @@ The goal: make multiplayer scoring richer and fairer. Reward clean, fast ¡Alto!
 | History | Decided |
 | Languages | Decided |
 | Stats | Dropped |
+
+## Refinements made while building (Session 24, Builds 1–4)
+
+Agreed with Oscar during staging tests; these override the text further down where they differ.
+
+| Area | As built in v260926.311 |
+| --- | --- |
+| Scores and Final cards | Reuse the daily leaderboard styles (`.daily-lb-*`): darker row, lighter bordered panel, rank column (🥇🥈🥉 then 4, 5…), total then the round points in brackets `690 pts (+390)`, your own row highlighted, answer marks ✅ +100 / ✅ +50 / ❌ 0, empty answers a small grey —. |
+| Name and emoji | Name before emoji everywhere in multiplayer ("Oscar 🦊"), matching daily: cards, lobby chips, winner and tie lines, group leaderboard. |
+| Breakdown line | `base 600 pts (A +50, reacciones +60)` — "base" as in the daily result; A part only for the caller (red); reactions only when points are on and non-zero; no brackets when there are no extras. |
+| Final cards | Opened card shows each round under a heading `Ronda 2 · M [A] … +410`, then that round's answers and breakdown. |
+| Reactions on screen | All tappable emojis at full strength; your own answers faint (40%) with the reactions you received at full strength; tapping your own shows the toast "No puedes reaccionar a tus propias respuestas" (EN/FR too). |
+| Popularidad | Counts 🔥 and 👏 received on any answer, including answers later marked invalid (decided with Oscar). |
+| Revisar | Keeps invalid marks and democratic votes as well as reactions (design only required reactions). |
+| Share | Native share sheet, clipboard fallback ("¡Copiado!"). Places after bronze use rank numbers (`4.`). Link is plain `jugarenfamilia.es` until Build 5 adds `?g=ID`. |
+| Not in the design, added as fixes | Refresh restores each tab's own player (per-tab session + `?room=` in the address); "No soy yo" on an invite page opens that room's join screen; "Jugar de nuevo" no longer carries the previous game's pre-round scores. |
 
 ---
 
@@ -348,7 +366,9 @@ Multiplayer does not need per-player stats; group history covers what matters. I
 
 ## Build plan
 
-Five builds, each on staging first, tested, then promoted. Line numbers as of v301.
+Five builds, each on staging first, tested, then promoted. Line numbers as of v301 (they have moved since — search by function name).
+
+**Status:** Builds 1–4 done (staging v260926.302-tmp to v260926.310-tmp, production v260926.311). Build 5 not started. Suggested split for Build 5: 5a groups (IDs, Mis grupos, default group, rename, live group in the room, new `endGame` writes, trim, cleanup, clean start) and 5b group page with history, `?g=ID` link, global leaderboard removal, welcome-back and "partidas" fixes.
 
 | Build | Scope | Main code touched |
 | --- | --- | --- |

@@ -417,6 +417,25 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
 }
 .score-row:last-child { border-bottom: none; }
 .pts { color: var(--red); font-weight: 700; }
+/* Multiplayer Scores + Final cards reuse the daily leaderboard classes (.daily-lb-row, .daily-lb-answers, ...).
+   Only multiplayer-specific extras live here: A badge, reactions received, breakdown line, round headings, awards. */
+.mp-namewrap { display: flex; align-items: center; gap: 6px; flex: 1; min-width: 4.5em; }
+.mp-namewrap .daily-lb-name { flex: 0 1 auto; }
+.sc-alto { font-family: 'Special Elite', monospace; font-size: 11px; line-height: 16px; color: #fff; background: var(--red); border-radius: 4px; padding: 0 5px; flex-shrink: 0; }
+/* answer + reactions share the middle; reactions drop below a long answer instead of squeezing it */
+.sc-ans-mid { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 6px; }
+.sc-ans-mid .daily-lb-answer-val { flex: 1 1 auto; min-width: 0; overflow-wrap: break-word; }
+.sc-ans-got { font-size: 13px; flex-shrink: 0; white-space: nowrap; }
+.sc-breakdown { font-family: 'Special Elite', monospace; font-size: 11px; color: var(--ink-sec); padding-top: 6px; }
+/* Final screen (Build 4): awards chips + one sub-heading per round inside each card */
+.aw-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin: -6px 0 10px; }
+.aw-row:empty { display: none; }
+.aw-chip { font-family: 'Special Elite', monospace; font-size: 13px; color: var(--ink); background: var(--paper-dark); border: 1px dashed var(--border-strong); border-radius: 20px; padding: 3px 10px; }
+.aw-chip b { font-family: 'Caveat', cursive; font-size: 20px; font-weight: 700; line-height: 1; }
+.fn-round-h { font-family: 'Special Elite', monospace; font-size: 11px; color: var(--ink-sec); padding: 10px 0 2px; border-bottom: 1px solid var(--border-strong); display: flex; gap: 6px; }
+.fn-round-h:first-child { padding-top: 2px; }
+.fn-round-h .fn-round-pts { margin-left: auto; color: var(--ink); }
+@media (max-width: 360px) { .mp-row { gap: 4px; padding: 7px 8px; } .sc-unit { display: none; } .mp-namewrap { min-width: 3.5em; gap: 4px; } }
 
 /* ── Validation ── */
 .val-entry { display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px; padding: 6px 8px; border-radius: var(--radius); transition: background .15s; min-width: 0; }
@@ -709,9 +728,13 @@ body.screen-home .page, body.screen-welcome .page { padding-bottom: 2rem; }
 /* ── Per-entry reactions & voting ── */
 .entry-reactions { display: flex; align-items: center; gap: 3px; flex-wrap: wrap; margin-top: 3px; padding-top: 3px; }
 .entry-emoji-strip { display: flex; gap: 2px; align-items: center; }
-.entry-emoji-btn { font-size: 13px; padding: 3px 3px; border-radius: 4px; border: none; background: transparent; cursor: pointer; opacity: 0.4; transition: all .1s; line-height: 1; display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; }
-.entry-emoji-btn:hover { opacity: 1; transform: scale(1.15); }
-.entry-emoji-btn.active { opacity: 1; background: var(--paper-dark); }
+.entry-emoji-btn { font-size: 13px; padding: 3px 3px; border-radius: 4px; border: none; background: transparent; cursor: pointer; opacity: 1; transition: all .1s; line-height: 1; display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; }
+.entry-emoji-btn:hover { transform: scale(1.15); }
+.entry-emoji-btn.active { background: var(--paper-dark); }
+/* Own answers: faint (can't react to yourself; tapping shows a toast). Reactions you received stay at full strength. */
+.entry-emoji-btn.own { cursor: default; opacity: 0.4; }
+.entry-emoji-btn.own:hover { transform: none; }
+.entry-emoji-btn.own.got { opacity: 1; }
 .vote-btn { font-size: 13px; height: 32px; padding: 0 8px; border-radius: var(--radius); border: 1.5px solid var(--border); background: transparent; cursor: pointer; font-family: monospace; display: inline-flex; align-items: center; gap: 3px; transition: all .1s; }
 .vote-btn:hover { background: var(--paper-dark); }
 .vote-btn.thumbs-down.voted { background: var(--danger-bg); border-color: var(--danger); color: var(--danger); }
@@ -1083,11 +1106,11 @@ document.addEventListener('DOMContentLoaded', function() {
           <input type="range" min="30" max="120" step="10" value="90" id="sl-time" oninput="document.getElementById('v-time').textContent=this.value;saveLobbyConfig()">
           <span class="range-val" id="v-time">90</span>
         </div>
-        <p class="lbl" style="margin-top:14px" id="lbl-penalty">penalización por ¡Alto! inválido</p>
-        <div class="range-row">
-          <input type="range" min="0" max="200" step="50" value="50" id="sl-penalty" oninput="document.getElementById('v-penalty').textContent=this.value;saveLobbyConfig()">
-          <span class="range-val" id="v-penalty">50</span>
-        </div>
+        <label class="cat-lbl" style="margin-top:14px">
+          <input type="checkbox" id="reaction-points" checked onchange="saveLobbyConfig()">
+          <span id="lbl-reaction-points">🌶️ Reacciones con puntos</span>
+        </label>
+        <p style="margin:2px 0 0 22px;font-size:11px;color:var(--ink-muted)">🔥 +30 · 👏 +20 · 😂 +10 · 😬 0</p>
         <div style="margin-top:16px;border-top:1px dashed var(--border);padding-top:12px">
           <p class="lbl" style="margin-bottom:6px" id="lbl-validation-mode">🗳️ Modo de validación</p>
           <div style="display:flex;gap:6px;margin-bottom:14px">
@@ -1190,7 +1213,7 @@ document.addEventListener('DOMContentLoaded', function() {
 <div id="s-validate" class="screen">
   <h1 id="lbl-validate-title">Revisar</h1>
   <p class="sub" style="margin-bottom:2px"><span id="lbl-validate-sub1">📖 buscar en Wikipedia &nbsp;·&nbsp; ✕ anular</span></p>
-  <p class="sub" id="lbl-validate-sub2">única = 100 pts &nbsp;·&nbsp; repetida = 50 pts &nbsp;·&nbsp; anulada = 0 pts</p>
+  <p class="sub" id="lbl-validate-sub2">única = 100 · repetida = 50 · anulada = 0 · ¡Alto! −100 por anulada</p>
   <div id="stop-caller-banner" style="display:none;text-align:center;font-family:'Special Elite',monospace;font-size:13px;color:var(--ink-sec);margin-bottom:8px;padding:6px 10px;background:var(--paper-dark);border-radius:var(--radius);border:1px dashed var(--border)"></div>
   <div id="val-content"></div>
   <button class="pri" onclick="finishValidation()" style="width:100%;margin-top:8px" id="btn-calculate">Calcular puntajes →</button>
@@ -1228,10 +1251,12 @@ document.addEventListener('DOMContentLoaded', function() {
 <div id="s-final" class="screen" style="padding-top:1px">
   <h1 id="lbl-final-title">¡Fin del juego!</h1>
   <div class="winner" id="winner-line"></div>
+  <div class="aw-row" id="final-awards"></div>
   <div class="card" id="final-list"></div>
   <div class="btn-row" style="margin-top:10px">
     <button class="pri host-only" onclick="playAgain()" style="flex:1;display:none" id="btn-play-again">Jugar de nuevo</button>
     <button class="guest-only" style="flex:1;opacity:0.5;cursor:default;display:none" id="btn-wait-host" disabled>Esperando al anfitrión…</button>
+    <button onclick="shareFinal()" style="flex:1" id="btn-share-final">Compartir</button>
     <button onclick="showLeaderboard()" style="flex:1" id="btn-show-lb">Marcador</button>
   </div>
 </div>
@@ -1308,6 +1333,15 @@ function getThemes() { return THEMES_ALL[LANG] || THEMES_ALL.es; }
 // Keep backwards compat
 const THEMES = new Proxy({}, { get: (_, k) => getThemes()[k] });
 const MEDALS = ['🥇','🥈','🥉'];
+// Dense ranking: tied scores share a medal, next score gets the next one (900,900,700 → 🥇🥇🥈)
+// sorted = [[name, pts], ...] already sorted by pts desc. Returns medal string per row.
+function denseMedals(sorted) {
+  let rank = -1, prev = null;
+  return sorted.map(([, pts]) => {
+    if (pts !== prev) { rank++; prev = pts; }
+    return MEDALS[rank] || '';
+  });
+}
 const LANG_FLAGS = {es:'🇪🇸', en:'🇬🇧', fr:'🇫🇷'};
 
 // ── Translations ──────────────────────────────────
@@ -1329,7 +1363,6 @@ const T = {
     groupPlaceholder: 'Los García, Amigos del cole...',
     theme: 'tema', easyLetters: 'solo letras fáciles',
     rounds: 'rondas', seconds: 'segundos por ronda',
-    penalty: 'penalización por ¡Alto! inválido',
     start: '¡Comenzar! →',
     guestWait: '✏️ Esperando al anfitrión…',
     letter: 'letra', round: 'ronda', of: 'de', freeCatLabel: 'escreve as tuas categorias (uma por linha)', freeCatPlaceholder: 'Jogadores do Barça\nFilmes de terror\nCoisas na cozinha', freeCatLabel: 'escribe tus categorías (una por línea)', freeCatPlaceholder: 'Jugadores del Barça\nPelículas de terror\nCosas en la cocina',
@@ -1341,6 +1374,14 @@ const T = {
     hostReviewing: 'el anfitrión está revisando',
     scores: 'Puntuación', nextRound: 'Siguiente ronda →',
     endGame: 'Terminar', hostWait: 'Esperando al anfitrión…',
+    endEarlyConfirm: 'La partida no está completa y no contará. ¿Terminar igualmente?',
+    soloStart: '✏️ Practicar solo →',
+    reactionPoints: '🌶️ Reacciones con puntos',
+    tieLine: '¡Empate! {names} con {pts} puntos', tieAnd: 'y',
+    bdBase: 'base', bdReactions: 'reacciones',
+    toastOwnReaction: 'No puedes reaccionar a tus propias respuestas',
+    awPopularity: 'Popularidad', awLaughter: 'Risas', awOriginality: 'Originalidad',
+    shareBtn: 'Compartir', copied: '¡Copiado!', roundsWord: 'rondas',
     leaderboard: 'Marcador', myGroup: 'Mi grupo', world: 'Mundial',
     worldSub: 'los mejores jugadores del mundo',
     noGroup: 'asigna un nombre de grupo para ver este marcador',
@@ -1350,7 +1391,6 @@ const T = {
     leaveRoom: 'Salir de la sala',
     wins: 'victorias', games: 'partidas',
     toastCopied: '¡Enlace copiado!', toastNoGroup: 'Sin nombre de grupo',
-    toastPenalty: 'pierde', toastPenaltySuffix: 'pts',
     toastName: 'Escribe tu nombre primero',
     toastCode: 'El código debe tener 4 letras',
     toastNotFound: 'Sala no encontrada. Verifica el código.',
@@ -1363,8 +1403,8 @@ const T = {
     toastHostOnly: 'Solo el anfitrión puede reiniciar', waitHost: 'Esperando al anfitrión…',
     toastStopFill: 'Rellena todas las respuestas antes de llamar al ¡Alto!',
     hostRevisingScores: 'el anfitrión está revisando de nuevo ✏️',
-    toastDemoMin: 'El modo democrático requiere mínimo 3 jugadores', continueBtn: 'Continuar →', notMe: 'No soy yo — cambiar', groupHint2: 'familia, amigos, trabajo... como queráis', easyHint: '(sin K, Ñ, Q, U, W, X, Y, Z)', validate: 'Revisar', validateSub1: '📖 Wikipedia · 🤖 Asistente Robot · <span style="color:var(--red)">✕</span> anular', validateSub2: 'única = 100 pts · repetida = 50 pts · anulada = 0 pts', submitted2: 'Respuestas enviadas', waitingTitle: 'Esperando...', hostReviewing2: 'el anfitrión está revisando', leaderboardBack: '← Volver', loading: 'Cargando…', final2: '¡Fin del juego!', searching: 'Buscando...', hostSearching: 'El anfitrión está buscando...', rndLabel: 'ronda', of: 'de', freeCatLabel: 'escreve as tuas categorias (uma por linha)', freeCatPlaceholder: 'Jogadores do Barça\nFilmes de terror\nCoisas na cozinha', freeCatLabel: 'escribe tus categorías (una por línea)', freeCatPlaceholder: 'Jugadores del Barça\nPelículas de terror\nCosas en la cocina', usarEjemplos: 'Usar ejemplos', freeCatRandom: 'Elegir 8 al azar cada ronda', toastFreeCatsRandom: 'Necesitas al menos 9 categorías para el modo aleatorio', of: 'de', freeCatLabel: 'escreve as tuas categorias (uma por linha)', freeCatPlaceholder: 'Jogadores do Barça\nFilmes de terror\nCoisas na cozinha', freeCatLabel: 'escribe tus categorías (una por línea)', freeCatPlaceholder: 'Jugadores del Barça\nPelículas de terror\nCosas en la cocina', letterLabel: 'letra', calculate: 'Calcular puntuación →', stopCallerMsg: '{name} llamó al ¡Alto!', timerRanOut: 'se acabó el tiempo', scoresTitle: 'Puntuación', lbTitle: 'Marcador',
-    invited: '¡Te han invitado a jugar!', rulesBtn: '¿Cómo se juega?', expBtn: '⚗️ FUNCIONES EXPERIMENTALES', aiValidation: '🤖 Asistente Robot', aiRelajado: '🟢 Relajada', aiEstricto: '🔴 Estricta', aiSpelling: '✏️ Permitir faltas de ortografía', aiYes: 'Sí', aiNo: 'No', modeHost: '👑 Normal', modeDemocratic: '🗳️ Democrático', invalidated: 'anulada', winnerLine: '{emoji} {name} gana con {pts} puntos!', wrongPwd: '❌ Contraseña incorrecta', expActivated: '⚗️ Funciones experimentales activadas', qjCodeLabel: 'sala:', gcInside: '✅ ESTÁS DENTRO', inviteMore: '+ ¿Quieres invitar a alguien más?', getReady: '¡VAMOS!',
+    toastDemoMin: 'El modo democrático requiere mínimo 3 jugadores', continueBtn: 'Continuar →', notMe: 'No soy yo — cambiar', groupHint2: 'familia, amigos, trabajo... como queráis', easyHint: '(sin K, Ñ, Q, U, W, X, Y, Z)', validate: 'Revisar', validateSub1: '📖 Wikipedia · 🤖 Asistente Robot · <span style="color:var(--red)">✕</span> anular', validateSub2: 'única = 100 · repetida = 50 · anulada = 0 · ¡Alto! −100 por anulada', submitted2: 'Respuestas enviadas', waitingTitle: 'Esperando...', hostReviewing2: 'el anfitrión está revisando', leaderboardBack: '← Volver', loading: 'Cargando…', final2: '¡Fin del juego!', searching: 'Buscando...', hostSearching: 'El anfitrión está buscando...', rndLabel: 'ronda', of: 'de', freeCatLabel: 'escreve as tuas categorias (uma por linha)', freeCatPlaceholder: 'Jogadores do Barça\nFilmes de terror\nCoisas na cozinha', freeCatLabel: 'escribe tus categorías (una por línea)', freeCatPlaceholder: 'Jugadores del Barça\nPelículas de terror\nCosas en la cocina', usarEjemplos: 'Usar ejemplos', freeCatRandom: 'Elegir 8 al azar cada ronda', toastFreeCatsRandom: 'Necesitas al menos 9 categorías para el modo aleatorio', of: 'de', freeCatLabel: 'escreve as tuas categorias (uma por linha)', freeCatPlaceholder: 'Jogadores do Barça\nFilmes de terror\nCoisas na cozinha', freeCatLabel: 'escribe tus categorías (una por línea)', freeCatPlaceholder: 'Jugadores del Barça\nPelículas de terror\nCosas en la cocina', letterLabel: 'letra', calculate: 'Calcular puntuación →', stopCallerMsg: '{name} llamó al ¡Alto!', timerRanOut: 'se acabó el tiempo', scoresTitle: 'Puntuación', lbTitle: 'Marcador',
+    invited: '¡Te han invitado a jugar!', rulesBtn: '¿Cómo se juega?', expBtn: '⚗️ FUNCIONES EXPERIMENTALES', aiValidation: '🤖 Asistente Robot', aiRelajado: '🟢 Relajada', aiEstricto: '🔴 Estricta', aiSpelling: '✏️ Permitir faltas de ortografía', aiYes: 'Sí', aiNo: 'No', modeHost: '👑 Normal', modeDemocratic: '🗳️ Democrático', invalidated: 'anulada', winnerLine: '{name} {emoji} gana con {pts} puntos!', wrongPwd: '❌ Contraseña incorrecta', expActivated: '⚗️ Funciones experimentales activadas', qjCodeLabel: 'sala:', gcInside: '✅ ESTÁS DENTRO', inviteMore: '+ ¿Quieres invitar a alguien más?', getReady: '¡VAMOS!',
     toastBack: 'Volviendo como', notFoundWord: '📭 No se encontró', didYouMean: '¿Quisiste decir', noDefinition: '📭 Sin definición para',
     waMsg: '¡Juega conmigo al ¡Alto! 🎮 Únete aquí:',
     createSub: 'MULTIJUGADOR · CON FAMILIA Y AMIGOS', configLabel: '⚙️ Configuración', leaveRoom2: 'Salir de la sala',
@@ -1392,7 +1432,6 @@ const T = {
     groupPlaceholder: 'The Smiths, Friday Friends...',
     theme: 'theme', easyLetters: 'easy letters only',
     rounds: 'rounds', seconds: 'seconds per round',
-    penalty: '¡Alto! penalty for invalid answers',
     start: 'Start! →',
     guestWait: '✏️ Waiting for the host…',
     letter: 'letter', round: 'round', of: 'of', freeCatLabel: 'write your categories (one per line)', freeCatPlaceholder: 'Football players\nHorror films\nThings in the kitchen',
@@ -1404,6 +1443,14 @@ const T = {
     hostReviewing: 'the host is reviewing answers',
     scores: 'Scores', nextRound: 'Next round →',
     endGame: 'End game', hostWait: 'Waiting for the host…',
+    endEarlyConfirm: "The game isn't complete and won't count. End anyway?",
+    soloStart: '✏️ Practise solo →',
+    reactionPoints: '🌶️ Reactions score points',
+    tieLine: "It's a tie! {names} with {pts} points", tieAnd: 'and',
+    bdBase: 'base', bdReactions: 'reactions',
+    toastOwnReaction: "You can't react to your own answers",
+    awPopularity: 'Popularity', awLaughter: 'Laughter', awOriginality: 'Originality',
+    shareBtn: 'Share', copied: 'Copied!', roundsWord: 'rounds',
     leaderboard: 'Leaderboard', myGroup: 'My group', world: 'Worldwide',
     worldSub: 'the best players in the world',
     noGroup: 'set a group name to see this leaderboard',
@@ -1413,7 +1460,6 @@ const T = {
     leaveRoom: 'Leave room',
     wins: 'wins', games: 'games',
     toastCopied: 'Link copied!', toastNoGroup: 'No group name set',
-    toastPenalty: 'loses', toastPenaltySuffix: 'pts',
     toastName: 'Enter your name first',
     toastCode: 'Code must be 4 letters',
     toastNotFound: 'Room not found. Check the code.',
@@ -1426,8 +1472,8 @@ const T = {
     toastHostOnly: 'Only the host can restart', waitHost: 'Waiting for the host…',
     toastStopFill: 'Fill in all answers before calling ¡Alto!',
     hostRevisingScores: 'host is revising answers ✏️',
-    toastDemoMin: 'Democratic mode requires at least 3 players', continueBtn: 'Continue →', notMe: "That's not me — change", groupHint2: 'family, friends, work... whatever you like', easyHint: '(no Q, U, W, X, Y, Z)', validate: 'Review', validateSub1: '📖 Wikipedia · 🤖 Robot Assistant · <span style="color:var(--red)">✕</span> invalidate', validateSub2: 'unique = 100 pts · duplicate = 50 pts · invalid = 0 pts', submitted2: 'Answers submitted', waitingTitle: 'Waiting...', hostReviewing2: 'host is reviewing', leaderboardBack: '← Back', loading: 'Loading…', final2: 'Game over!', searching: 'Searching...', hostSearching: 'Host is searching...', rndLabel: 'round', of: 'di', freeCatLabel: 'scrivi le tue categorie (una per riga)', freeCatPlaceholder: 'Giocatori del Barça\nFilm horror\nCose in cucina', of: 'of', freeCatLabel: 'write your categories (one per line)', freeCatPlaceholder: 'Football players\nHorror films\nThings in the kitchen', usarEjemplos: 'Use examples', freeCatRandom: 'Pick 8 at random each round', toastFreeCatsRandom: 'You need at least 9 categories for random mode', letterLabel: 'letter', calculate: 'Calculate scores →', stopCallerMsg: '{name} called ¡Alto!', timerRanOut: 'time ran out', scoresTitle: 'Scores', lbTitle: 'Leaderboard',
-    invited: "You've been invited to play!", rulesBtn: 'How to play?', expBtn: '⚗️ EXPERIMENTAL FEATURES', aiValidation: '🤖 Robot Assistant', aiRelajado: '🟢 Relaxed', aiEstricto: '🔴 Strict', aiSpelling: '✏️ Allow spelling mistakes', aiYes: 'Yes', aiNo: 'No', modeHost: '👑 Normal', modeDemocratic: '🗳️ Democratic', invalidated: 'invalid', winnerLine: '{emoji} {name} wins with {pts} points!', wrongPwd: '❌ Wrong password', expActivated: '⚗️ Experimental features activated', qjCodeLabel: 'room:', gcInside: "✅ YOU'RE IN", inviteMore: '+ Want to invite someone?', getReady: "LET'S GO!",
+    toastDemoMin: 'Democratic mode requires at least 3 players', continueBtn: 'Continue →', notMe: "That's not me — change", groupHint2: 'family, friends, work... whatever you like', easyHint: '(no Q, U, W, X, Y, Z)', validate: 'Review', validateSub1: '📖 Wikipedia · 🤖 Robot Assistant · <span style="color:var(--red)">✕</span> invalidate', validateSub2: 'unique = 100 · duplicate = 50 · invalid = 0 · ¡Alto! −100 per invalid', submitted2: 'Answers submitted', waitingTitle: 'Waiting...', hostReviewing2: 'host is reviewing', leaderboardBack: '← Back', loading: 'Loading…', final2: 'Game over!', searching: 'Searching...', hostSearching: 'Host is searching...', rndLabel: 'round', of: 'di', freeCatLabel: 'scrivi le tue categorie (una per riga)', freeCatPlaceholder: 'Giocatori del Barça\nFilm horror\nCose in cucina', of: 'of', freeCatLabel: 'write your categories (one per line)', freeCatPlaceholder: 'Football players\nHorror films\nThings in the kitchen', usarEjemplos: 'Use examples', freeCatRandom: 'Pick 8 at random each round', toastFreeCatsRandom: 'You need at least 9 categories for random mode', letterLabel: 'letter', calculate: 'Calculate scores →', stopCallerMsg: '{name} called ¡Alto!', timerRanOut: 'time ran out', scoresTitle: 'Scores', lbTitle: 'Leaderboard',
+    invited: "You've been invited to play!", rulesBtn: 'How to play?', expBtn: '⚗️ EXPERIMENTAL FEATURES', aiValidation: '🤖 Robot Assistant', aiRelajado: '🟢 Relaxed', aiEstricto: '🔴 Strict', aiSpelling: '✏️ Allow spelling mistakes', aiYes: 'Yes', aiNo: 'No', modeHost: '👑 Normal', modeDemocratic: '🗳️ Democratic', invalidated: 'invalid', winnerLine: '{name} {emoji} wins with {pts} points!', wrongPwd: '❌ Wrong password', expActivated: '⚗️ Experimental features activated', qjCodeLabel: 'room:', gcInside: "✅ YOU'RE IN", inviteMore: '+ Want to invite someone?', getReady: "LET'S GO!",
     toastBack: 'Rejoining as', notFoundWord: '📭 Not found', didYouMean: 'Did you mean', noDefinition: '📭 No definition for',
     waMsg: 'Play ¡Alto! with me 🎮 Join here:',
     createSub: 'MULTIPLAYER · WITH FAMILY & FRIENDS', configLabel: '⚙️ Settings', leaveRoom2: 'Leave room',
@@ -1455,7 +1501,6 @@ const T = {
     groupPlaceholder: 'Les Dupont, Amis du lycée...',
     theme: 'thème', easyLetters: 'lettres faciles seulement',
     rounds: 'manches', seconds: 'secondes par manche',
-    penalty: 'pénalité ¡Alto! invalide',
     start: 'Commencer! →',
     guestWait: "✏️ En attente de l'hôte…",
     letter: 'lettre', round: 'manche', of: 'sur', freeCatLabel: 'écris tes catégories (une par ligne)', freeCatPlaceholder: 'Joueurs du Barça\nFilms d\'horreur\nChoses dans la cuisine',
@@ -1467,6 +1512,14 @@ const T = {
     hostReviewing: "l'hôte vérifie les réponses",
     scores: 'Scores', nextRound: 'Manche suivante →',
     endGame: 'Terminer', hostWait: "En attente de l'hôte…",
+    endEarlyConfirm: "La partie n'est pas terminée et ne comptera pas. Terminer quand même ?",
+    soloStart: "✏️ S'entraîner en solo →",
+    reactionPoints: '🌶️ Réactions avec points',
+    tieLine: 'Égalité ! {names} avec {pts} points', tieAnd: 'et',
+    bdBase: 'base', bdReactions: 'réactions',
+    toastOwnReaction: 'Tu ne peux pas réagir à tes propres réponses',
+    awPopularity: 'Popularité', awLaughter: 'Rires', awOriginality: 'Originalité',
+    shareBtn: 'Partager', copied: 'Copié !', roundsWord: 'manches',
     leaderboard: 'Classement', myGroup: 'Mon groupe', world: 'Mondial',
     worldSub: 'les meilleurs joueurs du monde',
     noGroup: 'ajoute un nom de groupe pour voir ce classement',
@@ -1476,7 +1529,6 @@ const T = {
     leaveRoom: 'Quitter la salle',
     wins: 'victoires', games: 'parties',
     toastCopied: 'Lien copié!', toastNoGroup: 'Pas de nom de groupe',
-    toastPenalty: 'perd', toastPenaltySuffix: 'pts',
     toastName: "Entre ton prénom d'abord",
     toastCode: 'Le code doit avoir 4 lettres',
     toastNotFound: 'Salle introuvable. Vérifie le code.',
@@ -1489,8 +1541,8 @@ const T = {
     toastHostOnly: "Seul l'hôte peut recommencer", waitHost: "En attente de l'hôte…",
     toastStopFill: 'Remplis toutes les réponses avant de crier ¡Alto !',
     hostRevisingScores: "l'hôte révise les réponses ✏️",
-    toastDemoMin: 'Le mode démocratique nécessite au moins 3 joueurs', continueBtn: 'Continuer →', notMe: "Ce n'est pas moi — changer", groupHint2: 'famille, amis, travail... comme vous voulez', easyHint: '(sans K, Q, U, W, X, Y, Z)', validate: 'Vérifier', validateSub1: '📖 Wikipedia · 🤖 Assistant Robot · <span style="color:var(--red)">✕</span> annuler', validateSub2: 'unique = 100 pts · doublon = 50 pts · annulé = 0 pts', submitted2: 'Réponses envoyées', waitingTitle: 'En attente...', hostReviewing2: "l'hôte vérifie", leaderboardBack: '← Retour', loading: 'Chargement…', final2: 'Fin de partie!', searching: 'Recherche...', hostSearching: "L'hôte cherche...", rndLabel: 'manche', of: 'sur', freeCatLabel: 'écris tes catégories (une par ligne)', freeCatPlaceholder: 'Joueurs du Barça\nFilms d\'horreur\nChoses dans la cuisine', usarEjemplos: 'Utiliser des exemples', freeCatRandom: 'Choisir 8 au hasard chaque manche', toastFreeCatsRandom: 'Il faut au moins 9 catégories pour le mode aléatoire', letterLabel: 'lettre', calculate: 'Calculer les scores →', stopCallerMsg: '{name} a crié ¡Alto !', timerRanOut: 'temps écoulé', scoresTitle: 'Scores', lbTitle: 'Classement',
-    invited: 'Tu as été invité à jouer!', rulesBtn: 'Comment jouer?', expBtn: '⚗️ FONCTIONS EXPÉRIMENTALES', aiValidation: '🤖 Assistant Robot', aiRelajado: '🟢 Détendue', aiEstricto: '🔴 Stricte', aiSpelling: '✏️ Autoriser les fautes d\'orthographe', aiYes: 'Oui', aiNo: 'Non', modeHost: '👑 Normal', modeDemocratic: '🗳️ Démocratique', invalidated: 'annulée', winnerLine: '{emoji} {name} gagne avec {pts} points!', wrongPwd: '❌ Mot de passe incorrect', expActivated: '⚗️ Fonctions expérimentales activées', qjCodeLabel: 'salle:', gcInside: '✅ VOUS ÊTES DEDANS', inviteMore: "+ Inviter quelqu'un d'autre?", getReady: "C'EST PARTI!",
+    toastDemoMin: 'Le mode démocratique nécessite au moins 3 joueurs', continueBtn: 'Continuer →', notMe: "Ce n'est pas moi — changer", groupHint2: 'famille, amis, travail... comme vous voulez', easyHint: '(sans K, Q, U, W, X, Y, Z)', validate: 'Vérifier', validateSub1: '📖 Wikipedia · 🤖 Assistant Robot · <span style="color:var(--red)">✕</span> annuler', validateSub2: 'unique = 100 · doublon = 50 · annulé = 0 · ¡Alto! −100 par annulé', submitted2: 'Réponses envoyées', waitingTitle: 'En attente...', hostReviewing2: "l'hôte vérifie", leaderboardBack: '← Retour', loading: 'Chargement…', final2: 'Fin de partie!', searching: 'Recherche...', hostSearching: "L'hôte cherche...", rndLabel: 'manche', of: 'sur', freeCatLabel: 'écris tes catégories (une par ligne)', freeCatPlaceholder: 'Joueurs du Barça\nFilms d\'horreur\nChoses dans la cuisine', usarEjemplos: 'Utiliser des exemples', freeCatRandom: 'Choisir 8 au hasard chaque manche', toastFreeCatsRandom: 'Il faut au moins 9 catégories pour le mode aléatoire', letterLabel: 'lettre', calculate: 'Calculer les scores →', stopCallerMsg: '{name} a crié ¡Alto !', timerRanOut: 'temps écoulé', scoresTitle: 'Scores', lbTitle: 'Classement',
+    invited: 'Tu as été invité à jouer!', rulesBtn: 'Comment jouer?', expBtn: '⚗️ FONCTIONS EXPÉRIMENTALES', aiValidation: '🤖 Assistant Robot', aiRelajado: '🟢 Détendue', aiEstricto: '🔴 Stricte', aiSpelling: '✏️ Autoriser les fautes d\'orthographe', aiYes: 'Oui', aiNo: 'Non', modeHost: '👑 Normal', modeDemocratic: '🗳️ Démocratique', invalidated: 'annulée', winnerLine: '{name} {emoji} gagne avec {pts} points!', wrongPwd: '❌ Mot de passe incorrect', expActivated: '⚗️ Fonctions expérimentales activées', qjCodeLabel: 'salle:', gcInside: '✅ VOUS ÊTES DEDANS', inviteMore: "+ Inviter quelqu'un d'autre?", getReady: "C'EST PARTI!",
     toastBack: 'Reconnexion en tant que', notFoundWord: '📭 Introuvable', didYouMean: 'Vouliez-vous dire', noDefinition: '📭 Aucune définition pour',
     waMsg: 'Joue au ¡Alto! avec moi 🎮 Rejoins ici:',
     createSub: 'MULTIJOUEUR · EN FAMILLE ET ENTRE AMIS', configLabel: '⚙️ Paramètres', leaveRoom2: 'Quitter la salle',
@@ -1553,9 +1605,9 @@ function dailyRulesHTML() {
 
 function rulesHTML() {
   const rules = rulesHTML._data = {
-    es: { h: 'Reglas del juego', r1: 'Se elige una letra al azar para cada ronda', r2: 'Rellena todas las categorías con palabras que empiecen por esa letra — ¡lo más rápido posible!', r3: 'El primero en terminar pulsa ¡Alto! para terminar la ronda', s: 'Puntuación:', u: 'Respuesta única', d: 'Respuesta repetida', e: 'Sin respuesta', penalty: '⚠️ Si pulsas ¡Alto! y todas tus respuestas son inválidas, pierdes puntos como penalización.' },
-    en: { h: 'How to play', r1: 'A random letter is chosen for each round', r2: 'Fill all categories with words starting with that letter — as fast as you can!', r3: 'The first to finish taps ¡Alto! to end the round', s: 'Scoring:', u: 'Unique answer', d: 'Duplicate answer', e: 'No answer', penalty: '⚠️ If you tap ¡Alto! and all your answers are invalid, you lose points as a penalty.' },
-    fr: { h: 'Règles du jeu', r1: 'Une lettre aléatoire est choisie pour chaque manche', r2: 'Remplis toutes les catégories avec des mots commençant par cette lettre — le plus vite possible!', r3: 'Le premier à finir appuie sur ¡Alto! pour terminer la manche', s: 'Points:', u: 'Réponse unique', d: 'Réponse en double', e: 'Sans réponse', penalty: "⚠️ Si tu appuies sur ¡Alto! et que toutes tes réponses sont invalides, tu perds des points en pénalité." },
+    es: { h: 'Reglas del juego', r1: 'Se elige una letra al azar para cada ronda', r2: 'Rellena todas las categorías con palabras que empiecen por esa letra — ¡lo más rápido posible!', r3: 'El primero en terminar pulsa ¡Alto! para terminar la ronda', s: 'Puntuación:', u: 'Respuesta única', d: 'Respuesta repetida', e: 'Sin respuesta', penalty: '🛑 Quien pulsa ¡Alto! gana +250 pts si todo es válido, y pierde 100 por cada respuesta anulada (con 8 categorías).' },
+    en: { h: 'How to play', r1: 'A random letter is chosen for each round', r2: 'Fill all categories with words starting with that letter — as fast as you can!', r3: 'The first to finish taps ¡Alto! to end the round', s: 'Scoring:', u: 'Unique answer', d: 'Duplicate answer', e: 'No answer', penalty: '🛑 Whoever taps ¡Alto! gets +250 pts if everything is valid, and loses 100 for each invalid answer (with 8 categories).' },
+    fr: { h: 'Règles du jeu', r1: 'Une lettre aléatoire est choisie pour chaque manche', r2: 'Remplis toutes les catégories avec des mots commençant par cette lettre — le plus vite possible!', r3: 'Le premier à finir appuie sur ¡Alto! pour terminer la manche', s: 'Points:', u: 'Réponse unique', d: 'Réponse en double', e: 'Sans réponse', penalty: "🛑 Celui qui appuie sur ¡Alto! gagne +250 pts si tout est valide, et perd 100 par réponse annulée (avec 8 catégories)." },
   };
   const r = rules[LANG] || rules.es;
   return `
@@ -1709,8 +1761,7 @@ window.applyLang = function() {
   s('lbl-easy-hint', t('easyHint'));
   s('lbl-rounds', t('rounds'));
   s('lbl-seconds', t('seconds'));
-  s('lbl-penalty', t('penalty'));
-  s('btn-start', t('start'));
+  updateStartBtn();
   s('btn-leave', t('leaveRoom'));
   s('btn-leave-text', t('leaveRoom2') || t('leaveRoom'));
   s('btn-leave-guest', t('leaveRoom'));
@@ -1737,6 +1788,7 @@ window.applyLang = function() {
   const freeCats = document.getElementById('free-cats'); if(freeCats) freeCats.placeholder = t('freeCatPlaceholder');
   s('btn-usar-ejemplos', t('usarEjemplos'));
   s('lbl-free-cat-random-text', t('freeCatRandom'));
+  s('lbl-reaction-points', t('reactionPoints'));
   s('lbl-cat-random', t('catRandomLabel'));
   s('lbl-cat-classic', t('catClassicLabel'));
   if (document.getElementById('group-grid')?.children.length) buildGroupGrid();
@@ -1762,6 +1814,7 @@ window.applyLang = function() {
   s('btn-play-again', t('playAgain'));
   s('btn-wait-host', t('waitHost'));
   s('btn-show-lb', t('leaderboard'));
+  s('btn-share-final', t('shareBtn'));
   // Rebuild theme picker if in lobby (language changed)
   if (G.screen === 'lobby' && G.isHost) {
     // Theme names differ per language — preserve selection by position (0=classic,1=random,2=free)
@@ -2113,6 +2166,7 @@ function homeRulesHTML() {
       r4: 'Ideal para jugar en grupo',
       val: 'Validación: modo <b>Normal</b> → el anfitrión decide · modo <b>Democrático</b> → votación entre todos',
       s: 'Puntuación:', u: 'Respuesta única', rep: 'Respuesta repetida', e: 'Sin respuesta',
+      altoOk: '¡Alto! con todo válido', altoBad: '¡Alto! por cada anulada',
       h2: '📅 Reto diario &amp; Práctica — un jugador',
       d1: 'Una letra y 6 categorías fijas, iguales para todo el mundo cada día. Todas las respuestas deben empezar por esa letra',
       d2: 'Práctica: mismas reglas pero letra aleatoria y sin límite de intentos',
@@ -2128,6 +2182,7 @@ function homeRulesHTML() {
       r4: 'Best played in a group',
       val: 'Validation: <b>Normal</b> mode → the host decides · <b>Democratic</b> mode → everyone votes',
       s: 'Scoring:', u: 'Unique answer', rep: 'Duplicate answer', e: 'No answer',
+      altoOk: '¡Alto! with all valid', altoBad: '¡Alto! per invalid answer',
       h2: '📅 Daily challenge &amp; Practice — single player',
       d1: 'One letter, 6 fixed categories — the same for everyone each day. All answers must start with that letter',
       d2: 'Practice: same rules but a random letter and unlimited attempts',
@@ -2143,6 +2198,7 @@ function homeRulesHTML() {
       r4: 'Idéal pour jouer en groupe',
       val: "Validation: mode <b>Normal</b> → l'hôte décide · mode <b>Démocratique</b> → tout le monde vote",
       s: 'Points:', u: 'Réponse unique', rep: 'Réponse en double', e: 'Sans réponse',
+      altoOk: '¡Alto! tout valide', altoBad: '¡Alto! par réponse annulée',
       h2: '📅 Défi du jour &amp; Pratique — un joueur',
       d1: 'Une lettre et 6 catégories fixes, identiques pour tout le monde chaque jour. Toutes les réponses doivent commencer par cette lettre',
       d2: 'Pratique: mêmes règles mais lettre aléatoire et tentatives illimitées',
@@ -2165,6 +2221,8 @@ function homeRulesHTML() {
       <div class="rules-score-row"><span>${r.u}</span><span class="rules-pts">100 pts</span></div>
       <div class="rules-score-row"><span>${r.rep}</span><span class="rules-pts">50 pts</span></div>
       <div class="rules-score-row"><span>${r.e}</span><span class="rules-pts">0 pts</span></div>
+      <div class="rules-score-row"><span>${r.altoOk}</span><span class="rules-pts">+250 pts</span></div>
+      <div class="rules-score-row"><span>${r.altoBad}</span><span class="rules-pts">−100 pts</span></div>
     </div>
     ${divider}
     <div style="font-family:'Caveat',cursive;font-size:22px;font-weight:700;color:var(--ink);margin-bottom:10px">${r.h2}</div>
@@ -3902,26 +3960,49 @@ function normalize(str) {
   return str.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
 }
 
-function saveSession() {
-  localStorage.setItem('alto_session', JSON.stringify({name:G.playerName, emoji:G.playerEmoji, code:G.roomCode, isHost:G.isHost}));
+// Session = who this player is in which room. Saved twice:
+//  - sessionStorage: this tab only, survives a refresh → a refreshed tab always comes back as ITS OWN player
+//  - localStorage: shared by every tab of the browser → fallback after closing and reopening
+// The room code also goes in the address (?room=CODE) so a refresh knows which room the tab belongs to.
+// Room code the page was opened with (invite link or a refreshed room tab), read once at load
+const OPENED_ROOM = (new URLSearchParams(window.location.search).get('room') || '').toUpperCase();
+function readSession(store) {
+  try { return JSON.parse(store.getItem('alto_session') || 'null'); } catch(e) { return null; }
 }
-function clearSession() { localStorage.removeItem('alto_session'); }
+function setRoomInUrl(code) {
+  try {
+    const u = new URL(window.location.href);
+    if (code) u.searchParams.set('room', code); else u.searchParams.delete('room');
+    if (u.href !== window.location.href) history.replaceState(null, '', u.href);
+  } catch(e) { /* ignore */ }
+}
+function saveSession() {
+  const data = JSON.stringify({name:G.playerName, emoji:G.playerEmoji, code:G.roomCode, isHost:G.isHost});
+  localStorage.setItem('alto_session', data);
+  try { sessionStorage.setItem('alto_session', data); } catch(e) { /* private mode */ }
+  setRoomInUrl(G.roomCode);
+}
+function clearSession() {
+  localStorage.removeItem('alto_session');
+  try { sessionStorage.removeItem('alto_session'); } catch(e) { /* private mode */ }
+  setRoomInUrl('');
+}
 
 function saveLobbyConfig() {
   const rounds = document.getElementById('sl-rounds')?.value;
   const time = document.getElementById('sl-time')?.value;
-  const penalty = document.getElementById('sl-penalty')?.value;
   const freeCatRandom = document.getElementById('free-cat-random')?.checked || false;
+  const reactionPoints = document.getElementById('reaction-points')?.checked !== false;
   localStorage.setItem('alto_lobby_config', JSON.stringify({
     theme: G.selectedTheme,
     groups: G.selectedGroups,
     rounds: rounds ? parseInt(rounds) : 5,
     time: time ? parseInt(time) : 90,
-    penalty: penalty ? parseInt(penalty) : 50,
     validationMode: G_validationMode,
     aiStrictness: G_aiStrictness,
     aiSpelling: G_aiSpelling,
     freeCatRandom,
+    reactionPoints,
   }));
 }
 
@@ -3934,10 +4015,10 @@ function restoreLobbyConfig() {
     if (c.groups && Array.isArray(c.groups) && c.groups.length >= 3) G.selectedGroups = c.groups;
     if (c.rounds) { const el = document.getElementById('sl-rounds'); if (el) { el.value = c.rounds; document.getElementById('v-rounds').textContent = c.rounds; } }
     if (c.time) { const el = document.getElementById('sl-time'); if (el) { el.value = c.time; document.getElementById('v-time').textContent = c.time; } }
-    if (c.penalty !== undefined) { const el = document.getElementById('sl-penalty'); if (el) { el.value = c.penalty; document.getElementById('v-penalty').textContent = c.penalty; } }
     if (c.validationMode) { G_validationMode = c.validationMode; window.setValidationMode(c.validationMode); }
     if (c.aiStrictness) { G_aiStrictness = c.aiStrictness; window.setAIStrictness(c.aiStrictness); }
     if (c.aiSpelling !== undefined) { G_aiSpelling = c.aiSpelling; window.setAISpelling(c.aiSpelling); }
+    if (c.reactionPoints !== undefined) { const rp = document.getElementById('reaction-points'); if (rp) rp.checked = c.reactionPoints; }
     if (c.freeCatRandom !== undefined) { const cb = document.getElementById('free-cat-random'); if (cb) cb.checked = c.freeCatRandom; updateFreeCatRandomToggle(); }
   } catch(e) { /* silent — corrupt config, start fresh */ }
 }
@@ -3967,7 +4048,7 @@ function handleRoom(room) {
         // Clear stale invalidAnswers/votes from Firebase so all clients start clean
         update(roomRef(G.roomCode), {phase:'validate', invalidAnswers: {}, votes: {}});
         G.invalidAnswers = {};
-        showValidation(room);
+        showValidation({...room, invalidAnswers: {}, votes: {}}); // snapshot may hold last round's marks
       } else {
         showGuestValidation(room);
       }
@@ -4026,7 +4107,7 @@ window.createRoom = async () => {
     categories:G.selectedCats, rounds:5, timePerRound:60,
     currentRound:0, currentLetter:'',
     scores:{[name]:0}, allAnswers:{}, usedLetters:[],
-    calledStop:false, stopCaller:'', easyLetters:true, stopPenalty:50,
+    calledStop:false, stopCaller:'', easyLetters:true,
   };
   await set(roomRef(G.roomCode), room);
   saveSession(); subscribe(G.roomCode); enterLobby(room);
@@ -4092,13 +4173,22 @@ function enterLobby(room) {
 
 function renderPlayers(players, langs={}) {
   document.getElementById('lob-players').innerHTML =
-    Object.entries(players).map(([n,emoji]) => `<div class="chip ok"><span style="font-size: 16px">${emoji||'🎲'}</span>${n}</div>`).join('');
+    Object.entries(players).map(([n,emoji]) => `<div class="chip ok">${n}<span style="font-size: 16px">${emoji||'🎲'}</span></div>`).join('');
   const hint = document.getElementById('lbl-solo-hint');
   if (hint) {
     const solo = Object.keys(players).length < 2;
     hint.textContent = solo ? t('soloHint') : '';
     hint.style.display = solo ? 'inline' : 'none';
   }
+  G_lobbyPlayerCount = Object.keys(players).length;
+  updateStartBtn();
+}
+
+// Start button reads "Practicar solo" while only one player is in the lobby
+let G_lobbyPlayerCount = 0;
+function updateStartBtn() {
+  const btn = document.getElementById('btn-start');
+  if (btn) btn.textContent = G_lobbyPlayerCount === 1 ? t('soloStart') : t('start');
 }
 
 function buildThemePicker() {
@@ -4209,7 +4299,6 @@ window.startGame = async () => {
   const easy = document.getElementById('easy-letters').checked;
   const rounds = parseInt(document.getElementById('sl-rounds').value);
   const time = parseInt(document.getElementById('sl-time').value);
-  const penalty = parseInt(document.getElementById('sl-penalty').value);
   const groupName = document.getElementById('inp-group').value.trim();
 
   if (isRandom) {
@@ -4247,12 +4336,15 @@ window.startGame = async () => {
     currentRound: 1, phase: 'countdown', countdownStart: Date.now(),
     currentLetter: cats.letter, usedLetters: [cats.letter],
     roundStartTime: null, allAnswers: {}, calledStop: false, stopCaller: '',
-    scores, easyLetters: easy, stopPenalty: penalty, groupName, aiEnabled: G_aiEnabled,
+    scores, easyLetters: easy, groupName, aiEnabled: G_aiEnabled,
     aiStrictness: G_aiStrictness, aiSpelling: G_aiSpelling, validationMode: G_validationMode,
     gameLang: LANG,
     catMode: isRandom ? 'random' : (cats.allFreeCats ? 'free-random' : 'fixed'),
     selectedGroups: isRandom ? G.selectedGroups : null,
     allFreeCats: cats.allFreeCats || null,
+    practice: playerCount < 2,          // solo start = practice (no leaderboard)
+    reactionPoints: document.getElementById('reaction-points')?.checked !== false,
+    roundLog: null, preRoundScores: null, // fresh game: no stale round data
   });
 };
 
@@ -4320,6 +4412,7 @@ function closeCountdown() {
 
 function enterPlaying(room) {
   G.submitted = false; G.stopHandled = false;
+  G_myVotes = {}; G_myEntryEmojis = {}; G_cachedReactions = {}; // new round: forget last round's votes/reactions
   stopReactions();
   // Clear stale vote/emoji DOM from previous round
   const valContent = document.getElementById('val-content');
@@ -4534,7 +4627,8 @@ function showValidation(room) {
       _scBanner.style.display = 'none';
     }
   }
-  G.invalidAnswers = {};
+  // Start from the saved decisions (Revisar and host reload keep them); empty on a round's first entry
+  G.invalidAnswers = {...(room.invalidAnswers || {})};
   if (room.aiEnabled !== undefined) { G_aiEnabled = room.aiEnabled; window.setAIEnabled(room.aiEnabled); } else { window.setAIEnabled(true); }
   if (room.aiStrictness) { G_aiStrictness = room.aiStrictness; window.setAIStrictness(room.aiStrictness); }
   if (room.aiSpelling !== undefined) { G_aiSpelling = room.aiSpelling; window.setAISpelling(room.aiSpelling); }
@@ -4554,7 +4648,8 @@ function showValidation(room) {
       const pts = ans ? (isDup?50:100) : 0;
       const safeAns = ans ? ans.replace(/'/g,"\'") : '';
       const dictBtn = ans ? `<button class="dict-btn" id="dictbtn_${key}" onclick="lookupWord('${safeAns}','${key}')">📖</button>` : '';
-      const invBtn = (ans && G_validationMode !== 'democratic') ? `<button class="inv-btn" id="ib_${key}" onclick="toggleInvalid('${key}',${pts})">✕</button>` : '';
+      const isInv = !!(ans && G.invalidAnswers[key]);
+      const invBtn = (ans && G_validationMode !== 'democratic') ? `<button class="inv-btn" id="ib_${key}" onclick="toggleInvalid('${key}',${pts})">${isInv ? '↩' : '✕'}</button>` : '';
       const ptsBadge = ans ? `<span class="pts-badge" id="pb_${key}">${pts} pts</span>` : '';
       const dictDiv = ans ? `<div class="dict-result" id="dict_${key}"></div>` : '';
       const existingAI = ans && room.aiResults && room.aiResults[key];
@@ -4562,7 +4657,7 @@ function showValidation(room) {
       const aiCls = existingAI ? ('ai-result show ' + (existingAI.cls || (existingAI.html.includes('✅') ? 'valid' : existingAI.html.includes('❌') ? 'invalid' : 'unsure'))) : 'ai-result';
       const aiRes = ans ? `<div class="ai-result ${aiCls}" id="ai_res_${key}">${existingAI ? existingAI.html : ''}</div>` : '';
       const voteHtml = ans ? renderVotes(key, {}, G_validationMode, players, true) : '';
-      const entryClass = ans ? 'val-entry democratic-valid' : 'val-entry';
+      const entryClass = !ans ? 'val-entry' : (isInv ? 'val-entry invalid' : 'val-entry democratic-valid');
       html += `<div class="${entryClass}" id="ve_${key}">
         <div class="val-entry-top">
           <span class="val-name">${p}</span>
@@ -5078,6 +5173,7 @@ const ENTRY_EMOJIS = ['🔥','👏','😂','😬'];
 let G_validationMode = 'host'; // 'host' or 'democratic'
 let G_myVotes = {}; // key -> 'up' or 'down'
 let G_myEntryEmojis = {}; // key+emoji -> true
+let G_cachedReactions = {}; // last entryReactions seen, for instant redraw on tap
 let G_cachedVotes = {};   // last known votes from Firebase, for optimistic UI
 let G_cachedPlayers = []; // last known player list, for optimistic UI
 let G_cachedVoteMode = 'host'; // last known validation mode, for optimistic UI
@@ -5095,9 +5191,8 @@ window.setValidationMode = (mode) => {
   const sub2 = document.getElementById('lbl-validate-sub2');
   if (mode === 'democratic') {
     const s1 = {es:'👎 votar · 📖 Wikipedia · 🤖 Robot', en:'👎 vote · 📖 Wikipedia · 🤖 Robot', fr:'👎 voter · 📖 Wikipedia · 🤖 Robot'}[LANG] || '👎 votar · 📖 Wikipedia · 🤖 Robot';
-    const s2 = {es:'única = 100 pts · repetida = 50 pts · anulada = 0 pts', en:'unique = 100 pts · duplicate = 50 pts · invalid = 0 pts', fr:'unique = 100 pts · doublon = 50 pts · annulé = 0 pts'}[LANG] || 'única = 100 pts · repetida = 50 pts · anulada = 0 pts';
     if (sub1) sub1.textContent = s1;
-    if (sub2) sub2.textContent = s2;
+    if (sub2) sub2.textContent = t('validateSub2');
   } else {
     if (sub1) sub1.innerHTML = t('validateSub1');
     if (sub2) sub2.textContent = t('validateSub2');
@@ -5120,19 +5215,37 @@ window.voteEntry = async (key, dir) => {
   await update(roomRef(G.roomCode), { [`votes/${key}/${G.playerName}`]: newDir || null });
 };
 
+// Entry keys are player + '__' + category
+function isOwnEntry(key) { return key.startsWith(G.playerName + '__'); }
+
+// One reaction per answer: tapping a new emoji swaps, tapping the same one removes.
+// No reactions on your own answers.
 window.reactToEntry = async (key, emoji) => {
-  const eKey = key + '_' + emoji;
-  const active = G_myEntryEmojis[eKey];
-  G_myEntryEmojis[eKey] = !active;
-  // Show float immediately for sender when adding (not removing) a reaction
-  if (!active) {
+  if (isOwnEntry(key)) { toast(t('toastOwnReaction')); return; }
+  const removing = !!G_myEntryEmojis[key + '_' + emoji];
+  const upd = {};
+  const cur = {...(G_cachedReactions[key] || {})};
+  // Clear all four of my emojis on this answer in the same write (enforces one per answer)
+  ENTRY_EMOJIS.forEach(e => {
+    G_myEntryEmojis[key + '_' + e] = false;
+    upd[`entryReactions/${key}/${G.playerName}_${e}`] = null;
+    delete cur[G.playerName + '_' + e];
+  });
+  if (!removing) {
+    const r = { emoji, name: G.playerName };
+    G_myEntryEmojis[key + '_' + emoji] = true;
+    upd[`entryReactions/${key}/${G.playerName}_${emoji}`] = r;
+    cur[G.playerName + '_' + emoji] = r;
+    // Show float immediately for sender when adding a reaction
     const floatId = 'er_' + key + '_' + G.playerName + '_' + emoji;
     G_shownReactions.add(floatId);
     showReactionFloat(emoji, G.playerName, floatId, key);
   }
-  await update(roomRef(G.roomCode), {
-    [`entryReactions/${key}/${G.playerName}_${emoji}`]: active ? null : { emoji, name: G.playerName }
-  });
+  // Redraw straight away (also fixes stale count when the last reaction on an answer is removed)
+  G_cachedReactions[key] = cur;
+  const el = document.getElementById('emojis_' + key);
+  if (el) el.innerHTML = renderEntryEmojis(key, cur, G.isHost);
+  await update(roomRef(G.roomCode), upd);
 };
 
 function renderVotes(key, votes, mode, players, isHost) {
@@ -5160,12 +5273,14 @@ function renderEntryEmojis(key, entryReactions, isHost) {
   Object.values(reactions).forEach(r => {
     if (r) counts[r.emoji] = (counts[r.emoji] || 0) + 1;
   });
-  const myActive = Object.keys(G_myEntryEmojis).filter(k => k.startsWith(key + '_') && G_myEntryEmojis[k]);
+  // Own answers: greyed and not tappable, but still show what you received
+  const own = isOwnEntry(key);
 
   const strip = ENTRY_EMOJIS.map(e => {
     const count = counts[e] || 0;
-    const active = G_myEntryEmojis[key + '_' + e];
-    return `<button class="entry-emoji-btn${active ? ' active' : ''}" onclick="reactToEntry('${key}','${e}')">${e}${count > 0 ? `<sup style="font-size: 11px">${count}</sup>` : ''}</button>`;
+    const active = !own && G_myEntryEmojis[key + '_' + e];
+    const cls = 'entry-emoji-btn' + (active ? ' active' : '') + (own ? ' own' : '') + (own && count > 0 ? ' got' : '');
+    return `<button class="${cls}" onclick="reactToEntry('${key}','${e}')">${e}${count > 0 ? `<sup style="font-size: 11px">${count}</sup>` : ''}</button>`;
   }).join('');
 
   return `<div class="entry-emoji-strip">${strip}</div>`;
@@ -5180,6 +5295,7 @@ function applyVotesAndReactions(room, isHost) {
   G_cachedVotes = votes;
   G_cachedPlayers = players;
   G_cachedVoteMode = mode;
+  G_cachedReactions = entryReactions;
 
   // Update my votes from Firebase (in case rejoining)
   Object.entries(votes).forEach(([key, playerVotes]) => {
@@ -5190,6 +5306,11 @@ function applyVotesAndReactions(room, isHost) {
   Object.keys(votes).forEach(key => {
     const voteEl = document.getElementById('votes_' + key);
     if (voteEl) voteEl.innerHTML = renderVotes(key, votes[key], mode, players, isHost);
+  });
+
+  // Rebuild my own reaction highlights from Firebase (survives reload and Revisar)
+  Object.entries(entryReactions).forEach(([key, rs]) => {
+    ENTRY_EMOJIS.forEach(e => { G_myEntryEmojis[key + '_' + e] = !!(rs && rs[G.playerName + '_' + e]); });
   });
 
   // Update emoji reaction displays (works for both host and guest)
@@ -5328,32 +5449,148 @@ window.finishValidation = async () => {
     });
   }
   players.forEach(p => { if (!scores[p]) scores[p]=0; });
-  const penalty = room.stopPenalty??50;
-  const stopper = room.stopCaller||'';
-  cats.forEach(cat => {
+  // Timeout writes stopCaller:'Tiempo' — only a real player in the room counts as caller
+  const stopper = (room.calledStop && players.includes(room.stopCaller||'')) ? room.stopCaller : '';
+  // Per-player round detail, by category index (u=unique, d=duplicate, x=invalid, e=empty)
+  const rlPlayers = {};
+  players.forEach(p => {
+    rlPlayers[p] = {
+      answers: cats.map(cat => ((allAns[p]||{})[cat]||'').trim()),
+      status: [],
+      got: cats.map(() => ({f:0, c:0, l:0})), // reactions received per answer: fire, clap, laugh
+      pts: { answers:0, alto:0, reactions:0, round:0, total:0 },
+    };
+  });
+  cats.forEach((cat, ci) => {
     const answers = players.map(p => ({
       p, ans:normalize((allAns[p]||{})[cat]||''),
       invalid:!!G.invalidAnswers[p+'__'+cat],
     }));
     const nonEmpty = answers.filter(a=>a.ans&&!a.invalid);
     answers.forEach(({p, ans, invalid}) => {
-      if (!ans||invalid) return;
+      if (!ans) { rlPlayers[p].status[ci] = 'e'; return; }
+      if (invalid) { rlPlayers[p].status[ci] = 'x'; return; }
       const isDup = nonEmpty.filter(a=>a.ans===ans).length>1;
-      scores[p] = (scores[p]||0) + (isDup?50:100);
+      rlPlayers[p].status[ci] = isDup ? 'd' : 'u';
+      rlPlayers[p].pts.answers += (isDup?50:100);
     });
   });
-  if (stopper && penalty>0 && players.includes(stopper)) {
-    const stopperAns = allAns[stopper]||{};
-    const hasInvalidOrEmpty = cats.some(cat => {
-      const ans = (stopperAns[cat]||'').trim();
-      return !ans || !!G.invalidAnswers[stopper+'__'+cat];
-    });
-    if (hasInvalidOrEmpty) {
-      scores[stopper] = (scores[stopper]||0) - penalty;
-      toast('⚠️ '+stopper+' '+t('toastPenalty')+' '+penalty+' '+t('toastPenaltySuffix'));
-    }
+  // ¡Alto! caller: +round10(250 x n/8), minus 100 per invalid (empty counted as invalid defensively)
+  if (stopper) {
+    const bad = rlPlayers[stopper].status.filter(s => s==='x' || s==='e').length;
+    const adj = Math.round(250 * cats.length / 8 / 10) * 10 - 100 * bad;
+    rlPlayers[stopper].pts.alto = adj;
+    toast('🛑 ' + stopper + ' ¡Alto! ' + (adj >= 0 ? '+' : '−') + Math.abs(adj) + ' pts');
   }
-  await update(roomRef(G.roomCode), {scores, preRoundScores, phase:'scores'});
+  // Reactions: only those present now (locked at Calculate). No self-reactions, one per reactor per answer.
+  // 🔥 +30 and 👏 +20 count on valid answers only; 😂 +10 on valid or invalid; 😬 0.
+  // got[] is always recorded (awards use it); points only when the room has reaction points on.
+  const reactionPointsOn = room.reactionPoints !== false;
+  const entryReactions = room.entryReactions || {};
+  const RVAL = {'🔥':30, '👏':20, '😂':10, '😬':0};
+  const RCODE = {'🔥':'f', '👏':'c', '😂':'l'};
+  players.forEach(p => cats.forEach((cat, ci) => {
+    const st = rlPlayers[p].status[ci];
+    if (st === 'e') return;
+    const byReactor = {};
+    Object.values(entryReactions[p+'__'+cat] || {}).forEach(r => {
+      if (!r || !r.name || r.name === p || !(r.emoji in RVAL)) return;
+      // Older clients could leave several from one person: keep the lowest-value one
+      if (!(r.name in byReactor) || RVAL[r.emoji] < RVAL[byReactor[r.name]]) byReactor[r.name] = r.emoji;
+    });
+    const valid = st === 'u' || st === 'd';
+    Object.values(byReactor).forEach(e => {
+      if (RCODE[e]) rlPlayers[p].got[ci][RCODE[e]]++;
+      if (reactionPointsOn && (valid || e === '😂')) rlPlayers[p].pts.reactions += RVAL[e];
+    });
+  }));
+  players.forEach(p => {
+    const pt = rlPlayers[p].pts;
+    pt.round = pt.answers + pt.alto + pt.reactions;
+    scores[p] = (scores[p]||0) + pt.round;
+    pt.total = scores[p];
+  });
+  const roundLog = {
+    letter: room.currentLetter || '',
+    categories: cats,
+    caller: stopper,
+    players: rlPlayers,
+  };
+  await update(roomRef(G.roomCode), {scores, preRoundScores, phase:'scores', [`roundLog/${room.currentRound}`]: roundLog});
+};
+
+// Minimal HTML escaping for player-typed text drawn with innerHTML
+function escHtml(v) {
+  return String(v ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function signed(v) { v = v || 0; return v >= 0 ? '+' + v : '−' + Math.abs(v); }
+
+// Dense rank numbers to go with denseMedals: 900,900,700,500,300 → 1,1,2,3,4
+function denseRanks(sorted) {
+  let rank = 0, prev = null;
+  return sorted.map(([, pts]) => { if (pts !== prev) { rank++; prev = pts; } return rank; });
+}
+
+// One player's answer rows for one round (shared by the Scores and Final cards).
+// Same classes and marks as the daily leaderboard: ✅ +100 / ✅ +50 / ❌ 0, small grey — when empty.
+function roundRowsHTML(d, cats) {
+  return cats.map((cat, ci) => {
+    const ans = (d.answers || {})[ci] || '';
+    const st = (d.status || {})[ci] || 'e';
+    const g = (d.got || {})[ci] || {};
+    const got = [['🔥', g.f], ['👏', g.c], ['😂', g.l]].filter(([, c]) => c > 0)
+      .map(([e, c]) => `${e}<sup style="font-size:11px">${c}</sup>`).join(' ');
+    const icon = st === 'x' ? '❌' : '✅';
+    const pts = st === 'u' ? '+100' : st === 'd' ? '+50' : '0';
+    return `<div class="daily-lb-answer-row">
+      <span class="daily-lb-answer-cat">${escHtml(cat)}</span>
+      <span class="sc-ans-mid"><span class="daily-lb-answer-val${ans ? '' : ' empty'}">${ans ? escHtml(ans) : '—'}</span><span class="sc-ans-got">${got}</span></span>
+      ${ans ? `<span class="daily-lb-answer-ai">${icon}</span><span class="daily-lb-answer-pts${st === 'x' ? ' zero' : ''}">${pts}</span>` : ''}
+    </div>`;
+  }).join('');
+}
+// "base 600 pts (A +50, reacciones +60)" — same "base" wording as the daily result line.
+// A only for the caller (red); reactions only when points are on and non-zero; no brackets when there are no extras.
+function breakdownHTML(pts, isCaller, room) {
+  const extras = [];
+  if (isCaller) extras.push(`<span style="color:var(--red)">A ${signed(pts.alto)}</span>`);
+  if (room.reactionPoints !== false && pts.reactions) extras.push(`${t('bdReactions')} ${signed(pts.reactions)}`);
+  return `<div class="sc-breakdown">${t('bdBase')} ${pts.answers || 0} pts${extras.length ? ` (${extras.join(', ')})` : ''}</div>`;
+}
+
+// Collapsed row, daily leaderboard style: rank (medal or number) · name emoji [A] · total · (extra) · ▶
+// Your own row is highlighted like the daily "me" row.
+function mpRowHTML({ id, rank, name, emoji, total, extra, isCaller, onclick, open }) {
+  const me = name === G.playerName;
+  return `<div class="daily-lb-row mp-row${me ? ' daily-lb-me' : ''}${open ? ' expanded' : ''}" id="${id}"${onclick ? ` onclick="${onclick}"` : ' style="cursor:default"'}>
+      <span class="daily-lb-rank">${rank}</span>
+      <span class="mp-namewrap"><span class="daily-lb-name">${escHtml(name)} ${emoji}</span>${isCaller ? '<span class="sc-alto">A</span>' : ''}</span>
+      <span class="daily-lb-score">${total}<span class="sc-unit"> pts</span></span>
+      ${extra ? `<span class="daily-lb-speed">(${extra})</span>` : ''}
+      ${onclick ? '<span class="daily-lb-chevron">▶</span>' : ''}
+    </div>`;
+}
+
+// Scores cards: collapsed row + expandable panel with this round's answers
+let G_scOpen = new Set(), G_scRound = null, G_scNames = [];
+function scoreCardHTML(i, name, total, rank, emoji, rl, room) {
+  const d = rl.players[name];
+  if (!d) return mpRowHTML({ id: 'sc-row-' + i, rank, name, emoji, total });
+  const pts = d.pts || {};
+  const isCaller = !!rl.caller && rl.caller === name;
+  const open = G_scOpen.has(name);
+  return mpRowHTML({ id: 'sc-row-' + i, rank, name, emoji, total, extra: signed(pts.round), isCaller, onclick: `toggleScoreCard(${i})`, open })
+    + `<div class="daily-lb-answers${open ? ' open' : ''}" id="sc-panel-${i}">${roundRowsHTML(d, rl.categories || [])}${breakdownHTML(pts, isCaller, room)}</div>`;
+}
+
+window.toggleScoreCard = (i) => {
+  const name = G_scNames[i];
+  const row = document.getElementById('sc-row-' + i);
+  const panel = document.getElementById('sc-panel-' + i);
+  if (!row || !panel || name === undefined) return;
+  const open = panel.classList.toggle('open');
+  row.classList.toggle('expanded', open);
+  if (open) G_scOpen.add(name); else G_scOpen.delete(name);
 };
 
 function showScores(room) {
@@ -5364,14 +5601,22 @@ function showScores(room) {
   const sorted = Object.entries(room.scores||{}).sort((a,b)=>b[1]-a[1]);
   const players = room.players||{};
   const langs = room.langs||{};
-  document.getElementById('sc-list').innerHTML = sorted.map(([n,pts],i) =>
-    `<div class="score-row"><span>${MEDALS[i]||''} ${players[n]||'🎲'} ${n}</span><span class="pts">${pts} pts</span></div>`
-  ).join('');
+  const medals = denseMedals(sorted);
+  const rl = (room.roundLog || {})[room.currentRound];
+  // Cards stay open across re-renders (the screen redraws on every room change) until the round changes
+  if (G_scRound !== room.currentRound) { G_scRound = room.currentRound; G_scOpen = new Set(); }
+  G_scNames = sorted.map(([n]) => n);
+  const ranks = denseRanks(sorted);
+  document.getElementById('sc-list').innerHTML = (rl && rl.players)
+    ? sorted.map(([n,total],i) => scoreCardHTML(i, n, total, medals[i] || ranks[i], players[n]||'🎲', rl, room)).join('')
+    : sorted.map(([n,pts],i) =>  // fallback: no roundLog for this round (older room)
+        `<div class="score-row"><span>${medals[i]} ${escHtml(n)} ${players[n]||'🎲'}</span><span class="pts">${pts} pts</span></div>`
+      ).join('');
   let btns = '';
   if (G.isHost) {
     const isLast = room.currentRound >= room.rounds;
     if (!isLast) btns += `<button class="pri" onclick="nextRound()" style="flex:1">${t('nextRound')}</button>`;
-    btns += `<button onclick="endGame()" style="flex:1">${t('endGame')}</button>`;
+    btns += `<button onclick="confirmEndGame()" style="flex:1">${t('endGame')}</button>`;
     btns += `<button onclick="goBackToValidation()" style="flex:1;font-size:13px;color:var(--ink-sec)">← ${t('review')}</button>`;
   } else {
     btns = `<p class="wait" style="padding:.5rem 0 0">${t('hostWait')}</p>`;
@@ -5383,14 +5628,11 @@ window.goBackToValidation = async () => {
   const snap = await get(roomRef(G.roomCode));
   const room = snap.val();
   if (!room) return;
-  await update(roomRef(G.roomCode), {
-    phase: 'validate',
-    invalidAnswers: {}, votes: {}, entryReactions: {},
-  });
-  G.invalidAnswers = {};
-  G_myVotes = {};
-  G_myEntryEmojis = {};
-  showValidation(room);
+  // Keep every decision: invalid marks, democratic votes and reactions stay as they were.
+  // The host can change any of them before recalculating.
+  await update(roomRef(G.roomCode), { phase: 'validate' });
+  showValidation(room);               // redraws invalid marks from room.invalidAnswers
+  applyVotesAndReactions(room, true); // redraws votes and reactions straight away
 };
 
 window.nextRound = async () => {
@@ -5415,8 +5657,19 @@ window.nextRound = async () => {
     categories: newCats,
     phase: 'countdown', countdownStart: Date.now(), roundStartTime: null,
     allAnswers: {}, calledStop: false, stopCaller: '', aiResults: {}, votes: {}, entryReactions: {},
-    preRoundScores: null,
+    invalidAnswers: {}, preRoundScores: null,
   });
+};
+
+// Terminar on the scores screen: confirm first if rounds remain (game won't count)
+window.confirmEndGame = async () => {
+  const snap = await get(roomRef(G.roomCode));
+  const room = snap.val();
+  if (!room) return;
+  if ((room.currentRound||0) < (room.rounds||0)) {
+    if (!confirm(t('endEarlyConfirm'))) return;
+  }
+  await window.endGame();
 };
 
 window.endGame = async () => {
@@ -5425,14 +5678,17 @@ window.endGame = async () => {
   const scores = room.scores||{};
   const group = room.groupName || '';
   const sorted = Object.entries(scores).sort((a,b)=>b[1]-a[1]);
-  const winner = sorted[0]?.[0]||'';
-  // Always update global leaderboard
+  // Practice: started solo, or ended before all rounds were played — no leaderboard
+  const isPractice = !!room.practice || (room.currentRound||0) < (room.rounds||0);
+  // Everyone tied for the top score gets the win
+  const topScore = sorted.length ? sorted[0][1] : null;
+  const winners = new Set(sorted.filter(([,pts]) => pts === topScore).map(([n]) => n));
   const rPlayers = room.players||{};
-  for (const [player] of Object.entries(scores)) {
+  if (!isPractice) for (const [player] of Object.entries(scores)) {
     const emoji = rPlayers[player]||'🎲';
     const globKey = (normalize(group||'anon')+'_'+normalize(player)+'_'+emoji).replace(/[^a-z0-9_]/g,'x');
     const pRef = ref(db, 'global/' + globKey);
-    const isWinner = player === winner;
+    const isWinner = winners.has(player);
     await runTransaction(pRef, current => {
       if (!current) current = {name:player, emoji, group:group||'', wins:0, games:0};
       current.name = player; current.emoji = emoji; current.group = group||'';
@@ -5499,7 +5755,7 @@ async function renderLb() {
     document.getElementById('lb-list').innerHTML = sorted.map(([key,d],i) => {
       const winRate = d.games ? Math.round((d.wins/d.games)*100) : 0;
       return `<div class="lb-row">
-        <span>${MEDALS[i]||'  '} ${d.emoji||'🎲'} ${d.name||key} <span style="font-size: 11px;color:var(--ink-muted)">${d.group?'('+d.group+')':''}</span></span>
+        <span>${MEDALS[i]||'  '} ${d.name||key} ${d.emoji||'🎲'} <span style="font-size: 11px;color:var(--ink-muted)">${d.group?'('+d.group+')':''}</span></span>
         <div class="lb-stats">
           <span>🏆 ${d.wins||0}</span>
           <span>🎮 ${d.games||0}</span>
@@ -5522,7 +5778,7 @@ async function renderLb() {
     document.getElementById('lb-list').innerHTML = sorted.map(([key,d],i) => {
       const winRate = d.games ? Math.round((d.wins/d.games)*100) : 0;
       return `<div class="lb-row">
-        <span>${MEDALS[i]||'  '} ${d.emoji||'🎲'} ${d.name||key}</span>
+        <span>${MEDALS[i]||'  '} ${d.name||key} ${d.emoji||'🎲'}</span>
         <div class="lb-stats">
           <span>🏆 ${d.wins||0} ${t('wins')}</span>
           <span>🎮 ${d.games||0} partidas</span>
@@ -5543,15 +5799,125 @@ function showFinal(room) {
   const sorted = Object.entries(room.scores||{}).sort((a,b)=>b[1]-a[1]);
   const wPlayers = room.players||{};
   if (sorted[0]) {
-    document.getElementById('winner-line').textContent = t('winnerLine').replace('{emoji}', wPlayers[sorted[0][0]]||'🎲').replace('{name}', sorted[0][0]).replace('{pts}', sorted[0][1]);
+    const top = sorted[0][1];
+    const tied = sorted.filter(([,pts]) => pts === top).map(([n]) => n + ' ' + (wPlayers[n]||'🎲'));
+    let line;
+    if (tied.length > 1) {
+      const names = tied.slice(0, -1).join(', ') + ' ' + t('tieAnd') + ' ' + tied[tied.length-1];
+      line = t('tieLine').replace('{names}', names).replace('{pts}', top);
+    } else {
+      line = t('winnerLine').replace('{emoji}', wPlayers[sorted[0][0]]||'🎲').replace('{name}', sorted[0][0]).replace('{pts}', top);
+    }
+    document.getElementById('winner-line').textContent = line;
     launchConfetti(wPlayers[sorted[0][0]]);
   }
   const fPlayers = room.players||{};
-  const fLangs = room.langs||{};
-  document.getElementById('final-list').innerHTML = sorted.map(([n,pts],i) =>
-    `<div class="score-row"><span>${MEDALS[i]||''} ${fPlayers[n]||'🎲'} ${n}</span><span class="pts">${pts} pts</span></div>`
+  const fMedals = denseMedals(sorted);
+  const fRanks = denseRanks(sorted);
+  const rounds = roundLogEntries(room);
+  G_finalRoom = room; // for shareFinal
+  document.getElementById('final-awards').innerHTML = computeAwards(room).map(a =>
+    `<span class="aw-chip">${a.emoji} ${t(a.label)} · <b>${a.names.map(escHtml).join(', ')}</b></span>`
   ).join('');
+  document.getElementById('final-list').innerHTML = rounds.length
+    ? sorted.map(([n,pts],i) => finalCardHTML(i, n, pts, fMedals[i] || fRanks[i], fPlayers[n]||'🎲', room, rounds)).join('')
+    : sorted.map(([n,pts],i) =>  // fallback: no roundLog (older room)
+        `<div class="score-row"><span>${fMedals[i]} ${escHtml(n)} ${fPlayers[n]||'🎲'}</span><span class="pts">${pts} pts</span></div>`
+      ).join('');
 }
+
+// roundLog comes back from Firebase as an object or, with numeric keys, as an array.
+// Normalise to [[round, entry], ...] sorted by round, rounds up to currentRound only.
+function roundLogEntries(room) {
+  const cur = room.currentRound || Infinity;
+  return Object.entries(room.roundLog || {})
+    .filter(([k, v]) => v && v.players && +k >= 1 && +k <= cur)
+    .map(([k, v]) => [+k, v])
+    .sort((a, b) => a[0] - b[0]);
+}
+
+// End-of-game awards from roundLog (work with reaction points on or off):
+// popularity = 🔥30 + 👏20 received on any answer, laughter = 😂 received, originality = unique valid answers.
+// Only players still in the game; only awards someone earned (> 0); ties list everyone.
+function computeAwards(room) {
+  const names = Object.keys(room.scores || {});
+  const tally = { popularity: {}, laughter: {}, originality: {} };
+  names.forEach(n => { tally.popularity[n] = 0; tally.laughter[n] = 0; tally.originality[n] = 0; });
+  roundLogEntries(room).forEach(([, rl]) => {
+    Object.entries(rl.players).forEach(([n, d]) => {
+      if (!(n in tally.popularity) || !d) return;
+      Object.values(d.got || {}).forEach(g => {
+        if (!g) return;
+        tally.popularity[n] += (g.f || 0) * 30 + (g.c || 0) * 20;
+        tally.laughter[n] += (g.l || 0);
+      });
+      Object.values(d.status || {}).forEach(st => { if (st === 'u') tally.originality[n]++; });
+    });
+  });
+  const out = [];
+  [['popularity', '🔥', 'awPopularity'], ['laughter', '😂', 'awLaughter'], ['originality', '✨', 'awOriginality']].forEach(([k, emoji, label]) => {
+    const max = Math.max(0, ...Object.values(tally[k]));
+    if (max > 0) out.push({ key: k, emoji, label, value: max, names: names.filter(n => tally[k][n] === max) });
+  });
+  return out;
+}
+
+// Final card: collapsed row with the final total; opened shows every round (heading, answers, breakdown)
+function finalCardHTML(i, name, total, rank, emoji, room, rounds) {
+  const played = rounds.filter(([, rl]) => rl.players[name]);
+  const head = mpRowHTML({ id: 'fn-row-' + i, rank, name, emoji, total, onclick: played.length ? `toggleFinalCard(${i})` : '' });
+  if (!played.length) return head;
+  const rl1 = t('rndLabel');
+  const roundWord = rl1.charAt(0).toUpperCase() + rl1.slice(1);
+  const body = played.map(([r, rl]) => {
+    const d = rl.players[name];
+    const pts = d.pts || {};
+    const isCaller = !!rl.caller && rl.caller === name;
+    return `<div class="fn-round-h"><span>${roundWord} ${r}${rl.letter ? ' · ' + escHtml(rl.letter) : ''}</span>${isCaller ? '<span class="sc-alto">A</span>' : ''}<span class="fn-round-pts">${signed(pts.round)}</span></div>`
+      + roundRowsHTML(d, rl.categories || []) + breakdownHTML(pts, isCaller, room);
+  }).join('');
+  return head + `<div class="daily-lb-answers" id="fn-panel-${i}">${body}</div>`;
+}
+
+window.toggleFinalCard = (i) => {
+  const row = document.getElementById('fn-row-' + i);
+  const panel = document.getElementById('fn-panel-' + i);
+  if (!row || !panel) return;
+  row.classList.toggle('expanded', panel.classList.toggle('open'));
+};
+
+// Share: scores only + awards line, plain text in the sharer's language (native share sheet, clipboard fallback)
+let G_finalRoom = null;
+function finalShareText(room) {
+  const sorted = Object.entries(room.scores || {}).sort((a, b) => b[1] - a[1]);
+  const medals = denseMedals(sorted);
+  const ranks = denseRanks(sorted);
+  const lines = sorted.map(([n, pts], i) => `${medals[i] || ranks[i] + '.'} ${n} ${pts}`);
+  const played = room.currentRound || roundLogEntries(room).length;
+  const roundsTxt = played === 1 ? `1 ${t('rndLabel')}` : `${played} ${t('roundsWord')}`;
+  const header = ['¡ALTO!', room.groupName || '', roundsTxt].filter(Boolean).join(' · ');
+  const awardsLine = computeAwards(room).map(a => `${a.emoji} ${a.names.join(', ')}`).join(' · ');
+  return [header, ...lines, awardsLine, 'jugarenfamilia.es'].filter(Boolean).join('\n');
+}
+
+window.shareFinal = async () => {
+  if (!G_finalRoom) return;
+  const text = finalShareText(G_finalRoom);
+  if (navigator.share) {
+    try { await navigator.share({ text }); return; }
+    catch (e) { if (e.name === 'AbortError') return; }
+  }
+  const btn = document.getElementById('btn-share-final');
+  const done = () => { if (btn) { btn.textContent = t('copied'); setTimeout(() => { btn.textContent = t('shareBtn'); }, 2000); } };
+  try { await navigator.clipboard.writeText(text); done(); }
+  catch (e) {
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.focus(); ta.select();
+    try { document.execCommand('copy'); done(); } catch (e2) { /* nothing more to try */ }
+    document.body.removeChild(ta);
+  }
+};
 
 window.playAgain = async () => {
   stopConfetti();
@@ -5570,6 +5936,7 @@ window.playAgain = async () => {
   await update(roomRef(G.roomCode), {
     phase:'lobby', currentRound:0, scores, allAnswers:{}, usedLetters:[],
     roundStartTime:null, calledStop:false, stopCaller:'', aiResults:{}, votes:{}, entryReactions:{},
+    roundLog:null, practice:null, preRoundScores:null,
   });
 };
 
@@ -5591,14 +5958,17 @@ window.continueSession = async () => {
   if (phase==='lobby') enterLobby(room);
   else if (phase==='countdown') startCountdown(room);
   else if (phase==='playing') enterPlaying(room);
-  else if (phase==='validate') { if(G.isHost){G.invalidAnswers={};showValidation(room);}else{showGuestValidation(room);applyVotesAndReactions(room,false);if(room.aiResults)applyAIResults(room.aiResults);} }
+  else if (phase==='validate') { if(G.isHost){showValidation(room);applyVotesAndReactions(room,true);}else{showGuestValidation(room);applyVotesAndReactions(room,false);if(room.aiResults)applyAIResults(room.aiResults);} }
   else if (phase==='scores') showScores(room);
   else if (phase==='final') showFinal(room);
 };
 
 window.startFresh = () => {
+  // "No soy yo": if this page was opened for a room (?room= at load), go to that room's join screen (empty name), not home
+  const roomCode = OPENED_ROOM;
   clearSession();
   G.playerName = ''; G.roomCode = ''; G.isHost = false;
+  if (roomCode) { showQuickJoin(roomCode, ''); return; }
   window.show('home');
   buildEmojiGrid();
 };
@@ -5611,35 +5981,41 @@ async function restoreToScreen() {
   if (phase==='lobby') enterLobby(room);
   else if (phase==='countdown') startCountdown(room);
   else if (phase==='playing') enterPlaying(room);
-  else if (phase==='validate') { if(G.isHost){G.invalidAnswers={};showValidation(room);}else{showGuestValidation(room);applyVotesAndReactions(room,false);if(room.aiResults)applyAIResults(room.aiResults);} }
+  else if (phase==='validate') { if(G.isHost){showValidation(room);applyVotesAndReactions(room,true);}else{showGuestValidation(room);applyVotesAndReactions(room,false);if(room.aiResults)applyAIResults(room.aiResults);} }
   else if (phase==='scores') showScores(room);
   else if (phase==='final') showFinal(room);
 }
 
+// Join screen for a room code (invite link, or "No soy yo" on a page opened with ?room=)
+function showQuickJoin(code, prefillName) {
+  G.roomCode = code;
+  buildQuickJoinEmojiGrid();
+  applyQuickJoinLang();
+  const qjName = document.getElementById('qj-name');
+  if (qjName) qjName.value = prefillName || '';
+  const codeLabel = document.getElementById('qj-room-code');
+  if (codeLabel) codeLabel.textContent = code;
+  setRoomInUrl(code);
+  window.show('quickjoin');
+}
+
 async function tryRestore() {
-  const urlCode = new URLSearchParams(window.location.search).get('room');
+  const urlCode = (new URLSearchParams(window.location.search).get('room') || '').toUpperCase();
+  const tabSession = readSession(sessionStorage);   // this tab's own player (survives refresh)
+  const sharedSession = readSession(localStorage);  // last player saved in any tab of this browser
+  let session;
   if (urlCode) {
-    const code = urlCode.toUpperCase();
-    // If we have a saved session for this exact room, skip quickjoin and restore directly
-    const savedSession = JSON.parse(localStorage.getItem('alto_session') || '{}');
-    if (savedSession.name && savedSession.code === code) {
-      // Fall through to session restore below — don't show quickjoin
-    } else {
-      G.roomCode = code;
-      // Show quick join screen
-      buildQuickJoinEmojiGrid();
-      applyQuickJoinLang();
-      const qjName = document.getElementById('qj-name');
-      if (qjName) qjName.value = savedSession.name || localStorage.getItem('alto_name') || '';
-      const codeLabel = document.getElementById('qj-room-code');
-      if (codeLabel) codeLabel.textContent = code;
-      window.show('quickjoin');
+    // Restore directly only with a session for this exact room — this tab's own one first
+    session = [tabSession, sharedSession].find(s => s && s.name && s.code === urlCode);
+    if (!session) {
+      showQuickJoin(urlCode, (tabSession && tabSession.name) || (sharedSession && sharedSession.name) || localStorage.getItem('alto_name') || '');
       return;
     }
+  } else {
+    session = (tabSession && tabSession.name) ? tabSession : sharedSession;
   }
-  const saved = localStorage.getItem('alto_session');
-  if (!saved) return;
-  const {name, emoji, code, isHost} = JSON.parse(saved);
+  if (!session) return;
+  const {name, emoji, code, isHost} = session;
   if (emoji) G.playerEmoji = emoji;
   if (!name||!code) return;
   const snap = await get(roomRef(code));
@@ -5647,6 +6023,9 @@ async function tryRestore() {
   if (!snap.exists()) { clearSession(); return; }
   const room = snap.val();
   if (room.phase === 'final') { clearSession(); return; }
+  // Pin this tab to the restored player and room, so later refreshes come back the same way
+  try { sessionStorage.setItem('alto_session', JSON.stringify(session)); } catch(e) { /* private mode */ }
+  setRoomInUrl(code);
   G.playerName=name; G.roomCode=code;
   G.isHost = isHost && room.host===name;
 
@@ -5685,7 +6064,7 @@ const DBG = {
     'Carlos':      { 'Nombre':'Miguel',   'Ciudad':'Madrid',  'Animal':'Murciélago','Fruta':'Mango',      'Cosa en casa':'Mando' },
     '__debug__':   { 'Nombre':'Marcos',   'Ciudad':'Málaga',  'Animal':'Mono',     'Fruta':'Mandarina',   'Cosa en casa':'' },
   },
-  scores: { 'María': 350, 'Carlos': 250, '__debug__': 400 },
+  scores: { 'María': 690, 'Carlos': 560, '__debug__': 690 }, // María/__debug__ tied: tests dense medals + tie line
   votes: {
     'María__Animal': { 'Carlos': 'up', '__debug__': 'up' },
     'Carlos__Fruta': { 'María': 'down', '__debug__': 'down' },
@@ -5693,8 +6072,46 @@ const DBG = {
   aiResults: {
     'Carlos__Animal': { html: '✅ Murciélago es un mamífero volador', key: 'Carlos__Animal' }
   },
-  invalidAnswers: { '__debug____Cosa en casa': true },
+  invalidAnswers: { '__debug____Cosa en casa': true, 'Carlos__Fruta': true },
   stopCaller: 'Carlos',
+  // Round 2 log for the Scores cards: Carlos called ¡Alto! (5 cats: +160, 1 invalid: -100 = +60)
+  roundLog: {
+   '1': {  // timeout round (no caller), different categories — totals after it = preRoundScores
+    letter: 'P', caller: '',
+    categories: ['Color', 'País', 'Objeto'],
+    players: {
+      'María':     { answers: ['Púrpura','Perú','Pala'], status: ['u','d','u'],
+                     got: [{f:1,c:0,l:0},{f:0,c:0,l:0},{f:0,c:1,l:0}],
+                     pts: { answers: 250, alto: 0, reactions: 50, round: 300, total: 300 } },
+      'Carlos':    { answers: ['Pardo','Perú',''], status: ['u','d','e'],
+                     got: [{f:0,c:0,l:0},{f:0,c:0,l:0},{f:0,c:0,l:0}],
+                     pts: { answers: 150, alto: 0, reactions: 0, round: 150, total: 150 } },
+      '__debug__': { answers: ['Plata','Portugal','Peine'], status: ['u','u','u'],
+                     got: [{f:0,c:0,l:0},{f:0,c:0,l:0},{f:0,c:0,l:0}],
+                     pts: { answers: 300, alto: 0, reactions: 0, round: 300, total: 300 } },
+    },
+   },
+   '2': {
+    letter: 'M', caller: 'Carlos',
+    categories: ['Nombre', 'Ciudad', 'Animal', 'Fruta', 'Cosa en casa'],
+    players: {
+      'María':     { answers: ['Marta','Madrid','Mono','Mango','Mesa'], status: ['u','d','d','d','u'],
+                     got: [{f:0,c:0,l:0},{f:0,c:0,l:0},{f:1,c:0,l:1},{f:0,c:0,l:0},{f:0,c:0,l:0}],
+                     pts: { answers: 350, alto: 0, reactions: 40, round: 390, total: 690 } },
+      'Carlos':    { answers: ['Miguel','Madrid','Murciélago','Mango','Mando'], status: ['u','d','u','x','u'],
+                     got: [{f:0,c:0,l:0},{f:0,c:0,l:0},{f:0,c:0,l:0},{f:0,c:1,l:0},{f:0,c:0,l:0}],
+                     pts: { answers: 350, alto: 60, reactions: 0, round: 410, total: 560 } },
+      '__debug__': { answers: ['Marcos','Málaga','Mono','Mandarina',''], status: ['u','u','d','u','e'],
+                     got: [{f:1,c:0,l:1},{f:0,c:0,l:0},{f:0,c:0,l:0},{f:0,c:0,l:0},{f:0,c:0,l:0}],
+                     pts: { answers: 350, alto: 0, reactions: 40, round: 390, total: 690 } },
+    },
+  } },
+  // Sample reactions (one per reactor per answer); __debug__ has some on its own answer to show the greyed 'got' style
+  entryReactions: {
+    'María__Animal':   { 'Carlos_🔥': {emoji:'🔥', name:'Carlos'}, '__debug___😂': {emoji:'😂', name:'__debug__'} },
+    'Carlos__Fruta':   { 'María_👏': {emoji:'👏', name:'María'} },
+    '__debug____Nombre': { 'María_🔥': {emoji:'🔥', name:'María'}, 'Carlos_😂': {emoji:'😂', name:'Carlos'} },
+  },
 };
 
 function dbgFakeRoom(overrides) {
@@ -5713,17 +6130,18 @@ function dbgFakeRoom(overrides) {
     phase: 'validate',
     calledStop: true,
     stopCaller: DBG.stopCaller,
-    stopPenalty: 50,
     easyLetters: true,
     groupName: 'Los García',
     aiEnabled: true,
     aiLevel: 'normal',
     validationMode: 'host',
     votes: DBG.votes,
-    entryReactions: {},
+    entryReactions: DBG.entryReactions,
+    reactionPoints: true,
+    roundLog: DBG.roundLog,
     aiResults: DBG.aiResults,
     invalidAnswers: DBG.invalidAnswers,
-    preRoundScores: { 'María': 200, 'Carlos': 150, '__debug__': 300 },
+    preRoundScores: { 'María': 300, 'Carlos': 150, '__debug__': 300 },
     gameLang: LANG,
   }, overrides || {});
 }
@@ -6416,11 +6834,6 @@ document.body.classList.add('screen-home');
     scheduleNameCheck(capped.trim());
   });
 })();
-buildEmojiGrid();
-applyLang();
-document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.getAttribute('onclick').includes("'"+LANG+"'")));
-try { const s=JSON.parse(localStorage.getItem('alto_session')||'{}'); const _n=document.getElementById('inp-name'); if(_n && !_n.value) { if(s.name) _n.value=s.name; else { const _saved=localStorage.getItem('alto_name'); if(_saved) _n.value=_saved; } } if(_n && _n.value) scheduleNameCheck(_n.value); } catch(e){}
-tryRestore();
 // Debug: intercept createRoom AFTER it's been defined
 (function() {
   const _orig = window.createRoom;
@@ -6441,7 +6854,7 @@ tryRestore();
 buildEmojiGrid();
 applyLang();
 document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.getAttribute('onclick').includes("'"+LANG+"'")));
-try { const s=JSON.parse(localStorage.getItem('alto_session')||'{}'); const _n=document.getElementById('inp-name'); if(_n && !_n.value) { if(s.name) _n.value=s.name; else { const _saved=localStorage.getItem('alto_name'); if(_saved) _n.value=_saved; } } if(_n && _n.value) scheduleNameCheck(_n.value); } catch(e){}
+try { const s=readSession(sessionStorage) || readSession(localStorage) || {}; const _n=document.getElementById('inp-name'); if(_n && !_n.value) { if(s.name) _n.value=s.name; else { const _saved=localStorage.getItem('alto_name'); if(_saved) _n.value=_saved; } } if(_n && _n.value) scheduleNameCheck(_n.value); } catch(e){}
 tryRestore();
 // Ensure daily button played state wins any init timing race (especially iOS)
 setTimeout(() => updateDailyButtonDate(), 350);
@@ -6449,7 +6862,7 @@ setTimeout(() => updateDailyButtonDate(), 350);
 // Version freshness check — silently reload if a newer version is deployed
 // Runs once on load; does nothing if already on latest or if fetch fails
 (function() {
-  const RUNNING = 'v260922.301';
+  const RUNNING = 'v260926.311';
   if (sessionStorage.getItem('alto_ver_checked') === RUNNING) return; // already checked this session
   sessionStorage.setItem('alto_ver_checked', RUNNING);
   fetch(location.href, { cache: 'no-cache' })
@@ -6472,7 +6885,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) upda
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260922.301</div>
+  <div style="font-size: 11px;opacity:0.5">v260926.311</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>

@@ -1020,6 +1020,14 @@ Living version (Claude Doc): https://claude.ai/artifact/9bCUk2yRwx1wHQG3hmjhoV
 - Jugar de nuevo then a new game: round 1 totals start from 0.
 - Firebase console: `rooms/{code}/roundLog/1` exists with the expected shape.
 
+**v260926.303-tmp — Revisar keeps decisions (bug found in testing, pre-existing):**
+- `goBackToValidation` no longer wipes `invalidAnswers`, `votes` or `entryReactions` — it only sets `phase:'validate'`, then calls `showValidation(room)` + `applyVotesAndReactions(room, true)` so everything is drawn straight away. (Keeping reactions was planned for Build 2; done here.)
+- `showValidation` seeds `G.invalidAnswers` from `room.invalidAnswers` instead of wiping it, and draws marked answers as `val-entry invalid` with the ↩ button. Also fixes a hidden bug: a host reload mid-review lost the marks on screen, and the next ✕ overwrote all saved marks in Firebase.
+- Host restore paths (`continueSession`, `restoreToScreen`) now also call `applyVotesAndReactions(room, true)`.
+- Stale-mark guards: `nextRound` now clears `invalidAnswers` (it never did); first entry into validate passes `{...room, invalidAnswers:{}, votes:{}}` to `showValidation` because the snapshot can hold last round's marks (same keys in Clásico).
+- `G_myVotes` / `G_myEntryEmojis` are reset in `enterPlaying` each round (previously only Revisar reset them). `applyVotesAndReactions` rebuilds the player's own reaction highlights from Firebase, so they survive reload and Revisar.
+- Tests: 18/18 on the real functions (mark 2 invalid → calculate → Revisar → marks, reactions and own highlights still there → undo one → recalc correct; host reload keeps marks and next toggle doesn't wipe; new round shows no stale marks; democratic votes kept). Build 1 suite still 35/35.
+
 **Next:** test on staging, promote to production (drop -tmp), then Build 2 (reaction bonuses).
 
-**Last version deployed: v260922.301 (production), v260926.302-tmp (staging)**
+**Last version deployed: v260922.301 (production), v260926.303-tmp (staging)**
