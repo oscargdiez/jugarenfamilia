@@ -712,6 +712,10 @@ body.screen-home .page, body.screen-welcome .page { padding-bottom: 2rem; }
 .entry-emoji-btn { font-size: 13px; padding: 3px 3px; border-radius: 4px; border: none; background: transparent; cursor: pointer; opacity: 0.4; transition: all .1s; line-height: 1; display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; }
 .entry-emoji-btn:hover { opacity: 1; transform: scale(1.15); }
 .entry-emoji-btn.active { opacity: 1; background: var(--paper-dark); }
+/* Own answers: not tappable; emojis you received stay visible */
+.entry-emoji-btn:disabled { cursor: default; opacity: 0.25; }
+.entry-emoji-btn:disabled:hover { transform: none; opacity: 0.25; }
+.entry-emoji-btn:disabled.got { opacity: 1; }
 .vote-btn { font-size: 13px; height: 32px; padding: 0 8px; border-radius: var(--radius); border: 1.5px solid var(--border); background: transparent; cursor: pointer; font-family: monospace; display: inline-flex; align-items: center; gap: 3px; transition: all .1s; }
 .vote-btn:hover { background: var(--paper-dark); }
 .vote-btn.thumbs-down.voted { background: var(--danger-bg); border-color: var(--danger); color: var(--danger); }
@@ -1083,6 +1087,11 @@ document.addEventListener('DOMContentLoaded', function() {
           <input type="range" min="30" max="120" step="10" value="90" id="sl-time" oninput="document.getElementById('v-time').textContent=this.value;saveLobbyConfig()">
           <span class="range-val" id="v-time">90</span>
         </div>
+        <label class="cat-lbl" style="margin-top:14px">
+          <input type="checkbox" id="reaction-points" checked onchange="saveLobbyConfig()">
+          <span id="lbl-reaction-points">🌶️ Reacciones con puntos</span>
+        </label>
+        <p style="margin:2px 0 0 22px;font-size:11px;color:var(--ink-muted)">🔥 +30 · 👏 +20 · 😂 +10 · 😬 0</p>
         <div style="margin-top:16px;border-top:1px dashed var(--border);padding-top:12px">
           <p class="lbl" style="margin-bottom:6px" id="lbl-validation-mode">🗳️ Modo de validación</p>
           <div style="display:flex;gap:6px;margin-bottom:14px">
@@ -1346,6 +1355,7 @@ const T = {
     endGame: 'Terminar', hostWait: 'Esperando al anfitrión…',
     endEarlyConfirm: 'La partida no está completa y no contará. ¿Terminar igualmente?',
     soloStart: '✏️ Practicar solo →',
+    reactionPoints: '🌶️ Reacciones con puntos',
     tieLine: '¡Empate! {names} con {pts} puntos', tieAnd: 'y',
     leaderboard: 'Marcador', myGroup: 'Mi grupo', world: 'Mundial',
     worldSub: 'los mejores jugadores del mundo',
@@ -1410,6 +1420,7 @@ const T = {
     endGame: 'End game', hostWait: 'Waiting for the host…',
     endEarlyConfirm: "The game isn't complete and won't count. End anyway?",
     soloStart: '✏️ Practise solo →',
+    reactionPoints: '🌶️ Reactions score points',
     tieLine: "It's a tie! {names} with {pts} points", tieAnd: 'and',
     leaderboard: 'Leaderboard', myGroup: 'My group', world: 'Worldwide',
     worldSub: 'the best players in the world',
@@ -1474,6 +1485,7 @@ const T = {
     endGame: 'Terminer', hostWait: "En attente de l'hôte…",
     endEarlyConfirm: "La partie n'est pas terminée et ne comptera pas. Terminer quand même ?",
     soloStart: "✏️ S'entraîner en solo →",
+    reactionPoints: '🌶️ Réactions avec points',
     tieLine: 'Égalité ! {names} avec {pts} points', tieAnd: 'et',
     leaderboard: 'Classement', myGroup: 'Mon groupe', world: 'Mondial',
     worldSub: 'les meilleurs joueurs du monde',
@@ -1743,6 +1755,7 @@ window.applyLang = function() {
   const freeCats = document.getElementById('free-cats'); if(freeCats) freeCats.placeholder = t('freeCatPlaceholder');
   s('btn-usar-ejemplos', t('usarEjemplos'));
   s('lbl-free-cat-random-text', t('freeCatRandom'));
+  s('lbl-reaction-points', t('reactionPoints'));
   s('lbl-cat-random', t('catRandomLabel'));
   s('lbl-cat-classic', t('catClassicLabel'));
   if (document.getElementById('group-grid')?.children.length) buildGroupGrid();
@@ -3922,6 +3935,7 @@ function saveLobbyConfig() {
   const rounds = document.getElementById('sl-rounds')?.value;
   const time = document.getElementById('sl-time')?.value;
   const freeCatRandom = document.getElementById('free-cat-random')?.checked || false;
+  const reactionPoints = document.getElementById('reaction-points')?.checked !== false;
   localStorage.setItem('alto_lobby_config', JSON.stringify({
     theme: G.selectedTheme,
     groups: G.selectedGroups,
@@ -3931,6 +3945,7 @@ function saveLobbyConfig() {
     aiStrictness: G_aiStrictness,
     aiSpelling: G_aiSpelling,
     freeCatRandom,
+    reactionPoints,
   }));
 }
 
@@ -3946,6 +3961,7 @@ function restoreLobbyConfig() {
     if (c.validationMode) { G_validationMode = c.validationMode; window.setValidationMode(c.validationMode); }
     if (c.aiStrictness) { G_aiStrictness = c.aiStrictness; window.setAIStrictness(c.aiStrictness); }
     if (c.aiSpelling !== undefined) { G_aiSpelling = c.aiSpelling; window.setAISpelling(c.aiSpelling); }
+    if (c.reactionPoints !== undefined) { const rp = document.getElementById('reaction-points'); if (rp) rp.checked = c.reactionPoints; }
     if (c.freeCatRandom !== undefined) { const cb = document.getElementById('free-cat-random'); if (cb) cb.checked = c.freeCatRandom; updateFreeCatRandomToggle(); }
   } catch(e) { /* silent — corrupt config, start fresh */ }
 }
@@ -4270,6 +4286,7 @@ window.startGame = async () => {
     selectedGroups: isRandom ? G.selectedGroups : null,
     allFreeCats: cats.allFreeCats || null,
     practice: playerCount < 2,          // solo start = practice (no leaderboard)
+    reactionPoints: document.getElementById('reaction-points')?.checked !== false,
     roundLog: null, preRoundScores: null, // fresh game: no stale round data
   });
 };
@@ -4338,7 +4355,7 @@ function closeCountdown() {
 
 function enterPlaying(room) {
   G.submitted = false; G.stopHandled = false;
-  G_myVotes = {}; G_myEntryEmojis = {}; // new round: forget last round's votes/reactions
+  G_myVotes = {}; G_myEntryEmojis = {}; G_cachedReactions = {}; // new round: forget last round's votes/reactions
   stopReactions();
   // Clear stale vote/emoji DOM from previous round
   const valContent = document.getElementById('val-content');
@@ -5099,6 +5116,7 @@ const ENTRY_EMOJIS = ['🔥','👏','😂','😬'];
 let G_validationMode = 'host'; // 'host' or 'democratic'
 let G_myVotes = {}; // key -> 'up' or 'down'
 let G_myEntryEmojis = {}; // key+emoji -> true
+let G_cachedReactions = {}; // last entryReactions seen, for instant redraw on tap
 let G_cachedVotes = {};   // last known votes from Firebase, for optimistic UI
 let G_cachedPlayers = []; // last known player list, for optimistic UI
 let G_cachedVoteMode = 'host'; // last known validation mode, for optimistic UI
@@ -5140,19 +5158,37 @@ window.voteEntry = async (key, dir) => {
   await update(roomRef(G.roomCode), { [`votes/${key}/${G.playerName}`]: newDir || null });
 };
 
+// Entry keys are player + '__' + category
+function isOwnEntry(key) { return key.startsWith(G.playerName + '__'); }
+
+// One reaction per answer: tapping a new emoji swaps, tapping the same one removes.
+// No reactions on your own answers.
 window.reactToEntry = async (key, emoji) => {
-  const eKey = key + '_' + emoji;
-  const active = G_myEntryEmojis[eKey];
-  G_myEntryEmojis[eKey] = !active;
-  // Show float immediately for sender when adding (not removing) a reaction
-  if (!active) {
+  if (isOwnEntry(key)) return;
+  const removing = !!G_myEntryEmojis[key + '_' + emoji];
+  const upd = {};
+  const cur = {...(G_cachedReactions[key] || {})};
+  // Clear all four of my emojis on this answer in the same write (enforces one per answer)
+  ENTRY_EMOJIS.forEach(e => {
+    G_myEntryEmojis[key + '_' + e] = false;
+    upd[`entryReactions/${key}/${G.playerName}_${e}`] = null;
+    delete cur[G.playerName + '_' + e];
+  });
+  if (!removing) {
+    const r = { emoji, name: G.playerName };
+    G_myEntryEmojis[key + '_' + emoji] = true;
+    upd[`entryReactions/${key}/${G.playerName}_${emoji}`] = r;
+    cur[G.playerName + '_' + emoji] = r;
+    // Show float immediately for sender when adding a reaction
     const floatId = 'er_' + key + '_' + G.playerName + '_' + emoji;
     G_shownReactions.add(floatId);
     showReactionFloat(emoji, G.playerName, floatId, key);
   }
-  await update(roomRef(G.roomCode), {
-    [`entryReactions/${key}/${G.playerName}_${emoji}`]: active ? null : { emoji, name: G.playerName }
-  });
+  // Redraw straight away (also fixes stale count when the last reaction on an answer is removed)
+  G_cachedReactions[key] = cur;
+  const el = document.getElementById('emojis_' + key);
+  if (el) el.innerHTML = renderEntryEmojis(key, cur, G.isHost);
+  await update(roomRef(G.roomCode), upd);
 };
 
 function renderVotes(key, votes, mode, players, isHost) {
@@ -5180,12 +5216,14 @@ function renderEntryEmojis(key, entryReactions, isHost) {
   Object.values(reactions).forEach(r => {
     if (r) counts[r.emoji] = (counts[r.emoji] || 0) + 1;
   });
-  const myActive = Object.keys(G_myEntryEmojis).filter(k => k.startsWith(key + '_') && G_myEntryEmojis[k]);
+  // Own answers: greyed and not tappable, but still show what you received
+  const own = isOwnEntry(key);
 
   const strip = ENTRY_EMOJIS.map(e => {
     const count = counts[e] || 0;
-    const active = G_myEntryEmojis[key + '_' + e];
-    return `<button class="entry-emoji-btn${active ? ' active' : ''}" onclick="reactToEntry('${key}','${e}')">${e}${count > 0 ? `<sup style="font-size: 11px">${count}</sup>` : ''}</button>`;
+    const active = !own && G_myEntryEmojis[key + '_' + e];
+    const cls = 'entry-emoji-btn' + (active ? ' active' : '') + (own && count > 0 ? ' got' : '');
+    return `<button class="${cls}"${own ? ' disabled' : ''} onclick="reactToEntry('${key}','${e}')">${e}${count > 0 ? `<sup style="font-size: 11px">${count}</sup>` : ''}</button>`;
   }).join('');
 
   return `<div class="entry-emoji-strip">${strip}</div>`;
@@ -5200,6 +5238,7 @@ function applyVotesAndReactions(room, isHost) {
   G_cachedVotes = votes;
   G_cachedPlayers = players;
   G_cachedVoteMode = mode;
+  G_cachedReactions = entryReactions;
 
   // Update my votes from Firebase (in case rejoining)
   Object.entries(votes).forEach(([key, playerVotes]) => {
@@ -5361,7 +5400,7 @@ window.finishValidation = async () => {
     rlPlayers[p] = {
       answers: cats.map(cat => ((allAns[p]||{})[cat]||'').trim()),
       status: [],
-      got: cats.map(() => ({f:0, c:0, l:0})), // reaction counts, filled in Build 2
+      got: cats.map(() => ({f:0, c:0, l:0})), // reactions received per answer: fire, clap, laugh
       pts: { answers:0, alto:0, reactions:0, round:0, total:0 },
     };
   });
@@ -5386,6 +5425,28 @@ window.finishValidation = async () => {
     rlPlayers[stopper].pts.alto = adj;
     toast('🛑 ' + stopper + ' ¡Alto! ' + (adj >= 0 ? '+' : '−') + Math.abs(adj) + ' pts');
   }
+  // Reactions: only those present now (locked at Calculate). No self-reactions, one per reactor per answer.
+  // 🔥 +30 and 👏 +20 count on valid answers only; 😂 +10 on valid or invalid; 😬 0.
+  // got[] is always recorded (awards use it); points only when the room has reaction points on.
+  const reactionPointsOn = room.reactionPoints !== false;
+  const entryReactions = room.entryReactions || {};
+  const RVAL = {'🔥':30, '👏':20, '😂':10, '😬':0};
+  const RCODE = {'🔥':'f', '👏':'c', '😂':'l'};
+  players.forEach(p => cats.forEach((cat, ci) => {
+    const st = rlPlayers[p].status[ci];
+    if (st === 'e') return;
+    const byReactor = {};
+    Object.values(entryReactions[p+'__'+cat] || {}).forEach(r => {
+      if (!r || !r.name || r.name === p || !(r.emoji in RVAL)) return;
+      // Older clients could leave several from one person: keep the lowest-value one
+      if (!(r.name in byReactor) || RVAL[r.emoji] < RVAL[byReactor[r.name]]) byReactor[r.name] = r.emoji;
+    });
+    const valid = st === 'u' || st === 'd';
+    Object.values(byReactor).forEach(e => {
+      if (RCODE[e]) rlPlayers[p].got[ci][RCODE[e]]++;
+      if (reactionPointsOn && (valid || e === '😂')) rlPlayers[p].pts.reactions += RVAL[e];
+    });
+  }));
   players.forEach(p => {
     const pt = rlPlayers[p].pts;
     pt.round = pt.answers + pt.alto + pt.reactions;
@@ -5763,6 +5824,12 @@ const DBG = {
   },
   invalidAnswers: { '__debug____Cosa en casa': true },
   stopCaller: 'Carlos',
+  // Sample reactions (one per reactor per answer); __debug__ has some on its own answer to show the greyed 'got' style
+  entryReactions: {
+    'María__Animal':   { 'Carlos_🔥': {emoji:'🔥', name:'Carlos'}, '__debug___😂': {emoji:'😂', name:'__debug__'} },
+    'Carlos__Fruta':   { 'María_👏': {emoji:'👏', name:'María'} },
+    '__debug____Nombre': { 'María_🔥': {emoji:'🔥', name:'María'}, 'Carlos_😂': {emoji:'😂', name:'Carlos'} },
+  },
 };
 
 function dbgFakeRoom(overrides) {
@@ -5787,7 +5854,8 @@ function dbgFakeRoom(overrides) {
     aiLevel: 'normal',
     validationMode: 'host',
     votes: DBG.votes,
-    entryReactions: {},
+    entryReactions: DBG.entryReactions,
+    reactionPoints: true,
     aiResults: DBG.aiResults,
     invalidAnswers: DBG.invalidAnswers,
     preRoundScores: { 'María': 200, 'Carlos': 150, '__debug__': 300 },
@@ -6516,7 +6584,7 @@ setTimeout(() => updateDailyButtonDate(), 350);
 // Version freshness check — silently reload if a newer version is deployed
 // Runs once on load; does nothing if already on latest or if fetch fails
 (function() {
-  const RUNNING = 'v260926.303-tmp';
+  const RUNNING = 'v260926.304-tmp';
   if (sessionStorage.getItem('alto_ver_checked') === RUNNING) return; // already checked this session
   sessionStorage.setItem('alto_ver_checked', RUNNING);
   fetch(location.href, { cache: 'no-cache' })
@@ -6539,7 +6607,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) upda
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260926.303-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v260926.304-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
