@@ -925,3 +925,40 @@ Discussed adding new categories: Personaje de ficcion, Genero musical, Divinidad
 - `room.catMode: 'free-random'` — new catMode value for free mode random picks
 
 **Last version deployed: v260922.301**
+
+---
+
+### Session 23 (Sep 26) - design only, no code changes
+
+**No builds, no deploys. Production unchanged at v260922.301.**
+
+Full design session for the multiplayer scoring overhaul. The complete, agreed design is in **`MULTIPLAYER_SCORING_DESIGN.md`** (in the project folder, alongside this handoff). **Read it before starting any multiplayer work.** It SUPERSEDES the "Multiplayer Scoring & History Overhaul (BIG FEATURE)" section earlier in this handoff; where they differ, the design file wins.
+
+Living version (Claude Doc): https://claude.ai/artifact/9bCUk2yRwx1wHQG3hmjhoV
+
+**Key decisions (summary, details in the design file):**
+- Answer points unchanged (100 unique / 50 duplicate / 0 invalid). The old "+50 originality bonus" is dropped.
+- Alto caller: +250 scaled by categories (round10(250 x n/8)) minus 100 per invalid. Lobby penalty slider removed.
+- Reactions: one reaction per answer, none on your own. Fire +30, clap +20, laugh +10, grimace 0. Lobby toggle "Reacciones con puntos", default on. goBackToValidation must stop wiping reactions.
+- Ties: dense medals (gold, gold, silver, bronze); all tied winners get the win. Covers flagged item C.
+- roundLog per round in the room, keyed by category index; feeds cards, final screen and history.
+- Scores cards: all collapsed, this round only, red A badge for the caller. Final screen shows every round plus three awards: Popularidad, Risas, Originalidad.
+- Share text: scores only, plus awards line and group link.
+- Solo games AND incomplete games are practice (no leaderboard, no history). Solo start button "Practicar solo"; early Terminar shows a confirm.
+- Groups get hidden random IDs; "Mis grupos" list per device (max 10), lives in the lobby picker; home screen unchanged. Default group "Grupo de [host]". Players keyed by name without emoji.
+- Global leaderboard removed. Group leaderboard keeps wins/games/win %.
+- History per group, last 20 games, navigate by game with language flag + date. Groups idle 1 year deleted.
+- Clean start: old groups/, groupNames/, global/ to be deleted in Firebase console when Build 5 ships.
+- Per-player stats dropped.
+
+**Build plan (5 builds, all via staging):** 1 Scoring engine, 2 Reaction bonuses, 3 Scores cards, 4 Final and share, 5 Groups and history.
+
+**Oscar's manual steps for Build 5:** add `".indexOn": "lastPlayed"` on `groupsMeta` in Firebase rules; delete `groups/`, `groupNames/`, `global/`.
+
+**Flagged items update:** A and B (validation error detection, full revalidation button) not needed for now. C is folded into Build 1. File size over 300KB is not a concern per Oscar.
+
+**deploy.bat updated:** now also copies, commits and cleans up `MULTIPLAYER_SCORING_DESIGN.md` from Downloads, same as the handoff. deploy.bat itself is not copied by any script: replace it in D:\09_ALTO by hand.
+
+**Next session:** start Build 1 on staging, working from `MULTIPLAYER_SCORING_DESIGN.md`.
+
+**Last version deployed: v260922.301**
