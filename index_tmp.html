@@ -1378,7 +1378,7 @@ const T = {
     soloStart: '✏️ Practicar solo →',
     reactionPoints: '🌶️ Reacciones con puntos',
     tieLine: '¡Empate! {names} con {pts} puntos', tieAnd: 'y',
-    bdAnswers: 'respuestas', bdReactions: 'reacciones',
+    bdBase: 'base', bdReactions: 'reacciones',
     toastOwnReaction: 'No puedes reaccionar a tus propias respuestas',
     awPopularity: 'Popularidad', awLaughter: 'Risas', awOriginality: 'Originalidad',
     shareBtn: 'Compartir', copied: '¡Copiado!', roundsWord: 'rondas',
@@ -1447,7 +1447,7 @@ const T = {
     soloStart: '✏️ Practise solo →',
     reactionPoints: '🌶️ Reactions score points',
     tieLine: "It's a tie! {names} with {pts} points", tieAnd: 'and',
-    bdAnswers: 'answers', bdReactions: 'reactions',
+    bdBase: 'base', bdReactions: 'reactions',
     toastOwnReaction: "You can't react to your own answers",
     awPopularity: 'Popularity', awLaughter: 'Laughter', awOriginality: 'Originality',
     shareBtn: 'Share', copied: 'Copied!', roundsWord: 'rounds',
@@ -1516,7 +1516,7 @@ const T = {
     soloStart: "✏️ S'entraîner en solo →",
     reactionPoints: '🌶️ Réactions avec points',
     tieLine: 'Égalité ! {names} avec {pts} points', tieAnd: 'et',
-    bdAnswers: 'réponses', bdReactions: 'réactions',
+    bdBase: 'base', bdReactions: 'réactions',
     toastOwnReaction: 'Tu ne peux pas réagir à tes propres réponses',
     awPopularity: 'Popularité', awLaughter: 'Rires', awOriginality: 'Originalité',
     shareBtn: 'Partager', copied: 'Copié !', roundsWord: 'manches',
@@ -5549,12 +5549,13 @@ function roundRowsHTML(d, cats) {
     </div>`;
   }).join('');
 }
-// "respuestas 550 · A +250 · reacciones +150" (A only for the caller, reactions only when points are on)
+// "base 600 pts (A +50, reacciones +60)" — same "base" wording as the daily result line.
+// A only for the caller (red); reactions only when points are on and non-zero; no brackets when there are no extras.
 function breakdownHTML(pts, isCaller, room) {
-  const parts = [`${t('bdAnswers')} ${pts.answers || 0}`];
-  if (isCaller) parts.push(`<span style="color:var(--red)">A ${signed(pts.alto)}</span>`);
-  if (room.reactionPoints !== false) parts.push(`${t('bdReactions')} ${signed(pts.reactions)}`);
-  return `<div class="sc-breakdown">${parts.join(' · ')}</div>`;
+  const extras = [];
+  if (isCaller) extras.push(`<span style="color:var(--red)">A ${signed(pts.alto)}</span>`);
+  if (room.reactionPoints !== false && pts.reactions) extras.push(`${t('bdReactions')} ${signed(pts.reactions)}`);
+  return `<div class="sc-breakdown">${t('bdBase')} ${pts.answers || 0} pts${extras.length ? ` (${extras.join(', ')})` : ''}</div>`;
 }
 
 // Collapsed row, daily leaderboard style: rank (medal or number) · name emoji [A] · total · (extra) · ▶
@@ -6861,7 +6862,7 @@ setTimeout(() => updateDailyButtonDate(), 350);
 // Version freshness check — silently reload if a newer version is deployed
 // Runs once on load; does nothing if already on latest or if fetch fails
 (function() {
-  const RUNNING = 'v260926.309-tmp';
+  const RUNNING = 'v260926.310-tmp';
   if (sessionStorage.getItem('alto_ver_checked') === RUNNING) return; // already checked this session
   sessionStorage.setItem('alto_ver_checked', RUNNING);
   fetch(location.href, { cache: 'no-cache' })
@@ -6884,7 +6885,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) upda
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260926.309-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v260926.310-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
