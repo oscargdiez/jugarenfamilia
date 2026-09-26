@@ -417,29 +417,15 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
 }
 .score-row:last-child { border-bottom: none; }
 .pts { color: var(--red); font-weight: 700; }
-/* Scores cards (Build 3): collapsed row + expandable panel, mirrors the daily leaderboard rows */
-.sc-row { display: flex; align-items: center; gap: 6px; padding: 7px 10px; border-radius: var(--radius); margin-bottom: 4px; background: var(--paper-dark); cursor: pointer; min-width: 0; }
-.sc-row.expanded { border-radius: var(--radius) var(--radius) 0 0; margin-bottom: 0; }
-.sc-who { font-size: 20px; flex-shrink: 0; white-space: nowrap; }
-/* name + A badge: the group keeps room for a few letters; short names keep the badge snug */
-.sc-namewrap { display: flex; align-items: center; gap: 6px; flex: 0 1 auto; min-width: 4.5em; font-size: 20px; }
-.sc-name { font-family: 'Caveat', cursive; font-size: 20px; flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Multiplayer Scores + Final cards reuse the daily leaderboard classes (.daily-lb-row, .daily-lb-answers, ...).
+   Only multiplayer-specific extras live here: A badge, reactions received, breakdown line, round headings, awards. */
+.mp-namewrap { display: flex; align-items: center; gap: 6px; flex: 1; min-width: 4.5em; }
+.mp-namewrap .daily-lb-name { flex: 0 1 auto; }
 .sc-alto { font-family: 'Special Elite', monospace; font-size: 11px; line-height: 16px; color: #fff; background: var(--red); border-radius: 4px; padding: 0 5px; flex-shrink: 0; }
-.sc-round { font-family: 'Special Elite', monospace; font-size: 11px; color: var(--ink-muted); flex-shrink: 0; margin-left: auto; white-space: nowrap; }
-.sc-total { font-family: 'Special Elite', monospace; font-size: 13px; font-weight: 700; color: var(--red); flex-shrink: 0; white-space: nowrap; }
-.sc-chevron { font-size: 11px; color: var(--ink-muted); transition: transform 0.2s; flex-shrink: 0; }
-.sc-row.expanded .sc-chevron { transform: rotate(90deg); }
-.sc-panel { display: none; background: var(--paper-dark); border-top: 1px dashed var(--border); border-radius: 0 0 var(--radius) var(--radius); padding: 2px 10px 8px; margin-bottom: 4px; }
-.sc-panel.open { display: block; }
-.sc-ans-row { display: flex; align-items: baseline; gap: 6px; padding: 3px 0; border-bottom: 1px dashed var(--border); }
-.sc-ans-cat { font-family: 'Special Elite', monospace; font-size: 13px; color: var(--ink-muted); flex: 0 0 25%; max-width: 25%; overflow-wrap: anywhere; }
 /* answer + reactions share the middle; reactions drop below a long answer instead of squeezing it */
 .sc-ans-mid { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 6px; }
-.sc-ans-val { font-family: 'Caveat', cursive; font-size: 20px; color: var(--ink); flex: 1 1 auto; min-width: 0; overflow-wrap: break-word; }
-.sc-ans-val.empty { color: var(--ink-muted); }
+.sc-ans-mid .daily-lb-answer-val { flex: 1 1 auto; min-width: 0; overflow-wrap: break-word; }
 .sc-ans-got { font-size: 13px; flex-shrink: 0; white-space: nowrap; }
-.sc-ans-mark { font-family: 'Special Elite', monospace; font-size: 11px; color: var(--success); flex-shrink: 0; min-width: 30px; text-align: right; }
-.sc-ans-mark.x { color: var(--red); font-size: 13px; font-weight: 700; }
 .sc-breakdown { font-family: 'Special Elite', monospace; font-size: 11px; color: var(--ink-sec); padding-top: 6px; }
 /* Final screen (Build 4): awards chips + one sub-heading per round inside each card */
 .aw-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin: -6px 0 10px; }
@@ -447,8 +433,9 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
 .aw-chip { font-family: 'Special Elite', monospace; font-size: 13px; color: var(--ink); background: var(--paper-dark); border: 1px dashed var(--border-strong); border-radius: 20px; padding: 3px 10px; }
 .aw-chip b { font-family: 'Caveat', cursive; font-size: 20px; font-weight: 700; line-height: 1; }
 .fn-round-h { font-family: 'Special Elite', monospace; font-size: 11px; color: var(--ink-sec); padding: 10px 0 2px; border-bottom: 1px solid var(--border-strong); display: flex; gap: 6px; }
+.fn-round-h:first-child { padding-top: 2px; }
 .fn-round-h .fn-round-pts { margin-left: auto; color: var(--ink); }
-@media (max-width: 360px) { .sc-row { gap: 4px; padding: 7px 8px; } .sc-unit { display: none; } .sc-namewrap { min-width: 3.5em; gap: 4px; } }
+@media (max-width: 360px) { .mp-row { gap: 4px; padding: 7px 8px; } .sc-unit { display: none; } .mp-namewrap { min-width: 3.5em; gap: 4px; } }
 
 /* ── Validation ── */
 .val-entry { display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px; padding: 6px 8px; border-radius: var(--radius); transition: background .15s; min-width: 0; }
@@ -1416,7 +1403,7 @@ const T = {
     toastStopFill: 'Rellena todas las respuestas antes de llamar al ¡Alto!',
     hostRevisingScores: 'el anfitrión está revisando de nuevo ✏️',
     toastDemoMin: 'El modo democrático requiere mínimo 3 jugadores', continueBtn: 'Continuar →', notMe: 'No soy yo — cambiar', groupHint2: 'familia, amigos, trabajo... como queráis', easyHint: '(sin K, Ñ, Q, U, W, X, Y, Z)', validate: 'Revisar', validateSub1: '📖 Wikipedia · 🤖 Asistente Robot · <span style="color:var(--red)">✕</span> anular', validateSub2: 'única = 100 · repetida = 50 · anulada = 0 · ¡Alto! −100 por anulada', submitted2: 'Respuestas enviadas', waitingTitle: 'Esperando...', hostReviewing2: 'el anfitrión está revisando', leaderboardBack: '← Volver', loading: 'Cargando…', final2: '¡Fin del juego!', searching: 'Buscando...', hostSearching: 'El anfitrión está buscando...', rndLabel: 'ronda', of: 'de', freeCatLabel: 'escreve as tuas categorias (uma por linha)', freeCatPlaceholder: 'Jogadores do Barça\nFilmes de terror\nCoisas na cozinha', freeCatLabel: 'escribe tus categorías (una por línea)', freeCatPlaceholder: 'Jugadores del Barça\nPelículas de terror\nCosas en la cocina', usarEjemplos: 'Usar ejemplos', freeCatRandom: 'Elegir 8 al azar cada ronda', toastFreeCatsRandom: 'Necesitas al menos 9 categorías para el modo aleatorio', of: 'de', freeCatLabel: 'escreve as tuas categorias (uma por linha)', freeCatPlaceholder: 'Jogadores do Barça\nFilmes de terror\nCoisas na cozinha', freeCatLabel: 'escribe tus categorías (una por línea)', freeCatPlaceholder: 'Jugadores del Barça\nPelículas de terror\nCosas en la cocina', letterLabel: 'letra', calculate: 'Calcular puntuación →', stopCallerMsg: '{name} llamó al ¡Alto!', timerRanOut: 'se acabó el tiempo', scoresTitle: 'Puntuación', lbTitle: 'Marcador',
-    invited: '¡Te han invitado a jugar!', rulesBtn: '¿Cómo se juega?', expBtn: '⚗️ FUNCIONES EXPERIMENTALES', aiValidation: '🤖 Asistente Robot', aiRelajado: '🟢 Relajada', aiEstricto: '🔴 Estricta', aiSpelling: '✏️ Permitir faltas de ortografía', aiYes: 'Sí', aiNo: 'No', modeHost: '👑 Normal', modeDemocratic: '🗳️ Democrático', invalidated: 'anulada', winnerLine: '{emoji} {name} gana con {pts} puntos!', wrongPwd: '❌ Contraseña incorrecta', expActivated: '⚗️ Funciones experimentales activadas', qjCodeLabel: 'sala:', gcInside: '✅ ESTÁS DENTRO', inviteMore: '+ ¿Quieres invitar a alguien más?', getReady: '¡VAMOS!',
+    invited: '¡Te han invitado a jugar!', rulesBtn: '¿Cómo se juega?', expBtn: '⚗️ FUNCIONES EXPERIMENTALES', aiValidation: '🤖 Asistente Robot', aiRelajado: '🟢 Relajada', aiEstricto: '🔴 Estricta', aiSpelling: '✏️ Permitir faltas de ortografía', aiYes: 'Sí', aiNo: 'No', modeHost: '👑 Normal', modeDemocratic: '🗳️ Democrático', invalidated: 'anulada', winnerLine: '{name} {emoji} gana con {pts} puntos!', wrongPwd: '❌ Contraseña incorrecta', expActivated: '⚗️ Funciones experimentales activadas', qjCodeLabel: 'sala:', gcInside: '✅ ESTÁS DENTRO', inviteMore: '+ ¿Quieres invitar a alguien más?', getReady: '¡VAMOS!',
     toastBack: 'Volviendo como', notFoundWord: '📭 No se encontró', didYouMean: '¿Quisiste decir', noDefinition: '📭 Sin definición para',
     waMsg: '¡Juega conmigo al ¡Alto! 🎮 Únete aquí:',
     createSub: 'MULTIJUGADOR · CON FAMILIA Y AMIGOS', configLabel: '⚙️ Configuración', leaveRoom2: 'Salir de la sala',
@@ -1484,7 +1471,7 @@ const T = {
     toastStopFill: 'Fill in all answers before calling ¡Alto!',
     hostRevisingScores: 'host is revising answers ✏️',
     toastDemoMin: 'Democratic mode requires at least 3 players', continueBtn: 'Continue →', notMe: "That's not me — change", groupHint2: 'family, friends, work... whatever you like', easyHint: '(no Q, U, W, X, Y, Z)', validate: 'Review', validateSub1: '📖 Wikipedia · 🤖 Robot Assistant · <span style="color:var(--red)">✕</span> invalidate', validateSub2: 'unique = 100 · duplicate = 50 · invalid = 0 · ¡Alto! −100 per invalid', submitted2: 'Answers submitted', waitingTitle: 'Waiting...', hostReviewing2: 'host is reviewing', leaderboardBack: '← Back', loading: 'Loading…', final2: 'Game over!', searching: 'Searching...', hostSearching: 'Host is searching...', rndLabel: 'round', of: 'di', freeCatLabel: 'scrivi le tue categorie (una per riga)', freeCatPlaceholder: 'Giocatori del Barça\nFilm horror\nCose in cucina', of: 'of', freeCatLabel: 'write your categories (one per line)', freeCatPlaceholder: 'Football players\nHorror films\nThings in the kitchen', usarEjemplos: 'Use examples', freeCatRandom: 'Pick 8 at random each round', toastFreeCatsRandom: 'You need at least 9 categories for random mode', letterLabel: 'letter', calculate: 'Calculate scores →', stopCallerMsg: '{name} called ¡Alto!', timerRanOut: 'time ran out', scoresTitle: 'Scores', lbTitle: 'Leaderboard',
-    invited: "You've been invited to play!", rulesBtn: 'How to play?', expBtn: '⚗️ EXPERIMENTAL FEATURES', aiValidation: '🤖 Robot Assistant', aiRelajado: '🟢 Relaxed', aiEstricto: '🔴 Strict', aiSpelling: '✏️ Allow spelling mistakes', aiYes: 'Yes', aiNo: 'No', modeHost: '👑 Normal', modeDemocratic: '🗳️ Democratic', invalidated: 'invalid', winnerLine: '{emoji} {name} wins with {pts} points!', wrongPwd: '❌ Wrong password', expActivated: '⚗️ Experimental features activated', qjCodeLabel: 'room:', gcInside: "✅ YOU'RE IN", inviteMore: '+ Want to invite someone?', getReady: "LET'S GO!",
+    invited: "You've been invited to play!", rulesBtn: 'How to play?', expBtn: '⚗️ EXPERIMENTAL FEATURES', aiValidation: '🤖 Robot Assistant', aiRelajado: '🟢 Relaxed', aiEstricto: '🔴 Strict', aiSpelling: '✏️ Allow spelling mistakes', aiYes: 'Yes', aiNo: 'No', modeHost: '👑 Normal', modeDemocratic: '🗳️ Democratic', invalidated: 'invalid', winnerLine: '{name} {emoji} wins with {pts} points!', wrongPwd: '❌ Wrong password', expActivated: '⚗️ Experimental features activated', qjCodeLabel: 'room:', gcInside: "✅ YOU'RE IN", inviteMore: '+ Want to invite someone?', getReady: "LET'S GO!",
     toastBack: 'Rejoining as', notFoundWord: '📭 Not found', didYouMean: 'Did you mean', noDefinition: '📭 No definition for',
     waMsg: 'Play ¡Alto! with me 🎮 Join here:',
     createSub: 'MULTIPLAYER · WITH FAMILY & FRIENDS', configLabel: '⚙️ Settings', leaveRoom2: 'Leave room',
@@ -1552,7 +1539,7 @@ const T = {
     toastStopFill: 'Remplis toutes les réponses avant de crier ¡Alto !',
     hostRevisingScores: "l'hôte révise les réponses ✏️",
     toastDemoMin: 'Le mode démocratique nécessite au moins 3 joueurs', continueBtn: 'Continuer →', notMe: "Ce n'est pas moi — changer", groupHint2: 'famille, amis, travail... comme vous voulez', easyHint: '(sans K, Q, U, W, X, Y, Z)', validate: 'Vérifier', validateSub1: '📖 Wikipedia · 🤖 Assistant Robot · <span style="color:var(--red)">✕</span> annuler', validateSub2: 'unique = 100 · doublon = 50 · annulé = 0 · ¡Alto! −100 par annulé', submitted2: 'Réponses envoyées', waitingTitle: 'En attente...', hostReviewing2: "l'hôte vérifie", leaderboardBack: '← Retour', loading: 'Chargement…', final2: 'Fin de partie!', searching: 'Recherche...', hostSearching: "L'hôte cherche...", rndLabel: 'manche', of: 'sur', freeCatLabel: 'écris tes catégories (une par ligne)', freeCatPlaceholder: 'Joueurs du Barça\nFilms d\'horreur\nChoses dans la cuisine', usarEjemplos: 'Utiliser des exemples', freeCatRandom: 'Choisir 8 au hasard chaque manche', toastFreeCatsRandom: 'Il faut au moins 9 catégories pour le mode aléatoire', letterLabel: 'lettre', calculate: 'Calculer les scores →', stopCallerMsg: '{name} a crié ¡Alto !', timerRanOut: 'temps écoulé', scoresTitle: 'Scores', lbTitle: 'Classement',
-    invited: 'Tu as été invité à jouer!', rulesBtn: 'Comment jouer?', expBtn: '⚗️ FONCTIONS EXPÉRIMENTALES', aiValidation: '🤖 Assistant Robot', aiRelajado: '🟢 Détendue', aiEstricto: '🔴 Stricte', aiSpelling: '✏️ Autoriser les fautes d\'orthographe', aiYes: 'Oui', aiNo: 'Non', modeHost: '👑 Normal', modeDemocratic: '🗳️ Démocratique', invalidated: 'annulée', winnerLine: '{emoji} {name} gagne avec {pts} points!', wrongPwd: '❌ Mot de passe incorrect', expActivated: '⚗️ Fonctions expérimentales activées', qjCodeLabel: 'salle:', gcInside: '✅ VOUS ÊTES DEDANS', inviteMore: "+ Inviter quelqu'un d'autre?", getReady: "C'EST PARTI!",
+    invited: 'Tu as été invité à jouer!', rulesBtn: 'Comment jouer?', expBtn: '⚗️ FONCTIONS EXPÉRIMENTALES', aiValidation: '🤖 Assistant Robot', aiRelajado: '🟢 Détendue', aiEstricto: '🔴 Stricte', aiSpelling: '✏️ Autoriser les fautes d\'orthographe', aiYes: 'Oui', aiNo: 'Non', modeHost: '👑 Normal', modeDemocratic: '🗳️ Démocratique', invalidated: 'annulée', winnerLine: '{name} {emoji} gagne avec {pts} points!', wrongPwd: '❌ Mot de passe incorrect', expActivated: '⚗️ Fonctions expérimentales activées', qjCodeLabel: 'salle:', gcInside: '✅ VOUS ÊTES DEDANS', inviteMore: "+ Inviter quelqu'un d'autre?", getReady: "C'EST PARTI!",
     toastBack: 'Reconnexion en tant que', notFoundWord: '📭 Introuvable', didYouMean: 'Vouliez-vous dire', noDefinition: '📭 Aucune définition pour',
     waMsg: 'Joue au ¡Alto! avec moi 🎮 Rejoins ici:',
     createSub: 'MULTIJOUEUR · EN FAMILLE ET ENTRE AMIS', configLabel: '⚙️ Paramètres', leaveRoom2: 'Quitter la salle',
@@ -4160,7 +4147,7 @@ function enterLobby(room) {
 
 function renderPlayers(players, langs={}) {
   document.getElementById('lob-players').innerHTML =
-    Object.entries(players).map(([n,emoji]) => `<div class="chip ok"><span style="font-size: 16px">${emoji||'🎲'}</span>${n}</div>`).join('');
+    Object.entries(players).map(([n,emoji]) => `<div class="chip ok">${n}<span style="font-size: 16px">${emoji||'🎲'}</span></div>`).join('');
   const hint = document.getElementById('lbl-solo-hint');
   if (hint) {
     const solo = Object.keys(players).length < 2;
@@ -5512,7 +5499,14 @@ function escHtml(v) {
 }
 function signed(v) { v = v || 0; return v >= 0 ? '+' + v : '−' + Math.abs(v); }
 
-// One player's answer rows for one round (shared by the Scores and Final cards)
+// Dense rank numbers to go with denseMedals: 900,900,700,500,300 → 1,1,2,3,4
+function denseRanks(sorted) {
+  let rank = 0, prev = null;
+  return sorted.map(([, pts]) => { if (pts !== prev) { rank++; prev = pts; } return rank; });
+}
+
+// One player's answer rows for one round (shared by the Scores and Final cards).
+// Same classes and marks as the daily leaderboard: ✅ +100 / ✅ +50 / ❌ 0, small grey — when empty.
 function roundRowsHTML(d, cats) {
   return cats.map((cat, ci) => {
     const ans = (d.answers || {})[ci] || '';
@@ -5520,11 +5514,12 @@ function roundRowsHTML(d, cats) {
     const g = (d.got || {})[ci] || {};
     const got = [['🔥', g.f], ['👏', g.c], ['😂', g.l]].filter(([, c]) => c > 0)
       .map(([e, c]) => `${e}<sup style="font-size:11px">${c}</sup>`).join(' ');
-    const mark = st === 'u' ? '+100' : st === 'd' ? '+50' : st === 'x' ? '✕' : '';
-    return `<div class="sc-ans-row">
-      <span class="sc-ans-cat">${escHtml(cat)}</span>
-      <span class="sc-ans-mid"><span class="sc-ans-val${ans ? '' : ' empty'}">${ans ? escHtml(ans) : '—'}</span><span class="sc-ans-got">${got}</span></span>
-      <span class="sc-ans-mark${st === 'x' ? ' x' : ''}">${mark}</span>
+    const icon = st === 'x' ? '❌' : '✅';
+    const pts = st === 'u' ? '+100' : st === 'd' ? '+50' : '0';
+    return `<div class="daily-lb-answer-row">
+      <span class="daily-lb-answer-cat">${escHtml(cat)}</span>
+      <span class="sc-ans-mid"><span class="daily-lb-answer-val${ans ? '' : ' empty'}">${ans ? escHtml(ans) : '—'}</span><span class="sc-ans-got">${got}</span></span>
+      ${ans ? `<span class="daily-lb-answer-ai">${icon}</span><span class="daily-lb-answer-pts${st === 'x' ? ' zero' : ''}">${pts}</span>` : ''}
     </div>`;
   }).join('');
 }
@@ -5536,22 +5531,29 @@ function breakdownHTML(pts, isCaller, room) {
   return `<div class="sc-breakdown">${parts.join(' · ')}</div>`;
 }
 
+// Collapsed row, daily leaderboard style: rank (medal or number) · name emoji [A] · total · (extra) · ▶
+// Your own row is highlighted like the daily "me" row.
+function mpRowHTML({ id, rank, name, emoji, total, extra, isCaller, onclick, open }) {
+  const me = name === G.playerName;
+  return `<div class="daily-lb-row mp-row${me ? ' daily-lb-me' : ''}${open ? ' expanded' : ''}" id="${id}"${onclick ? ` onclick="${onclick}"` : ' style="cursor:default"'}>
+      <span class="daily-lb-rank">${rank}</span>
+      <span class="mp-namewrap"><span class="daily-lb-name">${escHtml(name)} ${emoji}</span>${isCaller ? '<span class="sc-alto">A</span>' : ''}</span>
+      <span class="daily-lb-score">${total}<span class="sc-unit"> pts</span></span>
+      ${extra ? `<span class="daily-lb-speed">(${extra})</span>` : ''}
+      ${onclick ? '<span class="daily-lb-chevron">▶</span>' : ''}
+    </div>`;
+}
+
 // Scores cards: collapsed row + expandable panel with this round's answers
 let G_scOpen = new Set(), G_scRound = null, G_scNames = [];
-function scoreCardHTML(i, name, total, medal, emoji, rl, room) {
+function scoreCardHTML(i, name, total, rank, emoji, rl, room) {
   const d = rl.players[name];
-  const head = (inner, openable) =>
-    `<div class="sc-row${openable && G_scOpen.has(name) ? ' expanded' : ''}" id="sc-row-${i}"${openable ? ` onclick="toggleScoreCard(${i})"` : ''}>${inner}</div>`;
-  const nameHtml = `<span class="sc-who">${medal} ${emoji}</span><span class="sc-name">${escHtml(name)}</span>`;
-  if (!d) return head(`${nameHtml}<span class="sc-total" style="margin-left:auto">${total}<span class="sc-unit"> pts</span></span>`, false);
+  if (!d) return mpRowHTML({ id: 'sc-row-' + i, rank, name, emoji, total });
   const pts = d.pts || {};
   const isCaller = !!rl.caller && rl.caller === name;
-  const rows = roundRowsHTML(d, rl.categories || []);
-  return head(`<span class="sc-who">${medal} ${emoji}</span><span class="sc-namewrap"><span class="sc-name">${escHtml(name)}</span>${isCaller ? '<span class="sc-alto">A</span>' : ''}</span>
-      <span class="sc-round">${signed(pts.round)}</span>
-      <span class="sc-total">${total}<span class="sc-unit"> pts</span></span>
-      <span class="sc-chevron">▶</span>`, true)
-    + `<div class="sc-panel${G_scOpen.has(name) ? ' open' : ''}" id="sc-panel-${i}">${rows}${breakdownHTML(pts, isCaller, room)}</div>`;
+  const open = G_scOpen.has(name);
+  return mpRowHTML({ id: 'sc-row-' + i, rank, name, emoji, total, extra: signed(pts.round), isCaller, onclick: `toggleScoreCard(${i})`, open })
+    + `<div class="daily-lb-answers${open ? ' open' : ''}" id="sc-panel-${i}">${roundRowsHTML(d, rl.categories || [])}${breakdownHTML(pts, isCaller, room)}</div>`;
 }
 
 window.toggleScoreCard = (i) => {
@@ -5577,10 +5579,11 @@ function showScores(room) {
   // Cards stay open across re-renders (the screen redraws on every room change) until the round changes
   if (G_scRound !== room.currentRound) { G_scRound = room.currentRound; G_scOpen = new Set(); }
   G_scNames = sorted.map(([n]) => n);
+  const ranks = denseRanks(sorted);
   document.getElementById('sc-list').innerHTML = (rl && rl.players)
-    ? sorted.map(([n,total],i) => scoreCardHTML(i, n, total, medals[i], players[n]||'🎲', rl, room)).join('')
+    ? sorted.map(([n,total],i) => scoreCardHTML(i, n, total, medals[i] || ranks[i], players[n]||'🎲', rl, room)).join('')
     : sorted.map(([n,pts],i) =>  // fallback: no roundLog for this round (older room)
-        `<div class="score-row"><span>${medals[i]} ${players[n]||'🎲'} ${escHtml(n)}</span><span class="pts">${pts} pts</span></div>`
+        `<div class="score-row"><span>${medals[i]} ${escHtml(n)} ${players[n]||'🎲'}</span><span class="pts">${pts} pts</span></div>`
       ).join('');
   let btns = '';
   if (G.isHost) {
@@ -5725,7 +5728,7 @@ async function renderLb() {
     document.getElementById('lb-list').innerHTML = sorted.map(([key,d],i) => {
       const winRate = d.games ? Math.round((d.wins/d.games)*100) : 0;
       return `<div class="lb-row">
-        <span>${MEDALS[i]||'  '} ${d.emoji||'🎲'} ${d.name||key} <span style="font-size: 11px;color:var(--ink-muted)">${d.group?'('+d.group+')':''}</span></span>
+        <span>${MEDALS[i]||'  '} ${d.name||key} ${d.emoji||'🎲'} <span style="font-size: 11px;color:var(--ink-muted)">${d.group?'('+d.group+')':''}</span></span>
         <div class="lb-stats">
           <span>🏆 ${d.wins||0}</span>
           <span>🎮 ${d.games||0}</span>
@@ -5748,7 +5751,7 @@ async function renderLb() {
     document.getElementById('lb-list').innerHTML = sorted.map(([key,d],i) => {
       const winRate = d.games ? Math.round((d.wins/d.games)*100) : 0;
       return `<div class="lb-row">
-        <span>${MEDALS[i]||'  '} ${d.emoji||'🎲'} ${d.name||key}</span>
+        <span>${MEDALS[i]||'  '} ${d.name||key} ${d.emoji||'🎲'}</span>
         <div class="lb-stats">
           <span>🏆 ${d.wins||0} ${t('wins')}</span>
           <span>🎮 ${d.games||0} partidas</span>
@@ -5770,7 +5773,7 @@ function showFinal(room) {
   const wPlayers = room.players||{};
   if (sorted[0]) {
     const top = sorted[0][1];
-    const tied = sorted.filter(([,pts]) => pts === top).map(([n]) => (wPlayers[n]||'🎲') + ' ' + n);
+    const tied = sorted.filter(([,pts]) => pts === top).map(([n]) => n + ' ' + (wPlayers[n]||'🎲'));
     let line;
     if (tied.length > 1) {
       const names = tied.slice(0, -1).join(', ') + ' ' + t('tieAnd') + ' ' + tied[tied.length-1];
@@ -5783,15 +5786,16 @@ function showFinal(room) {
   }
   const fPlayers = room.players||{};
   const fMedals = denseMedals(sorted);
+  const fRanks = denseRanks(sorted);
   const rounds = roundLogEntries(room);
   G_finalRoom = room; // for shareFinal
   document.getElementById('final-awards').innerHTML = computeAwards(room).map(a =>
     `<span class="aw-chip">${a.emoji} ${t(a.label)} · <b>${a.names.map(escHtml).join(', ')}</b></span>`
   ).join('');
   document.getElementById('final-list').innerHTML = rounds.length
-    ? sorted.map(([n,pts],i) => finalCardHTML(i, n, pts, fMedals[i], fPlayers[n]||'🎲', room, rounds)).join('')
+    ? sorted.map(([n,pts],i) => finalCardHTML(i, n, pts, fMedals[i] || fRanks[i], fPlayers[n]||'🎲', room, rounds)).join('')
     : sorted.map(([n,pts],i) =>  // fallback: no roundLog (older room)
-        `<div class="score-row"><span>${fMedals[i]} ${fPlayers[n]||'🎲'} ${escHtml(n)}</span><span class="pts">${pts} pts</span></div>`
+        `<div class="score-row"><span>${fMedals[i]} ${escHtml(n)} ${fPlayers[n]||'🎲'}</span><span class="pts">${pts} pts</span></div>`
       ).join('');
 }
 
@@ -5832,12 +5836,9 @@ function computeAwards(room) {
 }
 
 // Final card: collapsed row with the final total; opened shows every round (heading, answers, breakdown)
-function finalCardHTML(i, name, total, medal, emoji, room, rounds) {
+function finalCardHTML(i, name, total, rank, emoji, room, rounds) {
   const played = rounds.filter(([, rl]) => rl.players[name]);
-  const head = `<div class="sc-row" id="fn-row-${i}"${played.length ? ` onclick="toggleFinalCard(${i})"` : ''}>
-    <span class="sc-who">${medal} ${emoji}</span><span class="sc-namewrap"><span class="sc-name">${escHtml(name)}</span></span>
-    <span class="sc-total" style="margin-left:auto">${total}<span class="sc-unit"> pts</span></span>
-    ${played.length ? '<span class="sc-chevron">▶</span>' : ''}</div>`;
+  const head = mpRowHTML({ id: 'fn-row-' + i, rank, name, emoji, total, onclick: played.length ? `toggleFinalCard(${i})` : '' });
   if (!played.length) return head;
   const rl1 = t('rndLabel');
   const roundWord = rl1.charAt(0).toUpperCase() + rl1.slice(1);
@@ -5848,7 +5849,7 @@ function finalCardHTML(i, name, total, medal, emoji, room, rounds) {
     return `<div class="fn-round-h"><span>${roundWord} ${r}${rl.letter ? ' · ' + escHtml(rl.letter) : ''}</span>${isCaller ? '<span class="sc-alto">A</span>' : ''}<span class="fn-round-pts">${signed(pts.round)}</span></div>`
       + roundRowsHTML(d, rl.categories || []) + breakdownHTML(pts, isCaller, room);
   }).join('');
-  return head + `<div class="sc-panel" id="fn-panel-${i}">${body}</div>`;
+  return head + `<div class="daily-lb-answers" id="fn-panel-${i}">${body}</div>`;
 }
 
 window.toggleFinalCard = (i) => {
@@ -5863,11 +5864,8 @@ let G_finalRoom = null;
 function finalShareText(room) {
   const sorted = Object.entries(room.scores || {}).sort((a, b) => b[1] - a[1]);
   const medals = denseMedals(sorted);
-  let rank = 0, prev = null;
-  const lines = sorted.map(([n, pts], i) => {
-    if (pts !== prev) { rank++; prev = pts; }
-    return `${medals[i] || rank + '.'} ${n} ${pts}`;
-  });
+  const ranks = denseRanks(sorted);
+  const lines = sorted.map(([n, pts], i) => `${medals[i] || ranks[i] + '.'} ${n} ${pts}`);
   const played = room.currentRound || roundLogEntries(room).length;
   const roundsTxt = played === 1 ? `1 ${t('rndLabel')}` : `${played} ${t('roundsWord')}`;
   const header = ['¡ALTO!', room.groupName || '', roundsTxt].filter(Boolean).join(' · ');
@@ -6830,7 +6828,7 @@ setTimeout(() => updateDailyButtonDate(), 350);
 // Version freshness check — silently reload if a newer version is deployed
 // Runs once on load; does nothing if already on latest or if fetch fails
 (function() {
-  const RUNNING = 'v260926.306-tmp';
+  const RUNNING = 'v260926.307-tmp';
   if (sessionStorage.getItem('alto_ver_checked') === RUNNING) return; // already checked this session
   sessionStorage.setItem('alto_ver_checked', RUNNING);
   fetch(location.href, { cache: 'no-cache' })
@@ -6853,7 +6851,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) upda
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260926.306-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v260926.307-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
