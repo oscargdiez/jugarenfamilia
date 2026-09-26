@@ -1,5 +1,5 @@
 # JugarEnFamilia.es — Project Handoff Document
-*Last updated: September 2026 — Session 22*
+*Last updated: September 2026 — Session 24*
 
 > ⚠️ **HANDOFF INTEGRITY RULE — DO NOT DELETE CONTENT**
 > This document is append-and-update only. Never remove sections, rules, known issues, backlog items, or session log entries. Only add new content and update existing entries. A truncated handoff causes the next session to lose critical context.
@@ -962,3 +962,64 @@ Living version (Claude Doc): https://claude.ai/artifact/9bCUk2yRwx1wHQG3hmjhoV
 **Next session:** start Build 1 on staging, working from `MULTIPLAYER_SCORING_DESIGN.md`.
 
 **Last version deployed: v260922.301**
+
+---
+
+### Session 24 (Sep 26) - Build 1: scoring engine (STAGING)
+
+**Staging: v260926.302-tmp. Production unchanged at v260922.301.** Built from production v301 (the old index_tmp.html was stale v300-tmp and was not used). Follows `MULTIPLAYER_SCORING_DESIGN.md`.
+
+**Scaled ¡Alto! adjustment (replaces flat penalty):**
+- `finishValidation`: caller gets `round10(250 x n/8) - 100 x invalid`, n = categories this round. Empty answers counted as invalid defensively (the 2-char guard should prevent them).
+- Caller only counts if `room.calledStop` and `stopCaller` is a player in the room. Timeout writes `stopCaller:'Tiempo'`, which is never treated as a caller.
+- Host toast: `🛑 Oscar ¡Alto! +250 pts` / `−150 pts`. Old `toastPenalty`/`toastPenaltySuffix` keys removed.
+- Democratic mode: vote results are applied to `G.invalidAnswers` before scoring, so "invalid after the vote" works with no extra code.
+
+**Penalty slider removed:** lobby HTML, `saveLobbyConfig`, `restoreLobbyConfig`, `startGame`, `createRoom`, `applyLang`, `penalty` T keys (ES/EN/FR), debug room. `stopPenalty` is no longer written to rooms. Old `penalty` values in `alto_lobby_config` are simply ignored.
+
+**roundLog written:** `finishValidation` writes `roundLog/{currentRound}` in the same atomic update as scores. Shape per design doc: `letter`, `categories`, `caller` ("" on timeout), `players/{name}: { answers[], status[] (u/d/x/e), got[] ({f:0,c:0,l:0} placeholders until Build 2), pts:{answers, alto, reactions:0, round, total} }`. Keyed by category index. Rewritten in full on every recalculation. A player in the room with no answers gets all `e`.
+
+**Tied medals:** new `denseMedals(sorted)` helper next to `MEDALS`. Used in `showScores` and `showFinal`. Group leaderboard (`renderLb`) still uses `MEDALS[i]`; it is rewritten in Build 5.
+
+**Tie winner line:** `showFinal` names all tied winners: "¡Empate! 🦊 Oscar y 🌸 Marta con 900 puntos" (EN "It's a tie! ... with", FR "Égalité ! ... avec"). New T keys `tieLine`, `tieAnd`. Confetti uses first winner's emoji.
+
+**Practice games (no leaderboard):**
+- `startGame` writes `practice: true` if only 1 player at start.
+- `endGame` treats the game as practice if `room.practice` OR `currentRound < rounds`: skips all `global/` and `groups/` writes, still goes to `phase:'final'`.
+- Complete games: every player tied for top score gets a win.
+
+**Terminar confirm:** scores-screen Terminar now calls `confirmEndGame()`. Before the last round the host gets a native `confirm()` with T key `endEarlyConfirm` (ES/EN/FR per design doc). On the last round it ends directly. Final screen unchanged.
+
+**Practicar solo button:** new `updateStartBtn()` + `G_lobbyPlayerCount`. Called from `renderPlayers` and `applyLang` (replaces `s('btn-start', t('start'))`, which would otherwise reset the label on language switch). T key `soloStart`: "✏️ Practicar solo →" / "✏️ Practise solo →" / "✏️ S'entraîner en solo →". Existing "(¡mejor con más!)" hint kept.
+
+**Rules and hints:**
+- `rulesHTML` box rewritten: "🛑 Quien pulsa ¡Alto! gana +250 pts si todo es válido, y pierde 100 por cada respuesta anulada (con 8 categorías)." + EN/FR.
+- `homeRulesHTML` multiplayer scoring: two new rows, `altoOk` (+250 pts) and `altoBad` (−100 pts), ES/EN/FR.
+- `validateSub2`: "única = 100 · repetida = 50 · anulada = 0 · ¡Alto! −100 por anulada" + EN/FR. `setValidationMode` had a duplicated inline copy of this string for democratic mode; now uses `t('validateSub2')`.
+
+**Bug fixed on the way (pre-existing since v301):** after "Jugar de nuevo", `preRoundScores` from the previous game's last round was never cleared, so round 1 of the new game would be scored on top of old totals. `startGame` and `playAgain` now clear `preRoundScores`, `roundLog` (and `playAgain` clears `practice`).
+
+**Debug:** `DBG.scores` now has María and `__debug__` tied at 400, to check dense medals and the tie line.
+
+**Tests run:** extracted the real `finishValidation`, `denseMedals`, `endGame`, `confirmEndGame`, `showFinal`, `updateStartBtn` into Node with a mocked Firebase. 35/35 logic checks pass (all design-doc tables for caller adjustment and category scaling, timeout, recalculation idempotence, absent player, democratic invalidation, dense medals, shared wins, solo/incomplete practice, confirm cancel/OK/last round), plus string rendering in all 3 languages.
+
+**Firebase schema additions (Session 24):**
+- `room.roundLog/{round}` — see above
+- `room.practice: true/null` — solo-start flag
+- `room.stopPenalty` — no longer written
+
+**Noticed, not fixed (out of scope):** `doSubmit` hard-codes Spanish `stopCaller:'Tiempo'` and "✏️ Respuestas enviadas. Esperando a los demás…". `reviewSub` T key is dead (no callers).
+
+**Staging test checklist for Oscar:**
+- All testers on `index_tmp.html` (scoring runs on the host, screens render on every client).
+- Lobby: no penalty slider; 1 player shows "Practicar solo", 2+ shows "¡Comenzar!"; switch language, label stays correct.
+- ¡Alto! with all valid: host toast +250. With invalids: +150 / +50 / −50 ... Timeout: no toast.
+- Revisar → recalc: totals don't double.
+- Ties: two players same score show 🥇🥇; final screen shows "¡Empate!".
+- Terminar before last round: confirm appears; Cancel does nothing; OK ends. Last round: no confirm.
+- Jugar de nuevo then a new game: round 1 totals start from 0.
+- Firebase console: `rooms/{code}/roundLog/1` exists with the expected shape.
+
+**Next:** test on staging, promote to production (drop -tmp), then Build 2 (reaction bonuses).
+
+**Last version deployed: v260922.301 (production), v260926.302-tmp (staging)**
