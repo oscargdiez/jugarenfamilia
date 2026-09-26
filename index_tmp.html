@@ -728,13 +728,13 @@ body.screen-home .page, body.screen-welcome .page { padding-bottom: 2rem; }
 /* ── Per-entry reactions & voting ── */
 .entry-reactions { display: flex; align-items: center; gap: 3px; flex-wrap: wrap; margin-top: 3px; padding-top: 3px; }
 .entry-emoji-strip { display: flex; gap: 2px; align-items: center; }
-.entry-emoji-btn { font-size: 13px; padding: 3px 3px; border-radius: 4px; border: none; background: transparent; cursor: pointer; opacity: 0.4; transition: all .1s; line-height: 1; display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; }
-.entry-emoji-btn:hover { opacity: 1; transform: scale(1.15); }
-.entry-emoji-btn.active { opacity: 1; background: var(--paper-dark); }
-/* Own answers: not tappable; emojis you received stay visible */
-.entry-emoji-btn:disabled { cursor: default; opacity: 0.25; }
-.entry-emoji-btn:disabled:hover { transform: none; opacity: 0.25; }
-.entry-emoji-btn:disabled.got { opacity: 1; }
+.entry-emoji-btn { font-size: 13px; padding: 3px 3px; border-radius: 4px; border: none; background: transparent; cursor: pointer; opacity: 1; transition: all .1s; line-height: 1; display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; }
+.entry-emoji-btn:hover { transform: scale(1.15); }
+.entry-emoji-btn.active { background: var(--paper-dark); }
+/* Own answers: faint (can't react to yourself; tapping shows a toast). Reactions you received stay at full strength. */
+.entry-emoji-btn.own { cursor: default; opacity: 0.4; }
+.entry-emoji-btn.own:hover { transform: none; }
+.entry-emoji-btn.own.got { opacity: 1; }
 .vote-btn { font-size: 13px; height: 32px; padding: 0 8px; border-radius: var(--radius); border: 1.5px solid var(--border); background: transparent; cursor: pointer; font-family: monospace; display: inline-flex; align-items: center; gap: 3px; transition: all .1s; }
 .vote-btn:hover { background: var(--paper-dark); }
 .vote-btn.thumbs-down.voted { background: var(--danger-bg); border-color: var(--danger); color: var(--danger); }
@@ -1379,6 +1379,7 @@ const T = {
     reactionPoints: '🌶️ Reacciones con puntos',
     tieLine: '¡Empate! {names} con {pts} puntos', tieAnd: 'y',
     bdAnswers: 'respuestas', bdReactions: 'reacciones',
+    toastOwnReaction: 'No puedes reaccionar a tus propias respuestas',
     awPopularity: 'Popularidad', awLaughter: 'Risas', awOriginality: 'Originalidad',
     shareBtn: 'Compartir', copied: '¡Copiado!', roundsWord: 'rondas',
     leaderboard: 'Marcador', myGroup: 'Mi grupo', world: 'Mundial',
@@ -1447,6 +1448,7 @@ const T = {
     reactionPoints: '🌶️ Reactions score points',
     tieLine: "It's a tie! {names} with {pts} points", tieAnd: 'and',
     bdAnswers: 'answers', bdReactions: 'reactions',
+    toastOwnReaction: "You can't react to your own answers",
     awPopularity: 'Popularity', awLaughter: 'Laughter', awOriginality: 'Originality',
     shareBtn: 'Share', copied: 'Copied!', roundsWord: 'rounds',
     leaderboard: 'Leaderboard', myGroup: 'My group', world: 'Worldwide',
@@ -1515,6 +1517,7 @@ const T = {
     reactionPoints: '🌶️ Réactions avec points',
     tieLine: 'Égalité ! {names} avec {pts} points', tieAnd: 'et',
     bdAnswers: 'réponses', bdReactions: 'réactions',
+    toastOwnReaction: 'Tu ne peux pas réagir à tes propres réponses',
     awPopularity: 'Popularité', awLaughter: 'Rires', awOriginality: 'Originalité',
     shareBtn: 'Partager', copied: 'Copié !', roundsWord: 'manches',
     leaderboard: 'Classement', myGroup: 'Mon groupe', world: 'Mondial',
@@ -5195,7 +5198,7 @@ function isOwnEntry(key) { return key.startsWith(G.playerName + '__'); }
 // One reaction per answer: tapping a new emoji swaps, tapping the same one removes.
 // No reactions on your own answers.
 window.reactToEntry = async (key, emoji) => {
-  if (isOwnEntry(key)) return;
+  if (isOwnEntry(key)) { toast(t('toastOwnReaction')); return; }
   const removing = !!G_myEntryEmojis[key + '_' + emoji];
   const upd = {};
   const cur = {...(G_cachedReactions[key] || {})};
@@ -5253,8 +5256,8 @@ function renderEntryEmojis(key, entryReactions, isHost) {
   const strip = ENTRY_EMOJIS.map(e => {
     const count = counts[e] || 0;
     const active = !own && G_myEntryEmojis[key + '_' + e];
-    const cls = 'entry-emoji-btn' + (active ? ' active' : '') + (own && count > 0 ? ' got' : '');
-    return `<button class="${cls}"${own ? ' disabled' : ''} onclick="reactToEntry('${key}','${e}')">${e}${count > 0 ? `<sup style="font-size: 11px">${count}</sup>` : ''}</button>`;
+    const cls = 'entry-emoji-btn' + (active ? ' active' : '') + (own ? ' own' : '') + (own && count > 0 ? ' got' : '');
+    return `<button class="${cls}" onclick="reactToEntry('${key}','${e}')">${e}${count > 0 ? `<sup style="font-size: 11px">${count}</sup>` : ''}</button>`;
   }).join('');
 
   return `<div class="entry-emoji-strip">${strip}</div>`;
@@ -6828,7 +6831,7 @@ setTimeout(() => updateDailyButtonDate(), 350);
 // Version freshness check — silently reload if a newer version is deployed
 // Runs once on load; does nothing if already on latest or if fetch fails
 (function() {
-  const RUNNING = 'v260926.307-tmp';
+  const RUNNING = 'v260926.308-tmp';
   if (sessionStorage.getItem('alto_ver_checked') === RUNNING) return; // already checked this session
   sessionStorage.setItem('alto_ver_checked', RUNNING);
   fetch(location.href, { cache: 'no-cache' })
@@ -6851,7 +6854,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) upda
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260926.307-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v260926.308-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
