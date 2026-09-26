@@ -360,6 +360,8 @@ Five builds, each on staging first, tested, then promoted. Line numbers as of v3
 
 **Oscar's manual steps for Build 5:** add the `lastPlayed` index to Firebase rules; delete `groups/`, `groupNames/`, `global/` in the console.
 
+**After Build 5: help page pass.** Rewrite the multiplayer help (`homeRulesHTML`, `rulesHTML`, `helpHTML`) once the system is final, in ES/EN/FR: practice games (solo and unfinished games don't count), ties sharing medals and wins, reaction points, awards, groups and history. Build 1 only updated the ¡Alto! rules text.
+
 **Risks**
 
 - **Translations:** every new string needs ES, EN and FR at the same time.
