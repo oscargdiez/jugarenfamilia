@@ -441,6 +441,13 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
 .sc-ans-mark { font-family: 'Special Elite', monospace; font-size: 11px; color: var(--success); flex-shrink: 0; min-width: 30px; text-align: right; }
 .sc-ans-mark.x { color: var(--red); font-size: 13px; font-weight: 700; }
 .sc-breakdown { font-family: 'Special Elite', monospace; font-size: 11px; color: var(--ink-sec); padding-top: 6px; }
+/* Final screen (Build 4): awards chips + one sub-heading per round inside each card */
+.aw-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin: -6px 0 10px; }
+.aw-row:empty { display: none; }
+.aw-chip { font-family: 'Special Elite', monospace; font-size: 13px; color: var(--ink); background: var(--paper-dark); border: 1px dashed var(--border-strong); border-radius: 20px; padding: 3px 10px; }
+.aw-chip b { font-family: 'Caveat', cursive; font-size: 20px; font-weight: 700; line-height: 1; }
+.fn-round-h { font-family: 'Special Elite', monospace; font-size: 11px; color: var(--ink-sec); padding: 10px 0 2px; border-bottom: 1px solid var(--border-strong); display: flex; gap: 6px; }
+.fn-round-h .fn-round-pts { margin-left: auto; color: var(--ink); }
 @media (max-width: 360px) { .sc-row { gap: 4px; padding: 7px 8px; } .sc-unit { display: none; } .sc-namewrap { min-width: 3.5em; gap: 4px; } }
 
 /* ── Validation ── */
@@ -1257,10 +1264,12 @@ document.addEventListener('DOMContentLoaded', function() {
 <div id="s-final" class="screen" style="padding-top:1px">
   <h1 id="lbl-final-title">¡Fin del juego!</h1>
   <div class="winner" id="winner-line"></div>
+  <div class="aw-row" id="final-awards"></div>
   <div class="card" id="final-list"></div>
   <div class="btn-row" style="margin-top:10px">
     <button class="pri host-only" onclick="playAgain()" style="flex:1;display:none" id="btn-play-again">Jugar de nuevo</button>
     <button class="guest-only" style="flex:1;opacity:0.5;cursor:default;display:none" id="btn-wait-host" disabled>Esperando al anfitrión…</button>
+    <button onclick="shareFinal()" style="flex:1" id="btn-share-final">Compartir</button>
     <button onclick="showLeaderboard()" style="flex:1" id="btn-show-lb">Marcador</button>
   </div>
 </div>
@@ -1383,6 +1392,8 @@ const T = {
     reactionPoints: '🌶️ Reacciones con puntos',
     tieLine: '¡Empate! {names} con {pts} puntos', tieAnd: 'y',
     bdAnswers: 'respuestas', bdReactions: 'reacciones',
+    awPopularity: 'Popularidad', awLaughter: 'Risas', awOriginality: 'Originalidad',
+    shareBtn: 'Compartir', copied: '¡Copiado!', roundsWord: 'rondas',
     leaderboard: 'Marcador', myGroup: 'Mi grupo', world: 'Mundial',
     worldSub: 'los mejores jugadores del mundo',
     noGroup: 'asigna un nombre de grupo para ver este marcador',
@@ -1449,6 +1460,8 @@ const T = {
     reactionPoints: '🌶️ Reactions score points',
     tieLine: "It's a tie! {names} with {pts} points", tieAnd: 'and',
     bdAnswers: 'answers', bdReactions: 'reactions',
+    awPopularity: 'Popularity', awLaughter: 'Laughter', awOriginality: 'Originality',
+    shareBtn: 'Share', copied: 'Copied!', roundsWord: 'rounds',
     leaderboard: 'Leaderboard', myGroup: 'My group', world: 'Worldwide',
     worldSub: 'the best players in the world',
     noGroup: 'set a group name to see this leaderboard',
@@ -1515,6 +1528,8 @@ const T = {
     reactionPoints: '🌶️ Réactions avec points',
     tieLine: 'Égalité ! {names} avec {pts} points', tieAnd: 'et',
     bdAnswers: 'réponses', bdReactions: 'réactions',
+    awPopularity: 'Popularité', awLaughter: 'Rires', awOriginality: 'Originalité',
+    shareBtn: 'Partager', copied: 'Copié !', roundsWord: 'manches',
     leaderboard: 'Classement', myGroup: 'Mon groupe', world: 'Mondial',
     worldSub: 'les meilleurs joueurs du monde',
     noGroup: 'ajoute un nom de groupe pour voir ce classement',
@@ -1809,6 +1824,7 @@ window.applyLang = function() {
   s('btn-play-again', t('playAgain'));
   s('btn-wait-host', t('waitHost'));
   s('btn-show-lb', t('leaderboard'));
+  s('btn-share-final', t('shareBtn'));
   // Rebuild theme picker if in lobby (language changed)
   if (G.screen === 'lobby' && G.isHost) {
     // Theme names differ per language — preserve selection by position (0=classic,1=random,2=free)
@@ -5496,18 +5512,9 @@ function escHtml(v) {
 }
 function signed(v) { v = v || 0; return v >= 0 ? '+' + v : '−' + Math.abs(v); }
 
-// Scores cards: collapsed row + expandable panel with this round's answers
-let G_scOpen = new Set(), G_scRound = null, G_scNames = [];
-function scoreCardHTML(i, name, total, medal, emoji, rl, room) {
-  const d = rl.players[name];
-  const head = (inner, openable) =>
-    `<div class="sc-row${openable && G_scOpen.has(name) ? ' expanded' : ''}" id="sc-row-${i}"${openable ? ` onclick="toggleScoreCard(${i})"` : ''}>${inner}</div>`;
-  const nameHtml = `<span class="sc-who">${medal} ${emoji}</span><span class="sc-name">${escHtml(name)}</span>`;
-  if (!d) return head(`${nameHtml}<span class="sc-total" style="margin-left:auto">${total}<span class="sc-unit"> pts</span></span>`, false);
-  const pts = d.pts || {};
-  const isCaller = !!rl.caller && rl.caller === name;
-  const cats = rl.categories || [];
-  const rows = cats.map((cat, ci) => {
+// One player's answer rows for one round (shared by the Scores and Final cards)
+function roundRowsHTML(d, cats) {
+  return cats.map((cat, ci) => {
     const ans = (d.answers || {})[ci] || '';
     const st = (d.status || {})[ci] || 'e';
     const g = (d.got || {})[ci] || {};
@@ -5520,14 +5527,31 @@ function scoreCardHTML(i, name, total, medal, emoji, rl, room) {
       <span class="sc-ans-mark${st === 'x' ? ' x' : ''}">${mark}</span>
     </div>`;
   }).join('');
+}
+// "respuestas 550 · A +250 · reacciones +150" (A only for the caller, reactions only when points are on)
+function breakdownHTML(pts, isCaller, room) {
   const parts = [`${t('bdAnswers')} ${pts.answers || 0}`];
   if (isCaller) parts.push(`<span style="color:var(--red)">A ${signed(pts.alto)}</span>`);
   if (room.reactionPoints !== false) parts.push(`${t('bdReactions')} ${signed(pts.reactions)}`);
+  return `<div class="sc-breakdown">${parts.join(' · ')}</div>`;
+}
+
+// Scores cards: collapsed row + expandable panel with this round's answers
+let G_scOpen = new Set(), G_scRound = null, G_scNames = [];
+function scoreCardHTML(i, name, total, medal, emoji, rl, room) {
+  const d = rl.players[name];
+  const head = (inner, openable) =>
+    `<div class="sc-row${openable && G_scOpen.has(name) ? ' expanded' : ''}" id="sc-row-${i}"${openable ? ` onclick="toggleScoreCard(${i})"` : ''}>${inner}</div>`;
+  const nameHtml = `<span class="sc-who">${medal} ${emoji}</span><span class="sc-name">${escHtml(name)}</span>`;
+  if (!d) return head(`${nameHtml}<span class="sc-total" style="margin-left:auto">${total}<span class="sc-unit"> pts</span></span>`, false);
+  const pts = d.pts || {};
+  const isCaller = !!rl.caller && rl.caller === name;
+  const rows = roundRowsHTML(d, rl.categories || []);
   return head(`<span class="sc-who">${medal} ${emoji}</span><span class="sc-namewrap"><span class="sc-name">${escHtml(name)}</span>${isCaller ? '<span class="sc-alto">A</span>' : ''}</span>
       <span class="sc-round">${signed(pts.round)}</span>
       <span class="sc-total">${total}<span class="sc-unit"> pts</span></span>
       <span class="sc-chevron">▶</span>`, true)
-    + `<div class="sc-panel${G_scOpen.has(name) ? ' open' : ''}" id="sc-panel-${i}">${rows}<div class="sc-breakdown">${parts.join(' · ')}</div></div>`;
+    + `<div class="sc-panel${G_scOpen.has(name) ? ' open' : ''}" id="sc-panel-${i}">${rows}${breakdownHTML(pts, isCaller, room)}</div>`;
 }
 
 window.toggleScoreCard = (i) => {
@@ -5758,12 +5782,117 @@ function showFinal(room) {
     launchConfetti(wPlayers[sorted[0][0]]);
   }
   const fPlayers = room.players||{};
-  const fLangs = room.langs||{};
   const fMedals = denseMedals(sorted);
-  document.getElementById('final-list').innerHTML = sorted.map(([n,pts],i) =>
-    `<div class="score-row"><span>${fMedals[i]} ${fPlayers[n]||'🎲'} ${n}</span><span class="pts">${pts} pts</span></div>`
+  const rounds = roundLogEntries(room);
+  G_finalRoom = room; // for shareFinal
+  document.getElementById('final-awards').innerHTML = computeAwards(room).map(a =>
+    `<span class="aw-chip">${a.emoji} ${t(a.label)} · <b>${a.names.map(escHtml).join(', ')}</b></span>`
   ).join('');
+  document.getElementById('final-list').innerHTML = rounds.length
+    ? sorted.map(([n,pts],i) => finalCardHTML(i, n, pts, fMedals[i], fPlayers[n]||'🎲', room, rounds)).join('')
+    : sorted.map(([n,pts],i) =>  // fallback: no roundLog (older room)
+        `<div class="score-row"><span>${fMedals[i]} ${fPlayers[n]||'🎲'} ${escHtml(n)}</span><span class="pts">${pts} pts</span></div>`
+      ).join('');
 }
+
+// roundLog comes back from Firebase as an object or, with numeric keys, as an array.
+// Normalise to [[round, entry], ...] sorted by round, rounds up to currentRound only.
+function roundLogEntries(room) {
+  const cur = room.currentRound || Infinity;
+  return Object.entries(room.roundLog || {})
+    .filter(([k, v]) => v && v.players && +k >= 1 && +k <= cur)
+    .map(([k, v]) => [+k, v])
+    .sort((a, b) => a[0] - b[0]);
+}
+
+// End-of-game awards from roundLog (work with reaction points on or off):
+// popularity = 🔥30 + 👏20 received on any answer, laughter = 😂 received, originality = unique valid answers.
+// Only players still in the game; only awards someone earned (> 0); ties list everyone.
+function computeAwards(room) {
+  const names = Object.keys(room.scores || {});
+  const tally = { popularity: {}, laughter: {}, originality: {} };
+  names.forEach(n => { tally.popularity[n] = 0; tally.laughter[n] = 0; tally.originality[n] = 0; });
+  roundLogEntries(room).forEach(([, rl]) => {
+    Object.entries(rl.players).forEach(([n, d]) => {
+      if (!(n in tally.popularity) || !d) return;
+      Object.values(d.got || {}).forEach(g => {
+        if (!g) return;
+        tally.popularity[n] += (g.f || 0) * 30 + (g.c || 0) * 20;
+        tally.laughter[n] += (g.l || 0);
+      });
+      Object.values(d.status || {}).forEach(st => { if (st === 'u') tally.originality[n]++; });
+    });
+  });
+  const out = [];
+  [['popularity', '🔥', 'awPopularity'], ['laughter', '😂', 'awLaughter'], ['originality', '✨', 'awOriginality']].forEach(([k, emoji, label]) => {
+    const max = Math.max(0, ...Object.values(tally[k]));
+    if (max > 0) out.push({ key: k, emoji, label, value: max, names: names.filter(n => tally[k][n] === max) });
+  });
+  return out;
+}
+
+// Final card: collapsed row with the final total; opened shows every round (heading, answers, breakdown)
+function finalCardHTML(i, name, total, medal, emoji, room, rounds) {
+  const played = rounds.filter(([, rl]) => rl.players[name]);
+  const head = `<div class="sc-row" id="fn-row-${i}"${played.length ? ` onclick="toggleFinalCard(${i})"` : ''}>
+    <span class="sc-who">${medal} ${emoji}</span><span class="sc-namewrap"><span class="sc-name">${escHtml(name)}</span></span>
+    <span class="sc-total" style="margin-left:auto">${total}<span class="sc-unit"> pts</span></span>
+    ${played.length ? '<span class="sc-chevron">▶</span>' : ''}</div>`;
+  if (!played.length) return head;
+  const rl1 = t('rndLabel');
+  const roundWord = rl1.charAt(0).toUpperCase() + rl1.slice(1);
+  const body = played.map(([r, rl]) => {
+    const d = rl.players[name];
+    const pts = d.pts || {};
+    const isCaller = !!rl.caller && rl.caller === name;
+    return `<div class="fn-round-h"><span>${roundWord} ${r}${rl.letter ? ' · ' + escHtml(rl.letter) : ''}</span>${isCaller ? '<span class="sc-alto">A</span>' : ''}<span class="fn-round-pts">${signed(pts.round)}</span></div>`
+      + roundRowsHTML(d, rl.categories || []) + breakdownHTML(pts, isCaller, room);
+  }).join('');
+  return head + `<div class="sc-panel" id="fn-panel-${i}">${body}</div>`;
+}
+
+window.toggleFinalCard = (i) => {
+  const row = document.getElementById('fn-row-' + i);
+  const panel = document.getElementById('fn-panel-' + i);
+  if (!row || !panel) return;
+  row.classList.toggle('expanded', panel.classList.toggle('open'));
+};
+
+// Share: scores only + awards line, plain text in the sharer's language (native share sheet, clipboard fallback)
+let G_finalRoom = null;
+function finalShareText(room) {
+  const sorted = Object.entries(room.scores || {}).sort((a, b) => b[1] - a[1]);
+  const medals = denseMedals(sorted);
+  let rank = 0, prev = null;
+  const lines = sorted.map(([n, pts], i) => {
+    if (pts !== prev) { rank++; prev = pts; }
+    return `${medals[i] || rank + '.'} ${n} ${pts}`;
+  });
+  const played = room.currentRound || roundLogEntries(room).length;
+  const roundsTxt = played === 1 ? `1 ${t('rndLabel')}` : `${played} ${t('roundsWord')}`;
+  const header = ['¡ALTO!', room.groupName || '', roundsTxt].filter(Boolean).join(' · ');
+  const awardsLine = computeAwards(room).map(a => `${a.emoji} ${a.names.join(', ')}`).join(' · ');
+  return [header, ...lines, awardsLine, 'jugarenfamilia.es'].filter(Boolean).join('\n');
+}
+
+window.shareFinal = async () => {
+  if (!G_finalRoom) return;
+  const text = finalShareText(G_finalRoom);
+  if (navigator.share) {
+    try { await navigator.share({ text }); return; }
+    catch (e) { if (e.name === 'AbortError') return; }
+  }
+  const btn = document.getElementById('btn-share-final');
+  const done = () => { if (btn) { btn.textContent = t('copied'); setTimeout(() => { btn.textContent = t('shareBtn'); }, 2000); } };
+  try { await navigator.clipboard.writeText(text); done(); }
+  catch (e) {
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.focus(); ta.select();
+    try { document.execCommand('copy'); done(); } catch (e2) { /* nothing more to try */ }
+    document.body.removeChild(ta);
+  }
+};
 
 window.playAgain = async () => {
   stopConfetti();
@@ -5909,7 +6038,23 @@ const DBG = {
   invalidAnswers: { '__debug____Cosa en casa': true, 'Carlos__Fruta': true },
   stopCaller: 'Carlos',
   // Round 2 log for the Scores cards: Carlos called ¡Alto! (5 cats: +160, 1 invalid: -100 = +60)
-  roundLog: { '2': {
+  roundLog: {
+   '1': {  // timeout round (no caller), different categories — totals after it = preRoundScores
+    letter: 'P', caller: '',
+    categories: ['Color', 'País', 'Objeto'],
+    players: {
+      'María':     { answers: ['Púrpura','Perú','Pala'], status: ['u','d','u'],
+                     got: [{f:1,c:0,l:0},{f:0,c:0,l:0},{f:0,c:1,l:0}],
+                     pts: { answers: 250, alto: 0, reactions: 50, round: 300, total: 300 } },
+      'Carlos':    { answers: ['Pardo','Perú',''], status: ['u','d','e'],
+                     got: [{f:0,c:0,l:0},{f:0,c:0,l:0},{f:0,c:0,l:0}],
+                     pts: { answers: 150, alto: 0, reactions: 0, round: 150, total: 150 } },
+      '__debug__': { answers: ['Plata','Portugal','Peine'], status: ['u','u','u'],
+                     got: [{f:0,c:0,l:0},{f:0,c:0,l:0},{f:0,c:0,l:0}],
+                     pts: { answers: 300, alto: 0, reactions: 0, round: 300, total: 300 } },
+    },
+   },
+   '2': {
     letter: 'M', caller: 'Carlos',
     categories: ['Nombre', 'Ciudad', 'Animal', 'Fruta', 'Cosa en casa'],
     players: {
@@ -6685,7 +6830,7 @@ setTimeout(() => updateDailyButtonDate(), 350);
 // Version freshness check — silently reload if a newer version is deployed
 // Runs once on load; does nothing if already on latest or if fetch fails
 (function() {
-  const RUNNING = 'v260926.305-tmp';
+  const RUNNING = 'v260926.306-tmp';
   if (sessionStorage.getItem('alto_ver_checked') === RUNNING) return; // already checked this session
   sessionStorage.setItem('alto_ver_checked', RUNNING);
   fetch(location.href, { cache: 'no-cache' })
@@ -6708,7 +6853,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) upda
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260926.305-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v260926.306-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
