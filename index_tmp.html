@@ -3975,7 +3975,7 @@ function handleRoom(room) {
         // Clear stale invalidAnswers/votes from Firebase so all clients start clean
         update(roomRef(G.roomCode), {phase:'validate', invalidAnswers: {}, votes: {}});
         G.invalidAnswers = {};
-        showValidation(room);
+        showValidation({...room, invalidAnswers: {}, votes: {}}); // snapshot may hold last round's marks
       } else {
         showGuestValidation(room);
       }
@@ -4338,6 +4338,7 @@ function closeCountdown() {
 
 function enterPlaying(room) {
   G.submitted = false; G.stopHandled = false;
+  G_myVotes = {}; G_myEntryEmojis = {}; // new round: forget last round's votes/reactions
   stopReactions();
   // Clear stale vote/emoji DOM from previous round
   const valContent = document.getElementById('val-content');
@@ -4552,7 +4553,8 @@ function showValidation(room) {
       _scBanner.style.display = 'none';
     }
   }
-  G.invalidAnswers = {};
+  // Start from the saved decisions (Revisar and host reload keep them); empty on a round's first entry
+  G.invalidAnswers = {...(room.invalidAnswers || {})};
   if (room.aiEnabled !== undefined) { G_aiEnabled = room.aiEnabled; window.setAIEnabled(room.aiEnabled); } else { window.setAIEnabled(true); }
   if (room.aiStrictness) { G_aiStrictness = room.aiStrictness; window.setAIStrictness(room.aiStrictness); }
   if (room.aiSpelling !== undefined) { G_aiSpelling = room.aiSpelling; window.setAISpelling(room.aiSpelling); }
@@ -4572,7 +4574,8 @@ function showValidation(room) {
       const pts = ans ? (isDup?50:100) : 0;
       const safeAns = ans ? ans.replace(/'/g,"\'") : '';
       const dictBtn = ans ? `<button class="dict-btn" id="dictbtn_${key}" onclick="lookupWord('${safeAns}','${key}')">📖</button>` : '';
-      const invBtn = (ans && G_validationMode !== 'democratic') ? `<button class="inv-btn" id="ib_${key}" onclick="toggleInvalid('${key}',${pts})">✕</button>` : '';
+      const isInv = !!(ans && G.invalidAnswers[key]);
+      const invBtn = (ans && G_validationMode !== 'democratic') ? `<button class="inv-btn" id="ib_${key}" onclick="toggleInvalid('${key}',${pts})">${isInv ? '↩' : '✕'}</button>` : '';
       const ptsBadge = ans ? `<span class="pts-badge" id="pb_${key}">${pts} pts</span>` : '';
       const dictDiv = ans ? `<div class="dict-result" id="dict_${key}"></div>` : '';
       const existingAI = ans && room.aiResults && room.aiResults[key];
@@ -4580,7 +4583,7 @@ function showValidation(room) {
       const aiCls = existingAI ? ('ai-result show ' + (existingAI.cls || (existingAI.html.includes('✅') ? 'valid' : existingAI.html.includes('❌') ? 'invalid' : 'unsure'))) : 'ai-result';
       const aiRes = ans ? `<div class="ai-result ${aiCls}" id="ai_res_${key}">${existingAI ? existingAI.html : ''}</div>` : '';
       const voteHtml = ans ? renderVotes(key, {}, G_validationMode, players, true) : '';
-      const entryClass = ans ? 'val-entry democratic-valid' : 'val-entry';
+      const entryClass = !ans ? 'val-entry' : (isInv ? 'val-entry invalid' : 'val-entry democratic-valid');
       html += `<div class="${entryClass}" id="ve_${key}">
         <div class="val-entry-top">
           <span class="val-name">${p}</span>
@@ -5209,6 +5212,11 @@ function applyVotesAndReactions(room, isHost) {
     if (voteEl) voteEl.innerHTML = renderVotes(key, votes[key], mode, players, isHost);
   });
 
+  // Rebuild my own reaction highlights from Firebase (survives reload and Revisar)
+  Object.entries(entryReactions).forEach(([key, rs]) => {
+    ENTRY_EMOJIS.forEach(e => { G_myEntryEmojis[key + '_' + e] = !!(rs && rs[G.playerName + '_' + e]); });
+  });
+
   // Update emoji reaction displays (works for both host and guest)
   Object.keys(entryReactions).forEach(key => {
     const emojiEl = document.getElementById('emojis_' + key);
@@ -5421,14 +5429,11 @@ window.goBackToValidation = async () => {
   const snap = await get(roomRef(G.roomCode));
   const room = snap.val();
   if (!room) return;
-  await update(roomRef(G.roomCode), {
-    phase: 'validate',
-    invalidAnswers: {}, votes: {}, entryReactions: {},
-  });
-  G.invalidAnswers = {};
-  G_myVotes = {};
-  G_myEntryEmojis = {};
-  showValidation(room);
+  // Keep every decision: invalid marks, democratic votes and reactions stay as they were.
+  // The host can change any of them before recalculating.
+  await update(roomRef(G.roomCode), { phase: 'validate' });
+  showValidation(room);               // redraws invalid marks from room.invalidAnswers
+  applyVotesAndReactions(room, true); // redraws votes and reactions straight away
 };
 
 window.nextRound = async () => {
@@ -5453,7 +5458,7 @@ window.nextRound = async () => {
     categories: newCats,
     phase: 'countdown', countdownStart: Date.now(), roundStartTime: null,
     allAnswers: {}, calledStop: false, stopCaller: '', aiResults: {}, votes: {}, entryReactions: {},
-    preRoundScores: null,
+    invalidAnswers: {}, preRoundScores: null,
   });
 };
 
@@ -5654,7 +5659,7 @@ window.continueSession = async () => {
   if (phase==='lobby') enterLobby(room);
   else if (phase==='countdown') startCountdown(room);
   else if (phase==='playing') enterPlaying(room);
-  else if (phase==='validate') { if(G.isHost){G.invalidAnswers={};showValidation(room);}else{showGuestValidation(room);applyVotesAndReactions(room,false);if(room.aiResults)applyAIResults(room.aiResults);} }
+  else if (phase==='validate') { if(G.isHost){showValidation(room);applyVotesAndReactions(room,true);}else{showGuestValidation(room);applyVotesAndReactions(room,false);if(room.aiResults)applyAIResults(room.aiResults);} }
   else if (phase==='scores') showScores(room);
   else if (phase==='final') showFinal(room);
 };
@@ -5674,7 +5679,7 @@ async function restoreToScreen() {
   if (phase==='lobby') enterLobby(room);
   else if (phase==='countdown') startCountdown(room);
   else if (phase==='playing') enterPlaying(room);
-  else if (phase==='validate') { if(G.isHost){G.invalidAnswers={};showValidation(room);}else{showGuestValidation(room);applyVotesAndReactions(room,false);if(room.aiResults)applyAIResults(room.aiResults);} }
+  else if (phase==='validate') { if(G.isHost){showValidation(room);applyVotesAndReactions(room,true);}else{showGuestValidation(room);applyVotesAndReactions(room,false);if(room.aiResults)applyAIResults(room.aiResults);} }
   else if (phase==='scores') showScores(room);
   else if (phase==='final') showFinal(room);
 }
@@ -6511,7 +6516,7 @@ setTimeout(() => updateDailyButtonDate(), 350);
 // Version freshness check — silently reload if a newer version is deployed
 // Runs once on load; does nothing if already on latest or if fetch fails
 (function() {
-  const RUNNING = 'v260926.302-tmp';
+  const RUNNING = 'v260926.303-tmp';
   if (sessionStorage.getItem('alto_ver_checked') === RUNNING) return; // already checked this session
   sessionStorage.setItem('alto_ver_checked', RUNNING);
   fetch(location.href, { cache: 'no-cache' })
@@ -6534,7 +6539,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) upda
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260926.302-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v260926.303-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
