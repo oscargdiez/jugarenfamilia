@@ -3960,10 +3960,33 @@ function normalize(str) {
   return str.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
 }
 
-function saveSession() {
-  localStorage.setItem('alto_session', JSON.stringify({name:G.playerName, emoji:G.playerEmoji, code:G.roomCode, isHost:G.isHost}));
+// Session = who this player is in which room. Saved twice:
+//  - sessionStorage: this tab only, survives a refresh → a refreshed tab always comes back as ITS OWN player
+//  - localStorage: shared by every tab of the browser → fallback after closing and reopening
+// The room code also goes in the address (?room=CODE) so a refresh knows which room the tab belongs to.
+// Room code the page was opened with (invite link or a refreshed room tab), read once at load
+const OPENED_ROOM = (new URLSearchParams(window.location.search).get('room') || '').toUpperCase();
+function readSession(store) {
+  try { return JSON.parse(store.getItem('alto_session') || 'null'); } catch(e) { return null; }
 }
-function clearSession() { localStorage.removeItem('alto_session'); }
+function setRoomInUrl(code) {
+  try {
+    const u = new URL(window.location.href);
+    if (code) u.searchParams.set('room', code); else u.searchParams.delete('room');
+    if (u.href !== window.location.href) history.replaceState(null, '', u.href);
+  } catch(e) { /* ignore */ }
+}
+function saveSession() {
+  const data = JSON.stringify({name:G.playerName, emoji:G.playerEmoji, code:G.roomCode, isHost:G.isHost});
+  localStorage.setItem('alto_session', data);
+  try { sessionStorage.setItem('alto_session', data); } catch(e) { /* private mode */ }
+  setRoomInUrl(G.roomCode);
+}
+function clearSession() {
+  localStorage.removeItem('alto_session');
+  try { sessionStorage.removeItem('alto_session'); } catch(e) { /* private mode */ }
+  setRoomInUrl('');
+}
 
 function saveLobbyConfig() {
   const rounds = document.getElementById('sl-rounds')?.value;
@@ -5940,8 +5963,11 @@ window.continueSession = async () => {
 };
 
 window.startFresh = () => {
+  // "No soy yo": if this page was opened for a room (?room= at load), go to that room's join screen (empty name), not home
+  const roomCode = OPENED_ROOM;
   clearSession();
   G.playerName = ''; G.roomCode = ''; G.isHost = false;
+  if (roomCode) { showQuickJoin(roomCode, ''); return; }
   window.show('home');
   buildEmojiGrid();
 };
@@ -5959,30 +5985,36 @@ async function restoreToScreen() {
   else if (phase==='final') showFinal(room);
 }
 
+// Join screen for a room code (invite link, or "No soy yo" on a page opened with ?room=)
+function showQuickJoin(code, prefillName) {
+  G.roomCode = code;
+  buildQuickJoinEmojiGrid();
+  applyQuickJoinLang();
+  const qjName = document.getElementById('qj-name');
+  if (qjName) qjName.value = prefillName || '';
+  const codeLabel = document.getElementById('qj-room-code');
+  if (codeLabel) codeLabel.textContent = code;
+  setRoomInUrl(code);
+  window.show('quickjoin');
+}
+
 async function tryRestore() {
-  const urlCode = new URLSearchParams(window.location.search).get('room');
+  const urlCode = (new URLSearchParams(window.location.search).get('room') || '').toUpperCase();
+  const tabSession = readSession(sessionStorage);   // this tab's own player (survives refresh)
+  const sharedSession = readSession(localStorage);  // last player saved in any tab of this browser
+  let session;
   if (urlCode) {
-    const code = urlCode.toUpperCase();
-    // If we have a saved session for this exact room, skip quickjoin and restore directly
-    const savedSession = JSON.parse(localStorage.getItem('alto_session') || '{}');
-    if (savedSession.name && savedSession.code === code) {
-      // Fall through to session restore below — don't show quickjoin
-    } else {
-      G.roomCode = code;
-      // Show quick join screen
-      buildQuickJoinEmojiGrid();
-      applyQuickJoinLang();
-      const qjName = document.getElementById('qj-name');
-      if (qjName) qjName.value = savedSession.name || localStorage.getItem('alto_name') || '';
-      const codeLabel = document.getElementById('qj-room-code');
-      if (codeLabel) codeLabel.textContent = code;
-      window.show('quickjoin');
+    // Restore directly only with a session for this exact room — this tab's own one first
+    session = [tabSession, sharedSession].find(s => s && s.name && s.code === urlCode);
+    if (!session) {
+      showQuickJoin(urlCode, (tabSession && tabSession.name) || (sharedSession && sharedSession.name) || localStorage.getItem('alto_name') || '');
       return;
     }
+  } else {
+    session = (tabSession && tabSession.name) ? tabSession : sharedSession;
   }
-  const saved = localStorage.getItem('alto_session');
-  if (!saved) return;
-  const {name, emoji, code, isHost} = JSON.parse(saved);
+  if (!session) return;
+  const {name, emoji, code, isHost} = session;
   if (emoji) G.playerEmoji = emoji;
   if (!name||!code) return;
   const snap = await get(roomRef(code));
@@ -5990,6 +6022,9 @@ async function tryRestore() {
   if (!snap.exists()) { clearSession(); return; }
   const room = snap.val();
   if (room.phase === 'final') { clearSession(); return; }
+  // Pin this tab to the restored player and room, so later refreshes come back the same way
+  try { sessionStorage.setItem('alto_session', JSON.stringify(session)); } catch(e) { /* private mode */ }
+  setRoomInUrl(code);
   G.playerName=name; G.roomCode=code;
   G.isHost = isHost && room.host===name;
 
@@ -6798,11 +6833,6 @@ document.body.classList.add('screen-home');
     scheduleNameCheck(capped.trim());
   });
 })();
-buildEmojiGrid();
-applyLang();
-document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.getAttribute('onclick').includes("'"+LANG+"'")));
-try { const s=JSON.parse(localStorage.getItem('alto_session')||'{}'); const _n=document.getElementById('inp-name'); if(_n && !_n.value) { if(s.name) _n.value=s.name; else { const _saved=localStorage.getItem('alto_name'); if(_saved) _n.value=_saved; } } if(_n && _n.value) scheduleNameCheck(_n.value); } catch(e){}
-tryRestore();
 // Debug: intercept createRoom AFTER it's been defined
 (function() {
   const _orig = window.createRoom;
@@ -6823,7 +6853,7 @@ tryRestore();
 buildEmojiGrid();
 applyLang();
 document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.getAttribute('onclick').includes("'"+LANG+"'")));
-try { const s=JSON.parse(localStorage.getItem('alto_session')||'{}'); const _n=document.getElementById('inp-name'); if(_n && !_n.value) { if(s.name) _n.value=s.name; else { const _saved=localStorage.getItem('alto_name'); if(_saved) _n.value=_saved; } } if(_n && _n.value) scheduleNameCheck(_n.value); } catch(e){}
+try { const s=readSession(sessionStorage) || readSession(localStorage) || {}; const _n=document.getElementById('inp-name'); if(_n && !_n.value) { if(s.name) _n.value=s.name; else { const _saved=localStorage.getItem('alto_name'); if(_saved) _n.value=_saved; } } if(_n && _n.value) scheduleNameCheck(_n.value); } catch(e){}
 tryRestore();
 // Ensure daily button played state wins any init timing race (especially iOS)
 setTimeout(() => updateDailyButtonDate(), 350);
@@ -6831,7 +6861,7 @@ setTimeout(() => updateDailyButtonDate(), 350);
 // Version freshness check — silently reload if a newer version is deployed
 // Runs once on load; does nothing if already on latest or if fetch fails
 (function() {
-  const RUNNING = 'v260926.308-tmp';
+  const RUNNING = 'v260926.309-tmp';
   if (sessionStorage.getItem('alto_ver_checked') === RUNNING) return; // already checked this session
   sessionStorage.setItem('alto_ver_checked', RUNNING);
   fetch(location.href, { cache: 'no-cache' })
@@ -6854,7 +6884,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) upda
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260926.308-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v260926.309-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
