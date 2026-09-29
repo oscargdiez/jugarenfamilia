@@ -1171,6 +1171,8 @@ Living version (Claude Doc): https://claude.ai/artifact/9bCUk2yRwx1wHQG3hmjhoV
 
 **AI scout results (29 Sep, scout v3: 15 daily questions = 5 per language + 9 contests) → PRODUCTION v260926.315 / staging v260926.316-tmp.** Sante free 15/15 · 9/9 · 2.1 s; Cohere North Mini Code free 15/15 · 9/9 · 4.1 s; Liquid LFM 2.5 (2.6B) free 15/15 · 9/9 · 4.8 s (small model, not trusted beyond the test); dots-3 note free 15/15 · 7 s; Nemotron Super free 15/15 but NVIDIA "temporarily overloaded" errors; paid Ling Fin 14/15 (missed "5" as body part) · 9/9 · 2.4 s; Nemotron content-safety = always unsure (a safety filter); GLM 5.2 free GONE (paid only now); Inkling models need agent harnesses (403); Qwen 3.8 + Gemma 4 free BUSY. **New `AI_MODELS` = Sante free → Cohere free → Ling Fin paid** (the paid one only runs if both free fail). Checks: version before/after, syntax, 12 screens, request body, Session 24 kit on production, full kit on staging — all green. **Oscar to check: a multiplayer game with the 🤖 button** — multiplayer uses a DIFFERENT prompt the scout does not test (Nemotron scored 15/15 on the daily prompt but answered "not sure" in multiplayer). Best contest judges for the later "contests use a different model" item: Sante, Ling Fin, Cohere (all 9/9). Scout v3 kept in `tools/ai_scout.js` (also skips busy models after 4 × 429, shows GONE / BLOCKED (privacy) / BUSY / NO CREDIT, per-language ES·EN·FR columns, suggests only models with 4+/5 in every language).
 
+**One judge prompt for every mode → PRODUCTION v260926.317 / staging v260926.318-tmp.** Multiplayer (🤖 button, `askAI`) had its own older prompts (separate Relajado/Estricto texts, never asked about the starting letter, a language rule built but never sent). Now `dailyBuildPrompt(category, letter, opts)` / `dailyBuildPromptWithWord(word, category, letter, opts)` is THE judge prompt: no `opts` = the daily prompt, byte-identical to before (so the scout results hold); multiplayer passes `{ strict: G_aiStrictness === 'estricto', looseSpelling: !!G_aiSpelling }`: Estricto swaps rule (2) to "only well-known, clearly belonging" and makes doubt → INVALIDO; Relajado appends "prefer VALIDO on any close call"; spelling allowed swaps rules (4)/(5). Multiplayer now also checks the starting letter. Kept as they were: multiplayer answer reading (also accepts yes/no) and its 12 s timeout; contest prompt unchanged. Checks: daily prompt identical to v315 for 3 langs × 3 answers, each option changes the text, askAI sends the shared prompt (both option combos), checklist, Session 24 kit on production, full kit on staging — all green. Not re-scouted (Oscar's call: same base prompt).
+
 **Process notes:** my sandbox dropped for a while mid-session (files survived). Test harness lesson: fake DBs in script tests must apply writes, or multi-step fixes look wrong.
 
 ---
@@ -1178,8 +1180,8 @@ Living version (Claude Doc): https://claude.ai/artifact/9bCUk2yRwx1wHQG3hmjhoV
 ## ▶ START HERE NEXT SESSION (Session 26)
 
 1. Upload the project zip (must include `tests\` and `tools\`). Read this handoff, then `MULTIPLAYER_SCORING_DESIGN.md` (Groups, History, Languages sections; Build 5 row).
-2. Production = **v260926.315** (AI models from the scout). Staging = **v260926.316-tmp** (Build 5a + AI fix) — **still to be tested by Oscar** (test list in the Session 25 log). Run the kit on staging first: `./run_all.sh ../index_tmp.html` → ALL GREEN (178 + 28 + 19). Note: the updated suites need 5a code, so they fail on production v313 — that is expected.
-3. ~~Finish the AI model choice~~ — done in v260926.315 (Sante free → Cohere free → Ling Fin paid). Ask Oscar how the multiplayer 🤖 check went; if Sante is poor with the multiplayer prompt, extend the scout to test that prompt too.
+2. Production = **v260926.317** (scout models + one shared judge prompt). Staging = **v260926.318-tmp** (Build 5a + AI fix) — **still to be tested by Oscar** (test list in the Session 25 log). Run the kit on staging first: `./run_all.sh ../index_tmp.html` → ALL GREEN (178 + 28 + 19). Note: the updated suites need 5a code, so they fail on production v313 — that is expected.
+3. ~~Finish the AI model choice~~ — done in v260926.315 (Sante free → Cohere free → Ling Fin paid). Multiplayer now uses the same prompt (v317), so the scout covers it; ask Oscar how the multiplayer 🤖 check went anyway.
 4. Then **5b**: group page (Leaderboard screen) with history ◀ ▶ (SVG flag + date), full game view (ranking, awards, per-round breakdown from `roundLog`), Mundial/global leaderboard removed, `?g=ID` share link + share text link, Historial buttons (host picker and guest line). Plan with Oscar first.
 5. When Build 5 goes to production: Oscar deletes `global/`, `groups/`, `groupNames/` in the console and removes their three rules lines (the `lastPlayed` index is already in).
 6. After Build 5: AI model management steps 1 and 2 (Flagged for Future), then the help-page pass.
@@ -1192,10 +1194,10 @@ Living version (Claude Doc): https://claude.ai/artifact/9bCUk2yRwx1wHQG3hmjhoV
 - Handy: a `__debug__` name shows the debug bar; its Scores and Final screens have a 2-round sample game with a tie, reactions, an A caller, a duplicate, an invalid and an empty answer. Debug room now has `groupId: 'dbggarcia01'`.
 - Oscar to set a credit limit on the OpenRouter key (API Keys → edit key).
 
-**Last versions deployed: v260926.315 (production), v260926.316-tmp (staging).**
+**Last versions deployed: v260926.317 (production), v260926.318-tmp (staging).**
 - JS syntax clean (`node --check`) ✅
 - Test kit green ✅
-- (File size: over 300KB since Session 23 — Oscar confirmed not a concern; v315 is 360KB, v316-tmp is 371KB)
+- (File size: over 300KB since Session 23 — Oscar confirmed not a concern; v317 is 360KB, v318-tmp is 371KB)
 
 **Always start from the uploaded working file** — never from a local copy that may have drifted.
 
