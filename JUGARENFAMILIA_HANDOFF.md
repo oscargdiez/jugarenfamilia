@@ -1,5 +1,5 @@
 # JugarEnFamilia.es — Project Handoff Document
-*Last updated: September 2026 — Session 24*
+*Last updated: September 2026 — Session 25*
 
 > ⚠️ **HANDOFF INTEGRITY RULE — DO NOT DELETE CONTENT**
 > This document is append-and-update only. Never remove sections, rules, known issues, backlog items, or session log entries. Only add new content and update existing entries. A truncated handoff causes the next session to lose critical context.
@@ -57,6 +57,17 @@ A multiplayer browser-based version of the classic Spanish word game "Stop/Tutti
 - **Schema additions (Session 22):**
   - `daily/{date}/{lang}/scores/{playerKey}/aiResponses: { "2": "...", "4": "..." }` — raw AI reasoning text for invalid/unsure answers only (capped 1000 chars, `<think>` stripped). Only written if at least one invalid/unsure answer. Valid answers excluded.
   - `names/{safeName}/contests/{date}/{lang}_log/{idx}/aiResponse: string` — raw AI reasoning text written on every recontest, for contest quality analysis.
+- **Security rules (Session 25 — permanent, no expiry):** until 29 Sep 2026 the database ran on Firebase "test mode" rules that would have locked ALL reads/writes on 28 Sep 01:00 Spain time. Replaced with per-path rules, published by Oscar and checked live (daily, create room, join via link all OK):
+  ```json
+  { "rules": {
+      "rooms":{".read":true,".write":true}, "daily":{".read":true,".write":true}, "names":{".read":true,".write":true},
+      "global":{".read":true,".write":true}, "groups":{".read":true,".write":true}, "groupNames":{".read":true,".write":true},
+      "groupsMeta":{".read":true,".write":true,".indexOn":["lastPlayed"]},
+      "groupsLb":{".read":true,".write":true}, "history":{".read":true,".write":true}, "historyIndex":{".read":true,".write":true} } }
+  ```
+  Same openness as before for the listed paths; any other root path is refused. **Any new top-level path in the code needs a rules line.** When Build 5 reaches production: delete `global/`, `groups/`, `groupNames/` in the console AND remove their three lines from the rules. (The `lastPlayed` index for Build 5 is already in.)
+- **Schema additions (Session 25, Build 5a — staging only so far):** `rooms/{code}/groupId`, `rooms/{code}/groupName`; `groupsMeta/{groupId}: {name, createdAt, lastPlayed}`; `groupsLb/{groupId}/{nameKey}: {name, lastEmoji, wins, games}` (nameKey = normalised name, no emoji); `history/{groupId}/{gameId}: {endedAt, lang, host, groupName, scores, players, roundLog, currentRound, rounds, reactionPoints}`; `historyIndex/{groupId}/{gameId}: {endedAt, winners[], lang}`. gameId = time-sortable base36. localStorage `alto_mygroups` = `[{id,name,last,def}]` max 10; old `alto_groups` / `alto_last_group` are removed on load.
+- **Daily revalidation marker (Session 25):** `daily/2026-09-29/{lang}/scores/{playerKey}/revalidated: timestamp` — written by the one-off revalidation after the AI outage (see Session 25 log).
 
 ### OpenRouter API
 - **Key:** stored in Cloudflare Worker only — never in the HTML or GitHub repo
@@ -64,6 +75,14 @@ A multiplayer browser-based version of the classic Spanish word game "Stop/Tutti
 - **Spending cap:** $4 (free tier only)
 - **Models:** `inclusionai/ling-3.0-flash-fin:free` (primary, used for both daily validation and recontest). The nemotron and glm models were removed from recontest in Session 22 — they were silently failing and votes counted as invalid.
 - **Logs:** visible at openrouter.ai → Logs → filter by API key "Alto"
+- **UPDATE Session 25 (29 Sep 2026) — the free Ling is gone.** OpenRouter withdrew `inclusionai/ling-3.0-flash-fin:free` (last good call 28 Sep 17:19); every daily/practice/contest call got a 404 and all answers became dudoso. Since v260926.313 the game uses ONE shared list `AI_MODELS` (top of the module script, next to `DAILY_CONSENSUS`) for daily, practice, contests and multiplayer, always sent as an OpenRouter fallback list (`models: [...]`):
+  1. `inclusionai/ling-3.0-flash-fin` — **PAID** (~$0.04 in / $0.12 out per M tokens; a few cents a month). Needs credit on the account; Oscar added credit on 29 Sep.
+  2. `nvidia/nemotron-3-super-120b-a12b:free` — backup; in practice always answers "not sure" (thinking model; the 800-token limit probably runs out before the verdict).
+  3. `z-ai/glm-5.2:free` — backup; **found DEAD (404) by the scout on 29 Sep** — replace when the scout results are in.
+  The old "Spending cap: $4 (free tier only)" note above is out of date now that a paid model is first — Oscar to set a credit limit on the key (API Keys → edit key).
+- **Paid Ling has two providers (NovitaAI, DeepInfra)** and they do not always agree, even at temperature 0 — the same answer can get VALID one call and INVALID the next. The free version ran only on Novita. Fix idea in Flagged for Future (pin one provider).
+- **Privacy settings (openrouter.ai/settings/privacy), 29 Sep:** "Allow free endpoints that train on request data" = ON; "Allow free endpoints that publish prompts" = OFF (Oscar may turn it on — only letter/category/word are ever sent); ZDR all off; paid training off. Many `:free` models answer 404 "No endpoints found matching your data policy" unless these are on — the scout cannot tell that apart from a removed model.
+- **Worker (`api.oscar-g-diez.workers.dev`, Cloudflare):** forwards the request body unchanged to OpenRouter with the key from the worker; only checks the `Origin` header (jugarenfamilia.es / www). ⚠️ A script can fake `Origin`, so anyone could run ANY model through it on Oscar's credit — see Flagged for Future (worker controls the model list).
 
 ### GitHub
 - **Repo:** github.com/oscargdiez/jugarenfamilia (public)
@@ -195,6 +214,8 @@ Old code added `addedPts` (100 or 50) directly to `baseScore` which was in raw u
 
 ### Test kit (Session 24)
 `D:\09_ALTO\tests\` (not committed — `deploy.bat` only adds named files; it travels in the project zip). Claude runs it in the sandbox: `./run_all.sh ../index_tmp.html`. Five Node suites (130 checks) extract the real functions from the HTML by name and run them with mocks; `restore/restore_scenarios.py` (19 checks) runs the real HTML in headless Chromium with a fake Firebase module shared between browser contexts (normal window vs incognito) and tabs. Run it before and after every build; extend it with each build. See `tests/README.md`. Also useful: rendering screens with the real CSS + real fonts (`npm pack @fontsource/caveat @fontsource/special-elite`) at 414/390/375/360/320px to check iPhone fit before shipping.
+**Session 25 test kit changes:** new `suites/test_build5a_groups.mjs` (45 checks: Mis grupos rules, default names ES/EN/FR, endGame writes, history record rebuilds awards, trim to 20, yearly cleanup, practice/no group/double tap, write failure still reaches Final); new `restore/groups_scenarios.py` (28 real-browser checks: default group, picker new/rename/switch, guest line live, refresh keeps group, full game lands in groupsLb/history, guest-as-host preselects the family group, rename from another device, practice not counted); `suites/test_build1_scoring.mjs` + `test_build4_final_share.mjs` updated for the 5a code; fake Firebase module now supports `query/orderByChild/startAt/endAt/limitToFirst`; `run_all.sh` now fails a crashed suite (it used to print ALL GREEN when a suite crashed) and runs every `restore/*_scenarios.py`. **The updated suites need the 5a code — against production v313 use the Session 24 kit from the zip.** Totals on staging v260926.314-tmp: 178 unit + 28 groups + 19 restore = ALL GREEN.
+**Tools (Session 25):** `D:\09_ALTO\tools\ai_scout.js` — paste into the Console on jugarenfamilia.es: reads OpenRouter's live free text-model list + `AI_MODELS`, asks each model 14 known questions (from the 29 Sep daily) twice with exactly the daily prompt, prints a ranked table (score, unsure, flips, avg time, status, misses) and a suggested `AI_MODELS`.
 **First thing every session — make a backup:** `cp index.html index_backup_sN.html` before any edits.
 
 ---
@@ -409,6 +430,10 @@ Three theme modes replacing the old 7 themes:
 - **File size ~310KB** — significantly over 300KB soft limit. Growing. Watch carefully each session.
 - `daily/{date}/{lang}/players/{safeName}` legacy index still being written on submit — kept for backfill compatibility, can be retired once `names/{safeName}/played/` has been live for a few weeks
 - Emoji picker grid overflows its container at non-100% zoom on Windows — needs flex-wrap and relative sizing (flagged for future session)
+- **(Session 25)** A contest (`recontest`) asks the SAME model again (Ling, temperature 0), so it rarely overturns; any error or unclear reply counts as "upheld" and still uses up the contest. The code comments mention "1 of 3" but it is 1 call to 1 model.
+- **(Session 25)** Paid Ling answers are not fully consistent between calls (two providers) — see OpenRouter section.
+- **(Session 25)** `#qj-name` (invite-link name field) still uses inline `oninput` with value reassignment — breaks rule 8; pre-existing, not fixed yet.
+- **(Session 25)** `lbRef()` (`leaderboard` path) is dead code — never called.
 
 ## 🗒 Small Fixes Backlog
 - Quick join accent restoration — if pre-filled name matches a verified claim, fetch `displayName` from Firebase and restore accented version into field
@@ -416,6 +441,11 @@ Three theme modes replacing the old 7 themes:
 ---
 
 ## 🗺 Flagged for Future
+
+### AI model management — AFTER BUILD 5 (agreed with Oscar, Session 25)
+**Step 1 — the worker controls the model list (security fix + no game update to change models).** The worker keeps the active list in Cloudflare KV and replaces `model`/`models` on every request with its own list (also caps `max_tokens`); the game keeps `AI_MODELS` only as a last resort. Closes the "anyone can run any model on our credit" gap. Oscar pastes the new worker code in Cloudflare and creates the KV binding.
+**Step 2 — daily self-check + automatic scouting (optional, after step 1).** Cloudflare Cron Trigger once a day: ask the current first (free) model 3 known test questions; if it fails (404/429/wrong), read OpenRouter's free text-model list and test candidates one at a time, STOP at the first that gets all test questions right, put it first in the KV list (paid Ling always stays last). Log to Firebase (date, what failed, new model) and show it in debug. Check first: free-plan CPU limit per run (parsing the full model list may exceed it; $5/month plan would cost more than the paid Ling saves).
+**Related small items:** pin one provider for Ling (OpenRouter `provider` routing) so identical answers get identical verdicts; make contests ask a DIFFERENT model than the first judgment (real second opinion); scout script improvements — skip a model after 4 rate-limited (429) calls in a row, and print OpenRouter's error message (so "gone", "blocked by privacy" and "busy" can be told apart); if the game prompt ever changes, regenerate the scout from the game code.
 
 ### Step 2 — Same-device reload reads from Firebase (next priority)
 **What:** when a player reloads the page after having played, the result screen should read from Firebase instead of localStorage, so any recontest overturn by another device is reflected.
@@ -1118,7 +1148,60 @@ Living version (Claude Doc): https://claude.ai/artifact/9bCUk2yRwx1wHQG3hmjhoV
 
 ---
 
-## ▶ START HERE NEXT SESSION (Session 25): Build 5 — Groups and history
+### Session 25 (Sep 26–29) - Build 5a on staging, Firebase rules, AI outage → PRODUCTION v260926.313
+
+**Firebase rules — urgent fix.** The database was on "test mode" rules expiring 28 Sep 01:00 (all reads/writes would have been refused). Replaced with permanent per-path rules (see Credentials → Firebase); Oscar published and checked daily / create room / join. Includes the Build 5 paths and the `lastPlayed` index.
+
+**Build 5a — groups infrastructure (staging v260926.312-tmp, then v260926.314-tmp = 5a + AI fix). NOT TESTED BY OSCAR YET.**
+- Mis grupos on each device (`alto_mygroups`, max 10, default pinned, most recently played preselected; the default cannot be removed but can be renamed). Default group created on first host: "Grupo de Oscar" / "Oscar's group" / "Groupe d'Oscar" (FR elision before vowels), written once in the creating host's language.
+- Lobby picker replaces the free-text group box: `🎮 name ▾` opens an inline panel (top 3 + "Ver todos (N)", × on non-default, 📌 on default, ✏️ Cambiar nombre, + Nuevo grupo; input on its own line). `groupId` + `groupName` written to the room as soon as the host picks; guest card shows `🎮 name` live (handleRoom lobby branch). Rename → local list + room + `groupsMeta` transaction (fills createdAt/lastPlayed if missing). Host lobby refreshes group names from `groupsMeta` in the background (renames from other devices).
+- `endGame`: ignores a second call once the room is `final` (double tap); real games (not solo, all rounds) with a groupId write `groupsMeta` (lastPlayed) → `groupsLb` (ties share wins, lastEmoji) → `history` + `historyIndex`, then `phase:'final'`; after that, housekeeping (trim to newest 20 games; delete up to 3 groups idle > 1 year across all 4 paths). Group-write failures never block the Final screen. No more writes to `global/`, `groups/`, `groupNames/`.
+- Every player who reaches Final of a real game gets the group added/bumped in Mis grupos. Marcador "Mi grupo" tab reads `groupsLb/{groupId}` (names escaped, `partidas` via T key). Mundial tab left untouched (frozen old data) until 5b. Welcome-back shows `room.groupName` (moved from 5b).
+- T keys: `grpLabel, grpNew, grpRename, grpSave, grpSeeAll` (ES/EN/FR); removed `groupName, groupHint, groupHint2`. Removed `getSavedGroups, saveGroupName, onGroupInput, selectGroup, hideGroupSuggestions, prefillGroup, globalKey, groupKey`.
+- Checked at 414/390/375/360/320 px (ES + long FR names): no overflow.
+- Oscar's test list (staging): default group + guest line; picker new/rename/switch/× with the guest watching; refresh; full game → Marcador + Firebase paths; guest hosts next → family group preselected; unfinished game not counted.
+
+**AI outage (29 Sep) → v260926.313 PRODUCTION (AI fix only, no 5a).** OpenRouter withdrew the free Ling (see Credentials → OpenRouter). Daily/practice/contests sent only that model → 404 → everything dudoso (multiplayer survived via its fallback list, but fell to Nemotron, which answers "not sure"). Fix: shared `AI_MODELS` list, paid Ling first, sent as `models` everywhere (`dailyAICallModel` accepts a list or a single name; contest `workerCall(AI_MODELS)`; multiplayer `models: AI_MODELS`). Checks: version before/after, syntax, 12 screens, Session 24 kit 149/149 on the production file, request-body check. Oscar confirmed ✅/❌ back on production. Same change applied to staging (v260926.314-tmp).
+
+**Cleanup of 29 Sep daily (console scripts on jugarenfamilia.es, Firebase REST):**
+- Reset contest marks `names/*/contests/2026-09-29` → 5 players (david, marina, demarte, cocorico, mathieu) got their ¿Error? buttons back.
+- Revalidation of every 🤔 answer still unjudged (skipping contested ones) with the daily prompt + paid Ling; trial run first (47 changes), then real run: 48 answers changed, 0 AI errors, 9 players updated; scores recalculated with the game formula (valid 10, unsure 5, × speedMultiplier). Manual overrides agreed with Oscar: Góngora valid, Jus de pomme valid, "5" (Partie du corps) invalid; fix-ups: Cocoricó "González" valid, David "Juan Carlos I" valid; David's "Jondanie" (typo, not Jordanie) set valid by mistake then reverted to invalid.
+
+**AI scout** built (see Test kit → Tools). First run in progress at the end of the session: GLM 5.2 free DEAD (404); paid Ling 13/14; **`inclusionai/ling-3.0-flash-sante:free` 14/14, no flips — candidate to go first in `AI_MODELS` with paid Ling as safety net** (decide when the full table is in); `qwen/qwen3.8-27b:free` all 429 (overloaded).
+
+**Process notes:** my sandbox dropped for a while mid-session (files survived). Test harness lesson: fake DBs in script tests must apply writes, or multi-step fixes look wrong.
+
+---
+
+## ▶ START HERE NEXT SESSION (Session 26)
+
+1. Upload the project zip (must include `tests\` and `tools\`). Read this handoff, then `MULTIPLAYER_SCORING_DESIGN.md` (Groups, History, Languages sections; Build 5 row).
+2. Production = **v260926.313** (AI fix). Staging = **v260926.314-tmp** (Build 5a + AI fix) — **still to be tested by Oscar** (test list in the Session 25 log). Run the kit on staging first: `./run_all.sh ../index_tmp.html` → ALL GREEN (178 + 28 + 19). Note: the updated suites need 5a code, so they fail on production v313 — that is expected.
+3. Finish the AI model choice: read Oscar's scout table; probably `ling-3.0-flash-sante:free` first, paid Ling second, replace the dead GLM. Change `AI_MODELS` in BOTH production and staging.
+4. Then **5b**: group page (Leaderboard screen) with history ◀ ▶ (SVG flag + date), full game view (ranking, awards, per-round breakdown from `roundLog`), Mundial/global leaderboard removed, `?g=ID` share link + share text link, Historial buttons (host picker and guest line). Plan with Oscar first.
+5. When Build 5 goes to production: Oscar deletes `global/`, `groups/`, `groupNames/` in the console and removes their three rules lines (the `lastPlayed` index is already in).
+6. After Build 5: AI model management steps 1 and 2 (Flagged for Future), then the help-page pass.
+
+**Open notes carried forward**
+- After Build 5: one help-page pass (ES/EN/FR) for practice games, ties, reactions, awards, groups and history (recorded in the design doc). Build 1 only updated the ¡Alto! rules text.
+- No join-by-code box on the home screen (only invite links); `joinRoom` still references a missing `#inp-code`. Decide if a code box is wanted.
+- `doSubmit` hard-codes Spanish `stopCaller:'Tiempo'` and "Respuestas enviadas. Esperando a los demás…"; `reviewSub` T key is dead.
+- The Claude Doc copy of the design (link in the design doc) has drifted from the `.md` file; the `.md` is the source of truth.
+- Handy: a `__debug__` name shows the debug bar; its Scores and Final screens have a 2-round sample game with a tie, reactions, an A caller, a duplicate, an invalid and an empty answer. Debug room now has `groupId: 'dbggarcia01'`.
+- Oscar to set a credit limit on the OpenRouter key (API Keys → edit key).
+
+**Last versions deployed: v260926.313 (production), v260926.314-tmp (staging).**
+- JS syntax clean (`node --check`) ✅
+- Test kit green ✅
+- (File size: over 300KB since Session 23 — Oscar confirmed not a concern; v313 is 360KB, v314-tmp is 371KB)
+
+**Always start from the uploaded working file** — never from a local copy that may have drifted.
+
+---
+
+<details><summary>Previous START HERE (Session 25) — kept for the record</summary>
+
+Session 25 plan: Build 5 — Groups and history
 
 1. Upload the project zip (must include `tests\`). Read this handoff, then `MULTIPLAYER_SCORING_DESIGN.md` (Groups, History, Languages sections and the Build plan row for Build 5).
 2. Run the test kit on production `index.html` first — it must be ALL GREEN before starting.
@@ -1134,3 +1217,5 @@ Living version (Claude Doc): https://claude.ai/artifact/9bCUk2yRwx1wHQG3hmjhoV
 - Handy: a `__debug__` name shows the debug bar; its Scores and Final screens now have a 2-round sample game with a tie, reactions, an A caller, a duplicate, an invalid and an empty answer.
 
 **Last version deployed: v260926.311 (production). Staging (index_tmp.html) = v260926.310-tmp, identical code.**
+
+</details>
