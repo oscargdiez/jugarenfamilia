@@ -585,6 +585,22 @@ body.screen-home .page, body.screen-welcome .page { padding-bottom: 2rem; }
 .grp-edit button.pri { flex: 1; }
 .guest-confirmed .gc-group { font-family: 'Caveat', cursive; font-size: 20px; color: var(--ink-sec); margin-top: 6px; }
 .guest-confirmed .gc-group:empty { display: none; }
+.gc-group-row { display: none; align-items: center; justify-content: center; gap: 8px; margin-top: 6px; }
+.gc-group-row.on { display: flex; }
+.guest-confirmed .gc-group-row .gc-group { margin-top: 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.grp-row { display: flex; gap: 6px; align-items: stretch; }
+.grp-row .grp-current { flex: 1; min-width: 0; width: auto; }
+.grp-hist { flex-shrink: 0; font-size: 17px; line-height: 1; padding: 6px 10px; }
+/* Group page (Build 5b) */
+.gp-title { overflow-wrap: anywhere; }
+.gp-tabs { display: flex; gap: 8px; margin-bottom: 12px; }
+.gp-tab { flex: 1; font-size: 13px; padding: 8px; }
+.gp-tab.on { background: var(--red); color: var(--paper); }
+.gp-nav { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 0 0 10px; }
+.gp-arrow { font-family: 'Special Elite', monospace; font-size: 13px; padding: 4px 12px; }
+.gp-arrow:disabled { opacity: 0.25; cursor: default; }
+.gp-when { display: flex; align-items: center; gap: 8px; font-family: 'Special Elite', monospace; font-size: 13px; color: var(--ink-sec); white-space: nowrap; }
+.mp-host { font-family: 'Special Elite', monospace; font-size: 11px; color: var(--ink-muted); flex-shrink: 0; }
 
 /* ── Dictionary lookup ── */
 .dict-btn { font-size: 13px; width: 32px; height: 32px; border-radius: var(--radius); border: 1.5px solid var(--border-strong); background: transparent; color: var(--ink-sec); cursor: pointer; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; padding: 0; line-height: 1; }
@@ -1046,7 +1062,7 @@ document.addEventListener('DOMContentLoaded', function() {
       <div class="gc-emoji" id="gc-emoji">🎲</div>
       <div class="gc-name" id="gc-name">María</div>
       <div class="gc-status" id="gc-status">✅ ESTÁS DENTRO</div>
-      <div class="gc-group" id="gc-group"></div>
+      <div class="gc-group-row" id="gc-group-row"><span class="gc-group" id="gc-group"></span><button class="grp-hist" id="btn-gc-hist" onclick="openHistoryFromLobby()">📜</button></div>
     </div>
     <button class="invite-toggle" onclick="toggleInvite()" id="invite-toggle-btn">+ ¿Quieres invitar a alguien más?</button>
     <div class="invite-box" id="invite-box">
@@ -1072,7 +1088,7 @@ document.addEventListener('DOMContentLoaded', function() {
   <div id="host-panel" style="display:none">
     <div class="card">
       <p class="lbl" id="lbl-group-name">grupo</p>
-      <button class="grp-current" id="grp-current" onclick="toggleGroupPanel()"><span class="grp-current-name" id="grp-current-name"></span><span class="grp-caret" id="grp-caret">▾</span></button>
+      <div class="grp-row"><button class="grp-current" id="grp-current" onclick="toggleGroupPanel()"><span class="grp-current-name" id="grp-current-name"></span><span class="grp-caret" id="grp-caret">▾</span></button><button class="grp-hist" id="btn-grp-hist" onclick="openHistoryFromLobby()">📜</button></div>
       <div class="grp-panel" id="grp-panel"></div>
     </div>
     <button class="pri" onclick="startGame()" style="width:100%;font-size: 20px;padding:14px" id="btn-start">¡Comenzar! →</button>
@@ -1237,6 +1253,7 @@ document.addEventListener('DOMContentLoaded', function() {
 <div id="s-waiting" class="screen">
   <h1 id="lbl-waiting-title">Esperando...</h1>
   <p style="font-family:'Caveat',cursive;font-size:26px;color:var(--ink-sec);text-align:center;margin-bottom:0.75rem" id="lbl-host-reviewing">el anfitrión está revisando <span style="display:inline-block;animation:pencilBounce 1s ease-in-out infinite;font-size:24px;vertical-align:middle;margin-left:25px">✏️</span></p>
+  <div id="wait-revising" style="display:none;font-family:'Special Elite',monospace;font-size:13px;color:var(--ink-sec);text-align:center;padding:8px 10px;margin-bottom:8px;background:var(--paper-dark);border-radius:var(--radius);border:1px dashed var(--border)"></div>
   <div id="stop-caller-banner-guest" style="display:none;text-align:center;font-family:'Special Elite',monospace;font-size:13px;color:var(--ink-sec);margin-bottom:8px;padding:6px 10px;background:var(--paper-dark);border-radius:var(--radius);border:1px dashed var(--border)"></div>
   <div id="guest-val-content"></div>
 </div>
@@ -1244,21 +1261,30 @@ document.addEventListener('DOMContentLoaded', function() {
 <!-- ══ SCORES ══ -->
 <div id="s-scores" class="screen" style="padding-top:1px">
   <h1><span id="lbl-scores-title">Puntuación</span> <span id="sc-badge" style="font-size: 16px;font-weight:400;color:var(--ink-sec);font-family:'Special Elite',monospace"></span></h1>
-  <div id="sc-revising" style="display:none;font-family:'Special Elite',monospace;font-size:13px;color:var(--ink-sec);text-align:center;padding:8px 10px;margin-bottom:8px;background:var(--paper-dark);border-radius:var(--radius);border:1px dashed var(--border)"></div>
   <div class="card" id="sc-list"></div>
   <div class="btn-row" style="margin-top:10px" id="sc-btns"></div>
 </div>
 
 <!-- ══ LEADERBOARD ══ -->
 <div id="s-leaderboard" class="screen">
-  <h1 id="lbl-leaderboard-title">Marcador</h1>
-  <p class="sub" id="lb-group-name"></p>
-  <div style="display:flex;gap:8px;margin-bottom:12px">
-    <button id="btn-lb-group" onclick="lbTab('group')" style="flex:1;font-size: 13px;padding:8px">Mi grupo</button>
-    <button id="btn-lb-global" onclick="lbTab('global')" style="flex:1;font-size: 13px;padding:8px">Mundial</button>
+  <!-- Group page (Build 5b): title = group name, two tabs: leaderboard and history -->
+  <h1 id="lb-group-name" class="gp-title"></h1>
+  <div class="gp-tabs">
+    <button id="btn-gp-lb" class="gp-tab" onclick="gpTab('lb')">🏆 Marcador</button>
+    <button id="btn-gp-hist" class="gp-tab" onclick="gpTab('hist')">📜 Historial</button>
   </div>
   <div class="card" id="lb-list"><p class="wait">Cargando…</p></div>
-  <button onclick="show('final')" style="width:100%;margin-top:8px" id="btn-lb-back">← volver</button>
+  <div id="gp-hist" style="display:none">
+    <div class="gp-nav">
+      <button id="btn-gp-older" class="gp-arrow" onclick="gpNav(1)">◀</button>
+      <div class="gp-when" id="gp-when"></div>
+      <button id="btn-gp-newer" class="gp-arrow" onclick="gpNav(-1)">▶</button>
+    </div>
+    <div class="winner" id="gp-winner"></div>
+    <div class="aw-row" id="gp-awards"></div>
+    <div class="card" id="gp-list"><p class="wait">Cargando…</p></div>
+  </div>
+  <button onclick="lbBack()" style="width:100%;margin-top:8px" id="btn-lb-back">← volver</button>
 </div>
 
 <!-- ══ FINAL ══ -->
@@ -1395,10 +1421,10 @@ const T = {
     toastOwnReaction: 'No puedes reaccionar a tus propias respuestas',
     awPopularity: 'Popularidad', awLaughter: 'Risas', awOriginality: 'Originalidad',
     shareBtn: 'Compartir', copied: '¡Copiado!', roundsWord: 'rondas',
-    leaderboard: 'Marcador', myGroup: 'Mi grupo', world: 'Mundial',
-    worldSub: 'los mejores jugadores del mundo',
-    noGroup: 'asigna un nombre de grupo para ver este marcador',
-    noGroupGlobal: 'Aún no hay partidas registradas.',
+    leaderboard: 'Marcador', gpTabLb: '🏆 Marcador', gpTabHist: '📜 Historial', hostBadge: 'anfitrión',
+    histEmpty: 'Aún no hay partidas en el historial.', histError: 'No se pudo cargar esta partida.',
+    grpNotFound: 'Ese grupo ya no existe',
+    noGroup: 'Esta partida no tiene grupo.',
     noGroupLocal: 'Aún no hay partidas para este grupo.',
     endGame2: '¡Fin del juego!', playAgain: 'Jugar de nuevo',
     leaveRoom: 'Salir de la sala',
@@ -1416,7 +1442,7 @@ const T = {
     toastHostOnly: 'Solo el anfitrión puede reiniciar', waitHost: 'Esperando al anfitrión…',
     toastStopFill: 'Rellena todas las respuestas antes de llamar al ¡Alto!',
     hostRevisingScores: 'el anfitrión está revisando de nuevo ✏️',
-    toastDemoMin: 'El modo democrático requiere mínimo 3 jugadores', continueBtn: 'Continuar →', notMe: 'No soy yo — cambiar', easyHint: '(sin K, Ñ, Q, U, W, X, Y, Z)', validate: 'Revisar', validateSub1: '📖 Wikipedia · 🤖 Asistente Robot · <span style="color:var(--red)">✕</span> anular', validateSub2: 'única = 100 · repetida = 50 · anulada = 0 · ¡Alto! −100 por anulada', submitted2: 'Respuestas enviadas', waitingTitle: 'Esperando...', hostReviewing2: 'el anfitrión está revisando', leaderboardBack: '← Volver', loading: 'Cargando…', final2: '¡Fin del juego!', searching: 'Buscando...', hostSearching: 'El anfitrión está buscando...', rndLabel: 'ronda', of: 'de', freeCatLabel: 'escreve as tuas categorias (uma por linha)', freeCatPlaceholder: 'Jogadores do Barça\nFilmes de terror\nCoisas na cozinha', freeCatLabel: 'escribe tus categorías (una por línea)', freeCatPlaceholder: 'Jugadores del Barça\nPelículas de terror\nCosas en la cocina', usarEjemplos: 'Usar ejemplos', freeCatRandom: 'Elegir 8 al azar cada ronda', toastFreeCatsRandom: 'Necesitas al menos 9 categorías para el modo aleatorio', of: 'de', freeCatLabel: 'escreve as tuas categorias (uma por linha)', freeCatPlaceholder: 'Jogadores do Barça\nFilmes de terror\nCoisas na cozinha', freeCatLabel: 'escribe tus categorías (una por línea)', freeCatPlaceholder: 'Jugadores del Barça\nPelículas de terror\nCosas en la cocina', letterLabel: 'letra', calculate: 'Calcular puntuación →', stopCallerMsg: '{name} llamó al ¡Alto!', timerRanOut: 'se acabó el tiempo', scoresTitle: 'Puntuación', lbTitle: 'Marcador',
+    toastDemoMin: 'El modo democrático requiere mínimo 3 jugadores', continueBtn: 'Continuar →', notMe: 'No soy yo — cambiar', easyHint: '(sin K, Ñ, Q, U, W, X, Y, Z)', validate: 'Revisar', validateSub1: '📖 Wikipedia · 🤖 Asistente Robot · <span style="color:var(--red)">✕</span> anular', validateSub2: 'única = 100 · repetida = 50 · anulada = 0 · ¡Alto! −100 por anulada', submitted2: 'Respuestas enviadas', waitingTitle: 'Esperando...', hostReviewing2: 'el anfitrión está revisando', leaderboardBack: '← Volver', loading: 'Cargando…', final2: '¡Fin del juego!', searching: 'Buscando...', hostSearching: 'El anfitrión está buscando...', rndLabel: 'ronda', of: 'de', freeCatLabel: 'escreve as tuas categorias (uma por linha)', freeCatPlaceholder: 'Jogadores do Barça\nFilmes de terror\nCoisas na cozinha', freeCatLabel: 'escribe tus categorías (una por línea)', freeCatPlaceholder: 'Jugadores del Barça\nPelículas de terror\nCosas en la cocina', usarEjemplos: 'Usar ejemplos', freeCatRandom: 'Elegir 8 al azar cada ronda', toastFreeCatsRandom: 'Necesitas al menos 9 categorías para el modo aleatorio', of: 'de', freeCatLabel: 'escreve as tuas categorias (uma por linha)', freeCatPlaceholder: 'Jogadores do Barça\nFilmes de terror\nCoisas na cozinha', freeCatLabel: 'escribe tus categorías (una por línea)', freeCatPlaceholder: 'Jugadores del Barça\nPelículas de terror\nCosas en la cocina', letterLabel: 'letra', calculate: 'Calcular puntuación →', stopCallerMsg: '{name} llamó al ¡Alto!', timerRanOut: 'se acabó el tiempo', scoresTitle: 'Puntuación',
     invited: '¡Te han invitado a jugar!', rulesBtn: '¿Cómo se juega?', expBtn: '⚗️ FUNCIONES EXPERIMENTALES', aiValidation: '🤖 Asistente Robot', aiRelajado: '🟢 Relajada', aiEstricto: '🔴 Estricta', aiSpelling: '✏️ Permitir faltas de ortografía', aiYes: 'Sí', aiNo: 'No', modeHost: '👑 Normal', modeDemocratic: '🗳️ Democrático', invalidated: 'anulada', winnerLine: '{name} {emoji} gana con {pts} puntos!', wrongPwd: '❌ Contraseña incorrecta', expActivated: '⚗️ Funciones experimentales activadas', qjCodeLabel: 'sala:', gcInside: '✅ ESTÁS DENTRO', inviteMore: '+ ¿Quieres invitar a alguien más?', getReady: '¡VAMOS!',
     toastBack: 'Volviendo como', notFoundWord: '📭 No se encontró', didYouMean: '¿Quisiste decir', noDefinition: '📭 Sin definición para',
     waMsg: '¡Juega conmigo al ¡Alto! 🎮 Únete aquí:',
@@ -1463,10 +1489,10 @@ const T = {
     toastOwnReaction: "You can't react to your own answers",
     awPopularity: 'Popularity', awLaughter: 'Laughter', awOriginality: 'Originality',
     shareBtn: 'Share', copied: 'Copied!', roundsWord: 'rounds',
-    leaderboard: 'Leaderboard', myGroup: 'My group', world: 'Worldwide',
-    worldSub: 'the best players in the world',
-    noGroup: 'set a group name to see this leaderboard',
-    noGroupGlobal: 'No games registered yet.',
+    leaderboard: 'Leaderboard', gpTabLb: '🏆 Leaderboard', gpTabHist: '📜 History', hostBadge: 'host',
+    histEmpty: 'No games in the history yet.', histError: "Couldn't load this game.",
+    grpNotFound: 'That group no longer exists',
+    noGroup: 'This game has no group.',
     noGroupLocal: 'No games for this group yet.',
     endGame2: 'Game over!', playAgain: 'Play again',
     leaveRoom: 'Leave room',
@@ -1484,7 +1510,7 @@ const T = {
     toastHostOnly: 'Only the host can restart', waitHost: 'Waiting for the host…',
     toastStopFill: 'Fill in all answers before calling ¡Alto!',
     hostRevisingScores: 'host is revising answers ✏️',
-    toastDemoMin: 'Democratic mode requires at least 3 players', continueBtn: 'Continue →', notMe: "That's not me — change", easyHint: '(no Q, U, W, X, Y, Z)', validate: 'Review', validateSub1: '📖 Wikipedia · 🤖 Robot Assistant · <span style="color:var(--red)">✕</span> invalidate', validateSub2: 'unique = 100 · duplicate = 50 · invalid = 0 · ¡Alto! −100 per invalid', submitted2: 'Answers submitted', waitingTitle: 'Waiting...', hostReviewing2: 'host is reviewing', leaderboardBack: '← Back', loading: 'Loading…', final2: 'Game over!', searching: 'Searching...', hostSearching: 'Host is searching...', rndLabel: 'round', of: 'di', freeCatLabel: 'scrivi le tue categorie (una per riga)', freeCatPlaceholder: 'Giocatori del Barça\nFilm horror\nCose in cucina', of: 'of', freeCatLabel: 'write your categories (one per line)', freeCatPlaceholder: 'Football players\nHorror films\nThings in the kitchen', usarEjemplos: 'Use examples', freeCatRandom: 'Pick 8 at random each round', toastFreeCatsRandom: 'You need at least 9 categories for random mode', letterLabel: 'letter', calculate: 'Calculate scores →', stopCallerMsg: '{name} called ¡Alto!', timerRanOut: 'time ran out', scoresTitle: 'Scores', lbTitle: 'Leaderboard',
+    toastDemoMin: 'Democratic mode requires at least 3 players', continueBtn: 'Continue →', notMe: "That's not me — change", easyHint: '(no Q, U, W, X, Y, Z)', validate: 'Review', validateSub1: '📖 Wikipedia · 🤖 Robot Assistant · <span style="color:var(--red)">✕</span> invalidate', validateSub2: 'unique = 100 · duplicate = 50 · invalid = 0 · ¡Alto! −100 per invalid', submitted2: 'Answers submitted', waitingTitle: 'Waiting...', hostReviewing2: 'host is reviewing', leaderboardBack: '← Back', loading: 'Loading…', final2: 'Game over!', searching: 'Searching...', hostSearching: 'Host is searching...', rndLabel: 'round', of: 'di', freeCatLabel: 'scrivi le tue categorie (una per riga)', freeCatPlaceholder: 'Giocatori del Barça\nFilm horror\nCose in cucina', of: 'of', freeCatLabel: 'write your categories (one per line)', freeCatPlaceholder: 'Football players\nHorror films\nThings in the kitchen', usarEjemplos: 'Use examples', freeCatRandom: 'Pick 8 at random each round', toastFreeCatsRandom: 'You need at least 9 categories for random mode', letterLabel: 'letter', calculate: 'Calculate scores →', stopCallerMsg: '{name} called ¡Alto!', timerRanOut: 'time ran out', scoresTitle: 'Scores',
     invited: "You've been invited to play!", rulesBtn: 'How to play?', expBtn: '⚗️ EXPERIMENTAL FEATURES', aiValidation: '🤖 Robot Assistant', aiRelajado: '🟢 Relaxed', aiEstricto: '🔴 Strict', aiSpelling: '✏️ Allow spelling mistakes', aiYes: 'Yes', aiNo: 'No', modeHost: '👑 Normal', modeDemocratic: '🗳️ Democratic', invalidated: 'invalid', winnerLine: '{name} {emoji} wins with {pts} points!', wrongPwd: '❌ Wrong password', expActivated: '⚗️ Experimental features activated', qjCodeLabel: 'room:', gcInside: "✅ YOU'RE IN", inviteMore: '+ Want to invite someone?', getReady: "LET'S GO!",
     toastBack: 'Rejoining as', notFoundWord: '📭 Not found', didYouMean: 'Did you mean', noDefinition: '📭 No definition for',
     waMsg: 'Play ¡Alto! with me 🎮 Join here:',
@@ -1531,10 +1557,10 @@ const T = {
     toastOwnReaction: 'Tu ne peux pas réagir à tes propres réponses',
     awPopularity: 'Popularité', awLaughter: 'Rires', awOriginality: 'Originalité',
     shareBtn: 'Partager', copied: 'Copié !', roundsWord: 'manches',
-    leaderboard: 'Classement', myGroup: 'Mon groupe', world: 'Mondial',
-    worldSub: 'les meilleurs joueurs du monde',
-    noGroup: 'ajoute un nom de groupe pour voir ce classement',
-    noGroupGlobal: 'Pas encore de parties enregistrées.',
+    leaderboard: 'Classement', gpTabLb: '🏆 Classement', gpTabHist: '📜 Historique', hostBadge: 'hôte',
+    histEmpty: "Pas encore de parties dans l'historique.", histError: 'Impossible de charger cette partie.',
+    grpNotFound: "Ce groupe n'existe plus",
+    noGroup: "Cette partie n'a pas de groupe.",
     noGroupLocal: 'Pas encore de parties pour ce groupe.',
     endGame2: 'Fin de partie!', playAgain: 'Rejouer',
     leaveRoom: 'Quitter la salle',
@@ -1552,7 +1578,7 @@ const T = {
     toastHostOnly: "Seul l'hôte peut recommencer", waitHost: "En attente de l'hôte…",
     toastStopFill: 'Remplis toutes les réponses avant de crier ¡Alto !',
     hostRevisingScores: "l'hôte révise les réponses ✏️",
-    toastDemoMin: 'Le mode démocratique nécessite au moins 3 joueurs', continueBtn: 'Continuer →', notMe: "Ce n'est pas moi — changer", easyHint: '(sans K, Q, U, W, X, Y, Z)', validate: 'Vérifier', validateSub1: '📖 Wikipedia · 🤖 Assistant Robot · <span style="color:var(--red)">✕</span> annuler', validateSub2: 'unique = 100 · doublon = 50 · annulé = 0 · ¡Alto! −100 par annulé', submitted2: 'Réponses envoyées', waitingTitle: 'En attente...', hostReviewing2: "l'hôte vérifie", leaderboardBack: '← Retour', loading: 'Chargement…', final2: 'Fin de partie!', searching: 'Recherche...', hostSearching: "L'hôte cherche...", rndLabel: 'manche', of: 'sur', freeCatLabel: 'écris tes catégories (une par ligne)', freeCatPlaceholder: 'Joueurs du Barça\nFilms d\'horreur\nChoses dans la cuisine', usarEjemplos: 'Utiliser des exemples', freeCatRandom: 'Choisir 8 au hasard chaque manche', toastFreeCatsRandom: 'Il faut au moins 9 catégories pour le mode aléatoire', letterLabel: 'lettre', calculate: 'Calculer les scores →', stopCallerMsg: '{name} a crié ¡Alto !', timerRanOut: 'temps écoulé', scoresTitle: 'Scores', lbTitle: 'Classement',
+    toastDemoMin: 'Le mode démocratique nécessite au moins 3 joueurs', continueBtn: 'Continuer →', notMe: "Ce n'est pas moi — changer", easyHint: '(sans K, Q, U, W, X, Y, Z)', validate: 'Vérifier', validateSub1: '📖 Wikipedia · 🤖 Assistant Robot · <span style="color:var(--red)">✕</span> annuler', validateSub2: 'unique = 100 · doublon = 50 · annulé = 0 · ¡Alto! −100 par annulé', submitted2: 'Réponses envoyées', waitingTitle: 'En attente...', hostReviewing2: "l'hôte vérifie", leaderboardBack: '← Retour', loading: 'Chargement…', final2: 'Fin de partie!', searching: 'Recherche...', hostSearching: "L'hôte cherche...", rndLabel: 'manche', of: 'sur', freeCatLabel: 'écris tes catégories (une par ligne)', freeCatPlaceholder: 'Joueurs du Barça\nFilms d\'horreur\nChoses dans la cuisine', usarEjemplos: 'Utiliser des exemples', freeCatRandom: 'Choisir 8 au hasard chaque manche', toastFreeCatsRandom: 'Il faut au moins 9 catégories pour le mode aléatoire', letterLabel: 'lettre', calculate: 'Calculer les scores →', stopCallerMsg: '{name} a crié ¡Alto !', timerRanOut: 'temps écoulé', scoresTitle: 'Scores',
     invited: 'Tu as été invité à jouer!', rulesBtn: 'Comment jouer?', expBtn: '⚗️ FONCTIONS EXPÉRIMENTALES', aiValidation: '🤖 Assistant Robot', aiRelajado: '🟢 Détendue', aiEstricto: '🔴 Stricte', aiSpelling: '✏️ Autoriser les fautes d\'orthographe', aiYes: 'Oui', aiNo: 'Non', modeHost: '👑 Normal', modeDemocratic: '🗳️ Démocratique', invalidated: 'annulée', winnerLine: '{name} {emoji} gagne avec {pts} points!', wrongPwd: '❌ Mot de passe incorrect', expActivated: '⚗️ Fonctions expérimentales activées', qjCodeLabel: 'salle:', gcInside: '✅ VOUS ÊTES DEDANS', inviteMore: "+ Inviter quelqu'un d'autre?", getReady: "C'EST PARTI!",
     toastBack: 'Reconnexion en tant que', notFoundWord: '📭 Introuvable', didYouMean: 'Vouliez-vous dire', noDefinition: '📭 Aucune définition pour',
     waMsg: 'Joue au ¡Alto! avec moi 🎮 Rejoins ici:',
@@ -1816,9 +1842,9 @@ window.applyLang = function() {
   // Scores
   s('lbl-scores-title', t('scoresTitle'));
   // Leaderboard
-  s('lbl-leaderboard-title', t('lbTitle'));
-  s('btn-lb-group', t('myGroup'));
-  s('btn-lb-global', t('world'));
+  s('btn-gp-lb', t('gpTabLb'));
+  s('btn-gp-hist', t('gpTabHist'));
+  if (G.screen === 'leaderboard') { renderGroupPage(); } // dates, labels, winner line in the new language
   s('btn-lb-back', t('leaderboardBack'));
   // Final
   s('lbl-final-title', t('final2'));
@@ -2186,6 +2212,7 @@ function updateShellHeader(screenId) {
 
 // Called when user taps the ¡Alto! logo in the shell header
 window.shellLogoClick = function() {
+  if (G.screen === 'leaderboard') { lbBack(); return; }
   if (G.screen === 'lobby') {
     leaveGame();
     return;
@@ -4123,7 +4150,14 @@ function handleRoom(room) {
       clearInterval(G.timerInterval);
       if (!G.submitted) doSubmit(room);
     }
-    if (allAnswered(room) && room.phase === 'playing') {
+    // A guest can receive "all answers in" and "phase: validate" in the same snapshot
+    // (e.g. back from another app) — go straight to validation instead of staying stuck here
+    if (!G.isHost && allAnswered(room) && room.phase === 'validate') {
+      showGuestValidation(room);
+      applyVotesAndReactions(room, false);
+      if (room.aiResults) applyAIResults(room.aiResults);
+    }
+    else if (allAnswered(room) && room.phase === 'playing') {
       if (G.isHost) {
         // Clear stale invalidAnswers/votes from Firebase so all clients start clean
         update(roomRef(G.roomCode), {phase:'validate', invalidAnswers: {}, votes: {}});
@@ -4152,12 +4186,15 @@ function handleRoom(room) {
     if (room.phase === 'playing') { closeCountdown(); enterPlaying(room); }
   }
   else if (G.screen === 'scores') {
-    const revisingBanner = document.getElementById('sc-revising');
     if (room.phase === 'validate') {
-      // Host went back to validation — show banner, don't re-render scores
-      if (revisingBanner) { revisingBanner.textContent = t('hostRevisingScores'); revisingBanner.style.display = 'block'; }
+      // Host went back to validation (Revisar): guests go back too, so they can change votes and reactions.
+      // Every decision is kept (marks, votes, reactions, robot results).
+      if (!G.isHost) {
+        showGuestValidation(room);
+        applyVotesAndReactions(room, false);
+        if (room.aiResults) applyAIResults(room.aiResults);
+      }
     } else {
-      if (revisingBanner) revisingBanner.style.display = 'none';
       showScores(room);
     }
     if (room.phase === 'countdown') startCountdown(room);
@@ -4166,6 +4203,11 @@ function handleRoom(room) {
   }
   else if (G.screen === 'final') {
     if (room.phase === 'lobby') enterLobby(room);
+  }
+  else if (G.screen === 'leaderboard') {
+    // Browsing the group page: a starting game pulls you in; lobby changes leave you where you are
+    if (room.phase === 'countdown') { setGroupInUrl(''); startCountdown(room); }
+    else if (room.phase === 'playing') { setGroupInUrl(''); enterPlaying(room); }
   }
 }
 
@@ -4254,6 +4296,7 @@ function enterLobby(room) {
 
 // ── Lobby group picker (host) ─────────────────────────
 let G_group = null;          // {id, name} selected for this room
+let G_lobbyRoomGroup = { id: '', name: '' }; // the room's group as last seen in the lobby (guest 📜 button)
 let G_grpPanelOpen = false;
 let G_grpShowAll = false;
 let G_grpEdit = null;        // null | 'new' | 'rename'
@@ -4387,6 +4430,11 @@ function renameGroupRemote(id, name) {
 function renderGuestGroup(room) {
   const el = document.getElementById('gc-group');
   if (el) el.textContent = room.groupName ? '🎮 ' + room.groupName : '';
+  G_lobbyRoomGroup = { id: room.groupId || '', name: room.groupName || '' };
+  const row = document.getElementById('gc-group-row');
+  if (row) row.classList.toggle('on', !!room.groupName);
+  const btn = document.getElementById('btn-gc-hist');
+  if (btn) btn.style.display = isGroupId(room.groupId) ? '' : 'none';
 }
 
 function renderPlayers(players, langs={}) {
@@ -4813,7 +4861,7 @@ function buildValidationHTML(room, invalidMap) {
           <span class="ans-disp">${ans||'<span style="color:var(--ink-muted)">—</span>'}</span>
         </div>
         ${ans ? `<div class="val-entry-bottom">
-          <div class="val-entry-actions"><span class="pts-badge" id="pb_g_${key}">${isInvalid?t('invalidated'):pts+' pts'}</span></div>
+          <div class="val-entry-actions"><span class="pts-badge" id="pb_g_${key}" data-pts="${pts}">${isInvalid?t('invalidated'):pts+' pts'}</span></div>
           <div class="val-entry-emojis" id="emojis_${key}">${emojiHtml}</div>
           <div class="val-entry-votes" id="votes_${key}">${voteHtml}</div>
           <div class="val-entry-right">${dictBtn}${(ans && G_aiEnabled && !existingGAI) ? `<button class="ai-btn" id="ai_btn_${key}" onclick="askAI('${gSafeAns}','${cat}','${room.currentLetter}','${key}')">🤖</button>` : ''}</div>
@@ -4911,21 +4959,41 @@ function showGuestValidation(room) {
       _scBanner.style.display = 'none';
     }
   }
-  document.getElementById('guest-val-content').innerHTML = buildValidationHTML(room, {});
+  // Second pass after the host's Revisar: this round was already scored once
+  const revising = room.phase === 'validate' && !!(room.roundLog || {})[room.currentRound];
+  const revEl = document.getElementById('wait-revising');
+  if (revEl) { revEl.textContent = t('hostRevisingScores'); revEl.style.display = revising ? 'block' : 'none'; }
+  // In the validate phase the saved marks are this round's (the first entry clears them atomically)
+  const marks = room.phase === 'validate' ? (room.invalidAnswers || {}) : {};
+  G_lastInvalidHash = JSON.stringify(marks);
+  document.getElementById('guest-val-content').innerHTML = buildValidationHTML(room, marks);
 }
 
+// Guests: never rebuild the whole screen while people are tapping (a replaced button loses the tap).
+// Votes and reactions are redrawn in place by applyVotesAndReactions; host ✕ marks are switched in place here.
 let G_lastInvalidHash = '';
 function refreshGuestValidation(room) {
   const el = document.getElementById('guest-val-content');
   if (!el || room.phase !== 'validate') return;
-  // Rebuild when invalidAnswers OR votes change (votes affect democratic result badges)
-  const newHash = JSON.stringify(room.invalidAnswers||{}) + JSON.stringify(room.votes||{});
+  const marks = room.invalidAnswers || {};
+  const newHash = JSON.stringify(marks);
   if (newHash !== G_lastInvalidHash) {
     G_lastInvalidHash = newHash;
-    el.innerHTML = buildValidationHTML(room, room.invalidAnswers||{});
-    // Re-apply AI results and reactions after rebuild
-    if (room.aiResults) applyAIResults(room.aiResults);
+    applyGuestMarks(el, marks);
   }
+}
+
+function applyGuestMarks(container, marks) {
+  container.querySelectorAll('.val-entry[id^="ve_"]').forEach(entry => {
+    const key = entry.id.slice(3);
+    const badge = document.getElementById('pb_g_' + key);
+    if (!badge) return; // empty answer: nothing to mark
+    const inv = !!marks[key];
+    entry.classList.toggle('invalid', inv);
+    entry.classList.toggle('democratic-valid', !inv);
+    const txt = inv ? t('invalidated') : badge.dataset.pts + ' pts';
+    if (badge.textContent !== txt) badge.textContent = txt;
+  });
 }
 
 function clearGuestDictResults() {
@@ -5416,8 +5484,7 @@ window.voteEntry = async (key, dir) => {
   const optimisticVotes = Object.assign({}, G_cachedVotes[key] || {});
   if (newDir) optimisticVotes[G.playerName] = newDir;
   else delete optimisticVotes[G.playerName];
-  const voteEl = document.getElementById('votes_' + key);
-  if (voteEl) voteEl.innerHTML = renderVotes(key, optimisticVotes, G_cachedVoteMode, G_cachedPlayers, G.isHost);
+  setHTML(document.getElementById('votes_' + key), renderVotes(key, optimisticVotes, G_cachedVoteMode, G_cachedPlayers, G.isHost));
   // Write to Firebase (Firebase echo will confirm/correct)
   await update(roomRef(G.roomCode), { [`votes/${key}/${G.playerName}`]: newDir || null });
 };
@@ -5450,10 +5517,16 @@ window.reactToEntry = async (key, emoji) => {
   }
   // Redraw straight away (also fixes stale count when the last reaction on an answer is removed)
   G_cachedReactions[key] = cur;
-  const el = document.getElementById('emojis_' + key);
-  if (el) el.innerHTML = renderEntryEmojis(key, cur, G.isHost);
+  setHTML(document.getElementById('emojis_' + key), renderEntryEmojis(key, cur, G.isHost));
   await update(roomRef(G.roomCode), upd);
 };
+
+// Write innerHTML only when it differs from what this code last wrote there
+function setHTML(el, html) {
+  if (!el || el.__h === html) return;
+  el.innerHTML = html;
+  el.__h = html;
+}
 
 function renderVotes(key, votes, mode, players, isHost) {
   const voteData = votes || {};
@@ -5504,26 +5577,20 @@ function applyVotesAndReactions(room, isHost) {
   G_cachedVoteMode = mode;
   G_cachedReactions = entryReactions;
 
-  // Update my votes from Firebase (in case rejoining)
-  Object.entries(votes).forEach(([key, playerVotes]) => {
-    if (playerVotes[G.playerName]) G_myVotes[key] = playerVotes[G.playerName];
+  // Every answer on screen is checked against Firebase (the source of truth), so my own
+  // highlights survive reload and Revisar, and counts go back to 0 when the last vote/reaction is removed.
+  // setHTML only touches an element whose content really changed: a button someone is tapping is never
+  // replaced by an unrelated update (that lost the tap and made people tap twice).
+  document.querySelectorAll('[id^="votes_"]').forEach(el => {
+    const key = el.id.slice(6);
+    G_myVotes[key] = (votes[key] || {})[G.playerName] || null;
+    setHTML(el, renderVotes(key, votes[key] || {}, mode, players, isHost));
   });
-
-  // Update vote displays (now inline spans)
-  Object.keys(votes).forEach(key => {
-    const voteEl = document.getElementById('votes_' + key);
-    if (voteEl) voteEl.innerHTML = renderVotes(key, votes[key], mode, players, isHost);
-  });
-
-  // Rebuild my own reaction highlights from Firebase (survives reload and Revisar)
-  Object.entries(entryReactions).forEach(([key, rs]) => {
-    ENTRY_EMOJIS.forEach(e => { G_myEntryEmojis[key + '_' + e] = !!(rs && rs[G.playerName + '_' + e]); });
-  });
-
-  // Update emoji reaction displays (works for both host and guest)
-  Object.keys(entryReactions).forEach(key => {
-    const emojiEl = document.getElementById('emojis_' + key);
-    if (emojiEl) emojiEl.innerHTML = renderEntryEmojis(key, entryReactions[key], isHost);
+  document.querySelectorAll('[id^="emojis_"]').forEach(el => {
+    const key = el.id.slice(7);
+    const rs = entryReactions[key] || {};
+    ENTRY_EMOJIS.forEach(e => { G_myEntryEmojis[key + '_' + e] = !!rs[G.playerName + '_' + e]; });
+    setHTML(el, renderEntryEmojis(key, rs, isHost));
   });
   // In democratic mode, auto-invalidate/restore based on current vote majority
   if (isHost && mode === 'democratic') {
@@ -5767,11 +5834,11 @@ function breakdownHTML(pts, isCaller, room) {
 
 // Collapsed row, daily leaderboard style: rank (medal or number) · name emoji [A] · total · (extra) · ▶
 // Your own row is highlighted like the daily "me" row.
-function mpRowHTML({ id, rank, name, emoji, total, extra, isCaller, onclick, open }) {
+function mpRowHTML({ id, rank, name, emoji, total, extra, isCaller, isHost, onclick, open }) {
   const me = name === G.playerName;
   return `<div class="daily-lb-row mp-row${me ? ' daily-lb-me' : ''}${open ? ' expanded' : ''}" id="${id}"${onclick ? ` onclick="${onclick}"` : ' style="cursor:default"'}>
       <span class="daily-lb-rank">${rank}</span>
-      <span class="mp-namewrap"><span class="daily-lb-name">${escHtml(name)} ${emoji}</span>${isCaller ? '<span class="sc-alto">A</span>' : ''}</span>
+      <span class="mp-namewrap"><span class="daily-lb-name">${escHtml(name)} ${emoji}</span>${isCaller ? '<span class="sc-alto">A</span>' : ''}${isHost ? `<span class="mp-host">${escHtml(t('hostBadge'))}</span>` : ''}</span>
       <span class="daily-lb-score">${total}<span class="sc-unit"> pts</span></span>
       ${extra ? `<span class="daily-lb-speed">(${extra})</span>` : ''}
       ${onclick ? '<span class="daily-lb-chevron">▶</span>' : ''}
@@ -5779,7 +5846,7 @@ function mpRowHTML({ id, rank, name, emoji, total, extra, isCaller, onclick, ope
 }
 
 // Scores cards: collapsed row + expandable panel with this round's answers
-let G_scOpen = new Set(), G_scRound = null, G_scNames = [];
+let G_scOpen = new Set(), G_scRound = null, G_scNames = [], G_scAutoOpened = false;
 function scoreCardHTML(i, name, total, rank, emoji, rl, room) {
   const d = rl.players[name];
   if (!d) return mpRowHTML({ id: 'sc-row-' + i, rank, name, emoji, total });
@@ -5802,8 +5869,6 @@ window.toggleScoreCard = (i) => {
 
 function showScores(room) {
   show('scores');
-  const revisingBanner = document.getElementById('sc-revising');
-  if (revisingBanner) revisingBanner.style.display = 'none';
   document.getElementById('sc-badge').textContent = `— ${t('rndLabel')} ${room.currentRound} ${t('of')} ${room.rounds}`;
   const sorted = Object.entries(room.scores||{}).sort((a,b)=>b[1]-a[1]);
   const players = room.players||{};
@@ -5811,7 +5876,9 @@ function showScores(room) {
   const medals = denseMedals(sorted);
   const rl = (room.roundLog || {})[room.currentRound];
   // Cards stay open across re-renders (the screen redraws on every room change) until the round changes
-  if (G_scRound !== room.currentRound) { G_scRound = room.currentRound; G_scOpen = new Set(); }
+  if (G_scRound !== room.currentRound) { G_scRound = room.currentRound; G_scOpen = new Set(); G_scAutoOpened = false; }
+  // Your own card starts open once per round; if you close it, it stays closed for that round
+  if (!G_scAutoOpened && rl && rl.players && rl.players[G.playerName]) { G_scOpen.add(G.playerName); G_scAutoOpened = true; }
   G_scNames = sorted.map(([n]) => n);
   const ranks = denseRanks(sorted);
   document.getElementById('sc-list').innerHTML = (rl && rl.players)
@@ -5969,75 +6036,175 @@ async function groupHousekeeping(gid, now) {
   } catch(e) { console.warn('group cleanup failed', e); }
 }
 
-let G_lbTab = 'group';
-let G_lbRoom = null;
+// ══ GROUP PAGE (Build 5b): leaderboard + history of one group ══
+// Reached from the Final screen (Marcador tab), the lobby 📜 button and a ?g=ID link (Historial tab).
+let G_gp = { gid: '', name: '', from: 'final', tab: 'lb', idx: null, pos: 0, cache: {}, token: 0, dbg: null };
 
-window.showLeaderboard = async () => {
+function setGroupInUrl(gid) {
+  try {
+    const u = new URL(window.location.href);
+    if (gid) u.searchParams.set('g', gid); else u.searchParams.delete('g');
+    if (u.href !== window.location.href) history.replaceState(null, '', u.href);
+  } catch(e) { /* ignore */ }
+}
+
+// "25 sept · 21:40" / "25 Sep · 21:40" / "25 sept. · 21:40" in the viewer's language
+function gameWhen(ts, lang) {
+  const locale = { es: 'es-ES', en: 'en-GB', fr: 'fr-FR' }[lang || LANG] || 'es-ES';
+  const d = new Date(ts || 0);
+  return d.toLocaleDateString(locale, { day: 'numeric', month: 'short' }) + ' · '
+    + d.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
+}
+
+async function openGroupPage(gid, name, from, tab) {
   stopConfetti();
+  const same = G_gp.gid === gid;
+  G_gp = { gid, name: name || '', from, tab, idx: null, pos: 0, cache: same ? G_gp.cache : {}, token: G_gp.token + 1, dbg: from === 'debug' ? G_gp.dbg : null };
   show('leaderboard');
-  const snap = await get(roomRef(G.roomCode));
-  G_lbRoom = snap.val();
-  G_lbTab = 'group';
-  await renderLb();
+  await renderGroupPage();
+}
+
+// Final screen → Marcador tab
+window.showLeaderboard = async () => {
+  let room = G_finalRoom;
+  if (!room || !room.groupId) { try { room = (await get(roomRef(G.roomCode))).val() || room; } catch(e) { /* keep */ } }
+  await openGroupPage(isGroupId(room && room.groupId) ? room.groupId : '', (room && room.groupName) || '', 'final', 'lb');
 };
 
-window.lbTab = async (tab) => {
-  G_lbTab = tab;
-  document.getElementById('btn-lb-group').style.background = tab==='group' ? 'var(--red)' : '';
-  document.getElementById('btn-lb-group').style.color = tab==='group' ? 'var(--paper)' : '';
-  document.getElementById('btn-lb-global').style.background = tab==='global' ? 'var(--red)' : '';
-  document.getElementById('btn-lb-global').style.color = tab==='global' ? 'var(--paper)' : '';
-  await renderLb();
+// Lobby 📜 (host: the picked group; guest: the room's group) → Historial tab
+window.openHistoryFromLobby = () => {
+  const g = G.isHost ? (G_group ? { id: G_group.id, name: G_group.name } : G_lobbyRoomGroup) : G_lobbyRoomGroup;
+  if (!g || !isGroupId(g.id)) return;
+  openGroupPage(g.id, g.name, 'lobby', 'hist');
 };
 
-async function renderLb() {
-  document.getElementById('btn-lb-group').style.background = G_lbTab==='group' ? 'var(--red)' : '';
-  document.getElementById('btn-lb-group').style.color = G_lbTab==='group' ? 'var(--paper)' : '';
-  document.getElementById('btn-lb-global').style.background = G_lbTab==='global' ? 'var(--red)' : '';
-  document.getElementById('btn-lb-global').style.color = G_lbTab==='global' ? 'var(--paper)' : '';
+// ?g=ID link → Historial tab; the group is added to Mis grupos
+async function openGroupFromLink(gid) {
+  let meta = null;
+  try { meta = (await get(ref(db, 'groupsMeta/' + gid))).val(); } catch(e) { /* treated as not found */ }
+  if (!meta || !meta.name) { setGroupInUrl(''); toast(t('grpNotFound')); return false; }
+  touchMyGroup(gid, meta.name, meta.lastPlayed || Date.now());
+  await openGroupPage(gid, meta.name, 'link', 'hist');
+  return true;
+}
 
-  if (G_lbTab === 'global') {
-    document.getElementById('lb-group-name').textContent = t('worldSub');
-    const gSnap = await get(ref(db, 'global'));
-    if (!gSnap.exists()) { document.getElementById('lb-list').innerHTML = `<p class="wait">${t('noGroupGlobal')}</p>`; return; }
-    const data = gSnap.val();
-    const sorted = Object.entries(data).sort((a,b)=>(b[1].wins||0)-(a[1].wins||0)).slice(0,20);
-    document.getElementById('lb-list').innerHTML = sorted.map(([key,d],i) => {
-      const winRate = d.games ? Math.round((d.wins/d.games)*100) : 0;
-      return `<div class="lb-row">
-        <span>${MEDALS[i]||'  '} ${d.name||key} ${d.emoji||'🎲'} <span style="font-size: 11px;color:var(--ink-muted)">${d.group?'('+d.group+')':''}</span></span>
-        <div class="lb-stats">
-          <span>🏆 ${d.wins||0}</span>
-          <span>🎮 ${d.games||0}</span>
-          <span class="lb-pts">${winRate}%</span>
-        </div>
-      </div>`;
-    }).join('');
-  } else {
-    const group = G_lbRoom?.groupName || '';
-    const gid = isGroupId(G_lbRoom?.groupId) ? G_lbRoom.groupId : '';
-    if (!gid) {
-      document.getElementById('lb-group-name').textContent = t('noGroup');
-      document.getElementById('lb-list').innerHTML = `<p class="wait">${t('noGroup')}</p>`; return;
-    }
-    document.getElementById('lb-group-name').textContent = '🎮 ' + group;
-    const gSnap = await get(ref(db, 'groupsLb/' + gid));
-    if (!gSnap.exists()) { document.getElementById('lb-list').innerHTML = `<p class="wait">${t('noGroupLocal')}</p>`; return; }
-    const data = gSnap.val();
-    const sorted = Object.entries(data).sort((a,b)=>(b[1].wins||0)-(a[1].wins||0));
-    document.getElementById('lb-list').innerHTML = sorted.map(([key,d],i) => {
-      const winRate = d.games ? Math.round((d.wins/d.games)*100) : 0;
-      return `<div class="lb-row">
-        <span>${MEDALS[i]||'  '} ${escHtml(d.name||key)} ${d.lastEmoji||'🎲'}</span>
-        <div class="lb-stats">
-          <span>🏆 ${d.wins||0} ${t('wins')}</span>
-          <span>🎮 ${d.games||0} ${t('games')}</span>
-          <span class="lb-pts">${winRate}%</span>
-        </div>
-      </div>`;
-    }).join('');
+window.gpTab = async (tab) => { G_gp.tab = tab; await renderGroupPage(); };
+
+window.gpNav = async (dir) => {
+  const idx = G_gp.idx || [];
+  const pos = G_gp.pos + dir;
+  if (pos < 0 || pos >= idx.length) return;
+  G_gp.pos = pos;
+  await renderGroupHistory();
+};
+
+window.lbBack = async () => {
+  const from = G_gp.from;
+  setGroupInUrl('');
+  if (from === 'link' || from === 'debug' || !G.roomCode) { show('home'); return; }
+  let room = null;
+  try { room = (await get(roomRef(G.roomCode))).val(); } catch(e) { /* offline */ }
+  if (!room) { show('home'); return; }
+  if (room.phase === 'final') { show('final'); return; }
+  if (room.phase === 'lobby') {
+    if (from === 'lobby') {
+      // Back to the same lobby; catch up on what changed while browsing
+      show('lobby');
+      renderPlayers(room.players || {}, room.langs || {});
+      renderGuestGroup(room);
+    } else enterLobby(room); // the host started a new game (Jugar de nuevo) while we were browsing
+    return;
   }
+  restoreToScreen();
 };
+
+async function renderGroupPage() {
+  const my = ++G_gp.token;
+  document.getElementById('lb-group-name').textContent = G_gp.name ? '🎮 ' + G_gp.name : t('leaderboard');
+  document.getElementById('btn-gp-lb').classList.toggle('on', G_gp.tab === 'lb');
+  document.getElementById('btn-gp-hist').classList.toggle('on', G_gp.tab === 'hist');
+  const lbEl = document.getElementById('lb-list');
+  const histEl = document.getElementById('gp-hist');
+  lbEl.style.display = G_gp.tab === 'lb' ? '' : 'none';
+  histEl.style.display = G_gp.tab === 'hist' ? '' : 'none';
+  if (!G_gp.gid) {
+    lbEl.style.display = ''; histEl.style.display = 'none';
+    lbEl.innerHTML = `<p class="wait">${escHtml(t('noGroup'))}</p>`;
+    return;
+  }
+  if (G_gp.tab === 'lb') {
+    lbEl.innerHTML = `<p class="wait">${escHtml(t('loading'))}</p>`;
+    let data = null;
+    try { data = G_gp.dbg ? G_gp.dbg.lb : (await get(ref(db, 'groupsLb/' + G_gp.gid))).val(); } catch(e) { /* shown as empty */ }
+    if (my !== G_gp.token) return; // a newer render took over
+    lbEl.innerHTML = groupLbHTML(data);
+  } else {
+    await renderGroupHistory(my);
+  }
+}
+
+// Group leaderboard rows: wins, games, win %; tied wins share the medal
+function groupLbHTML(data) {
+  if (!data || !Object.keys(data).length) return `<p class="wait">${escHtml(t('noGroupLocal'))}</p>`;
+  const sorted = Object.entries(data).sort((a, b) => ((b[1].wins || 0) - (a[1].wins || 0)) || ((b[1].games || 0) - (a[1].games || 0)));
+  const medals = denseMedals(sorted.map(([k, d]) => [k, d.wins || 0]));
+  return sorted.map(([key, d], i) => {
+    const winRate = d.games ? Math.round(((d.wins || 0) / d.games) * 100) : 0;
+    return `<div class="lb-row">
+        <span>${medals[i] || '&nbsp;&nbsp;'} ${escHtml(d.name || key)} ${d.lastEmoji || '🎲'}</span>
+        <div class="lb-stats">
+          <span>🏆 ${d.wins || 0} ${escHtml(t('wins'))}</span>
+          <span>🎮 ${d.games || 0} ${escHtml(t('games'))}</span>
+          <span class="lb-pts">${winRate}%</span>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// Newest first: [[gameId, {endedAt, winners, lang}], ...]
+function sortHistoryIndex(raw) {
+  return Object.entries(raw || {}).filter(([, v]) => v && v.endedAt)
+    .sort((a, b) => (b[1].endedAt - a[1].endedAt) || (a[0] < b[0] ? 1 : -1));
+}
+
+async function renderGroupHistory(my) {
+  if (my === undefined) my = ++G_gp.token;
+  const nav = document.querySelector('#gp-hist .gp-nav');
+  const whenEl = document.getElementById('gp-when');
+  const listEl = document.getElementById('gp-list');
+  const winEl = document.getElementById('gp-winner');
+  const awEl = document.getElementById('gp-awards');
+  if (!G_gp.idx) {
+    listEl.innerHTML = `<p class="wait">${escHtml(t('loading'))}</p>`; winEl.textContent = ''; awEl.innerHTML = ''; nav.style.display = 'none';
+    let raw = null;
+    try { raw = G_gp.dbg ? G_gp.dbg.idx : (await get(ref(db, 'historyIndex/' + G_gp.gid))).val(); } catch(e) { /* shown as empty */ }
+    if (my !== G_gp.token) return;
+    G_gp.idx = sortHistoryIndex(raw); G_gp.pos = 0;
+  }
+  const idx = G_gp.idx;
+  if (!idx.length) {
+    nav.style.display = 'none'; winEl.textContent = ''; awEl.innerHTML = '';
+    listEl.innerHTML = `<p class="wait">${escHtml(t('histEmpty'))}</p>`;
+    return;
+  }
+  const [gameId, meta] = idx[G_gp.pos];
+  nav.style.display = '';
+  // SVG flags have display:block baked in: they sit in a flex row, never inline in text
+  whenEl.innerHTML = `${(window.FLAGS && window.FLAGS[meta.lang]) || ''}<span>${escHtml(gameWhen(meta.endedAt))}</span>`;
+  document.getElementById('btn-gp-older').disabled = G_gp.pos >= idx.length - 1;
+  document.getElementById('btn-gp-newer').disabled = G_gp.pos <= 0;
+  let game = G_gp.cache[gameId];
+  if (!game) {
+    listEl.innerHTML = `<p class="wait">${escHtml(t('loading'))}</p>`; winEl.textContent = ''; awEl.innerHTML = '';
+    try { game = G_gp.dbg ? G_gp.dbg.games[gameId] : (await get(ref(db, 'history/' + G_gp.gid + '/' + gameId))).val(); } catch(e) { game = null; }
+    if (my !== G_gp.token) return;
+    if (game) G_gp.cache[gameId] = game;
+  }
+  if (!game) { listEl.innerHTML = `<p class="wait">${escHtml(t('histError'))}</p>`; return; }
+  winEl.textContent = winnerLineText(game);
+  awEl.innerHTML = awardChipsHTML(game);
+  listEl.innerHTML = gameCardsHTML(game, 'hs');
+}
 
 function showFinal(room) {
   show('final');
@@ -6049,30 +6216,47 @@ function showFinal(room) {
   const sorted = Object.entries(room.scores||{}).sort((a,b)=>b[1]-a[1]);
   const wPlayers = room.players||{};
   if (sorted[0]) {
-    const top = sorted[0][1];
-    const tied = sorted.filter(([,pts]) => pts === top).map(([n]) => n + ' ' + (wPlayers[n]||'🎲'));
-    let line;
-    if (tied.length > 1) {
-      const names = tied.slice(0, -1).join(', ') + ' ' + t('tieAnd') + ' ' + tied[tied.length-1];
-      line = t('tieLine').replace('{names}', names).replace('{pts}', top);
-    } else {
-      line = t('winnerLine').replace('{emoji}', wPlayers[sorted[0][0]]||'🎲').replace('{name}', sorted[0][0]).replace('{pts}', top);
-    }
-    document.getElementById('winner-line').textContent = line;
+    document.getElementById('winner-line').textContent = winnerLineText(room);
     launchConfetti(wPlayers[sorted[0][0]]);
   }
+  G_finalRoom = room; // for shareFinal
+  // Everyone who reaches the end of a real game gets the group added to / bumped in Mis grupos
+  if (G.roomCode !== 'DBUG' && isGroupId(room.groupId) && !isPracticeRoom(room)) touchMyGroup(room.groupId, room.groupName, Date.now());
+  document.getElementById('final-awards').innerHTML = awardChipsHTML(room);
+  document.getElementById('final-list').innerHTML = gameCardsHTML(room, 'fn');
+}
+
+// "¡Oscar 🦊 gana con 900 puntos!" or the tie line — Final screen and group history
+function winnerLineText(room) {
+  const sorted = Object.entries(room.scores||{}).sort((a,b)=>b[1]-a[1]);
+  if (!sorted[0]) return '';
+  const wPlayers = room.players||{};
+  const top = sorted[0][1];
+  const tied = sorted.filter(([,pts]) => pts === top).map(([n]) => n + ' ' + (wPlayers[n]||'🎲'));
+  if (tied.length > 1) {
+    const names = tied.slice(0, -1).join(', ') + ' ' + t('tieAnd') + ' ' + tied[tied.length-1];
+    return t('tieLine').replace('{names}', names).replace('{pts}', top);
+  }
+  return t('winnerLine').replace('{emoji}', wPlayers[sorted[0][0]]||'🎲').replace('{name}', sorted[0][0]).replace('{pts}', top);
+}
+
+function awardChipsHTML(room) {
+  return computeAwards(room).map(a =>
+    `<span class="aw-chip">${a.emoji} ${t(a.label)} · <b>${a.names.map(escHtml).join(', ')}</b></span>`
+  ).join('');
+}
+
+// Player cards of a finished game. prefix keeps element ids unique ('fn' = Final screen, 'hs' = group history).
+// The history view also marks the host.
+function gameCardsHTML(room, prefix) {
+  const sorted = Object.entries(room.scores||{}).sort((a,b)=>b[1]-a[1]);
   const fPlayers = room.players||{};
   const fMedals = denseMedals(sorted);
   const fRanks = denseRanks(sorted);
   const rounds = roundLogEntries(room);
-  G_finalRoom = room; // for shareFinal
-  // Everyone who reaches the end of a real game gets the group added to / bumped in Mis grupos
-  if (G.roomCode !== 'DBUG' && isGroupId(room.groupId) && !isPracticeRoom(room)) touchMyGroup(room.groupId, room.groupName, Date.now());
-  document.getElementById('final-awards').innerHTML = computeAwards(room).map(a =>
-    `<span class="aw-chip">${a.emoji} ${t(a.label)} · <b>${a.names.map(escHtml).join(', ')}</b></span>`
-  ).join('');
-  document.getElementById('final-list').innerHTML = rounds.length
-    ? sorted.map(([n,pts],i) => finalCardHTML(i, n, pts, fMedals[i] || fRanks[i], fPlayers[n]||'🎲', room, rounds)).join('')
+  const host = prefix === 'hs' ? (room.host || '') : '';
+  return rounds.length
+    ? sorted.map(([n,pts],i) => finalCardHTML(i, n, pts, fMedals[i] || fRanks[i], fPlayers[n]||'🎲', room, rounds, prefix, host === n)).join('')
     : sorted.map(([n,pts],i) =>  // fallback: no roundLog (older room)
         `<div class="score-row"><span>${fMedals[i]} ${escHtml(n)} ${fPlayers[n]||'🎲'}</span><span class="pts">${pts} pts</span></div>`
       ).join('');
@@ -6115,9 +6299,9 @@ function computeAwards(room) {
 }
 
 // Final card: collapsed row with the final total; opened shows every round (heading, answers, breakdown)
-function finalCardHTML(i, name, total, rank, emoji, room, rounds) {
+function finalCardHTML(i, name, total, rank, emoji, room, rounds, prefix = 'fn', isHost = false) {
   const played = rounds.filter(([, rl]) => rl.players[name]);
-  const head = mpRowHTML({ id: 'fn-row-' + i, rank, name, emoji, total, onclick: played.length ? `toggleFinalCard(${i})` : '' });
+  const head = mpRowHTML({ id: prefix + '-row-' + i, rank, name, emoji, total, isHost, onclick: played.length ? `toggleFinalCard(${i},'${prefix}')` : '' });
   if (!played.length) return head;
   const rl1 = t('rndLabel');
   const roundWord = rl1.charAt(0).toUpperCase() + rl1.slice(1);
@@ -6128,12 +6312,12 @@ function finalCardHTML(i, name, total, rank, emoji, room, rounds) {
     return `<div class="fn-round-h"><span>${roundWord} ${r}${rl.letter ? ' · ' + escHtml(rl.letter) : ''}</span>${isCaller ? '<span class="sc-alto">A</span>' : ''}<span class="fn-round-pts">${signed(pts.round)}</span></div>`
       + roundRowsHTML(d, rl.categories || []) + breakdownHTML(pts, isCaller, room);
   }).join('');
-  return head + `<div class="daily-lb-answers" id="fn-panel-${i}">${body}</div>`;
+  return head + `<div class="daily-lb-answers" id="${prefix}-panel-${i}">${body}</div>`;
 }
 
-window.toggleFinalCard = (i) => {
-  const row = document.getElementById('fn-row-' + i);
-  const panel = document.getElementById('fn-panel-' + i);
+window.toggleFinalCard = (i, prefix = 'fn') => {
+  const row = document.getElementById(prefix + '-row-' + i);
+  const panel = document.getElementById(prefix + '-panel-' + i);
   if (!row || !panel) return;
   row.classList.toggle('expanded', panel.classList.toggle('open'));
 };
@@ -6149,7 +6333,8 @@ function finalShareText(room) {
   const roundsTxt = played === 1 ? `1 ${t('rndLabel')}` : `${played} ${t('roundsWord')}`;
   const header = ['¡ALTO!', room.groupName || '', roundsTxt].filter(Boolean).join(' · ');
   const awardsLine = computeAwards(room).map(a => `${a.emoji} ${a.names.join(', ')}`).join(' · ');
-  return [header, ...lines, awardsLine, 'jugarenfamilia.es'].filter(Boolean).join('\n');
+  const link = (isGroupId(room.groupId) && !isPracticeRoom(room)) ? 'jugarenfamilia.es/?g=' + room.groupId : 'jugarenfamilia.es';
+  return [header, ...lines, awardsLine, link].filter(Boolean).join('\n');
 }
 
 window.shareFinal = async () => {
@@ -6264,6 +6449,12 @@ async function tryRestore() {
       return;
     }
   } else {
+    // ?g=ID (shared group link): open that group's page instead of offering "welcome back"
+    const gParam = (new URLSearchParams(window.location.search).get('g') || '').toLowerCase();
+    if (gParam) {
+      if (isGroupId(gParam)) { await openGroupFromLink(gParam); return; }
+      setGroupInUrl('');
+    }
     session = (tabSession && tabSession.name) ? tabSession : sharedSession;
   }
   if (!session) return;
@@ -6552,21 +6743,20 @@ window.dbg = function dbg(screen) {
       break;
 
     case 'leaderboard': {
+      // Group page with in-memory data (no Firebase): 3-player leaderboard with a tie, 2 games in history
       G.isHost = true;
-      show('leaderboard');
-      G_lbTab = 'group';
-      document.getElementById('lb-group-name').textContent = 'Los García';
-      document.getElementById('lb-list').innerHTML = [
-        { name: '__debug__', emoji: '🎯', wins: 12, games: 20 },
-        { name: 'María',     emoji: '🌸', wins: 8,  games: 20 },
-        { name: 'Carlos',    emoji: '🦊', wins: 4,  games: 20 },
-      ].map(({ name, emoji, wins, games }, i) => {
-        const wr = Math.round((wins/games)*100);
-        return `<div class="score-row">
-          <span>${['🥇','🥈','🥉'][i]||''} ${emoji} ${name}</span>
-          <span class="pts">${wins} victorias · ${wr}%</span>
-        </div>`;
-      }).join('');
+      const game = Object.assign(dbgFakeRoom({ phase: 'final' }), { host: 'María', lang: 'es' });
+      const now = Date.now();
+      G_gp.dbg = {
+        lb: {
+          '__debug__': { name: '__debug__', lastEmoji: '🎯', wins: 8, games: 20 },
+          'maria':     { name: 'María',     lastEmoji: '🌸', wins: 8, games: 20 },
+          'carlos':    { name: 'Carlos',    lastEmoji: '🦊', wins: 4, games: 20 },
+        },
+        idx: { dbg2: { endedAt: now - 3600e3, lang: 'es' }, dbg1: { endedAt: now - 2 * 86400e3, lang: 'fr' } },
+        games: { dbg2: game, dbg1: Object.assign({}, game, { host: 'Carlos', lang: 'fr' }) },
+      };
+      openGroupPage('dbggarcia01', 'Los García', 'debug', 'lb');
       break;
     }
 
@@ -7113,7 +7303,7 @@ setTimeout(() => updateDailyButtonDate(), 350);
 // Version freshness check — silently reload if a newer version is deployed
 // Runs once on load; does nothing if already on latest or if fetch fails
 (function() {
-  const RUNNING = 'v260926.318-tmp';
+  const RUNNING = 'v260929.319-tmp';
   if (sessionStorage.getItem('alto_ver_checked') === RUNNING) return; // already checked this session
   sessionStorage.setItem('alto_ver_checked', RUNNING);
   fetch(location.href, { cache: 'no-cache' })
@@ -7136,7 +7326,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) upda
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260926.318-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v260929.319-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
