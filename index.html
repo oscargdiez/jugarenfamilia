@@ -3003,13 +3003,21 @@ function dailyBuildPromptWithWord(word, category, letter, opts) {
   return [sys, userPrompt];
 }
 
+// Rule (3) example: a correct word from ANOTHER language, so it can never be read as a valid answer in the game's language
+const FOREIGN_WORD_EXAMPLE = {
+  fr: 'Spanish "jabalí" instead of French "sanglier"',
+  es: 'English "guava" instead of Spanish "guayaba"',
+  en: 'French "fraise" instead of English "strawberry"',
+};
+
 // The ONE judge prompt, shared by the daily, practice, contests' first ruling and multiplayer.
 // opts (multiplayer only): { strict, looseSpelling } from the host's Estricto/Relajado and spelling options.
 // No opts = the daily prompt, unchanged (the AI scout results are measured on it).
 function dailyBuildPrompt(category, letter, opts) {
   const langNames = {es:'Spanish',en:'English',fr:'French'};
   const gameLang = langNames[LANG] || 'Spanish';
-  let systemPrompt = `You are a fair and balanced judge of a ${gameLang}-language word game. Rules: (1) Ignore accents and tildes — Ramon=Ramón is fine. (2) Accept borderline, regional, informal, and less common but genuinely real answers. Reject made-up or unverifiable answers. (3) Proper nouns are international — person names, surnames, singers, actors, writers, fictional characters, song/film/TV titles, brands, cities, and countries are accepted in any language. Only common nouns must be in ${gameLang}. (4) Spelling must be correct (accents/tildes excepted) — misspelled words are INVALIDO. (5) VALIDO for real correctly-spelled answers even if uncommon. INVALIDO for clearly wrong, made-up, or misspelled answers. DUDOSO when genuinely uncertain whether something exists.`;
+  const foreignEx = FOREIGN_WORD_EXAMPLE[LANG] || FOREIGN_WORD_EXAMPLE.es;
+  let systemPrompt = `You are a fair and balanced judge of a ${gameLang}-language word game. Rules: (1) Ignore accents and tildes — Ramon=Ramón is fine. (2) Accept borderline, regional, informal, and less common but genuinely real answers. Reject made-up or unverifiable answers. (3) Language. Proper nouns are international — person names, surnames, singers, actors, writers, fictional characters, song/film/TV titles, brands, cities, and countries are accepted in any language. Everything else must be the ${gameLang} word: animals, plants, fruits, food, drinks, objects, body parts, jobs, colours, sports, instruments and any other common noun. A correctly spelled word from another language is INVALIDO even if it means the right thing (e.g. ${foreignEx}). Loanwords normally used in ${gameLang} are fine (e.g. pizza, sushi, jazz). (4) Spelling must be correct (accents/tildes excepted) — misspelled words are INVALIDO. (5) VALIDO for real correctly-spelled answers even if uncommon. INVALIDO for clearly wrong, made-up, or misspelled answers. DUDOSO when genuinely uncertain whether something exists.`;
   const userPrompt = gameLang + ' word game. Letter: "' + letter + '". Category: "' + category + '". Does the answer start with "' + letter + '" and genuinely belong to the category? Reply ONE word only: VALIDO, INVALIDO, or DUDOSO.';
   if (opts) {
     const swap = (from, to) => { systemPrompt = systemPrompt.replace(from, to); };
@@ -3210,7 +3218,7 @@ window.recontest = async (idx, word, cat) => {
       ? `You are a judge of a ${gameLang}-language word game. A previous judge ruled an answer INVALID. STRICT RULE on spelling: any spelling mistake beyond accents or tildes is INVALIDO — wrong letters, missing letters, or added letters are never acceptable (applies to common words; proper nouns like names and places must also be spelled correctly). Proper nouns are international — person names, surnames, singers, actors, writers, fictional characters, song/film/TV titles, brands, cities, and countries are accepted in any language; only common nouns must be in ${gameLang}. If spelling is correct, be generous with the category scope — if the answer could reasonably belong to the category, rule VALIDO. If in doubt about spelling, rule INVALIDO. If in doubt about category fit only, rule VALIDO. Reply with exactly one word: VALIDO, INVALIDO, or DUDOSO.`
       : `You are a fair judge of a ${gameLang}-language word game. A previous judge ruled an answer INVALID. Overturn only if: (1) the answer clearly and unambiguously belongs to the category — do not stretch the category definition; and (2) any error is limited to accents or tildes only — spelling mistakes, wrong letters, or missing letters are NOT grounds to overturn. If in doubt, uphold the original INVALIDO verdict. Reply with exactly one word: VALIDO, INVALIDO, or DUDOSO.`;
     const prompt = CONTEST_METHOD === 'B'
-      ? `${gameLang}-language game. Letter: "${letter}". Category: "${cat.trim()}". Answer: "${word}". Does the answer start with "${letter}" and genuinely belong to the category? Note: proper nouns (person names, surnames, singers, actors, writers, cities, countries) are valid in any language — do not reject for being non-${gameLang}. Spelling must be correct beyond accents/tildes. Reply with ONE word only: VALIDO, INVALIDO, or DUDOSO.`
+      ? `${gameLang}-language game. Letter: "${letter}". Category: "${cat.trim()}". Answer: "${word}". Does the answer start with "${letter}" and genuinely belong to the category? Note: proper nouns (person names, surnames, singers, actors, writers, cities, countries) are valid in any language — do not reject for being non-${gameLang}. Common nouns (animals, plants, fruits, food, drinks, objects, body parts, etc.) must be the ${gameLang} word — a word from another language is INVALIDO even if it means the right thing; loanwords normally used in ${gameLang} are fine. Spelling must be correct beyond accents/tildes. Reply with ONE word only: VALIDO, INVALIDO, or DUDOSO.`
       : `${gameLang}-language game. Letter: "${letter}". Category: "${cat.trim()}". Answer: "${word}". Previous judge said INVALIDO. Overturn (VALIDO) only if the answer unambiguously fits the category AND any error is accents/tildes only. Spelling mistakes are INVALIDO. Reply with ONE word only: VALIDO, INVALIDO, or DUDOSO.`;
 
     const parseVerdict = (data) => {
@@ -6879,7 +6887,7 @@ setTimeout(() => updateDailyButtonDate(), 350);
 // Version freshness check — silently reload if a newer version is deployed
 // Runs once on load; does nothing if already on latest or if fetch fails
 (function() {
-  const RUNNING = 'v260926.317';
+  const RUNNING = 'v260929.320';
   if (sessionStorage.getItem('alto_ver_checked') === RUNNING) return; // already checked this session
   sessionStorage.setItem('alto_ver_checked', RUNNING);
   fetch(location.href, { cache: 'no-cache' })
@@ -6902,7 +6910,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) upda
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260926.317</div>
+  <div style="font-size: 11px;opacity:0.5">v260929.320</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>

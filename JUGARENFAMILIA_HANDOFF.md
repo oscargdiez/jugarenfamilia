@@ -1,5 +1,5 @@
 # JugarEnFamilia.es — Project Handoff Document
-*Last updated: September 2026 — Session 25*
+*Last updated: September 2026 — Session 26*
 
 > ⚠️ **HANDOFF INTEGRITY RULE — DO NOT DELETE CONTENT**
 > This document is append-and-update only. Never remove sections, rules, known issues, backlog items, or session log entries. Only add new content and update existing entries. A truncated handoff causes the next session to lose critical context.
@@ -434,6 +434,8 @@ Three theme modes replacing the old 7 themes:
 - **(Session 25)** Paid Ling answers are not fully consistent between calls (two providers) — see OpenRouter section.
 - **(Session 25)** `#qj-name` (invite-link name field) still uses inline `oninput` with value reassignment — breaks rule 8; pre-existing, not fixed yet.
 - **(Session 25)** `lbRef()` (`leaderboard` path) is dead code — never called.
+- **(Session 26)** Judge prompt changed in v320 (language rule). Any future prompt change: update `tools/ai_scout.js` too — `test_judge_prompt.mjs` fails if they differ.
+- **(Session 26)** Mixed versions: during a staging test all players must be on `index_tmp.html` — Revisar-for-guests and the tap fix run on each client.
 
 ## 🗒 Small Fixes Backlog
 - Quick join accent restoration — if pre-filled name matches a verified claim, fetch `displayName` from Firebase and restore accented version into field
@@ -1188,6 +1190,77 @@ Living version (Claude Doc): https://claude.ai/artifact/9bCUk2yRwx1wHQG3hmjhoV
 
 ---
 
+### Session 26 (Sep 29) - Build 5b + round/validation fixes on staging v260929.319-tmp (NOT TESTED BY OSCAR YET)
+
+**Start state:** production v260926.317, staging v260926.318-tmp (5a). Kit on staging ALL GREEN before starting. Oscar: multiplayer 🤖 works on staging (one solo practice game — note: solo games do not exercise the group features). Built on top of 5a so all of Build 5 is tested together. Plan agreed item by item before building (items 1-8 below).
+
+**1. Own card open on the round Scores screen.** `showScores`: once per round your own card starts open (`G_scAutoOpened`); others closed. If you close it, it stays closed for that round (the screen redraws on every room update). Late roundLog in the same round still opens it once. A player not in the round gets nothing opened. Final screen unchanged (all collapsed).
+
+**2. Group page = the Leaderboard screen (`s-leaderboard`), two tabs (Oscar chose tabs + word badge).** Title `🎮 group name` (`#lb-group-name`, now the h1). Tabs `#btn-gp-lb` "🏆 Marcador" / `#btn-gp-hist` "📜 Historial" (`.gp-tab.on` = red). Marcador: wins/games/win % rows (`groupLbHTML`), now DENSE medals on tied wins (was `MEDALS[i]`). Historial: nav row `◀ [SVG flag] 25 sept · 21:40 ▶` (`.gp-when` flex row — flags never inline; `gameWhen(ts)` in the viewer's language), ◀ older / ▶ newer, disabled at ends; then winner/tie line, award chips and the player cards of that game rebuilt from the `history` record with the Final code. Host badge: small grey `anfitrión`/`host`/`hôte` (`.mp-host`, 11px) on the host row in history only. Only `historyIndex` loads on open; a game loads when viewed and is cached (`G_gp.cache`); a render token drops stale loads. State in `G_gp {gid,name,from,tab,idx,pos,cache,token,dbg}`.
+- Entry points: Final "Marcador" → Marcador tab (`showLeaderboard`); lobby 📜 → Historial (`openHistoryFromLobby`: host = picked `G_group`, guest = room group via `G_lobbyRoomGroup`); `?g=ID` link → Historial (`openGroupFromLink`).
+- ← volver (`lbBack`, also the shell logo on this screen): link/debug → home; from a room: phase final → Final; lobby → same lobby (player list + group line caught up) or `enterLobby` if the host started a new game (Jugar de nuevo) meanwhile; other phases → `restoreToScreen`.
+- Shared helpers pulled out of `showFinal`: `winnerLineText(room)`, `awardChipsHTML(room)`, `gameCardsHTML(room, prefix)` ('fn' Final / 'hs' history — keeps element ids unique; `finalCardHTML(..., prefix, isHost)`, `toggleFinalCard(i, prefix)`), `mpRowHTML({..., isHost})`.
+- Language switch on the group page re-renders it (applyLang).
+
+**3. Mundial removed.** Tab, `global` branch of `renderLb`, `lbTab`, `G_lbTab`, `G_lbRoom` gone (whole old `renderLb` replaced). T keys removed: `myGroup`, `world`, `worldSub`, `noGroupGlobal`, `lbTitle`. `noGroup` reworded ("Esta partida no tiene grupo." — only old rooms). New T keys (ES/EN/FR): `gpTabLb`, `gpTabHist`, `hostBadge`, `histEmpty`, `histError`, `grpNotFound`. Firebase console cleanup of `global/`, `groups/`, `groupNames/` still waits for the production promotion.
+
+**4. Historial buttons.** Host: `[🎮 name ▾] [📜]` (`.grp-row`, `#btn-grp-hist`, 17px icon button). Guest: `🎮 name [📜]` (`#gc-group-row` > `#gc-group` + `#btn-gc-hist`; row hidden with no group). **handleRoom has a new `leaderboard` branch:** countdown/playing pull you into the game (and drop `?g`); lobby changes leave you on the page. Before this, a guest on Marcador when the host started was stuck (pre-existing bug).
+
+**5. `?g=ID` link.** `tryRestore`: without `?room=`, a valid `?g=` opens the group page (Historial) — name from `groupsMeta`, group added to Mis grupos with its lastPlayed; unknown group → toast `grpNotFound` + home; malformed id ignored. `?room=` wins over `?g=`. `?g` stays while viewing (refresh-safe) and is removed on leaving (`setGroupInUrl`). Share text last line: `jugarenfamilia.es/?g=ID` for real group games; practice / unfinished / no group keep `jugarenfamilia.es`.
+
+**7. Revisar takes guests back to validation (both modes).** handleRoom `scores` branch: phase `validate` → guests `showGuestValidation` + `applyVotesAndReactions` + AI results. Everything kept (✕ marks, 👎 votes, reactions, 🤖 results); guests can change votes and reactions (reactions count for points). Banner `#wait-revising` (moved from the Scores screen, T key `hostRevisingScores`) shows whenever the round was already scored (`roundLog[currentRound]` exists), so it also shows after a refresh mid-review. Old `#sc-revising` removed. Recalculate → everyone to the new Scores as before.
+
+**8. Lost taps / "ghost" reactions and thumbs — ROOT CAUSE FOUND AND FIXED.** Not leftover data (checked: Firebase clean at every round start). Cause: on the guest screen every room update redrew buttons nobody touched — every emoji row that had any reaction was re-created on ANY update, and any 👎 anywhere rebuilt the whole guest validation screen. A tap that lands while its button is being replaced is lost → tap twice; worse as rounds go on (more reactions/votes → more redraws), worst in democratic mode. Fix:
+- `setHTML(el, html)`: writes innerHTML only if it differs from what it last wrote (`el.__h`). Used by `applyVotesAndReactions`, `reactToEntry`, `voteEntry`.
+- `applyVotesAndReactions` now walks every `votes_*` / `emojis_*` element on screen and takes MY state from Firebase for each (so counts go back to 0 when the last vote/reaction is removed, and highlights are always the truth).
+- `refreshGuestValidation` no longer rebuilds: only host ✕ marks trigger `applyGuestMarks` (switches `invalid` / `democratic-valid` + badge text in place; badge keeps `data-pts`).
+- **Stuck guest (also found):** a guest who got "all answers in" and "phase validate" in one snapshot stayed on "Respuestas enviadas…" and could not react/vote (e.g. back from another app). handleRoom `playing` branch now sends a non-host with all answers in and phase `validate` straight to validation.
+
+**Debug:** `dbg('leaderboard')` now shows the real group page with in-memory data (`G_gp.dbg`: tie on wins, 2 games ES/FR, host María/Carlos) — no Firebase.
+
+**Tests (kit updated — deliver `tests_kit.zip`, extract into `D:\09_ALTO\`):** new `suites/test_build5b_group_page.mjs` (35: own card open/closed/next round/late roundLog/late joiner, dense medals, history order, dates ES/EN/FR, host badge + ids, winner line, share link 4 cases, in-place guest marks with zero rebuilds, setHTML writes once); new `restore/build5b_scenarios.py` (77 real-browser checks with host + 2 guests, democratic, 3 full rounds: one tap always registers, other players' reactions/votes never replace your buttons, both guests reach validation every round, Revisar brings guests back with decisions kept and a changed reaction changes the score, own card open on all 3 devices, lobby 📜 + host start pulls guest in, back targets, Final → Marcador/Historial, flag + date flex row, host badge, EN switch, play-again while browsing, `?g=` on a fresh device, unknown/malformed ids). Existing suites: extraction updated for the new helpers + a `querySelectorAll` mock; build3 own-row regex accepts `expanded`. Totals on v260929.319-tmp: 213 unit + 77 + 28 + 19 = ALL GREEN. iPhone check with real fonts at 414/390/375/360/320 (ES + FR, long names/group names): group page both tabs, host/guest lobby rows, waiting screen — no overflow.
+
+**Oscar's staging test list (all players on `index_tmp.html`, 3+ players for democratic):**
+- Lobby: 📜 next to the group (host and guest) opens Historial; guest browsing when host starts is pulled into the game.
+- Reactions and 👎 register with ONE tap, every round (the main bug).
+- Everyone sees their own card open on the round Scores.
+- Revisar: guests go back to validation with the banner; change a vote/reaction; recalculated scores reflect it.
+- Full game (all rounds, 2+ players) → Final → Marcador (tied wins share medal) → Historial (flag, date, host badge, cards) → back.
+- Compartir text ends with `jugarenfamilia.es/?g=...`; open that link on another phone → group page, group in Mis grupos.
+- Plus the Build 5a list from Session 25.
+
+**Last versions: production v260926.317 (unchanged), staging v260929.319-tmp.**
+
+---
+
+### Session 26 (Sep 29, continued) - Judge prompt language rule → PRODUCTION v260929.320 / staging v260929.321-tmp
+
+**Why:** today's FR daily accepted Oscar's "Jabali" as Mammifère (Spanish word; French is "sanglier"), and his ES result accepted "Guava" as Fruta (English; Spanish is "guayaba"). Rule (3) said "Only common nouns must be in {lang}" as half a sentence after a long list of what is allowed in any language; the models read mostly the list. Oscar fixed his own score by hand in Firebase. All other FR scores and verdicts of the day checked and correct (maths, originality, Jars/Jirafe/Julious Caesar/Jaques ❌, Jamaica ✅ under the proper-noun rule).
+
+**Change (prompt only):**
+- Rule (3) of `dailyBuildPrompt` (the ONE judge prompt: daily, practice, contest first ruling, multiplayer) now reads: "(3) Language. Proper nouns are international — [same list as before] are accepted in any language. Everything else must be the {lang} word: animals, plants, fruits, food, drinks, objects, body parts, jobs, colours, sports, instruments and any other common noun. A correctly spelled word from another language is INVALIDO even if it means the right thing (e.g. {example}). Loanwords normally used in {lang} are fine (e.g. pizza, sushi, jazz)."
+- `FOREIGN_WORD_EXAMPLE` (next to the prompt): FR `Spanish "jabalí" instead of French "sanglier"`, ES `English "guava" instead of Spanish "guayaba"`, EN `French "fraise" instead of English "strawberry"` — always a word from ANOTHER language, so it can never be read as a correct answer.
+- Contest prompt (Method B) note: same common-noun sentence added, so a contest cannot overturn a correct ❌ on a foreign word.
+- Multiplayer Estricto / Relajado / spelling swaps untouched and checked (they replace rules 2, 4, 5 by exact text).
+
+**AI scout v4 (`tools/ai_scout.js`):** prompt copy updated to v320 (identical to the game in ES/EN/FR — checked by the kit). 6 new daily questions (Guava ES Fruta ❌, Golf ES Deporte ✅, Olivo EN Tree ❌, Orange EN Fruit ✅, Jabali FR Mammifère ❌, Jamaica FR Pays ✅) → 21 questions, 7 per language; 2 new contest questions (Jabali, Guava must stay ❌) → 11. Per-language columns now show /7; suggestion rule is "at most one miss overall, no flips, no errors". **Oscar to run it once on jugarenfamilia.es after deploying v320** to confirm Sante / Cohere / Ling still judge well with the new wording; the v315 results were measured on the old prompt.
+
+**Tests:** new `suites/test_judge_prompt.mjs` (26): rule text + example + loanwords in 3 languages, no unfilled placeholders, Estricto/Relajado/spelling swaps still apply with the language rule kept, contest note, and **scout prompt byte-identical to the game** (fails if they drift). Production v320: diff vs v317 = prompt lines + version only; Session 25 kit gives IDENTICAL results on v317 and v320 (only the expected 5a failures). Staging v321-tmp: full kit ALL GREEN except one build5b browser check that failed once under load and passed 9 reruns in a row (77/77) — flaky timing, not yet identified which check; harden it next session (the scenario uses fixed waits of 450–500 ms).
+
+**Last versions: production v260929.320, staging v260929.321-tmp.**
+
+---
+
+## ▶ START HERE NEXT SESSION (Session 27)
+
+1. Upload the project zip (with `tests\` and `tools\`). Read this handoff. Production = **v260929.320** (v317 + judge prompt language rule), staging = **v260929.321-tmp** (Build 5a + 5b + Session 26 fixes + the same prompt rule). Run `./run_all.sh ../index_tmp.html` → ALL GREEN (239 + 77 + 28 + 19). One build5b browser check is flaky under load — find it (run the scenario several times, grep FAIL) and replace fixed waits with `wait(...)` polling.
+1b. Ask Oscar for the AI scout v4 results (run after v320) — if a model now misses the language questions, reorder `AI_MODELS`.
+2. Ask Oscar for his staging test results (list in the Session 26 log). Fix anything found on staging.
+3. When happy: promote to production (drop `-tmp`, new number), deliver handoff + design doc with it. Oscar then deletes `global/`, `groups/`, `groupNames/` in the Firebase console and removes their three rules lines.
+4. Then the items in step 6 below (room-HTML fix, security build + AI step 1, AI step 2, help-page pass — the help pass now also covers the group page, history and Revisar for guests).
+
+<details><summary>Previous START HERE (Session 26) — kept for the record</summary>
+
 ## ▶ START HERE NEXT SESSION (Session 26)
 
 1. Upload the project zip (must include `tests\` and `tools\`). Read this handoff, then `MULTIPLAYER_SCORING_DESIGN.md` (Groups, History, Languages sections; Build 5 row).
@@ -1213,6 +1286,8 @@ Living version (Claude Doc): https://claude.ai/artifact/9bCUk2yRwx1wHQG3hmjhoV
 **Always start from the uploaded working file** — never from a local copy that may have drifted.
 
 ---
+
+</details>
 
 <details><summary>Previous START HERE (Session 25) — kept for the record</summary>
 
