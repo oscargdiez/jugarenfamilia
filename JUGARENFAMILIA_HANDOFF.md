@@ -530,6 +530,9 @@ Context: family game, no payments, little personal data — nothing urgent, but 
 - Rare (<5%) → flat +25pts
 - Common (≥5%) → no bonus
 
+### Botanical / scientific answers (Session 26, parked by Oscar)
+Tomate as Fruta was rejected in Estricta (borderline). Oscar thinks it should count. Options: A) prompt rule "scientifically correct answers count" (then pimiento, pepino, calabaza, aguacate... also count as fruit); B) only well-known facts (tomato = fruit, whale = mammal); C) leave it to the host (current). Any prompt change → update the scout and re-run it.
+
 ### Daily Recontest — future tuning
 - Current: 3 models in parallel, 2 of 3 majority to overturn, 1 contest per lang per day, benefit-of-the-doubt prompt, DUDOSO counts as valid
 - If too lenient in practice: tighten prompt or require all 3
@@ -1250,7 +1253,11 @@ Living version (Claude Doc): https://claude.ai/artifact/9bCUk2yRwx1wHQG3hmjhoV
 
 **Deploy scripts (Session 26, after v320):** `deploy.bat` / `deploy_tmp.bat` updated to install `ai_scout.js` and `tests_kit.zip` (see Deploy Workflow). Not testable in Claude's sandbox (no cmd): checked statically (blocks balanced, no unescaped `( ) >` in echo inside blocks, `TOOLS` flag not read in the block that sets it, success path exits before `:toolsonly`, ASCII + CRLF) and by diff (rest of the scripts unchanged). Oscar copies both `.bat` files into `D:\09_ALTO\` by hand once. Suggested first real test: only `ai_scout.js` in Downloads → run `deploy_tmp.bat` → lands in `tools\`, "GitHub not touched".
 
-**Last versions: production v260929.320, staging v260929.321-tmp.**
+**v260929.322-tmp (staging):** Popularidad award emoji 🔥 → 🙌 (it counts fire + applause, so 🔥 was misleading). One line in `computeAwards`; chips, history and share text all follow. Oscar's call; 🫶 rejected (not shown on Windows 10 / older phones).
+
+**Process note (Oscar):** use fewer tool calls — run the test kit only when a change needs it, not for every tiny edit.
+
+**Last versions: production v260929.320, staging v260929.322-tmp.**
 
 ---
 
