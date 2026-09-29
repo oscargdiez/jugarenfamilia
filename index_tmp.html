@@ -6280,7 +6280,7 @@ function roundLogEntries(room) {
     .sort((a, b) => a[0] - b[0]);
 }
 
-// End-of-game awards from roundLog (work with reaction points on or off):
+// End-of-game awards from roundLog (work with reaction points on or off). Emojis: 🙌 popularity (fire + applause, so not 🔥), 😂, ✨:
 // popularity = 🔥30 + 👏20 received on any answer, laughter = 😂 received, originality = unique valid answers.
 // Only players still in the game; only awards someone earned (> 0); ties list everyone.
 function computeAwards(room) {
@@ -6299,7 +6299,7 @@ function computeAwards(room) {
     });
   });
   const out = [];
-  [['popularity', '🔥', 'awPopularity'], ['laughter', '😂', 'awLaughter'], ['originality', '✨', 'awOriginality']].forEach(([k, emoji, label]) => {
+  [['popularity', '🙌', 'awPopularity'], ['laughter', '😂', 'awLaughter'], ['originality', '✨', 'awOriginality']].forEach(([k, emoji, label]) => {
     const max = Math.max(0, ...Object.values(tally[k]));
     if (max > 0) out.push({ key: k, emoji, label, value: max, names: names.filter(n => tally[k][n] === max) });
   });
@@ -7311,7 +7311,7 @@ setTimeout(() => updateDailyButtonDate(), 350);
 // Version freshness check — silently reload if a newer version is deployed
 // Runs once on load; does nothing if already on latest or if fetch fails
 (function() {
-  const RUNNING = 'v260929.321-tmp';
+  const RUNNING = 'v260929.322-tmp';
   if (sessionStorage.getItem('alto_ver_checked') === RUNNING) return; // already checked this session
   sessionStorage.setItem('alto_ver_checked', RUNNING);
   fetch(location.href, { cache: 'no-cache' })
@@ -7334,7 +7334,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) upda
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260929.321-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v260929.322-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
