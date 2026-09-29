@@ -2,7 +2,7 @@
 
 Design complete 26 Sep 2026 (production at the time: v260922.301). All builds go to staging (`-tmp`) first.
 
-**Build status (Session 24):** Builds 1–4 are live in production **v260926.311**. **Build 5 (groups and history) is next.** See "Refinements made while building" below for the few places where the built version differs from this design.
+**Build status:** Builds 1–4 live since v260926.311 (Session 24). **Build 5 (groups and history) live since v260929.324 (Session 26)** — see "Build 5 in production" below. All five builds done. See "Refinements made while building" below for the few places where the built version differs from this design.
 
 Living version of this doc (Claude Doc): https://claude.ai/artifact/9bCUk2yRwx1wHQG3hmjhoV
 
@@ -21,6 +21,17 @@ The goal: make multiplayer scoring richer and fairer. Reward clean, fast ¡Alto!
 | History | Decided |
 | Languages | Decided |
 | Stats | Dropped |
+
+## Build 5 in production (Session 26, v260929.324)
+
+Groups and history are live. Where the built version differs from the design below:
+- **Group page** = the Leaderboard screen with two tabs, 🏆 Marcador (wins / games / win %, tied wins share the medal) and 📜 Historial (◀ flag · date ▶, winner line, awards, player cards per round). Host badge = small grey word "anfitrión" / "host" / "hôte".
+- **Historial buttons**: 📜 next to the host's group picker and on the guest's group line. A player browsing history is pulled into the game when the host starts.
+- **Share link** `jugarenfamilia.es/?g=ID` only for real group games; opens the group's Historial and adds the group to Mis grupos.
+- **Popularidad award emoji is 🙌** (not 🔥): it counts fire + applause.
+- **Own card starts open** on the round Scores screen (others collapsed).
+- **Revisar brings guests back** to validation too (both modes), with their votes and reactions kept and editable.
+- Global leaderboard (Mundial) removed.
 
 ## Refinements made while building (Session 24, Builds 1–4)
 

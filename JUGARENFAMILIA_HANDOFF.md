@@ -1263,17 +1263,22 @@ Living version (Claude Doc): https://claude.ai/artifact/9bCUk2yRwx1wHQG3hmjhoV
 - Tests: new `restore/countdown_scenarios.py` (12: host away → guests start alone; host returns into the round keeping the role; everyone refreshes → all back in; host via join screen with own name → host again, validates; other names stay guests). **Harness fixes:** fake `runTransaction` now aborts on `undefined` like Firebase (it used to write null = delete the room); `wait()` in the scenario files now pumps Playwright events instead of `time.sleep` (sleeping blocked the fake Firebase, which is served from the Python process — very likely the cause of the earlier flaky build5b check). build5b 77/77, restore and groups scenarios re-run on v323.
 - Next production promotion number: v260929.324.
 
-**Last versions: production v260929.320, staging v260929.323-tmp.**
+**v260929.324 — PRODUCTION (promotion of v260929.323-tmp = Build 5a + 5b + all Session 26 fixes):** tested by Oscar before promotion — 2-player game; solo 3-window game (normal Chrome host, Edge + incognito guests): Revisar brings guests back, no lost taps / ghost reactions, Final scores, Historial with flag + date + anfitrión + 🙌 chip + tied 🥈🥈; countdown refresh (host away, everyone refreshing) recovers. Promotion changed only the version string (diff checked). Checklist: 12 screens, init once, 4 scripts syntax OK, no -tmp, 383KB (waived), unit suites 239/239 on the production file; browser scenarios (77 + 12 + 19 + 28) ran on the identical v323-tmp.
+- **Oscar, before deploying:** export a Firebase backup (Realtime Database → ⋮ → Export JSON).
+- **Oscar, 1–2 weeks after, if all is well:** delete `global/`, `groups/`, `groupNames/` in the console and remove their three lines from the rules. Until then `rollback.bat` can still bring back the old leaderboard with its data.
+- From this release the old global/group leaderboard is no longer written; groups start empty (clean start, as designed). Everyone's Mis grupos starts from their default group.
+
+**Last versions: production v260929.324, staging v260929.323-tmp (same code).**
 
 ---
 
 ## ▶ START HERE NEXT SESSION (Session 27)
 
-1. Upload the project zip (with `tests\` and `tools\`). Read this handoff. Production = **v260929.320** (v317 + judge prompt language rule), staging = **v260929.321-tmp** (Build 5a + 5b + Session 26 fixes + the same prompt rule). Run `./run_all.sh ../index_tmp.html` → ALL GREEN (239 + 77 + 28 + 19). One build5b browser check is flaky under load — find it (run the scenario several times, grep FAIL) and replace fixed waits with `wait(...)` polling.
-1b. Ask Oscar for the AI scout v4 results (run after v320) — if a model now misses the language questions, reorder `AI_MODELS`.
-2. Ask Oscar for his staging test results (list in the Session 26 log). Fix anything found on staging.
-3. When happy: promote to production (drop `-tmp`, new number), deliver handoff + design doc with it. Oscar then deletes `global/`, `groups/`, `groupNames/` in the Firebase console and removes their three rules lines.
-4. Then the items in step 6 below (room-HTML fix, security build + AI step 1, AI step 2, help-page pass — the help pass now also covers the group page, history and Revisar for guests).
+1. Upload the project zip (with `tests\` and `tools\`). Read this handoff. Production = **v260929.324** (Build 5 live: groups, history, group page, share link, plus all Session 26 fixes). Staging = v260929.323-tmp (same code). New staging builds start from production v324.
+2. Ask Oscar: Firebase backup exported? Any problems in real games on v324? If all is well 1–2 weeks after 29 Sep → he deletes `global/`, `groups/`, `groupNames/` + their three rules lines.
+3. Ask Oscar for the AI scout v4 results (run on v320+ — the language rule). If a model misses the language questions, reorder `AI_MODELS`.
+4. Tests: run only when a change needs them (Oscar's request). Full kit: `./run_all.sh ../index.html` → 239 unit + 77 + 12 + 19 + 28 browser. Browser scenarios take ~5 min in total: run long ones one by one (the sandbox stops single commands after 300 s; background jobs may be killed).
+5. Next candidates (plan with Oscar first): the small room-HTML fix (Security item 2), then the security build + AI step 1, AI step 2, the help-page pass (now also: group page, history, share link, Revisar for guests, 🙌 awards, countdown). Parked: tomato/botanical rule (Flagged for Future), unexplained host-session loss (Session 26 v323 note).
 
 <details><summary>Previous START HERE (Session 26) — kept for the record</summary>
 
