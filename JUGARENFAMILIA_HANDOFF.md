@@ -1169,6 +1169,8 @@ Living version (Claude Doc): https://claude.ai/artifact/9bCUk2yRwx1wHQG3hmjhoV
 
 **AI scout** built (see Test kit → Tools). First run in progress at the end of the session: GLM 5.2 free DEAD (404); paid Ling 13/14; **`inclusionai/ling-3.0-flash-sante:free` 14/14, no flips — candidate to go first in `AI_MODELS` with paid Ling as safety net** (decide when the full table is in); `qwen/qwen3.8-27b:free` all 429 (overloaded).
 
+**AI scout results (29 Sep, scout v3: 15 daily questions = 5 per language + 9 contests) → PRODUCTION v260926.315 / staging v260926.316-tmp.** Sante free 15/15 · 9/9 · 2.1 s; Cohere North Mini Code free 15/15 · 9/9 · 4.1 s; Liquid LFM 2.5 (2.6B) free 15/15 · 9/9 · 4.8 s (small model, not trusted beyond the test); dots-3 note free 15/15 · 7 s; Nemotron Super free 15/15 but NVIDIA "temporarily overloaded" errors; paid Ling Fin 14/15 (missed "5" as body part) · 9/9 · 2.4 s; Nemotron content-safety = always unsure (a safety filter); GLM 5.2 free GONE (paid only now); Inkling models need agent harnesses (403); Qwen 3.8 + Gemma 4 free BUSY. **New `AI_MODELS` = Sante free → Cohere free → Ling Fin paid** (the paid one only runs if both free fail). Checks: version before/after, syntax, 12 screens, request body, Session 24 kit on production, full kit on staging — all green. **Oscar to check: a multiplayer game with the 🤖 button** — multiplayer uses a DIFFERENT prompt the scout does not test (Nemotron scored 15/15 on the daily prompt but answered "not sure" in multiplayer). Best contest judges for the later "contests use a different model" item: Sante, Ling Fin, Cohere (all 9/9). Scout v3 kept in `tools/ai_scout.js` (also skips busy models after 4 × 429, shows GONE / BLOCKED (privacy) / BUSY / NO CREDIT, per-language ES·EN·FR columns, suggests only models with 4+/5 in every language).
+
 **Process notes:** my sandbox dropped for a while mid-session (files survived). Test harness lesson: fake DBs in script tests must apply writes, or multi-step fixes look wrong.
 
 ---
@@ -1176,8 +1178,8 @@ Living version (Claude Doc): https://claude.ai/artifact/9bCUk2yRwx1wHQG3hmjhoV
 ## ▶ START HERE NEXT SESSION (Session 26)
 
 1. Upload the project zip (must include `tests\` and `tools\`). Read this handoff, then `MULTIPLAYER_SCORING_DESIGN.md` (Groups, History, Languages sections; Build 5 row).
-2. Production = **v260926.313** (AI fix). Staging = **v260926.314-tmp** (Build 5a + AI fix) — **still to be tested by Oscar** (test list in the Session 25 log). Run the kit on staging first: `./run_all.sh ../index_tmp.html` → ALL GREEN (178 + 28 + 19). Note: the updated suites need 5a code, so they fail on production v313 — that is expected.
-3. Finish the AI model choice: read Oscar's scout table; probably `ling-3.0-flash-sante:free` first, paid Ling second, replace the dead GLM. Change `AI_MODELS` in BOTH production and staging.
+2. Production = **v260926.315** (AI models from the scout). Staging = **v260926.316-tmp** (Build 5a + AI fix) — **still to be tested by Oscar** (test list in the Session 25 log). Run the kit on staging first: `./run_all.sh ../index_tmp.html` → ALL GREEN (178 + 28 + 19). Note: the updated suites need 5a code, so they fail on production v313 — that is expected.
+3. ~~Finish the AI model choice~~ — done in v260926.315 (Sante free → Cohere free → Ling Fin paid). Ask Oscar how the multiplayer 🤖 check went; if Sante is poor with the multiplayer prompt, extend the scout to test that prompt too.
 4. Then **5b**: group page (Leaderboard screen) with history ◀ ▶ (SVG flag + date), full game view (ranking, awards, per-round breakdown from `roundLog`), Mundial/global leaderboard removed, `?g=ID` share link + share text link, Historial buttons (host picker and guest line). Plan with Oscar first.
 5. When Build 5 goes to production: Oscar deletes `global/`, `groups/`, `groupNames/` in the console and removes their three rules lines (the `lastPlayed` index is already in).
 6. After Build 5: AI model management steps 1 and 2 (Flagged for Future), then the help-page pass.
@@ -1190,10 +1192,10 @@ Living version (Claude Doc): https://claude.ai/artifact/9bCUk2yRwx1wHQG3hmjhoV
 - Handy: a `__debug__` name shows the debug bar; its Scores and Final screens have a 2-round sample game with a tie, reactions, an A caller, a duplicate, an invalid and an empty answer. Debug room now has `groupId: 'dbggarcia01'`.
 - Oscar to set a credit limit on the OpenRouter key (API Keys → edit key).
 
-**Last versions deployed: v260926.313 (production), v260926.314-tmp (staging).**
+**Last versions deployed: v260926.315 (production), v260926.316-tmp (staging).**
 - JS syntax clean (`node --check`) ✅
 - Test kit green ✅
-- (File size: over 300KB since Session 23 — Oscar confirmed not a concern; v313 is 360KB, v314-tmp is 371KB)
+- (File size: over 300KB since Session 23 — Oscar confirmed not a concern; v315 is 360KB, v316-tmp is 371KB)
 
 **Always start from the uploaded working file** — never from a local copy that may have drifted.
 
