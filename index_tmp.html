@@ -4663,18 +4663,28 @@ function startCountdown(room) {
     if (n <= 0) {
       clearInterval(G_countdownInterval);
       overlay.classList.remove('open');
-      if (G.isHost) {
-        // Host drives the transition for all players
-        update(roomRef(G.roomCode), {phase:'playing', roundStartTime:Date.now()});
-      }
-      // Guests wait for Firebase to push phase:'playing' → handleRoom → enterPlaying
-      // But if we already have the room data, enter now (host will also enter via handleRoom)
+      // Whoever reaches 0 first starts the round — not only the host, so a host who refreshed, locked the
+      // phone or lost signal can't freeze everyone on "countdown". The transaction lets exactly one player do it.
+      startRoundOnce(G.roomCode);
+      // Everyone else enters through handleRoom when phase:'playing' arrives; the host enters now, as before
       if (G.isHost) enterPlaying(G_countdownRoom);
     } else {
       numEl.textContent = n;
       animateTick();
     }
   }, 1000);
+}
+
+// Countdown → playing, written once: only if the room is still in 'countdown' (other players' attempts abort)
+function startRoundOnce(code) {
+  if (!code) return;
+  runTransaction(roomRef(code), cur => {
+    if (cur === null) return cur;               // no local copy yet: Firebase retries with the real value
+    if (cur.phase !== 'countdown') return;      // someone already started the round (or it moved on): abort
+    cur.phase = 'playing';
+    cur.roundStartTime = Date.now();
+    return cur;
+  }).catch(e => console.warn('start round failed', e));
 }
 
 function closeCountdown() {
@@ -5414,7 +5424,9 @@ window.quickJoin = async () => {
     return;
   }
   const room = snap.val();
-  G.isHost = false;
+  // Joining with the host's exact name makes you the host again (a host who lost their saved session
+  // would otherwise leave the room with nobody able to validate, score or start the next round)
+  G.isHost = !!room.host && room.host === name;
   await update(roomRef(code), {
     [`players/${name}`]: G.playerEmoji,
     [`scores/${name}`]: room.scores?.[name] ?? 0,
@@ -5427,7 +5439,11 @@ window.quickJoin = async () => {
   if (phase === 'lobby') enterLobby(room);
   else if (phase === 'countdown') startCountdown(room);
   else if (phase === 'playing') enterPlaying(room);
-  else if (phase === 'validate') { showGuestValidation(room); applyVotesAndReactions(room, false); if (room.aiResults) applyAIResults(room.aiResults); }
+  else if (phase === 'validate') {
+    if (G.isHost) { showValidation(room); applyVotesAndReactions(room, true); }
+    else { showGuestValidation(room); applyVotesAndReactions(room, false); }
+    if (room.aiResults) applyAIResults(room.aiResults);
+  }
   else if (phase === 'scores') showScores(room);
   else if (phase === 'final') showFinal(room);
   else enterLobby(room);
@@ -7311,7 +7327,7 @@ setTimeout(() => updateDailyButtonDate(), 350);
 // Version freshness check — silently reload if a newer version is deployed
 // Runs once on load; does nothing if already on latest or if fetch fails
 (function() {
-  const RUNNING = 'v260929.322-tmp';
+  const RUNNING = 'v260929.323-tmp';
   if (sessionStorage.getItem('alto_ver_checked') === RUNNING) return; // already checked this session
   sessionStorage.setItem('alto_ver_checked', RUNNING);
   fetch(location.href, { cache: 'no-cache' })
@@ -7334,7 +7350,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) upda
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260929.322-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v260929.323-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
