@@ -1257,7 +1257,13 @@ Living version (Claude Doc): https://claude.ai/artifact/9bCUk2yRwx1wHQG3hmjhoV
 
 **Process note (Oscar):** use fewer tool calls — run the test kit only when a change needs it, not for every tiny edit.
 
-**Last versions: production v260929.320, staging v260929.322-tmp.**
+**v260929.323-tmp (staging) — refresh during the countdown (found by Oscar in a solo 3-window test):** only the host's page switched the room from `countdown` to `playing`, so a host who refreshed (or whose phone locked) during the 10 s froze the room; guests sat on the lobby screen. Once, the host also landed on the join screen ("Unirse a la sala", name prefilled) and joining there made him a GUEST called Oscar → countdown "1" → back to the same screen, game dead (nobody host). Root cause of that lost session NOT found (normal Chrome; in a repeat test the session survived: `{"isHost":true}`; Oscar had also refreshed the guests the first time; harness "everyone refreshes" case keeps the session). Fixes:
+- `startRoundOnce(code)`: every client whose countdown reaches 0 runs a `runTransaction` on the room that sets `phase:'playing'` + `roundStartTime` ONLY if the phase is still `countdown` (others abort by returning undefined; `null` → return null so Firebase retries with the real value). Host still enters immediately as before; everyone else via handleRoom.
+- `quickJoin`: joining with exactly `room.host`'s name makes you host again (`G.isHost = room.host === name`); validate-phase rejoin as host shows the host validation screen. Trade-off accepted: anyone typing the host's exact name becomes host (family game, names visible anyway).
+- Tests: new `restore/countdown_scenarios.py` (12: host away → guests start alone; host returns into the round keeping the role; everyone refreshes → all back in; host via join screen with own name → host again, validates; other names stay guests). **Harness fixes:** fake `runTransaction` now aborts on `undefined` like Firebase (it used to write null = delete the room); `wait()` in the scenario files now pumps Playwright events instead of `time.sleep` (sleeping blocked the fake Firebase, which is served from the Python process — very likely the cause of the earlier flaky build5b check). build5b 77/77, restore and groups scenarios re-run on v323.
+- Next production promotion number: v260929.324.
+
+**Last versions: production v260929.320, staging v260929.323-tmp.**
 
 ---
 
