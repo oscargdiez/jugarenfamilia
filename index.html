@@ -2291,6 +2291,14 @@ function mulberry32(seed) {
 }
 
 // Category pool — 26 universal categories, translated in all 6 languages
+// AI judge models, tried in order: OpenRouter moves to the next one automatically if a model fails or disappears.
+// Used by the daily, practice, contests and multiplayer. Ling 3.0 Flash Fin is PAID (its free version was
+// withdrawn on 29 Sep 2026) and needs credit on OpenRouter; the free ones are only a backup.
+const AI_MODELS = [
+  'inclusionai/ling-3.0-flash-fin',
+  'nvidia/nemotron-3-super-120b-a12b:free',
+  'z-ai/glm-5.2:free'
+];
 // DAILY_CONSENSUS: set true to use 2-model consensus + tiebreaker, false for single model
 const DAILY_CONSENSUS = false;
 // CONTEST_METHOD: 'A' = strict scope + strict spelling, 2-of-3 threshold, DUDOSO upholds | 'B' = generous scope only, strict spelling, 1-of-3 threshold, DUDOSO upholds
@@ -2901,7 +2909,7 @@ window.dailySubmit = async function(fromTimer = false) {
     if (DAILY_CONSENSUS) {
       aiResults[i] = await dailyAIValidate(word, G_daily.categories[i], G_daily.letter);
     } else {
-      const { verdict, rawText } = await dailyAICallModel(word, G_daily.categories[i], G_daily.letter, 'inclusionai/ling-3.0-flash-fin:free', ...dailyBuildPromptWithWord(word, G_daily.categories[i], G_daily.letter));
+      const { verdict, rawText } = await dailyAICallModel(word, G_daily.categories[i], G_daily.letter, AI_MODELS, ...dailyBuildPromptWithWord(word, G_daily.categories[i], G_daily.letter));
       aiResults[i] = verdict;
       if ((verdict === 'invalid' || verdict === 'unsure') && rawText) aiResponses[i] = rawText;
     }
@@ -3011,7 +3019,8 @@ async function dailyAICallModel(word, category, letter, model, systemPrompt, pro
       },
       signal: AbortSignal.timeout(20000),
       body: JSON.stringify({
-        model,
+        // A list (AI_MODELS) goes as OpenRouter fallbacks; a single name is called on its own (consensus mode)
+        ...(Array.isArray(model) ? { models: model } : { model }),
         messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: prompt }],
         max_tokens: 800,
         temperature: 0
@@ -3036,11 +3045,7 @@ async function dailyAICallModel(word, category, letter, model, systemPrompt, pro
 async function dailyAIValidate(word, category, letter) {
   const [systemPrompt, userPrompt] = dailyBuildPromptWithWord(word, category, letter);
 
-  const MODELS = [
-    'inclusionai/ling-3.0-flash-fin:free',
-    'nvidia/nemotron-3-super-120b-a12b:free',
-    'z-ai/glm-5.2:free'
-  ];
+  const MODELS = AI_MODELS;
 
   // Call first 2 in parallel — destructure verdict only (rawText not needed in consensus path)
   const [res1, res2] = await Promise.all([
@@ -3207,12 +3212,12 @@ window.recontest = async (idx, word, cat) => {
       return 'invalid';
     };
 
-    const workerCall = (model) => fetch('https://api.oscar-g-diez.workers.dev/', {
+    const workerCall = (models) => fetch('https://api.oscar-g-diez.workers.dev/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       signal: AbortSignal.timeout(15000),
       body: JSON.stringify({
-        models: [model],
+        models,
         messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: prompt }],
         max_tokens: 800,
         temperature: 0
@@ -3220,7 +3225,7 @@ window.recontest = async (idx, word, cat) => {
     }).then(r => r.json());
 
     // Single model call — same model as original daily validation
-    const res1 = await workerCall('inclusionai/ling-3.0-flash-fin:free');
+    const res1 = await workerCall(AI_MODELS);
     const parsed1 = parseVerdict(res1);
     const votes = parsed1 === 'valid' ? 1 : 0;
     const threshold = 1;
@@ -5010,11 +5015,7 @@ window.askAI = async (word, category, letter, key) => {
         },
         signal: AbortSignal.timeout(12000),
         body: JSON.stringify({
-          models: [
-            'inclusionai/ling-3.0-flash-fin:free',
-            'nvidia/nemotron-3-super-120b-a12b:free',
-            'z-ai/glm-5.2:free'
-          ],
+          models: AI_MODELS,
           messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: prompt }],
           max_tokens: 800,
           temperature: 0
@@ -6862,7 +6863,7 @@ setTimeout(() => updateDailyButtonDate(), 350);
 // Version freshness check — silently reload if a newer version is deployed
 // Runs once on load; does nothing if already on latest or if fetch fails
 (function() {
-  const RUNNING = 'v260926.311';
+  const RUNNING = 'v260926.313';
   if (sessionStorage.getItem('alto_ver_checked') === RUNNING) return; // already checked this session
   sessionStorage.setItem('alto_ver_checked', RUNNING);
   fetch(location.href, { cache: 'no-cache' })
@@ -6885,7 +6886,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) upda
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260926.311</div>
+  <div style="font-size: 11px;opacity:0.5">v260926.313</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
