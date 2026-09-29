@@ -79,7 +79,7 @@ A multiplayer browser-based version of the classic Spanish word game "Stop/Tutti
   1. `inclusionai/ling-3.0-flash-fin` — **PAID** (~$0.04 in / $0.12 out per M tokens; a few cents a month). Needs credit on the account; Oscar added credit on 29 Sep.
   2. `nvidia/nemotron-3-super-120b-a12b:free` — backup; in practice always answers "not sure" (thinking model; the 800-token limit probably runs out before the verdict).
   3. `z-ai/glm-5.2:free` — backup; **found DEAD (404) by the scout on 29 Sep** — replace when the scout results are in.
-  The old "Spending cap: $4 (free tier only)" note above is out of date now that a paid model is first — Oscar to set a credit limit on the key (API Keys → edit key).
+  The old "Spending cap: $4 (free tier only)" note above is out of date now that a paid model is first. **Oscar has set a credit limit on the key (29 Sep).**
 - **Paid Ling has two providers (NovitaAI, DeepInfra)** and they do not always agree, even at temperature 0 — the same answer can get VALID one call and INVALID the next. The free version ran only on Novita. Fix idea in Flagged for Future (pin one provider).
 - **Privacy settings (openrouter.ai/settings/privacy), 29 Sep:** "Allow free endpoints that train on request data" = ON; "Allow free endpoints that publish prompts" = OFF (Oscar may turn it on — only letter/category/word are ever sent); ZDR all off; paid training off. Many `:free` models answer 404 "No endpoints found matching your data policy" unless these are on — the scout cannot tell that apart from a removed model.
 - **Worker (`api.oscar-g-diez.workers.dev`, Cloudflare):** forwards the request body unchanged to OpenRouter with the key from the worker; only checks the `Origin` header (jugarenfamilia.es / www). ⚠️ A script can fake `Origin`, so anyone could run ANY model through it on Oscar's credit — see Flagged for Future (worker controls the model list).
@@ -441,6 +441,17 @@ Three theme modes replacing the old 7 themes:
 ---
 
 ## 🗺 Flagged for Future
+
+### Security — from the Session 25 review (agreed with Oscar)
+Context: family game, no payments, little personal data — nothing urgent, but these are real. Order agreed:
+1. **Done / no code:** credit limit on the OpenRouter key (set by Oscar 29 Sep). Oscar to export a Firebase backup now and then (Realtime Database → Data → ⋮ → Export JSON) — the free Spark plan has no automatic backups.
+2. **Small fix, no hurry (Oscar: "then"):** multiplayer 🤖 result is stored in the room as ready-made HTML (`rooms/{code}/aiResults/{key}/html`) and guests render it with `innerHTML` (handleRoom, `el.innerHTML = data.html`) → anyone who knows a room code can inject HTML/script into every guest's page. Fix: store only `cls` (valid/invalid/unsure) and let each device build the label locally in its own language. Same pass: check every `innerHTML` that shows player names/answers uses `escHtml` (Marcador names already fixed in Build 5a).
+3. **"Security build" after Build 5, together with AI step 1:**
+   - **Firebase is fully open** (anyone can read/change/delete everything — proven in Session 25 with Console scripts). Fix: Firebase Anonymous Auth (invisible, free) + real rules: players change only their own entries; daily scores write-once (no overwrite/delete); type/size validation; no deleting whole nodes. Needs a careful migration plan (existing data has no owner ids).
+   - **Firebase App Check** (reCAPTCHA v3) so only the website talks to the database — an extra layer, not a replacement for rules.
+   - **Name claims are weak:** `names/{safeName}/secret` = unsalted SHA-256 of a 4-digit PIN or an email, publicly readable → a PIN is found by brute force in well under a second; anyone can also just overwrite `secret` (open rules). The claim screen says the email is not stored, but its hash is (publicly). Fix with the auth/rules work: secret not readable, longer PINs, ideally stop asking for emails; update the claim privacy text.
+   - **Cookie consent:** the site loads Google Analytics (gtag `G-V2VJ4X7M5Z`) and has no consent banner. **Oscar agreed to a small consent banner** (ES/EN/FR, analytics only loads after "accept"; remember the choice). Not legal advice — keep it simple and standard.
+   - Fine as is: Firebase `apiKey` in the page (not a secret), OpenRouter key only in the worker, HTTPS.
 
 ### AI model management — AFTER BUILD 5 (agreed with Oscar, Session 25)
 **Step 1 — the worker controls the model list (security fix + no game update to change models).** The worker keeps the active list in Cloudflare KV and replaces `model`/`models` on every request with its own list (also caps `max_tokens`); the game keeps `AI_MODELS` only as a last resort. Closes the "anyone can run any model on our credit" gap. Oscar pastes the new worker code in Cloudflare and creates the KV binding.
@@ -1184,7 +1195,7 @@ Living version (Claude Doc): https://claude.ai/artifact/9bCUk2yRwx1wHQG3hmjhoV
 3. ~~Finish the AI model choice~~ — done in v260926.315 (Sante free → Cohere free → Ling Fin paid). Multiplayer now uses the same prompt (v317), so the scout covers it; ask Oscar how the multiplayer 🤖 check went anyway.
 4. Then **5b**: group page (Leaderboard screen) with history ◀ ▶ (SVG flag + date), full game view (ranking, awards, per-round breakdown from `roundLog`), Mundial/global leaderboard removed, `?g=ID` share link + share text link, Historial buttons (host picker and guest line). Plan with Oscar first.
 5. When Build 5 goes to production: Oscar deletes `global/`, `groups/`, `groupNames/` in the console and removes their three rules lines (the `lastPlayed` index is already in).
-6. After Build 5: AI model management steps 1 and 2 (Flagged for Future), then the help-page pass.
+6. After Build 5: the small room-HTML fix (Security item 2, no hurry), then the "security build" together with AI model management step 1 (anonymous auth + rules, App Check, name claims, cookie consent banner), then AI step 2, then the help-page pass. See Flagged for Future → Security.
 
 **Open notes carried forward**
 - After Build 5: one help-page pass (ES/EN/FR) for practice games, ties, reactions, awards, groups and history (recorded in the design doc). Build 1 only updated the ¡Alto! rules text.
@@ -1192,7 +1203,7 @@ Living version (Claude Doc): https://claude.ai/artifact/9bCUk2yRwx1wHQG3hmjhoV
 - `doSubmit` hard-codes Spanish `stopCaller:'Tiempo'` and "Respuestas enviadas. Esperando a los demás…"; `reviewSub` T key is dead.
 - The Claude Doc copy of the design (link in the design doc) has drifted from the `.md` file; the `.md` is the source of truth.
 - Handy: a `__debug__` name shows the debug bar; its Scores and Final screens have a 2-round sample game with a tie, reactions, an A caller, a duplicate, an invalid and an empty answer. Debug room now has `groupId: 'dbggarcia01'`.
-- Oscar to set a credit limit on the OpenRouter key (API Keys → edit key).
+- ~~Oscar to set a credit limit on the OpenRouter key~~ — done 29 Sep. Oscar: export a Firebase backup now and then.
 
 **Last versions deployed: v260926.317 (production), v260926.318-tmp (staging).**
 - JS syntax clean (`node --check`) ✅
