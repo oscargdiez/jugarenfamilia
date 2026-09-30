@@ -137,6 +137,11 @@ h1 { font-family: 'Caveat', cursive; font-size: 32px; font-weight: 700; color: v
 .logo-tag { font-family: 'Caveat', cursive; font-size: 15px; color: var(--ink-muted); margin-top: 4px; font-style: italic; }
 
 /* ── Cards ── */
+.news-list { display: flex; flex-direction: column; gap: 6px; margin: 12px 0 0; }
+.news-item { display: flex; align-items: center; gap: 8px; padding: 6px 4px 6px 10px; background: var(--paper-dark); border: 1px dashed var(--border); border-left: 3px solid var(--ink-muted); border-radius: var(--radius); font-family: 'Special Elite', monospace; font-size: 13px; color: var(--ink-sec); line-height: 1.4; }
+.news-item.warning { border-left-color: var(--red); }
+.news-item .news-text { flex: 1; min-width: 0; }
+.news-item .news-close { flex-shrink: 0; font-family: 'Special Elite', monospace; font-size: 13px; line-height: 1; padding: 4px 8px; background: transparent; border: none; color: var(--ink-muted); cursor: pointer; }
 .card {
   background: rgba(255,255,255,0.7);
   border: 1.5px solid var(--border);
@@ -1014,6 +1019,8 @@ document.addEventListener('DOMContentLoaded', function() {
       </div>
     </div>
   </div>
+  <!-- News: one-line messages under the main card, filled from NEWS by renderNews(); hidden when empty -->
+  <div id="news-card" class="news-list" style="display:none"></div>
 
   <div class="brand-footer" id="footer-noreg">SIN REGISTRO · SIN DESCARGAS · GRATIS</div>
 </div>
@@ -1754,6 +1761,7 @@ function helpHTML() {
 
 
 window.applyLang = function() {
+  try { renderNews(); } catch(e) { /* NEWS not initialised yet during early startup: the init call renders it */ }
   function s(id, txt, ph) {
     const el = document.getElementById(id);
     if (!el) return;
@@ -2466,6 +2474,46 @@ const DAILY_OVERRIDES = {
 };
 
 // Get today's date key YYYY-MM-DD
+// ══ NEWS on the home page ══════════════════════════════════════════════
+// Short, non-technical, ONE line each (start with an emoji). All active messages show, in this order.
+// id: unique (✕ hides it on that device for good) · type: 'info' | 'warning' (red edge) · until: last day shown (YYYY-MM-DD)
+// es is required; en/fr fall back to es. Avoid "ayer"/"yesterday": a message stays up for days.
+const NEWS = [
+  { id: '2026-09-30-robot', type: 'warning', until: '2026-10-03',
+    es: '🤖 ¡Robot arreglado! Perdón por el fallo',
+    en: '🤖 Robot fixed! Sorry for the trouble',
+    fr: '🤖 Robot réparé ! Désolés pour la panne' },
+  { id: '2026-09-30-historial', type: 'info', until: '2026-10-14',
+    es: '📜 Nuevo: el historial de tu grupo',
+    en: "📜 New: your group's game history",
+    fr: "📜 Nouveau : l'historique du groupe" },
+];
+
+function newsDismissed() {
+  try { return JSON.parse(localStorage.getItem('alto_news_dismissed') || '[]'); } catch(e) { return []; }
+}
+
+function activeNews(today, dismissed) {
+  return NEWS.filter(n => n && n.id && n.es && (!n.until || today <= n.until) && !dismissed.includes(n.id));
+}
+
+function renderNews() {
+  const el = document.getElementById('news-card');
+  if (!el) return;
+  const items = activeNews(getDailyKey(), newsDismissed());
+  if (!items.length) { el.style.display = 'none'; el.innerHTML = ''; return; }
+  el.innerHTML = items.map(n => `<div class="news-item${n.type === 'warning' ? ' warning' : ''}"><span class="news-text">${n[LANG] || n.es}</span>`
+    + `<button class="news-close" aria-label="✕" onclick="dismissNews('${n.id}')">✕</button></div>`).join('');
+  el.style.display = 'flex';
+}
+
+window.dismissNews = (id) => {
+  const d = newsDismissed();
+  if (!d.includes(id)) d.push(id);
+  try { localStorage.setItem('alto_news_dismissed', JSON.stringify(d.slice(-50))); } catch(e) { /* private mode */ }
+  renderNews();
+};
+
 function getDailyKey() {
   const d = new Date();
   return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
@@ -7338,7 +7386,7 @@ setTimeout(() => updateDailyButtonDate(), 350);
 // Version freshness check — silently reload if a newer version is deployed
 // Runs once on load; does nothing if already on latest or if fetch fails
 (function() {
-  const RUNNING = 'v260929.328';
+  const RUNNING = 'v260929.331';
   if (sessionStorage.getItem('alto_ver_checked') === RUNNING) return; // already checked this session
   sessionStorage.setItem('alto_ver_checked', RUNNING);
   fetch(location.href, { cache: 'no-cache' })
@@ -7361,7 +7409,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) upda
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260929.328</div>
+  <div style="font-size: 11px;opacity:0.5">v260929.331</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>

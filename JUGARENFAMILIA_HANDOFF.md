@@ -1287,17 +1287,26 @@ Draft (ES):
 
 **v260929.327-tmp → PRODUCTION v260929.328 — "play to see the answers" line (`#daily-lb-not-played`):** it lingered under a board you are allowed to see and could show in the wrong language. Only the flag tap (`switchDailyLbLang`) set it; the result screen, ◀ ▶, ↻ refresh, ¿Error? reload and a UI language switch did not, and a language switch never re-translated it. Fix: `_lbUpdateNotPlayedHint()` (shown only for TODAY on a tab you have not played — `_playedLangs` or localStorage; text refreshed every time, emptied when hidden) called from `_lbUpdateNavUI()` (day nav, result screen — now after the tab is set — and `applyDailyLang` on language switch), from `switchDailyLbLang` and from refresh. Checked: helper in 5 cases (node), setLang → applyLang → applyDailyLang path confirmed, checklist; Oscar tested on staging. No full kit (change limited to this line).
 
-**Last versions: production v260929.328, staging v260929.327-tmp (same code).**
+**v260929.329-tmp → v330-tmp → PRODUCTION v260929.331 — News on the home page (Oscar's idea):** short messages to tell players about outages and new features. Oscar chose to keep them **in the HTML** (not Firebase), so each new message = a deploy; Claude writes ES/EN/FR on request.
+- `NEWS` array (above `getDailyKey`): `{ id, type: 'info'|'warning', until: 'YYYY-MM-DD', es, en?, fr? }`. **All** active messages show, in array order, stacked under the home main card (`#news-card.news-list`, one `.news-item` each with its own ✕). Expired (`until` < today, local date) or dismissed ones are skipped; container hidden when empty.
+- ✕ → `dismissNews(id)`: id stored in localStorage `alto_news_dismissed` (last 50), hidden on that device for good.
+- Style: one line, 13px Special Elite on `--paper-dark`, dashed border; **warning = red left edge only** (Oscar: subtle is fine, no pink background). Rendered from `applyLang` (language switch + init).
+- **Writing rules (Oscar):** very short, non-technical, ONE line, start with an emoji, no jargon (no "anfitrión", "revisar"…), avoid "ayer"/"yesterday" (messages stay up for days). FR may wrap to 2 lines on 320px phones — acceptable.
+- Messages in v331: `2026-09-30-robot` warning until 2026-10-03 "🤖 ¡Robot arreglado! Perdón por el fallo" / "🤖 Robot fixed! Sorry for the trouble" / "🤖 Robot réparé ! Désolés pour la panne"; `2026-09-30-historial` info until 2026-10-14 "📜 Nuevo: el historial de tu grupo" / "📜 New: your group's game history" / "📜 Nouveau : l'historique du groupe".
+- Checked: phone widths 390 (ES) and 320 (FR) with real fonts — no overflow from the news, one line at 390, ✕ + reload keep it hidden, no page errors.
+- **Found on the way (not fixed, pre-existing):** at 320 px the home emoji grid is slightly too wide — the last column is cut on the right. Flag for a small layout fix.
+
+**Last versions: production v260929.331, staging v260929.330-tmp (same code).**
 
 ---
 
 ## ▶ START HERE NEXT SESSION (Session 27)
 
-1. Upload the project zip (with `tests\` and `tools\`). Read this handoff. Production = **v260929.328** (Build 5 live + AI order Cohere → Sante → Ling Fin + daily "play to see" line fix). Staging = v260929.327-tmp (same code). New staging builds start from production v328.
+1. Upload the project zip (with `tests\` and `tools\`). Read this handoff. Production = **v260929.331** (Build 5 live + AI order Cohere → Sante → Ling Fin + daily "play to see" fix + home News). Staging = v260929.330-tmp (same code). New staging builds start from production v331. **News messages expire by themselves (robot 3 Oct, history 14 Oct)** — ask Oscar if he wants new ones.
 2. Ask Oscar: Firebase backup exported? Any problems in real games on v324? If all is well 1–2 weeks after 29 Sep → he deletes `global/`, `groups/`, `groupNames/` + their three rules lines.
 3. AI scout v4 done (results in the Session 26 log); `AI_MODELS` reordered in v325. Re-run the scout only after a prompt change or when a model starts failing.
 4. Tests: run only when a change needs them (Oscar's request). Full kit: `./run_all.sh ../index.html` → 239 unit + 77 + 12 + 19 + 28 browser. Browser scenarios take ~5 min in total: run long ones one by one (the sandbox stops single commands after 300 s; background jobs may be killed).
-5. Next candidates (plan with Oscar first): **help pages** (Spanish draft + open decisions in the Session 26 log), the small room-HTML fix (Security item 2), then the security build + AI step 1, AI step 2, the help-page pass (now also: group page, history, share link, Revisar for guests, 🙌 awards, countdown). Parked: tomato/botanical rule (Flagged for Future), unexplained host-session loss (Session 26 v323 note).
+5. Next candidates (plan with Oscar first): **help pages** (Spanish draft + open decisions in the Session 26 log), the small room-HTML fix (Security item 2), then the security build + AI step 1, AI step 2, the help-page pass (now also: group page, history, share link, Revisar for guests, 🙌 awards, countdown). Parked: tomato/botanical rule (Flagged for Future), unexplained host-session loss (Session 26 v323 note), home emoji grid too wide at 320 px.
 
 <details><summary>Previous START HERE (Session 26) — kept for the record</summary>
 
