@@ -2385,7 +2385,8 @@ const AI_MODELS = [
 ];
 // DAILY_CONSENSUS: set true to use 2-model consensus + tiebreaker, false for single model
 const DAILY_CONSENSUS = false;
-// CONTEST_METHOD: 'A' = strict scope + strict spelling, 2-of-3 threshold, DUDOSO upholds | 'B' = generous scope only, strict spelling, 1-of-3 threshold, DUDOSO upholds
+// CONTEST_METHOD: 'A' = strict scope + strict spelling | 'B' = generous scope only, strict spelling. Either way ¿Error? asks ONE model
+// (the first available in AI_MODELS — the list is only OpenRouter's fallback chain); VALIDO overturns, INVALIDO/DUDOSO upholds.
 const CONTEST_METHOD = 'B';
 
 const DAILY_CAT_DATA = {
@@ -3260,8 +3261,8 @@ async function showDailyResult(answers, baseScore, totalScore, aiResults, secsLe
   show('daily-result');
   if (!G_daily.practiceMode) {
     _lbDate = null; // always start on today when entering result screen
-    _lbUpdateNavUI();
     document.querySelectorAll('.daily-lb-lang-btn').forEach(b => b.classList.toggle('active', b.dataset.lang === LANG));
+    _lbUpdateNavUI(); // after the tab is set, so the "play to see" line matches it
     loadDailyLeaderboard(getDailyKey()).then(() => reapplyOriginality());
   }
 }
@@ -3712,7 +3713,21 @@ let _playedLangs = {};
 
 function _lbEffectiveDate() { return _lbDate || getDailyKey(); }
 
+// "Play to see the answers": shown only for TODAY on a language tab you haven't played. Runs whenever the
+// board changes (flag tap, result screen, ◀ ▶, refresh, language switch) so it never lingers or keeps an old language.
+function _lbUpdateNotPlayedHint() {
+  const lang = document.querySelector('.daily-lb-lang-btn.active')?.dataset?.lang || LANG;
+  const notPlayed = _lbDate === null && !_playedLangs[lang] && !localStorage.getItem('alto_daily_' + getDailyKey() + '_' + lang);
+  const hintEl = document.getElementById('daily-lb-not-played');
+  if (hintEl) {
+    hintEl.style.display = notPlayed ? 'block' : 'none';
+    hintEl.textContent = notPlayed ? t('lbNotPlayed') : '';
+  }
+  return notPlayed;
+}
+
 function _lbUpdateNavUI() {
+  _lbUpdateNotPlayedHint();
   const today = getDailyKey();
   const cur = _lbEffectiveDate();
   const prevBtn = document.getElementById('btn-lb-hist-prev');
@@ -3754,13 +3769,7 @@ window.switchDailyLbLang = function(lang) {
   // History dates are always open (player can't have played a past day on this device right now).
   // For today: check _playedLangs first (cross-device, async) then localStorage (same-device, instant)
   // so the spoiler guard works correctly even before fetchPlayedState() resolves on refresh.
-  const isHistory = _lbDate !== null;
-  const notPlayed = !isHistory && !_playedLangs[lang] && !localStorage.getItem('alto_daily_' + getDailyKey() + '_' + lang);
-  const hintEl = document.getElementById('daily-lb-not-played');
-  if (hintEl) {
-    hintEl.style.display = notPlayed ? 'block' : 'none';
-    if (notPlayed) hintEl.textContent = t('lbNotPlayed');
-  }
+  const notPlayed = _lbUpdateNotPlayedHint();
   loadDailyLeaderboard(_lbEffectiveDate(), lang, notPlayed).then(() => { if (!_lbDate && !notPlayed) reapplyOriginality(); });
 };
 
@@ -3870,8 +3879,7 @@ window.refreshDailyOriginality = async function() {
     const activeLang = document.querySelector('.daily-lb-lang-btn.active')?.dataset?.lang || LANG;
     const snap = await get(ref(db, 'daily/' + key + '/' + activeLang + '/scores'));
     if (snap.exists()) {
-      const isHistory = _lbDate !== null;
-      const hideAnswers = !isHistory && !_playedLangs[activeLang] && !localStorage.getItem('alto_daily_' + getDailyKey() + '_' + activeLang);
+      const hideAnswers = _lbUpdateNotPlayedHint();
       renderLeaderboard(snap.val(), hideAnswers);
       if (!_lbDate && !hideAnswers) await computeAndUpdateOriginality(snap.val(), key, activeLang);
     }
@@ -7330,7 +7338,7 @@ setTimeout(() => updateDailyButtonDate(), 350);
 // Version freshness check — silently reload if a newer version is deployed
 // Runs once on load; does nothing if already on latest or if fetch fails
 (function() {
-  const RUNNING = 'v260929.325';
+  const RUNNING = 'v260929.328';
   if (sessionStorage.getItem('alto_ver_checked') === RUNNING) return; // already checked this session
   sessionStorage.setItem('alto_ver_checked', RUNNING);
   fetch(location.href, { cache: 'no-cache' })
@@ -7353,7 +7361,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) upda
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260929.325</div>
+  <div style="font-size: 11px;opacity:0.5">v260929.328</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>

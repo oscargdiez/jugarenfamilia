@@ -1281,13 +1281,19 @@ Draft (ES):
 - **Left out on purpose:** category modes, name reservation pill, rejoin-with-your-name, yearly clean-up.
 - **Open decisions:** (1) keep «Cuentan las que haya cuando el anfitrión pulsa Calcular»? (2) add «En caso de duda, decide el anfitrión» (tomato-type disputes)? (3) Ayuda is about twice as long — fine in the scrolling panel, or trim? Then translate EN/FR and build on staging.
 
-**Last versions: production v260929.325, staging v260929.326-tmp (same code).**
+**¿Error? clarified (Oscar asked):** it asks ONE model — the first available in `AI_MODELS` (the list is only OpenRouter's fallback chain) — with the generous contest prompt; VALIDO overturns, INVALIDO/DUDOSO upholds. The old "1-of-3 threshold" wording was only a stale comment. Oscar chose to keep it single-model (asking all three would let Ling Fin's Jabali / dots' Orange mistakes through). Comment above `CONTEST_METHOD` corrected in v327.
+
+**Daily EN leaderboard review (Oscar's screenshot, 30 Sep):** scores correct; "Koreano" ❌ = the v320 language rule working. Generous verdicts noted (not acted on): "Kite" as Transport ✅, "Katy y yo" as Film ✅ (title not known).
+
+**v260929.327-tmp → PRODUCTION v260929.328 — "play to see the answers" line (`#daily-lb-not-played`):** it lingered under a board you are allowed to see and could show in the wrong language. Only the flag tap (`switchDailyLbLang`) set it; the result screen, ◀ ▶, ↻ refresh, ¿Error? reload and a UI language switch did not, and a language switch never re-translated it. Fix: `_lbUpdateNotPlayedHint()` (shown only for TODAY on a tab you have not played — `_playedLangs` or localStorage; text refreshed every time, emptied when hidden) called from `_lbUpdateNavUI()` (day nav, result screen — now after the tab is set — and `applyDailyLang` on language switch), from `switchDailyLbLang` and from refresh. Checked: helper in 5 cases (node), setLang → applyLang → applyDailyLang path confirmed, checklist; Oscar tested on staging. No full kit (change limited to this line).
+
+**Last versions: production v260929.328, staging v260929.327-tmp (same code).**
 
 ---
 
 ## ▶ START HERE NEXT SESSION (Session 27)
 
-1. Upload the project zip (with `tests\` and `tools\`). Read this handoff. Production = **v260929.325** (Build 5 live + AI order Cohere → Sante → Ling Fin). Staging = v260929.326-tmp (same code). New staging builds start from production v325.
+1. Upload the project zip (with `tests\` and `tools\`). Read this handoff. Production = **v260929.328** (Build 5 live + AI order Cohere → Sante → Ling Fin + daily "play to see" line fix). Staging = v260929.327-tmp (same code). New staging builds start from production v328.
 2. Ask Oscar: Firebase backup exported? Any problems in real games on v324? If all is well 1–2 weeks after 29 Sep → he deletes `global/`, `groups/`, `groupNames/` + their three rules lines.
 3. AI scout v4 done (results in the Session 26 log); `AI_MODELS` reordered in v325. Re-run the scout only after a prompt change or when a model starts failing.
 4. Tests: run only when a change needs them (Oscar's request). Full kit: `./run_all.sh ../index.html` → 239 unit + 77 + 12 + 19 + 28 browser. Browser scenarios take ~5 min in total: run long ones one by one (the sandbox stops single commands after 300 s; background jobs may be killed).
