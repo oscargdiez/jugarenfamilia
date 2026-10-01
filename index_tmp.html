@@ -3036,15 +3036,17 @@ window.dailySubmit = async function(fromTimer = false) {
   // AI validate all non-empty answers — sequential to avoid rate limits
   const aiResults = {};
   const aiResponses = {}; // raw AI text for invalid/unsure answers only
+  const aiInfo = {};      // per answer: which model judged it, cut = ran out of tokens, retried, error (Session 27)
   for (let i = 0; i < G_daily.categories.length; i++) {
     const word = G_daily.answers[i] || '';
     if (!word) { aiResults[i] = 'empty'; continue; }
     if (DAILY_CONSENSUS) {
       aiResults[i] = await dailyAIValidate(word, G_daily.categories[i], G_daily.letter);
     } else {
-      const { verdict, rawText } = await dailyAICallModel(word, G_daily.categories[i], G_daily.letter, AI_MODELS, ...dailyBuildPromptWithWord(word, G_daily.categories[i], G_daily.letter));
+      const { verdict, rawText, model, cut, retried, error } = await dailyAICallModel(word, G_daily.categories[i], G_daily.letter, AI_MODELS, ...dailyBuildPromptWithWord(word, G_daily.categories[i], G_daily.letter));
       aiResults[i] = verdict;
       if ((verdict === 'invalid' || verdict === 'unsure') && rawText) aiResponses[i] = rawText;
+      aiInfo[i] = { model: model || '', ...(cut ? { cut: true } : {}), ...(retried ? { retried: true } : {}), ...(error ? { error: true } : {}) };
     }
   }
   G_daily.aiResults = aiResults;
@@ -3108,6 +3110,7 @@ window.dailySubmit = async function(fromTimer = false) {
       answers: answersObj,
       aiResults: aiResults,
       ...(Object.keys(aiResponses).length ? { aiResponses } : {}),
+      ...(Object.keys(aiInfo).length ? { aiInfo } : {}),
       categories: G_daily.categories || [],
       timestamp: Date.now()
     });
@@ -3170,36 +3173,73 @@ function dailyBuildPrompt(category, letter, opts) {
   return [systemPrompt, userPrompt];
 }
 
-// Call a single specific model and return 'valid'|'invalid'|'unsure'
-async function dailyAICallModel(word, category, letter, model, systemPrompt, prompt) {
-  try {
+// ── ONE AI judge call, shared by daily, practice, contests and multiplayer (Session 27) ──
+// - max_tokens 2000: thinking models used up 800 on reasoning and returned an EMPTY answer (1 Oct daily).
+// - The verdict is the LAST VALIDO/INVALIDO/DUDOSO word of the answer. Reasoning text is never mined for a
+//   verdict (it quotes the prompt: "...is INVALIDO even if..."), except when the reasoning itself ENDS with one.
+// - Empty answer / cut off with no verdict → ask the same AI_MODELS list once more; still nothing → DUDOSO.
+// - Returns { verdict, rawText, model, cut, retried }. Throws on network/HTTP errors (callers decide).
+const AI_MAX_TOKENS = 2000;
+const AI_TIMEOUT_MS = 20000;
+const AI_VERDICT_WORDS = { invalido:'invalid', invalid:'invalid', valido:'valid', valid:'valid', dudoso:'unsure' };
+function aiWords(text) {
+  return (text || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z]/g, ' ').split(/\s+/).filter(Boolean);
+}
+// Verdict from the model's answer: last verdict word wins; plain yes/no only in very short answers
+function aiParseVerdict(text) {
+  const w = aiWords(text);
+  for (let i = w.length - 1; i >= 0; i--) if (AI_VERDICT_WORDS[w[i]]) return AI_VERDICT_WORDS[w[i]];
+  if (w.length && w.length <= 3) {
+    if (w.some(x => ['yes','si','correct','correcto'].includes(x))) return 'valid';
+    if (w.some(x => ['no','incorrect','incorrecto','wrong'].includes(x))) return 'invalid';
+  }
+  return null;
+}
+async function aiJudgeCall(systemPrompt, prompt, models, timeoutMs) {
+  const once = async () => {
     const response = await fetch('https://api.oscar-g-diez.workers.dev/', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      signal: AbortSignal.timeout(20000),
+      headers: { 'Content-Type': 'application/json' },
+      signal: AbortSignal.timeout(timeoutMs || AI_TIMEOUT_MS),
       body: JSON.stringify({
         // A list (AI_MODELS) goes as OpenRouter fallbacks; a single name is called on its own (consensus mode)
-        ...(Array.isArray(model) ? { models: model } : { model }),
+        ...(Array.isArray(models) ? { models } : { model: models }),
         messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: prompt }],
-        max_tokens: 800,
+        max_tokens: AI_MAX_TOKENS,
         temperature: 0
       })
     });
-    if (!response.ok) return { verdict: 'unsure', rawText: null };
+    if (!response.ok) {
+      const errData = await response.json().catch(() => ({}));
+      throw new Error(errData?.error?.message || 'API error ' + response.status);
+    }
     const data = await response.json();
-    const msg = data.choices?.[0]?.message || {};
-    const combined = (msg.content?.trim() || msg.reasoning?.trim() || '');
-    const text = combined.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
-    const norm = text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z]/g, ' ').trim();
-    let verdict = 'unsure';
-    if (/\binvalid(o)?\b/.test(norm)) verdict = 'invalid';
-    else if (/\bvalid(o)?\b/.test(norm)) verdict = 'valid';
-    else if (/\byes\b|\bcorrect\b|\bsi\b|\bcorrecto\b/.test(norm)) verdict = 'valid';
-    else if (/\bno\b|\bincorrect\b|\bwrong\b|\bincorrecto\b/.test(norm)) verdict = 'invalid';
-    return { verdict, rawText: text.slice(0, 1000) || null };
-  } catch(e) { console.error('[Daily AI] error:', e.message); return { verdict: 'unsure', rawText: null }; }
+    const choice = data.choices?.[0] || {};
+    const msg = choice.message || {};
+    const content = (msg.content || '').replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+    const reasoning = (msg.reasoning || '').trim();
+    const cut = choice.finish_reason === 'length';
+    let verdict = null;
+    if (content) verdict = aiParseVerdict(content);
+    else if (reasoning) { const w = aiWords(reasoning); verdict = AI_VERDICT_WORDS[w[w.length - 1]] || null; }
+    // Keep the END of the text: that is where a verdict (or the point where it got stuck) is
+    const raw = content || (reasoning ? '[reasoning only' + (cut ? ', cut' : '') + '] ' + reasoning.slice(-950) : '');
+    return { verdict, rawText: raw.slice(-1000) || null, model: data.model || '', cut, empty: !content };
+  };
+  let r = await once();
+  let retried = false;
+  if (!r.verdict && (r.empty || r.cut)) {
+    retried = true;
+    try { const r2 = await once(); if (r2.verdict || !r.rawText) r = r2; } catch (e) { console.warn('[AI] retry failed:', e.message); }
+  }
+  return { verdict: r.verdict || 'unsure', rawText: r.rawText, model: r.model, cut: r.cut, retried };
+}
+
+// Daily / practice: returns { verdict:'valid'|'invalid'|'unsure', rawText, model, cut, retried } — never throws
+async function dailyAICallModel(word, category, letter, model, systemPrompt, prompt) {
+  try {
+    return await aiJudgeCall(systemPrompt, prompt, model, AI_TIMEOUT_MS);
+  } catch(e) { console.error('[Daily AI] error:', e.message); return { verdict: 'unsure', rawText: null, model: '', cut: false, retried: false, error: true }; }
 }
 
 // Consensus: 2 models in parallel, tiebreaker only if split
@@ -3352,42 +3392,9 @@ window.recontest = async (idx, word, cat) => {
       ? `${gameLang}-language game. Letter: "${letter}". Category: "${cat.trim()}". Answer: "${word}". Does the answer start with "${letter}" and genuinely belong to the category? Note: proper nouns (person names, surnames, singers, actors, writers, cities, countries) are valid in any language — do not reject for being non-${gameLang}. Common nouns (animals, plants, fruits, food, drinks, objects, body parts, etc.) must be the ${gameLang} word — a word from another language is INVALIDO even if it means the right thing; loanwords normally used in ${gameLang} are fine. Spelling must be correct beyond accents/tildes. Reply with ONE word only: VALIDO, INVALIDO, or DUDOSO.`
       : `${gameLang}-language game. Letter: "${letter}". Category: "${cat.trim()}". Answer: "${word}". Previous judge said INVALIDO. Overturn (VALIDO) only if the answer unambiguously fits the category AND any error is accents/tildes only. Spelling mistakes are INVALIDO. Reply with ONE word only: VALIDO, INVALIDO, or DUDOSO.`;
 
-    const parseVerdict = (data) => {
-      const msg = data.choices?.[0]?.message || {};
-      // Prefer content; fall back to reasoning only if content is absent
-      const text = msg.content?.trim() || '';
-      const reasoning = msg.reasoning?.trim() || '';
-      // Strip <think> blocks from either
-      const clean = (text || reasoning).replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
-      if (!clean) return 'invalid';
-      // Look at the LAST word only — reasoning models write a verdict at the end
-      const lastWord = clean.split(/\s+/).pop().toLowerCase()
-        .normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z]/g, '');
-      if (lastWord === 'invalido' || lastWord === 'invalid') return 'invalid';
-      if (lastWord === 'valido' || lastWord === 'valid') return 'valid';
-      if (lastWord === 'dudoso') return 'invalid'; // DUDOSO upholds
-      // Last word not conclusive — scan full text, prefer content over reasoning
-      const norm = (text || clean).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z]/g, ' ').trim();
-      if (/\binvalid(o)?\b/.test(norm)) return 'invalid';
-      if (/\bvalid(o)?\b/.test(norm)) return 'valid';
-      return 'invalid';
-    };
-
-    const workerCall = (models) => fetch('https://api.oscar-g-diez.workers.dev/', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      signal: AbortSignal.timeout(15000),
-      body: JSON.stringify({
-        models,
-        messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: prompt }],
-        max_tokens: 800,
-        temperature: 0
-      })
-    }).then(r => r.json());
-
-    // Single model call — same model as original daily validation
-    const res1 = await workerCall(AI_MODELS);
-    const parsed1 = parseVerdict(res1);
+    // Single call to the AI_MODELS list — same model chain and same reading of the reply as the daily (Session 27)
+    const res1 = await aiJudgeCall(systemPrompt, prompt, AI_MODELS, AI_TIMEOUT_MS);
+    const parsed1 = res1.verdict === 'valid' ? 'valid' : 'invalid'; // DUDOSO / no verdict upholds
     const votes = parsed1 === 'valid' ? 1 : 0;
     const threshold = 1;
     const newRes = votes >= threshold ? 'valid' : 'invalid';
@@ -3397,8 +3404,7 @@ window.recontest = async (idx, word, cat) => {
     // Capture original verdict for logging and safe revert
     const originalVerdict = G_daily.aiResults[String(idx)] || G_daily.aiResults[idx] || 'invalid';
     // Log contest outcome for AI tuning analysis (per-entry, under same path)
-    const msg1 = res1?.choices?.[0]?.message || {};
-    const aiRaw = (msg1.content?.trim() || msg1.reasoning?.trim() || '').replace(/<think>[\s\S]*?<\/think>/gi, '').trim().slice(0, 1000);
+    const aiRaw = res1.rawText;
     await set(ref(db, contestPath + '_log/' + String(idx)), {
       idx: String(idx),
       category: cat,
@@ -3409,6 +3415,9 @@ window.recontest = async (idx, word, cat) => {
       votes,
       method: CONTEST_METHOD,
       aiResponse: aiRaw || null,
+      model: res1.model || '',
+      ...(res1.cut ? { cut: true } : {}),
+      ...(res1.retried ? { retried: true } : {}),
       timestamp: Date.now()
     }).catch(() => {});
 
@@ -5357,44 +5366,10 @@ window.askAI = async (word, category, letter, key) => {
   const [systemPrompt, prompt] = dailyBuildPromptWithWord(word, category, letter, { strict: G_aiStrictness === 'estricto', looseSpelling: !!G_aiSpelling });
 
   try {
-    const response = await fetch(
-      'https://api.oscar-g-diez.workers.dev/',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        signal: AbortSignal.timeout(12000),
-        body: JSON.stringify({
-          models: AI_MODELS,
-          messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: prompt }],
-          max_tokens: 800,
-          temperature: 0
-        })
-      }
-    );
-
-    if (!response.ok) {
-      const errData = await response.json().catch(() => ({}));
-      throw new Error(errData?.error?.message || 'API error ' + response.status);
-    }
-    const data = await response.json();
-    // Strip <think>...</think> blocks emitted by reasoning models before parsing
-    const msg = data.choices?.[0]?.message || {};
-    // Some reasoning models put the answer in reasoning_details, not content
-    const rawContent = msg.content?.trim() || '';
-    const rawReasoning = msg.reasoning?.trim() || '';
-    const combined = rawContent || rawReasoning;
-    const text = combined.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
-
-    // Normalise: remove accents, lowercase, strip punctuation
-    const norm = text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z]/g, ' ').trim();
-    let cls = 'unsure';
-    // Match valid/valido/válido but not invalid/invalido
-    if (/\binvalid(o)?\b/.test(norm)) cls = 'invalid';
-    else if (/\bvalid(o)?\b/.test(norm)) cls = 'valid';
-    else if (/\byes\b|\bcorrect\b|\bsi\b|\bcorrecto\b/.test(norm)) cls = 'valid';
-    else if (/\bno\b|\bincorrect\b|\bwrong\b|\bincorrecto\b/.test(norm)) cls = 'invalid';
+    // Same call and same reading of the reply as the daily (Session 27)
+    const judged = await aiJudgeCall(systemPrompt, prompt, AI_MODELS, AI_TIMEOUT_MS);
+    const cls = judged.verdict;
+    console.log('[AI] multiplayer', { word, category, cls, model: judged.model, cut: judged.cut, retried: judged.retried });
 
     const icon = cls === 'valid' ? '✅' : cls === 'invalid' ? '❌' : '🤔';
     const labelMap = {
@@ -5419,6 +5394,7 @@ window.askAI = async (word, category, letter, key) => {
     result.className = 'ai-result show ' + cls;
     btn.style.display = 'none'; // hide button — result locked in
   } catch(e) {
+    const isTimeout = e?.name === 'TimeoutError' || e?.name === 'AbortError';
     const _slow = {es:'⏳ Robot lento…', en:'⏳ Robot slow…', fr:'⏳ Robot lent…'}[LANG] || '⏳ Robot lento…';
     const _retry = {es:'Reintentar', en:'Retry', fr:'Réessayer'}[LANG] || 'Reintentar';
     const _unavail = {es:'Robot no disponible', en:'Robot unavailable', fr:'Robot indisponible'}[LANG] || 'Robot no disponible';
@@ -7386,7 +7362,7 @@ setTimeout(() => updateDailyButtonDate(), 350);
 // Version freshness check — silently reload if a newer version is deployed
 // Runs once on load; does nothing if already on latest or if fetch fails
 (function() {
-  const RUNNING = 'v260929.330-tmp';
+  const RUNNING = 'v261001.332-tmp';
   if (sessionStorage.getItem('alto_ver_checked') === RUNNING) return; // already checked this session
   sessionStorage.setItem('alto_ver_checked', RUNNING);
   fetch(location.href, { cache: 'no-cache' })
@@ -7409,7 +7385,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) upda
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v260929.330-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v261001.332-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
