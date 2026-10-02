@@ -14,7 +14,7 @@
 <title>¡Alto! — JugarEnFamilia.es</title>
 <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CiAgPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iMTIiIGZpbGw9IiNmN2YzZTgiLz4KICA8cmVjdCB4PSIwIiB5PSIwIiB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHJ4PSIxMiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjYzAzOTJiIiBzdHJva2Utd2lkdGg9IjMiLz4KICA8bGluZSB4MT0iNCIgeTE9IjIwIiB4Mj0iNjAiIHkyPSIyMCIgc3Ryb2tlPSIjYjBjOGUwIiBzdHJva2Utd2lkdGg9IjAuOCIgb3BhY2l0eT0iMC40Ii8+CiAgPGxpbmUgeDE9IjQiIHkxPSIzMCIgeDI9IjYwIiB5Mj0iMzAiIHN0cm9rZT0iI2IwYzhlMCIgc3Ryb2tlLXdpZHRoPSIwLjgiIG9wYWNpdHk9IjAuNCIvPgogIDxsaW5lIHgxPSI0IiB5MT0iNDAiIHgyPSI2MCIgeTI9IjQwIiBzdHJva2U9IiNiMGM4ZTAiIHN0cm9rZS13aWR0aD0iMC44IiBvcGFjaXR5PSIwLjQiLz4KICA8bGluZSB4MT0iNCIgeTE9IjUwIiB4Mj0iNjAiIHkyPSI1MCIgc3Ryb2tlPSIjYjBjOGUwIiBzdHJva2Utd2lkdGg9IjAuOCIgb3BhY2l0eT0iMC40Ii8+CiAgPGxpbmUgeDE9IjE0IiB5MT0iNCIgeDI9IjE0IiB5Mj0iNjAiIHN0cm9rZT0iI2MwMzkyYiIgc3Ryb2tlLXdpZHRoPSIyIiBvcGFjaXR5PSIwLjUiLz4KICA8dGV4dCB4PSIzMiIgeT0iNTAiIGZvbnQtZmFtaWx5PSJHZW9yZ2lhLHNlcmlmIiBmb250LXNpemU9IjQyIiBmb250LXdlaWdodD0iYm9sZCIgZmlsbD0iI2MwMzkyYiIgdGV4dC1hbmNob3I9Im1pZGRsZSI+ITwvdGV4dD4KPC9zdmc+" type="image/svg+xml">
 <meta name="description" content="El clásico Stop o Tutti Frutti de papel y lápiz, ahora online: juega con familia y amigos, con corrección automática y reto diario. Gratis y sin registro.">
-<meta property="og:title" content="¡Alto! — Play with Family &amp; Friends">
+<meta property="og:title" content="¡Alto! — Stop · Tutti Frutti · Petit Bac">
 <meta property="og:description" content="El clásico Stop o Tutti Frutti de papel y lápiz, ahora online: juega con familia y amigos, con corrección automática y reto diario. Gratis y sin registro.">
 <meta property="og:image" content="https://jugarenfamilia.es/preview.png">
 <meta property="og:image:width" content="1200">
@@ -25,11 +25,8 @@
 <meta property="og:locale" content="es_ES">
 <meta property="og:locale:alternate" content="en_GB">
 <meta property="og:locale:alternate" content="fr_FR">
-<meta property="og:locale:alternate" content="de_DE">
-<meta property="og:locale:alternate" content="pt_BR">
-<meta property="og:locale:alternate" content="it_IT">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="¡Alto! — Play with Family &amp; Friends">
+<meta name="twitter:title" content="¡Alto! — Stop · Tutti Frutti · Petit Bac">
 <meta name="twitter:description" content="El clásico Stop o Tutti Frutti de papel y lápiz, ahora online: juega con familia y amigos, con corrección automática y reto diario. Gratis y sin registro.">
 <meta name="twitter:image" content="https://jugarenfamilia.es/preview.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -7361,7 +7358,7 @@ setTimeout(() => updateDailyButtonDate(), 350);
 // Version freshness check — silently reload if a newer version is deployed
 // Runs once on load; does nothing if already on latest or if fetch fails
 (function() {
-  const RUNNING = 'v261002.336';
+  const RUNNING = 'v261002.337';
   if (sessionStorage.getItem('alto_ver_checked') === RUNNING) return; // already checked this session
   sessionStorage.setItem('alto_ver_checked', RUNNING);
   fetch(location.href, { cache: 'no-cache' })
@@ -7384,7 +7381,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) upda
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v261002.336</div>
+  <div style="font-size: 11px;opacity:0.5">v261002.337</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
