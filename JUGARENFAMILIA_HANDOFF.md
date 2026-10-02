@@ -1300,6 +1300,47 @@ Draft (ES):
 
 ---
 
+### Session 27 (1–2 Oct 2026)
+
+**Practice "Tiro al Arco" ❌ (Modalidad olímpica):** Oscar agreed it is right — the name is "tiro con arco" ("tiro al arco" is Latin American usage). No change.
+
+**Firebase console "read-only and non-real-time mode":** the console does this on big nodes (`daily`, `rooms`…). Fix: open a small node directly by URL, `/` written as `~2F`, e.g. `https://console.firebase.google.com/project/stop-9f0ea/database/stop-9f0ea-default-rtdb/data/~2Fdaily~2F2026-09-30~2Fes~2Fscores`, or click down level by level until the node is small.
+
+**Oscar edited some daily answers by hand on 1 Oct** (FR Ratatouille: spelling corrected + made valid — "first time cheating"). Answers in the 1 Oct export may not be what the Robot judged; ask before drawing conclusions from them.
+
+**Finding (1 Oct daily export): the AI ran out of tokens.** 11 of 26 saved replies were 1000 chars of reasoning ("Let's think…", one loop repeating "There's Bentley"). With `max_tokens: 800`, thinking models used everything on reasoning and returned an EMPTY answer; the code then fell back to `msg.reasoning` and took the FIRST "invalid"/"no"/"valid" anywhere — so those verdicts were close to random (the reasoning even quotes the prompt "…is INVALIDO even if…"). Running out of tokens is not an error for OpenRouter, so the `models` fallback list does NOT move on. Clean wrong verdicts noted separately (not a token problem): Gin tonic ❌ Bebida, Ratatouille ❌ Film d'animation, Robin ✅ Oiseau FR (English word; Oscar's answer, judged ✅ on first pass — no reply saved), Broccoli ✅ Verdura ES (Spanish = brócoli). "Baritono, saxofon" ❌ Instrumento judged fair (flipping words to fit the letter is fine for people's names, not for objects; "Barítono" alone is a real brass instrument).
+
+**v261001.332-tmp → PRODUCTION v261002.333 — one shared AI judge call:**
+- New `aiJudgeCall(systemPrompt, prompt, models, timeoutMs)` (+ `aiParseVerdict`, `aiWords`, constants `AI_MAX_TOKENS = 2000`, `AI_TIMEOUT_MS = 20000`, `AI_VERDICT_WORDS`) right above `dailyAICallModel`. Used by the daily/practice (`dailyAICallModel` is now a never-throwing wrapper), ¿Error? contests (`parseVerdict` and `workerCall` removed) and the multiplayer 🤖 (`askAI`). Previously three copies with three different parsers.
+- `max_tokens` 800 → 2000 (a ceiling, not a target: short answers are unchanged). All three timeouts now 20 s (multiplayer was 12, contest 15).
+- Verdict = LAST VALIDO/INVALIDO/DUDOSO word of the answer (accents stripped). Plain yes/sí/no only for replies of ≤3 words. Reasoning text is never mined, except when the reasoning itself ENDS with a verdict word.
+- Empty answer or cut off with no verdict → the same `AI_MODELS` list is asked ONCE more (Oscar chose same list, not jumping to another model) → still nothing → 🤔 dudoso (contest: upheld, as before). HTTP/network errors still throw to the caller as before.
+- Saved raw text now keeps the END of the text (`slice(-1000)`); empty answers are saved as `[reasoning only, cut] …tail`.
+- New daily score field **`aiInfo`**: per answer `{ model, cut?, retried?, error? }` (model = `data.model` from OpenRouter). Contest log entries gain `model`, `cut`, `retried`. Multiplayer logs `[AI] multiplayer {word, category, cls, model, cut, retried}` to the console only.
+- **Bug fixed on the way:** multiplayer `askAI` catch used `isTimeout` without defining it → the catch itself threw, the 🤖 button stayed on ⏳ and "Robot lento… Reintentar" never showed. Now defined (`TimeoutError`/`AbortError`).
+- `tools/ai_scout.js`: `max_tokens` 800 → 2000 so the scout measures what the game does.
+- Downsides discussed with Oscar: bad cases are slower (up to ~2×20 s for one answer; the daily judges its 6 answers one by one), retries add requests on free models, a long paid Ling answer costs up to ~2.5× more (fractions of a cent). If speed becomes a problem: OpenRouter `reasoning` effort setting — test with the scout first, not all models honour it.
+- Checked: version grep before/after, 12 screens, init once, 4 scripts syntax OK, 3 `-tmp` left = the version-check regexes (as before), 387 KB (waived), unit suites 239/239 on staging and production files, 17 mock tests of `aiJudgeCall` (retry → valid, double empty → dudoso + cut + tagged raw, reasoning ending in verdict accepted without retry, last word wins, long "no" ignored, model recorded, HTTP error throws). Browser scenarios not run (no screen flow touched). Promotion changed only the version string (diff checked).
+- **Staging test (Oscar, 2 Oct daily ES):** 5 answers all `cohere/north-mini-code:free`, all verdicts from real answers, one `retried: true` (Broccoli) without `cut` — Cohere returned an empty reply without hitting the limit; watch whether this repeats (maybe Cohere reports running out differently). Same day on production v331 the old problem was still there: 8 reasoning texts, likely wrong calls Bimi ❌, Blanco roto ❌, Roma 🤔 (loop "There's Ratatouille…").
+
+**Ideas noted, not built:** save the AI reply for ✅ answers too (to see why e.g. Robin passed); English-word examples in the FR/ES prompt rule (prompt change → re-run scout).
+
+**PRODUCTION v261002.334 — News message (straight to production, Oscar's call):** `2026-09-30-robot` apology removed (was expiring 3 Oct); new info `2026-10-02-robots` until 2026-10-16: "🤖 ¡Robots mejorados! Ahora piensan más" / "🤖 Robots upgraded: they think first!" / "🤖 Robots améliorés ! Ils pensent mieux". Oscar first chose "…Ahora piensan antes de hablar" but it wrapped to 2 lines on every phone width (checked with real CSS + Special Elite at 414–320 px); the short version is one line from 360 px up, 2 lines at 320 (same as the history message). Checklist OK; diff = news lines + version only.
+
+**Last versions: production v261002.334, staging v261001.332-tmp (v333 code minus this news change).**
+
+---
+
+## ▶ START HERE NEXT SESSION (Session 28)
+
+1. Upload the project zip (with `tests\` and `tools\`). Read this handoff. Production = **v261002.334** (Session 27: shared AI judge call, 2000 tokens, retry on empty, `aiInfo`; news "Robots mejorados"). Staging = v261001.332-tmp. New staging builds start from production v334. **News messages expire: history 14 Oct, robots 16 Oct** — ask Oscar if he wants new ones.
+2. Check a recent daily export: are the long reasoning replies gone? What does `aiInfo` show — which models judge, how often `retried` / `cut`, any Cohere empty replies without `cut`? Daily speed OK?
+3. Ask Oscar: Firebase backup exported? Any problems in real games since v324? If all is well → he deletes `global/`, `groups/`, `groupNames/` + their three rules lines.
+4. Tests: run only when a change needs them. Full kit: `./run_all.sh ../index.html` → 239 unit + 77 + 12 + 19 + 28 browser (run long browser ones one by one, 300 s sandbox limit).
+5. Next candidates (plan with Oscar first): help pages (Session 26 draft + open decisions), room-HTML fix (Security item 2), security build + AI step 1, AI step 2. Small parked: home emoji grid cut at 320 px, `#qj-name` inline `oninput` (rule 8), hard-coded Spanish in `doSubmit`, English words slipping through in FR/ES (Robin, Broccoli), tomato/botanical rule, unexplained host-session loss.
+
+<details><summary>Previous START HERE (Session 27) — kept for the record</summary>
+
 ## ▶ START HERE NEXT SESSION (Session 27)
 
 1. Upload the project zip (with `tests\` and `tools\`). Read this handoff. Production = **v260929.331** (Build 5 live + AI order Cohere → Sante → Ling Fin + daily "play to see" fix + home News). Staging = v260929.330-tmp (same code). New staging builds start from production v331. **News messages expire by themselves (robot 3 Oct, history 14 Oct)** — ask Oscar if he wants new ones.
@@ -1307,6 +1348,8 @@ Draft (ES):
 3. AI scout v4 done (results in the Session 26 log); `AI_MODELS` reordered in v325. Re-run the scout only after a prompt change or when a model starts failing.
 4. Tests: run only when a change needs them (Oscar's request). Full kit: `./run_all.sh ../index.html` → 239 unit + 77 + 12 + 19 + 28 browser. Browser scenarios take ~5 min in total: run long ones one by one (the sandbox stops single commands after 300 s; background jobs may be killed).
 5. Next candidates (plan with Oscar first): **help pages** (Spanish draft + open decisions in the Session 26 log), the small room-HTML fix (Security item 2), then the security build + AI step 1, AI step 2, the help-page pass (now also: group page, history, share link, Revisar for guests, 🙌 awards, countdown). Parked: tomato/botanical rule (Flagged for Future), unexplained host-session loss (Session 26 v323 note), home emoji grid too wide at 320 px.
+
+</details>
 
 <details><summary>Previous START HERE (Session 26) — kept for the record</summary>
 
