@@ -1327,13 +1327,15 @@ Draft (ES):
 
 **PRODUCTION v261002.334 — News message (straight to production, Oscar's call):** `2026-09-30-robot` apology removed (was expiring 3 Oct); new info `2026-10-02-robots` until 2026-10-16: "🤖 ¡Robots mejorados! Ahora piensan más" / "🤖 Robots upgraded: they think first!" / "🤖 Robots améliorés ! Ils pensent mieux". Oscar first chose "…Ahora piensan antes de hablar" but it wrapped to 2 lines on every phone width (checked with real CSS + Special Elite at 414–320 px); the short version is one line from 360 px up, 2 lines at 320 (same as the history message). Checklist OK; diff = news lines + version only.
 
-**Last versions: production v261002.334, staging v261001.332-tmp (v333 code minus this news change).**
+**PRODUCTION v261002.335 — ¿Error? shows it is thinking (Oscar: "it just stays there the same"):** before, the only feedback was opacity 0.5 → 0.3 (inline). Now `recontest` swaps the label to `⏳…` (+ `title` "Revisando… / Checking… / Vérification…") and adds class `.thinking` (pulse `@keyframes reconsiderPulse` 0.35↔1, no underline, `min-width: 3.9em`). On a connection error the class, label and title are restored so it can be tried again; overturned/upheld paths unchanged (row updates or button removed + toast). The agreed label "⏳ Revisando…" was dropped after a render check: it squeezed the answer column and made the row jump (42→62 px at 390); `⏳…` with the min-width keeps the row height identical to "¿Error?"/"Erreur?" at 390 and 320 px (real CSS + Special Elite). Font size unchanged (11px, existing). Checklist OK.
+
+**Last versions: production v261002.335, staging v261001.332-tmp (older: v333 AI code, without the v334 news and v335 ¿Error? state).**
 
 ---
 
 ## ▶ START HERE NEXT SESSION (Session 28)
 
-1. Upload the project zip (with `tests\` and `tools\`). Read this handoff. Production = **v261002.334** (Session 27: shared AI judge call, 2000 tokens, retry on empty, `aiInfo`; news "Robots mejorados"). Staging = v261001.332-tmp. New staging builds start from production v334. **News messages expire: history 14 Oct, robots 16 Oct** — ask Oscar if he wants new ones.
+1. Upload the project zip (with `tests\` and `tools\`). Read this handoff. Production = **v261002.335** (Session 27: shared AI judge call, 2000 tokens, retry on empty, `aiInfo`; news "Robots mejorados"; ¿Error? ⏳ state). Staging = v261001.332-tmp. New staging builds start from production v335. **News messages expire: history 14 Oct, robots 16 Oct** — ask Oscar if he wants new ones.
 2. Check a recent daily export: are the long reasoning replies gone? What does `aiInfo` show — which models judge, how often `retried` / `cut`, any Cohere empty replies without `cut`? Daily speed OK?
 3. Ask Oscar: Firebase backup exported? Any problems in real games since v324? If all is well → he deletes `global/`, `groups/`, `groupNames/` + their three rules lines.
 4. Tests: run only when a change needs them. Full kit: `./run_all.sh ../index.html` → 239 unit + 77 + 12 + 19 + 28 browser (run long browser ones one by one, 300 s sandbox limit).

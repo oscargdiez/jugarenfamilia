@@ -694,6 +694,8 @@ body.screen-home .page, body.screen-welcome .page { padding-bottom: 2rem; }
 .daily-lb-answer-pts.zero { color: var(--ink-muted); }
 .daily-result-orig { font-family: 'Special Elite', monospace; font-size:11px; color: var(--ink-muted); flex-shrink: 0; }
 .daily-reconsider-btn { font-size:11px; padding: 0; border: none; background: transparent; cursor: pointer; opacity: 0.5; flex-shrink: 0; line-height:1; font-family:'Special Elite',monospace; color:var(--ink-sec); text-decoration: underline; text-underline-offset: 2px; }
+.daily-reconsider-btn.thinking { text-decoration: none; cursor: default; min-width: 3.9em; text-align: center; animation: reconsiderPulse 1.2s ease-in-out infinite; } /* ¿Error? waiting for the Robot (Session 27) */
+@keyframes reconsiderPulse { 0%, 100% { opacity: 0.35; } 50% { opacity: 1; } }
 .daily-reconsider-btn:hover { opacity:1; }
 .daily-reconsider-btn:disabled { opacity:0.3; cursor:default; text-decoration:none; }
 .daily-already-played { text-align: center; padding: 1.5rem 0; }
@@ -3376,7 +3378,12 @@ window.recontest = async (idx, word, cat) => {
 
   // Disable all reconsider buttons while running
   document.querySelectorAll('.daily-reconsider-btn').forEach(b => b.disabled = true);
-  btn.style.opacity = '0.3';
+  // Visible "thinking" state while the Robot reviews (can take a while with retries)
+  const btnLabel = btn.textContent;
+  // Short on purpose: a longer label squeezes the answer column and makes the row jump in height
+  btn.textContent = '⏳…';
+  btn.title = { es:'Revisando…', en:'Checking…', fr:'Vérification…' }[LANG] || 'Revisando…';
+  btn.classList.add('thinking');
 
   try {
     const langNames = {es:'Spanish',en:'English',fr:'French'};
@@ -3510,7 +3517,9 @@ window.recontest = async (idx, word, cat) => {
     });
 
   } catch(e) {
-    btn.style.opacity = '0.5';
+    btn.classList.remove('thinking');
+    btn.textContent = btnLabel;
+    btn.removeAttribute('title');
     document.querySelectorAll('.daily-reconsider-btn').forEach(b => b.disabled = false);
     toast({ es:'Error al consultar — inténtalo de nuevo', en:'Error checking — try again', fr:'Erreur — réessaie' }[LANG]);
   }
@@ -7362,7 +7371,7 @@ setTimeout(() => updateDailyButtonDate(), 350);
 // Version freshness check — silently reload if a newer version is deployed
 // Runs once on load; does nothing if already on latest or if fetch fails
 (function() {
-  const RUNNING = 'v261002.334';
+  const RUNNING = 'v261002.335';
   if (sessionStorage.getItem('alto_ver_checked') === RUNNING) return; // already checked this session
   sessionStorage.setItem('alto_ver_checked', RUNNING);
   fetch(location.href, { cache: 'no-cache' })
@@ -7385,7 +7394,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) upda
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v261002.334</div>
+  <div style="font-size: 11px;opacity:0.5">v261002.335</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
