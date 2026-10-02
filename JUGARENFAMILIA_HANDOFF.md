@@ -1329,13 +1329,19 @@ Draft (ES):
 
 **PRODUCTION v261002.335 — ¿Error? shows it is thinking (Oscar: "it just stays there the same"):** before, the only feedback was opacity 0.5 → 0.3 (inline). Now `recontest` swaps the label to `⏳…` (+ `title` "Revisando… / Checking… / Vérification…") and adds class `.thinking` (pulse `@keyframes reconsiderPulse` 0.35↔1, no underline, `min-width: 3.9em`). On a connection error the class, label and title are restored so it can be tried again; overturned/upheld paths unchanged (row updates or button removed + toast). The agreed label "⏳ Revisando…" was dropped after a render check: it squeezed the answer column and made the row jump (42→62 px at 390); `⏳…` with the min-width keeps the row height identical to "¿Error?"/"Erreur?" at 390 and 320 px (real CSS + Special Elite). Font size unchanged (11px, existing). Checklist OK.
 
-**Last versions: production v261002.335, staging v261001.332-tmp (older: v333 AI code, without the v334 news and v335 ¿Error? state).**
+**PRODUCTION v261002.336 — tagline removed, new Google description (Oscar: the tagline was "a bit cheesy"):**
+- "el juego de siempre, con los de siempre" removed from under the logo on all three screens (quick-join `#qj-tagline`, plus the two `.logo-tag` blocks), together with the `tagline` T keys (ES/EN/FR), the `.logo-tag` CSS rule, the `.logo-tag` loop in `applyLang` and the `qj-tagline` lines in `applyQuickJoinLang`.
+- `<meta name="description">`, `og:description` and `twitter:description` (the last two were English) now all: "El clásico Stop o Tutti Frutti de papel y lápiz, ahora online: juega con familia y amigos, con corrección automática y reto diario. Gratis y sin registro." (~154 chars). Oscar chose it over other options; "corrección automática" preferred to "autovalidación" / "el robot corrige" (plainer for people who have not played).
+- **Not changed (flag):** `og:title` / `twitter:title` are still English ("¡Alto! — Play with Family & Friends") while the description is Spanish and `og:locale` is es_ES. Ask Oscar whether to make the share title Spanish. WhatsApp/Google cache previews, so changes show up with a delay.
+- Checklist OK, unit suites 239/239.
+
+**Last versions: production v261002.336, staging v261001.332-tmp (older: v333 AI code only).**
 
 ---
 
 ## ▶ START HERE NEXT SESSION (Session 28)
 
-1. Upload the project zip (with `tests\` and `tools\`). Read this handoff. Production = **v261002.335** (Session 27: shared AI judge call, 2000 tokens, retry on empty, `aiInfo`; news "Robots mejorados"; ¿Error? ⏳ state). Staging = v261001.332-tmp. New staging builds start from production v335. **News messages expire: history 14 Oct, robots 16 Oct** — ask Oscar if he wants new ones.
+1. Upload the project zip (with `tests\` and `tools\`). Read this handoff. Production = **v261002.336** (Session 27: shared AI judge call, 2000 tokens, retry on empty, `aiInfo`; news "Robots mejorados"; ¿Error? ⏳ state; tagline removed + new Google description). Staging = v261001.332-tmp. New staging builds start from production v336. Open question for Oscar: Spanish `og:title`? **News messages expire: history 14 Oct, robots 16 Oct** — ask Oscar if he wants new ones.
 2. Check a recent daily export: are the long reasoning replies gone? What does `aiInfo` show — which models judge, how often `retried` / `cut`, any Cohere empty replies without `cut`? Daily speed OK?
 3. Ask Oscar: Firebase backup exported? Any problems in real games since v324? If all is well → he deletes `global/`, `groups/`, `groupNames/` + their three rules lines.
 4. Tests: run only when a change needs them. Full kit: `./run_all.sh ../index.html` → 239 unit + 77 + 12 + 19 + 28 browser (run long browser ones one by one, 300 s sandbox limit).
