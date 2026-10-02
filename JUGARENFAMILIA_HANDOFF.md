@@ -1337,13 +1337,15 @@ Draft (ES):
 
 **PRODUCTION v261002.337 — share title + locale cleanup:** link previews are ONE for everybody (meta tags are static; WhatsApp/Google don't run JS or know the player's language). Per-language previews would need separate URLs (`/en/`, `/fr/` mini pages with their own meta that send into the game) — parked, only if Oscar starts sharing with EN/FR groups. Chosen instead: trilingual via the game's names — `og:title` and `twitter:title` = "¡Alto! — Stop · Tutti Frutti · Petit Bac" (Petit Bac = French name; "Scattergories" left out, it is a brand). Description stays Spanish (v336). Removed stray `og:locale:alternate` de_DE, pt_BR, it_IT (kept en_GB, fr_FR). `<title>` (browser tab + Google headline) unchanged: "¡Alto! — JugarEnFamilia.es" — offered to Oscar as an option, not changed. Checklist OK.
 
-**Last versions: production v261002.337, staging v261001.332-tmp (older: v333 AI code only).**
+**PRODUCTION v261002.338 — page `<title>`** (browser tab + Google headline) = "¡Alto! — Stop · Tutti Frutti · Petit Bac", same as the share title (was "¡Alto! — JugarEnFamilia.es"; the domain already shows in Google's result line). Nothing in the JS sets `document.title`. Checklist OK.
+
+**Last versions: production v261002.338, staging v261001.332-tmp (older: v333 AI code only).**
 
 ---
 
 ## ▶ START HERE NEXT SESSION (Session 28)
 
-1. Upload the project zip (with `tests\` and `tools\`). Read this handoff. Production = **v261002.337** (Session 27: shared AI judge call, 2000 tokens, retry on empty, `aiInfo`; news "Robots mejorados"; ¿Error? ⏳ state; tagline removed + new Google description). Staging = v261001.332-tmp. New staging builds start from production v337 (v334–337: news, ¿Error? ⏳, tagline removed + Google description, share title). **News messages expire: history 14 Oct, robots 16 Oct** — ask Oscar if he wants new ones.
+1. Upload the project zip (with `tests\` and `tools\`). Read this handoff. Production = **v261002.338** (Session 27: shared AI judge call, 2000 tokens, retry on empty, `aiInfo`; news "Robots mejorados"; ¿Error? ⏳ state; tagline removed + new Google description). Staging = v261001.332-tmp. New staging builds start from production v338 (v334–338: news, ¿Error? ⏳, tagline removed + Google description, share title, page title). **News messages expire: history 14 Oct, robots 16 Oct** — ask Oscar if he wants new ones.
 2. Check a recent daily export: are the long reasoning replies gone? What does `aiInfo` show — which models judge, how often `retried` / `cut`, any Cohere empty replies without `cut`? Daily speed OK?
 3. Ask Oscar: Firebase backup exported? Any problems in real games since v324? If all is well → he deletes `global/`, `groups/`, `groupNames/` + their three rules lines.
 4. Tests: run only when a change needs them. Full kit: `./run_all.sh ../index.html` → 239 unit + 77 + 12 + 19 + 28 browser (run long browser ones one by one, 300 s sandbox limit).
