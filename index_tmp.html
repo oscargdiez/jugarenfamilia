@@ -1401,7 +1401,7 @@ const T = {
     copyLink: 'Copiar', wa: 'Compartir por WhatsApp',
     players: 'jugadores', soloHint: '(¡mejor con más!)', host: 'Eres el anfitrión',
     waiting: '✏️ Esperando al anfitrión…',
-    grpLabel: 'grupo', grpNew: '+ Nuevo grupo', grpRename: '✏️ Cambiar nombre', grpSave: 'Guardar', grpRemoveQ: '¿Quitar «{g}»?', grpYes: 'Sí', grpNo: 'No', grpSeeAll: 'Ver todos ({n})',
+    grpLabel: 'grupo', grpNew: '+ Nuevo grupo', grpRename: '✏️ Cambiar nombre', grpSave: 'Guardar', waitingOthers: '✏️ Respuestas enviadas. Esperando a los demás…', waitingFor: '✏️ Respuestas enviadas. Esperando a: {names}', skipMissing: 'Seguir sin {names} →', grpRemoveQ: '¿Quitar «{g}»?', grpYes: 'Sí', grpNo: 'No', grpSeeAll: 'Ver todos ({n})',
     groupPlaceholder: 'Los García, Amigos del cole...',
     theme: 'tema', easyLetters: 'solo letras fáciles',
     rounds: 'rondas', seconds: 'segundos por ronda',
@@ -1468,7 +1468,7 @@ const T = {
     copyLink: 'Copy', wa: 'Share on WhatsApp',
     players: 'players', soloHint: '(better with more!)', host: 'You are the host',
     waiting: '✏️ Waiting for the host…',
-    grpLabel: 'group', grpNew: '+ New group', grpRename: '✏️ Rename', grpSave: 'Save', grpRemoveQ: 'Remove “{g}”?', grpYes: 'Yes', grpNo: 'No', grpSeeAll: 'See all ({n})',
+    grpLabel: 'group', grpNew: '+ New group', grpRename: '✏️ Rename', grpSave: 'Save', waitingOthers: '✏️ Answers sent. Waiting for the others…', waitingFor: '✏️ Answers sent. Waiting for: {names}', skipMissing: 'Continue without {names} →', grpRemoveQ: 'Remove “{g}”?', grpYes: 'Yes', grpNo: 'No', grpSeeAll: 'See all ({n})',
     groupPlaceholder: 'The Smiths, Friday Friends...',
     theme: 'theme', easyLetters: 'easy letters only',
     rounds: 'rounds', seconds: 'seconds per round',
@@ -1535,7 +1535,7 @@ const T = {
     copyLink: 'Copier', wa: 'Partager sur WhatsApp',
     players: 'joueurs', soloHint: '(mieux à plusieurs!)', host: "Tu es l'hôte",
     waiting: "✏️ En attente de l'hôte…",
-    grpLabel: 'groupe', grpNew: '+ Nouveau groupe', grpRename: '✏️ Renommer', grpSave: 'Enregistrer', grpRemoveQ: 'Retirer « {g} » ?', grpYes: 'Oui', grpNo: 'Non', grpSeeAll: 'Voir tout ({n})',
+    grpLabel: 'groupe', grpNew: '+ Nouveau groupe', grpRename: '✏️ Renommer', grpSave: 'Enregistrer', waitingOthers: '✏️ Réponses envoyées. On attend les autres…', waitingFor: '✏️ Réponses envoyées. On attend : {names}', skipMissing: 'Continuer sans {names} →', grpRemoveQ: 'Retirer « {g} » ?', grpYes: 'Oui', grpNo: 'Non', grpSeeAll: 'Voir tout ({n})',
     groupPlaceholder: 'Les Dupont, Amis du lycée...',
     theme: 'thème', easyLetters: 'lettres faciles seulement',
     rounds: 'manches', seconds: 'secondes par manche',
@@ -4333,8 +4333,10 @@ function handleRoom(room) {
     if (room.calledStop && !G.stopHandled) {
       G.stopHandled = true;
       clearInterval(G.timerInterval);
+      setTimerBubble(0, false);
       if (!G.submitted) doSubmit(room);
     }
+    if (G.submitted && room.phase === 'playing') renderWaitingFor(room);
     // A guest can receive "all answers in" and "phase: validate" in the same snapshot
     // (e.g. back from another app) — go straight to validation instead of staying stuck here
     if (!G.isHost && allAnswered(room) && room.phase === 'validate') {
@@ -4435,7 +4437,7 @@ window.joinRoom = async () => {
   const snap = await get(roomRef(code));
   if (!snap.exists()) { toast(t('toastNotFound')); return; }
   const room = snap.val();
-  await update(roomRef(code), {[`players/${name}`]:G.playerEmoji, [`scores/${name}`]:room.scores?.[name] ?? 0, [`langs/${name}`]:LANG});
+  await update(roomRef(code), {[`players/${name}`]:G.playerEmoji, [`scores/${name}`]:room.scores?.[name] ?? 0, [`langs/${name}`]:LANG, [`left/${name}`]:null});
   saveSession(); subscribe(code); enterLobby(room);
 };
 
@@ -5007,16 +5009,26 @@ window.callStop = async () => {
   setUrgencyPulse(false);
   const snap = await get(roomRef(G.roomCode));
   const room = snap.val();
-  if (!room.calledStop) await update(roomRef(G.roomCode), {calledStop:true, stopCaller:G.playerName});
+  // Only the first ¡Alto! counts: take stopCaller atomically, then flag calledStop (two presses at once kept the second name)
+  if (!room.calledStop) {
+    try {
+      const tx = await runTransaction(ref(db, 'rooms/' + G.roomCode + '/stopCaller'), cur => cur ? undefined : G.playerName);
+      if (tx.committed) await update(roomRef(G.roomCode), {calledStop:true});
+    } catch(e) { await update(roomRef(G.roomCode), {calledStop:true, stopCaller:G.playerName}); }
+  }
   await doSubmit(room);
 };
 
 async function doSubmit(room, timeUp=false) {
   if (G.submitted) return;
   G.submitted = true;
+  G.submittedAt = Date.now();
   clearInterval(G.timerInterval);
   setUrgencyPulse(false);
+  setTimerBubble(0, false); // stop the floating countdown numbers (they kept flying on the waiting screen)
   if (!room) { const s = await get(roomRef(G.roomCode)); room = s.val(); }
+  // Woke up after the round moved on (e.g. the host went on without me): don't add late answers
+  if (room && room.phase && room.phase !== 'playing') return;
   const answers = {};
   (room.categories||[]).forEach(cat => {
     const el = document.getElementById('a_'+cat);
@@ -5025,16 +5037,57 @@ async function doSubmit(room, timeUp=false) {
   const updates = {[`allAnswers/${G.playerName}`]:answers};
   if (timeUp && !room.calledStop) { updates.calledStop = true; updates.stopCaller = 'Tiempo'; }
   await update(roomRef(G.roomCode), updates);
-  document.getElementById('ans-inputs').innerHTML = '<p class="wait">✏️ Respuestas enviadas. Esperando a los demás…</p>';
+  document.getElementById('ans-inputs').innerHTML = `<p class="wait">${escHtml(t('waitingOthers'))}</p>`;
   const stopBtn = document.querySelector('.stop-btn');
   if (stopBtn) stopBtn.style.display = 'none';
 }
 
-function allAnswered(room) {
-  const players = Object.keys(room.players||{});
-  const answers = room.allAnswers||{};
-  return players.length>0 && players.every(p=>answers[p]);
+// Players still in the game: someone who tapped leave is marked left/{name} and no longer awaited (Session 27)
+function activePlayers(room) {
+  const left = room.left || {};
+  return Object.keys(room.players||{}).filter(p => !left[p]);
 }
+function missingAnswers(room) {
+  const answers = room.allAnswers||{};
+  return activePlayers(room).filter(p => !answers[p]);
+}
+function allAnswered(room) {
+  return activePlayers(room).length>0 && missingAnswers(room).length===0;
+}
+
+// "Waiting for…" after sending answers: names who are missing; after 15 s the host can go on without them
+const WAIT_SKIP_MS = 15000;
+let _waitSkipTimer = null;
+function renderWaitingFor(room) {
+  const box = document.getElementById('ans-inputs');
+  if (!box || !G.submitted) return;
+  const missing = missingAnswers(room);
+  if (!missing.length) return;
+  const names = missing.join(', ');
+  const canSkip = G.isHost && G.submittedAt && Date.now() - G.submittedAt >= WAIT_SKIP_MS;
+  const html = `<p class="wait">${escHtml(t('waitingFor').replace('{names}', names))}</p>`
+    + (canSkip ? `<button class="pri" onclick="skipMissingPlayers()">${escHtml(t('skipMissing').replace('{names}', names))}</button>` : '');
+  if (box.innerHTML !== html) box.innerHTML = html;
+  if (G.isHost && !canSkip && !_waitSkipTimer) {
+    _waitSkipTimer = setTimeout(async () => {
+      _waitSkipTimer = null;
+      if (G.screen !== 'playing' || !G.roomCode) return;
+      const s = await get(roomRef(G.roomCode)).catch(() => null);
+      if (s && s.exists() && s.val().phase === 'playing') renderWaitingFor(s.val());
+    }, Math.max(500, WAIT_SKIP_MS - (Date.now() - (G.submittedAt || Date.now())) + 300));
+  }
+}
+// Host: missing players get blank answers for this round (0 pts) so the game can go on; they can rejoin later
+window.skipMissingPlayers = async () => {
+  if (!G.isHost || !G.roomCode) return;
+  const s = await get(roomRef(G.roomCode)).catch(() => null);
+  if (!s || !s.exists()) return;
+  const room = s.val();
+  if (room.phase !== 'playing') return;
+  const upd = {};
+  missingAnswers(room).forEach(p => { upd['allAnswers/' + p] = { skipped: true }; });
+  if (Object.keys(upd).length) await update(roomRef(G.roomCode), upd);
+};
 
 function buildValidationHTML(room, invalidMap) {
   const cats = room.categories||[];
@@ -5583,6 +5636,7 @@ window.quickJoin = async () => {
   G.isHost = !!room.host && room.host === name;
   await update(roomRef(code), {
     [`players/${name}`]: G.playerEmoji,
+    [`left/${name}`]: null,
     [`scores/${name}`]: room.scores?.[name] ?? 0,
     [`langs/${name}`]: LANG
   });
@@ -5770,7 +5824,7 @@ function applyVotesAndReactions(room, isHost) {
   });
   // In democratic mode, auto-invalidate/restore based on current vote majority
   if (isHost && mode === 'democratic') {
-    const majority = Math.floor(players.length / 2) + 1;
+    const majority = Math.floor(players.filter(p => !(room.left||{})[p]).length / 2) + 1; // left players can't vote
     let changed = false;
     // Collect all keys that need checking: keys in votes AND keys already invalidated
     const keysToCheck = new Set([
@@ -5891,7 +5945,7 @@ window.finishValidation = async () => {
   Object.assign(G.invalidAnswers, firebaseInvalids);
   if ((room.validationMode||'host') === 'democratic') {
     const votes = room.votes || {};
-    const majority = Math.floor(players.length / 2) + 1;
+    const majority = Math.floor(players.filter(p => !(room.left||{})[p]).length / 2) + 1; // left players can't vote
     Object.entries(votes).forEach(([key, playerVotes]) => {
       const downs = Object.values(playerVotes).filter(v => v === 'down').length;
       if (downs >= majority) G.invalidAnswers[key] = true;
@@ -6554,6 +6608,8 @@ window.playAgain = async () => {
 };
 
 window.leaveGame = () => {
+  // Tell the room I'm gone so nobody waits for my answers (Session 27). Fire and forget.
+  if (G.roomCode && G.playerName) update(roomRef(G.roomCode), {[`left/${G.playerName}`]: true}).catch(() => {});
   closeCountdown();
   clearSession();
   G.playerName=''; G.roomCode=''; G.isHost=false;
@@ -6565,7 +6621,7 @@ window.continueSession = async () => {
   const snap = await get(roomRef(G.roomCode));
   if (!snap.exists()) { clearSession(); window.show('home'); return; }
   const room = snap.val();
-  await update(roomRef(G.roomCode), {[`players/${G.playerName}`]:G.playerEmoji, [`scores/${G.playerName}`]:room.scores?.[G.playerName]??0, [`langs/${G.playerName}`]:LANG});
+  await update(roomRef(G.roomCode), {[`players/${G.playerName}`]:G.playerEmoji, [`scores/${G.playerName}`]:room.scores?.[G.playerName]??0, [`langs/${G.playerName}`]:LANG, [`left/${G.playerName}`]:null});
   subscribe(G.roomCode);
   const phase = room.phase;
   if (phase==='lobby') enterLobby(room);
@@ -7482,7 +7538,7 @@ setTimeout(() => updateDailyButtonDate(), 350);
 // Version freshness check — silently reload if a newer version is deployed
 // Runs once on load; does nothing if already on latest or if fetch fails
 (function() {
-  const RUNNING = 'v261007.340-tmp';
+  const RUNNING = 'v261007.341-tmp';
   if (sessionStorage.getItem('alto_ver_checked') === RUNNING) return; // already checked this session
   sessionStorage.setItem('alto_ver_checked', RUNNING);
   fetch(location.href, { cache: 'no-cache' })
@@ -7506,7 +7562,7 @@ syncMyGroups(); // registered + verified name: bring in groups from the name's o
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v261007.340-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v261007.341-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
