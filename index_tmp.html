@@ -1401,7 +1401,7 @@ const T = {
     copyLink: 'Copiar', wa: 'Compartir por WhatsApp',
     players: 'jugadores', soloHint: '(¡mejor con más!)', host: 'Eres el anfitrión',
     waiting: '✏️ Esperando al anfitrión…',
-    grpLabel: 'grupo', grpNew: '+ Nuevo grupo', grpRename: '✏️ Cambiar nombre', grpSave: 'Guardar', waitingOthers: '✏️ Respuestas enviadas. Esperando a los demás…', waitingFor: '✏️ Respuestas enviadas. Esperando a: {names}', skipMissing: 'Seguir sin {names} →', grpRemoveQ: '¿Quitar «{g}»?', grpYes: 'Sí', grpNo: 'No', grpSeeAll: 'Ver todos ({n})',
+    grpLabel: 'grupo', grpNew: '+ Nuevo grupo', grpRename: '✏️ Cambiar nombre', grpSave: 'Guardar', waitingOthers: '✏️ Respuestas enviadas. Esperando a los demás…', waitingFor: '✏️ Respuestas enviadas. Esperando a: {names}', skipMissing: 'Seguir sin {names} →', grpRemoveQ: '¿Quitar «{g}»?', grpYes: 'Sí', grpExists: 'Ya tienes «{g}», lo he elegido', grpNameTaken: 'Ya tienes un grupo con ese nombre', grpNo: 'No', grpSeeAll: 'Ver todos ({n})',
     groupPlaceholder: 'Los García, Amigos del cole...',
     theme: 'tema', easyLetters: 'solo letras fáciles',
     rounds: 'rondas', seconds: 'segundos por ronda',
@@ -1468,7 +1468,7 @@ const T = {
     copyLink: 'Copy', wa: 'Share on WhatsApp',
     players: 'players', soloHint: '(better with more!)', host: 'You are the host',
     waiting: '✏️ Waiting for the host…',
-    grpLabel: 'group', grpNew: '+ New group', grpRename: '✏️ Rename', grpSave: 'Save', waitingOthers: '✏️ Answers sent. Waiting for the others…', waitingFor: '✏️ Answers sent. Waiting for: {names}', skipMissing: 'Continue without {names} →', grpRemoveQ: 'Remove “{g}”?', grpYes: 'Yes', grpNo: 'No', grpSeeAll: 'See all ({n})',
+    grpLabel: 'group', grpNew: '+ New group', grpRename: '✏️ Rename', grpSave: 'Save', waitingOthers: '✏️ Answers sent. Waiting for the others…', waitingFor: '✏️ Answers sent. Waiting for: {names}', skipMissing: 'Continue without {names} →', grpRemoveQ: 'Remove “{g}”?', grpYes: 'Yes', grpExists: 'You already have “{g}”, picked it', grpNameTaken: 'You already have a group with that name', grpNo: 'No', grpSeeAll: 'See all ({n})',
     groupPlaceholder: 'The Smiths, Friday Friends...',
     theme: 'theme', easyLetters: 'easy letters only',
     rounds: 'rounds', seconds: 'seconds per round',
@@ -1535,7 +1535,7 @@ const T = {
     copyLink: 'Copier', wa: 'Partager sur WhatsApp',
     players: 'joueurs', soloHint: '(mieux à plusieurs!)', host: "Tu es l'hôte",
     waiting: "✏️ En attente de l'hôte…",
-    grpLabel: 'groupe', grpNew: '+ Nouveau groupe', grpRename: '✏️ Renommer', grpSave: 'Enregistrer', waitingOthers: '✏️ Réponses envoyées. On attend les autres…', waitingFor: '✏️ Réponses envoyées. On attend : {names}', skipMissing: 'Continuer sans {names} →', grpRemoveQ: 'Retirer « {g} » ?', grpYes: 'Oui', grpNo: 'Non', grpSeeAll: 'Voir tout ({n})',
+    grpLabel: 'groupe', grpNew: '+ Nouveau groupe', grpRename: '✏️ Renommer', grpSave: 'Enregistrer', waitingOthers: '✏️ Réponses envoyées. On attend les autres…', waitingFor: '✏️ Réponses envoyées. On attend : {names}', skipMissing: 'Continuer sans {names} →', grpRemoveQ: 'Retirer « {g} » ?', grpYes: 'Oui', grpExists: 'Tu as déjà « {g} », je l’ai choisi', grpNameTaken: 'Tu as déjà un groupe avec ce nom', grpNo: 'Non', grpSeeAll: 'Voir tout ({n})',
     groupPlaceholder: 'Les Dupont, Amis du lycée...',
     theme: 'thème', easyLetters: 'lettres faciles seulement',
     rounds: 'manches', seconds: 'secondes par manche',
@@ -4596,6 +4596,18 @@ window.saveGroupEdit = () => {
   const inp = document.getElementById('grp-edit-inp');
   const name = (inp ? inp.value : '').replace(/\s+/g, ' ').trim().slice(0, 30);
   if (!name) { if (inp) inp.focus(); return; }
+  // No two groups with the same name in my list (capitals/accents ignored) — Session 27
+  const sameName = getMyGroups().find(g => normalize(g.name) === normalize(name) && !(G_grpEdit === 'rename' && G_group && g.id === G_group.id));
+  if (sameName && G_grpEdit === 'new') {
+    touchMyGroup(sameName.id, sameName.name, Date.now());
+    G_group = { id: sameName.id, name: sameName.name };
+    toast(t('grpExists').replace('{g}', sameName.name));
+    G_grpEdit = null; G_grpPanelOpen = false;
+    writeRoomGroup();
+    renderGroupPicker();
+    return;
+  }
+  if (sameName && G_grpEdit === 'rename') { toast(t('grpNameTaken')); if (inp) inp.focus(); return; }
   if (G_grpEdit === 'new') {
     const id = newGroupId();
     touchMyGroup(id, name, Date.now());
@@ -7538,7 +7550,7 @@ setTimeout(() => updateDailyButtonDate(), 350);
 // Version freshness check — silently reload if a newer version is deployed
 // Runs once on load; does nothing if already on latest or if fetch fails
 (function() {
-  const RUNNING = 'v261007.341-tmp';
+  const RUNNING = 'v261007.342-tmp';
   if (sessionStorage.getItem('alto_ver_checked') === RUNNING) return; // already checked this session
   sessionStorage.setItem('alto_ver_checked', RUNNING);
   fetch(location.href, { cache: 'no-cache' })
@@ -7562,7 +7574,7 @@ syncMyGroups(); // registered + verified name: bring in groups from the name's o
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v261007.341-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v261007.342-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
