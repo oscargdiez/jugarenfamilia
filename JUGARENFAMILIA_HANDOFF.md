@@ -1339,13 +1339,24 @@ Draft (ES):
 
 **PRODUCTION v261002.338 — page `<title>`** (browser tab + Google headline) = "¡Alto! — Stop · Tutti Frutti · Petit Bac", same as the share title (was "¡Alto! — JugarEnFamilia.es"; the domain already shows in Google's result line). Nothing in the JS sets `document.title`. Checklist OK.
 
-**Last versions: production v261002.338, staging v261001.332-tmp (older: v333 AI code only).**
+**7 Oct — players complain the daily validation is slow.** Exports 6+7 Oct (~106 judged answers): zero `cut`, zero `retried`, Cohere answers cleanly — the token fix worked. But **13 answers (~12%) had `error: true, model: ""`** = almost certainly the 20 s timeout: each cost a full 20 s wait (answers were judged one by one) AND became 🤔 even when obviously right (Vela, Victor Hugo, Vodka, Rondó, Ventana…); every contested one was overturned. A timeout cancels the request, so the Sante/Ling fallback never gets a chance.
+Quality notes (Cohere north-mini-code, a small coding model): mostly right on clear cases; slips: "Vivora" ✅ ×2 (b/v misspelling), "Tarragon" ✅ as French spice (English word — same pattern as Robin, Broccoli), flipped words inconsistent ("Tower, Eiffel" ✅ vs "Valencia, agua de" ❌). Next quality step (not built): scout re-run with these real cases, then sharpen the prompt (swapped b/v, g/j, missing h = misspelled) or try a stronger model first.
+
+**PRODUCTION v261007.339 — faster daily judging:**
+- Daily answers judged **3 at a time** (`AI_PARALLEL = 3`, small worker pool) instead of one by one. 3 rather than 6 to stay under free-model per-minute limits when several people play.
+- `aiJudgeCall`: on a **timeout** the same `AI_MODELS` list is asked once more with a fresh 20 s; a second timeout throws (marked `timedOut`, `ms`). Other HTTP errors still throw straight away. The empty/cut retry is skipped when a timeout retry already happened (max 2 calls per answer). Applies to daily, contests and multiplayer.
+- Returns `ms`; `dailyAICallModel` error result now has `error: 'timeout' | 'http'` instead of `true`.
+- `aiInfo` per answer now: `{ model, s (seconds, 1 decimal), cut?, retried?, timeout?, error? }`. Old entries have `error: true`.
+- Checked: version grep before/after (338 → 339), 12 screens, init once, 4 scripts syntax OK, unit suites 239/239, 16 mock tests (timeout → retry → answer; 2 timeouts → dudoso with error 'timeout'; 429 → 'http'; clean answer = 1 call; pool never above 3 in flight, 6 answers in ~2 rounds).
+- Note: the sandbox was reset during the session; v339 was built from the delivered v338 file, not the zip.
+
+**Last versions: production v261007.339, staging v261001.332-tmp (older: v333 AI code only).**
 
 ---
 
 ## ▶ START HERE NEXT SESSION (Session 28)
 
-1. Upload the project zip (with `tests\` and `tools\`). Read this handoff. Production = **v261002.338** (Session 27: shared AI judge call, 2000 tokens, retry on empty, `aiInfo`; news "Robots mejorados"; ¿Error? ⏳ state; tagline removed + new Google description). Staging = v261001.332-tmp. New staging builds start from production v338 (v334–338: news, ¿Error? ⏳, tagline removed + Google description, share title, page title). **News messages expire: history 14 Oct, robots 16 Oct** — ask Oscar if he wants new ones.
+1. Upload the project zip (with `tests\` and `tools\`). Read this handoff. Production = **v261007.339** (Session 27: shared AI judge call, 2000 tokens, retry on empty, `aiInfo`; news "Robots mejorados"; ¿Error? ⏳ state; tagline removed + new Google description). Staging = v261001.332-tmp. New staging builds start from production v339 (v334–339: news, ¿Error? ⏳, tagline removed + Google description, share/page title, daily judged 3 at a time + timeout retry + timing in `aiInfo`). **First thing: check `aiInfo.s` / `timeout` / `error` in a daily export — still slow? still many timeouts? Then decide on tokens (1200?) or reasoning effort low, and the quality step (scout re-run with Vivora, Tarragon, Robin, Broccoli).** **News messages expire: history 14 Oct, robots 16 Oct** — ask Oscar if he wants new ones.
 2. Check a recent daily export: are the long reasoning replies gone? What does `aiInfo` show — which models judge, how often `retried` / `cut`, any Cohere empty replies without `cut`? Daily speed OK?
 3. Ask Oscar: Firebase backup exported? Any problems in real games since v324? If all is well → he deletes `global/`, `groups/`, `groupNames/` + their three rules lines.
 4. Tests: run only when a change needs them. Full kit: `./run_all.sh ../index.html` → 239 unit + 77 + 12 + 19 + 28 browser (run long browser ones one by one, 300 s sandbox limit).

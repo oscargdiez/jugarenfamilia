@@ -3024,22 +3024,27 @@ window.dailySubmit = async function(fromTimer = false) {
     if (inp) G_daily.answers[i] = inp.value.trim();
   });
 
-  // AI validate all non-empty answers — sequential to avoid rate limits
+  // AI validate all non-empty answers — 3 at a time (was one by one: slow when an answer timed out, Session 27)
   const aiResults = {};
   const aiResponses = {}; // raw AI text for invalid/unsure answers only
-  const aiInfo = {};      // per answer: which model judged it, cut = ran out of tokens, retried, error (Session 27)
-  for (let i = 0; i < G_daily.categories.length; i++) {
+  const aiInfo = {};      // per answer: model, s = seconds taken, cut, retried, timeout, error ('timeout'|'http') (Session 27)
+  const judgeOne = async (i) => {
     const word = G_daily.answers[i] || '';
-    if (!word) { aiResults[i] = 'empty'; continue; }
+    if (!word) { aiResults[i] = 'empty'; return; }
     if (DAILY_CONSENSUS) {
       aiResults[i] = await dailyAIValidate(word, G_daily.categories[i], G_daily.letter);
     } else {
-      const { verdict, rawText, model, cut, retried, error } = await dailyAICallModel(word, G_daily.categories[i], G_daily.letter, AI_MODELS, ...dailyBuildPromptWithWord(word, G_daily.categories[i], G_daily.letter));
+      const { verdict, rawText, model, cut, retried, timedOut, ms, error } = await dailyAICallModel(word, G_daily.categories[i], G_daily.letter, AI_MODELS, ...dailyBuildPromptWithWord(word, G_daily.categories[i], G_daily.letter));
       aiResults[i] = verdict;
       if ((verdict === 'invalid' || verdict === 'unsure') && rawText) aiResponses[i] = rawText;
-      aiInfo[i] = { model: model || '', ...(cut ? { cut: true } : {}), ...(retried ? { retried: true } : {}), ...(error ? { error: true } : {}) };
+      aiInfo[i] = { model: model || '', s: Math.round((ms || 0) / 100) / 10, ...(cut ? { cut: true } : {}), ...(retried ? { retried: true } : {}), ...(timedOut ? { timeout: true } : {}), ...(error ? { error } : {}) };
     }
-  }
+  };
+  const AI_PARALLEL = 3;
+  let nextIdx = 0;
+  await Promise.all(Array.from({ length: AI_PARALLEL }, async () => {
+    while (nextIdx < G_daily.categories.length) await judgeOne(nextIdx++);
+  }));
   G_daily.aiResults = aiResults;
 
   // ── Scoring: base × speed multiplier ─────────────────────────────────────
@@ -3217,20 +3222,33 @@ async function aiJudgeCall(systemPrompt, prompt, models, timeoutMs) {
     const raw = content || (reasoning ? '[reasoning only' + (cut ? ', cut' : '') + '] ' + reasoning.slice(-950) : '');
     return { verdict, rawText: raw.slice(-1000) || null, model: data.model || '', cut, empty: !content };
   };
-  let r = await once();
-  let retried = false;
-  if (!r.verdict && (r.empty || r.cut)) {
+  const t0 = Date.now();
+  const isTimeoutErr = e => e?.name === 'TimeoutError' || e?.name === 'AbortError';
+  let r, retried = false, timedOut = false;
+  try { r = await once(); }
+  catch (e) {
+    // Timeout (Session 27, 7 Oct: ~12% of daily answers): one fresh try before giving up. Other errors throw as before.
+    if (!isTimeoutErr(e)) throw e;
+    timedOut = true; retried = true;
+    try { r = await once(); }
+    catch (e2) { e2.ms = Date.now() - t0; e2.timedOut = true; throw e2; }
+  }
+  if (!r.verdict && (r.empty || r.cut) && !retried) {
     retried = true;
     try { const r2 = await once(); if (r2.verdict || !r.rawText) r = r2; } catch (e) { console.warn('[AI] retry failed:', e.message); }
   }
-  return { verdict: r.verdict || 'unsure', rawText: r.rawText, model: r.model, cut: r.cut, retried };
+  return { verdict: r.verdict || 'unsure', rawText: r.rawText, model: r.model, cut: r.cut, retried, timedOut, ms: Date.now() - t0 };
 }
 
 // Daily / practice: returns { verdict:'valid'|'invalid'|'unsure', rawText, model, cut, retried } — never throws
 async function dailyAICallModel(word, category, letter, model, systemPrompt, prompt) {
   try {
     return await aiJudgeCall(systemPrompt, prompt, model, AI_TIMEOUT_MS);
-  } catch(e) { console.error('[Daily AI] error:', e.message); return { verdict: 'unsure', rawText: null, model: '', cut: false, retried: false, error: true }; }
+  } catch(e) {
+    console.error('[Daily AI] error:', e.message);
+    const timeout = e?.timedOut || e?.name === 'TimeoutError' || e?.name === 'AbortError';
+    return { verdict: 'unsure', rawText: null, model: '', cut: false, retried: !!e?.timedOut, timedOut: timeout, ms: e?.ms || 0, error: timeout ? 'timeout' : 'http' };
+  }
 }
 
 // Consensus: 2 models in parallel, tiebreaker only if split
@@ -7358,7 +7376,7 @@ setTimeout(() => updateDailyButtonDate(), 350);
 // Version freshness check — silently reload if a newer version is deployed
 // Runs once on load; does nothing if already on latest or if fetch fails
 (function() {
-  const RUNNING = 'v261002.338';
+  const RUNNING = 'v261007.339';
   if (sessionStorage.getItem('alto_ver_checked') === RUNNING) return; // already checked this session
   sessionStorage.setItem('alto_ver_checked', RUNNING);
   fetch(location.href, { cache: 'no-cache' })
@@ -7381,7 +7399,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) upda
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v261002.338</div>
+  <div style="font-size: 11px;opacity:0.5">v261007.339</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
