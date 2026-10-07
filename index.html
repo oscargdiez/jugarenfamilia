@@ -572,11 +572,13 @@ body.screen-home .page, body.screen-welcome .page { padding-bottom: 2rem; }
 .grp-caret { font-size: 13px; color: var(--ink-sec); flex-shrink: 0; }
 .grp-panel { display: none; margin-top: 6px; border: 1.5px solid var(--border-strong); border-radius: var(--radius); background: #f7f3e8; }
 .grp-panel.open { display: block; }
-.grp-item { display: flex; align-items: center; gap: 8px; border-bottom: 1px dashed var(--border); }
+.grp-item { display: flex; align-items: center; gap: 8px; min-height: 40px; border-bottom: 1px dashed var(--border); }
 .grp-item.sel { background: var(--red-light); }
 .grp-name { flex: 1; min-width: 0; padding: 8px 12px; font-family: 'Caveat', cursive; font-size: 20px; color: var(--ink); cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.grp-pin, .grp-x { flex-shrink: 0; width: 36px; text-align: center; font-size: 13px; }
-.grp-x { border: none; background: none; padding: 8px 0; color: var(--ink-muted); cursor: pointer; }
+.grp-x { flex-shrink: 0; width: 44px; text-align: center; font-size: 20px; line-height: 1; border: none; background: none; padding: 8px 0; color: var(--ink-sec); cursor: pointer; }
+.grp-confirm { flex: 1; min-width: 0; padding: 8px 12px; font-size: 13px; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.grp-cbtn { flex-shrink: 0; margin-right: 8px; padding: 6px 10px; font-size: 13px; font-family: inherit; border: 1.5px solid var(--border-strong); border-radius: var(--radius); background: transparent; color: var(--ink); cursor: pointer; }
+.grp-cbtn.yes { border-color: var(--red); color: var(--red); }
 .grp-more { padding: 6px 12px; font-family: 'Special Elite', monospace; font-size: 13px; color: var(--red); cursor: pointer; border-bottom: 1px dashed var(--border); }
 .grp-actions, .grp-edit { display: flex; gap: 6px; padding: 8px; }
 .grp-actions button { flex: 1; font-size: 13px; padding: 6px 8px; }
@@ -1399,7 +1401,7 @@ const T = {
     copyLink: 'Copiar', wa: 'Compartir por WhatsApp',
     players: 'jugadores', soloHint: '(¡mejor con más!)', host: 'Eres el anfitrión',
     waiting: '✏️ Esperando al anfitrión…',
-    grpLabel: 'grupo', grpNew: '+ Nuevo grupo', grpRename: '✏️ Cambiar nombre', grpSave: 'Guardar', grpSeeAll: 'Ver todos ({n})',
+    grpLabel: 'grupo', grpNew: '+ Nuevo grupo', grpRename: '✏️ Cambiar nombre', grpSave: 'Guardar', waitingOthers: '✏️ Respuestas enviadas. Esperando a los demás…', waitingFor: '✏️ Respuestas enviadas. Esperando a: {names}', skipMissing: 'Seguir sin {names} →', grpRemoveQ: '¿Quitar «{g}»?', grpYes: 'Sí', grpExists: 'Ya tienes «{g}», lo he elegido', grpNameTaken: 'Ya tienes un grupo con ese nombre', grpNo: 'No', grpSeeAll: 'Ver todos ({n})',
     groupPlaceholder: 'Los García, Amigos del cole...',
     theme: 'tema', easyLetters: 'solo letras fáciles',
     rounds: 'rondas', seconds: 'segundos por ronda',
@@ -1466,7 +1468,7 @@ const T = {
     copyLink: 'Copy', wa: 'Share on WhatsApp',
     players: 'players', soloHint: '(better with more!)', host: 'You are the host',
     waiting: '✏️ Waiting for the host…',
-    grpLabel: 'group', grpNew: '+ New group', grpRename: '✏️ Rename', grpSave: 'Save', grpSeeAll: 'See all ({n})',
+    grpLabel: 'group', grpNew: '+ New group', grpRename: '✏️ Rename', grpSave: 'Save', waitingOthers: '✏️ Answers sent. Waiting for the others…', waitingFor: '✏️ Answers sent. Waiting for: {names}', skipMissing: 'Continue without {names} →', grpRemoveQ: 'Remove “{g}”?', grpYes: 'Yes', grpExists: 'You already have “{g}”, picked it', grpNameTaken: 'You already have a group with that name', grpNo: 'No', grpSeeAll: 'See all ({n})',
     groupPlaceholder: 'The Smiths, Friday Friends...',
     theme: 'theme', easyLetters: 'easy letters only',
     rounds: 'rounds', seconds: 'seconds per round',
@@ -1533,7 +1535,7 @@ const T = {
     copyLink: 'Copier', wa: 'Partager sur WhatsApp',
     players: 'joueurs', soloHint: '(mieux à plusieurs!)', host: "Tu es l'hôte",
     waiting: "✏️ En attente de l'hôte…",
-    grpLabel: 'groupe', grpNew: '+ Nouveau groupe', grpRename: '✏️ Renommer', grpSave: 'Enregistrer', grpSeeAll: 'Voir tout ({n})',
+    grpLabel: 'groupe', grpNew: '+ Nouveau groupe', grpRename: '✏️ Renommer', grpSave: 'Enregistrer', waitingOthers: '✏️ Réponses envoyées. On attend les autres…', waitingFor: '✏️ Réponses envoyées. On attend : {names}', skipMissing: 'Continuer sans {names} →', grpRemoveQ: 'Retirer « {g} » ?', grpYes: 'Oui', grpExists: 'Tu as déjà « {g} », je l’ai choisi', grpNameTaken: 'Tu as déjà un groupe avec ce nom', grpNo: 'Non', grpSeeAll: 'Voir tout ({n})',
     groupPlaceholder: 'Les Dupont, Amis du lycée...',
     theme: 'thème', easyLetters: 'lettres faciles seulement',
     rounds: 'manches', seconds: 'secondes par manche',
@@ -2039,7 +2041,71 @@ function saveMyGroups(list) {
   const rest = list.filter(g => !g.def).sort((a, b) => (b.last || 0) - (a.last || 0));
   const out = (def ? [def] : []).concat(rest).slice(0, MYGROUPS_MAX);
   try { localStorage.setItem(MYGROUPS_KEY, JSON.stringify(out)); } catch(e) { /* private mode */ }
+  pushMyGroups(out);
   return out;
+}
+
+// ── Mis grupos follow a registered name (Session 27) ─────────────────
+// Only when the current name is registered AND verified on this device (alto_claim_{safe}.verified).
+// Firebase: names/{safe}/groups/{id} = {name, last, def?}; names/{safe}/groupsRemoved/{id} = time removed.
+// Pull + merge first (syncMyGroups); pushes are additive per group and only happen after a pull this session.
+let _grpSyncedFor = null;
+function myGroupsSyncName() {
+  try {
+    const n = (typeof G !== 'undefined' && G.playerName) || document.getElementById('inp-name')?.value?.trim() || localStorage.getItem('alto_name') || '';
+    const safe = n ? claimSafeName(n) : '';
+    if (!safe) return null;
+    const d = JSON.parse(localStorage.getItem(claimLsKey(safe)) || 'null');
+    return d && d.verified ? safe : null;
+  } catch(e) { return null; }
+}
+function pushMyGroups(list) {
+  const safe = myGroupsSyncName();
+  if (!safe || _grpSyncedFor !== safe) return;
+  const upd = {};
+  list.forEach(g => { upd['names/' + safe + '/groups/' + g.id] = { name: g.name, last: g.last || 0, ...(g.def ? { def: true } : {}) }; });
+  if (Object.keys(upd).length) update(ref(db), upd).catch(() => {});
+}
+function pushMyGroupRemoval(id) {
+  const safe = myGroupsSyncName();
+  if (!safe || _grpSyncedFor !== safe || !isGroupId(id)) return;
+  update(ref(db), { ['names/' + safe + '/groups/' + id]: null, ['names/' + safe + '/groupsRemoved/' + id]: Date.now() }).catch(() => {});
+}
+async function syncMyGroups() {
+  const safe = myGroupsSyncName();
+  if (!safe || _grpSyncedFor === safe) return;
+  try {
+    const [gs, rs] = await Promise.all([get(ref(db, 'names/' + safe + '/groups')), get(ref(db, 'names/' + safe + '/groupsRemoved'))]);
+    if (myGroupsSyncName() !== safe) return; // name changed meanwhile
+    const remote = (gs.exists() && gs.val()) || {};
+    const removed = (rs.exists() && rs.val()) || {};
+    let local = getMyGroups();
+    // Removed on another device → remove here too, unless played here after that
+    local = local.filter(g => g.def || !removed[g.id] || (g.last || 0) > removed[g.id]);
+    // Two devices may each have made a default group: the name's saved one wins; an unplayed local default is dropped
+    const remoteDefId = Object.keys(remote).find(id => remote[id] && remote[id].def && isGroupId(id));
+    const localDef = local.find(g => g.def);
+    let droppedDef = null;
+    if (remoteDefId && localDef && localDef.id !== remoteDefId) {
+      if (!(localDef.last > 0)) { local = local.filter(g => g !== localDef); droppedDef = localDef.id; } else delete localDef.def;
+    }
+    for (const [id, r] of Object.entries(remote)) {
+      if (!isGroupId(id) || !r || typeof r.name !== 'string' || !r.name) continue;
+      if (removed[id] && (r.last || 0) <= removed[id]) continue;
+      const hasOtherDef = local.some(x => x.def && x.id !== id);
+      const g = local.find(x => x.id === id);
+      if (g) {
+        if ((r.last || 0) > (g.last || 0)) { g.last = r.last; g.name = r.name; }
+        if (r.def && !hasOtherDef) g.def = true;
+      } else {
+        local.push({ id, name: r.name, last: r.last || 0, ...(r.def && !hasOtherDef ? { def: true } : {}) });
+      }
+    }
+    _grpSyncedFor = safe;
+    saveMyGroups(local); // saves here and pushes the merged list
+    if (droppedDef && remote[droppedDef]) pushMyGroupRemoval(droppedDef);
+    if (G_grpPanelOpen && G.screen === 'lobby' && !G_grpEdit) renderGroupPicker();
+  } catch(e) { /* offline: groups stay on this device */ }
 }
 
 function newGroupId() {
@@ -2212,6 +2278,13 @@ function updateShellHeader(screenId) {
 // Called when user taps the ¡Alto! logo in the shell header
 window.shellLogoClick = function() {
   if (G.screen === 'leaderboard') { lbBack(); return; }
+  // Join screen: not in the room yet, so just go home and drop ?room= so a refresh doesn't reopen it (Session 27)
+  if (G.screen === 'quickjoin') {
+    G.roomCode = '';
+    setRoomInUrl('');
+    show('home');
+    return;
+  }
   if (G.screen === 'lobby') {
     leaveGame();
     return;
@@ -2685,6 +2758,17 @@ window.startDailyChallenge = async function() {
     } catch(e) {}
   }
 
+  // Fresh played check (Session 27): _playedLangs is filled once at page load, so a tab left open,
+  // a quick tap or another device that played since would slip through. One small read here.
+  if (!_debugMode && !_playedLangs[LANG] && !_playerNameRaw.startsWith('__')) {
+    const _safeNow = claimSafeName(_playerNameRaw);
+    if (_safeNow) {
+      try {
+        const _ps = await get(ref(db, 'names/' + _safeNow + '/played/' + key + '/' + LANG));
+        if (_ps.exists()) _playedLangs[LANG] = typeof _ps.val() === 'string' ? _ps.val() : true;
+      } catch(e) { /* offline: fall back to the cache */ }
+    }
+  }
   // Cross-device played check: _playedLangs is populated by fetchPlayedState() on load.
   // If already played in this lang on any device, retrieve and show their score from Firebase.
   if (!_debugMode && _playedLangs[LANG]) {
@@ -3098,6 +3182,22 @@ window.dailySubmit = async function(fromTimer = false) {
     if (!_isTestMode) {
     const safeNameIdx = dailyPlayerName.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim()
       .replace(/[^a-z0-9 ]/g,'_').replace(/\s+/g,'_').replace(/_+/g,'_').replace(/^_|_$/g,'');
+    // Only the first daily per name counts (Session 27): take the played slot BEFORE writing the score.
+    // If another device/tab already took it, show that saved score instead of adding a second one.
+    if (safeNameIdx) {
+      let _dupKey = null;
+      try {
+        const _tx = await runTransaction(ref(db, 'names/' + safeNameIdx + '/played/' + G_daily.key + '/' + LANG), cur => cur ? undefined : playerKey);
+        if (!_tx.committed) _dupKey = _tx.snapshot.val();
+      } catch(e) { /* offline / error: save as before */ }
+      if (_dupKey) {
+        try { localStorage.removeItem('alto_daily_' + G_daily.key + '_' + LANG); } catch(e) {}
+        _playedLangs[LANG] = typeof _dupKey === 'string' ? _dupKey : true;
+        toast({ es: 'Ya jugaste hoy con este nombre', en: 'You already played today with this name', fr: 'Tu as déjà joué aujourd\'hui avec ce nom' }[LANG] || 'Ya jugaste hoy con este nombre');
+        window.startDailyChallenge(); // shows the score already saved under this name
+        return;
+      }
+    }
     const dailyRef = ref(db, 'daily/' + G_daily.key + '/' + LANG + '/scores/' + playerKey);
     await set(dailyRef, {
       name: displayName,
@@ -4240,8 +4340,10 @@ function handleRoom(room) {
     if (room.calledStop && !G.stopHandled) {
       G.stopHandled = true;
       clearInterval(G.timerInterval);
+      setTimerBubble(0, false);
       if (!G.submitted) doSubmit(room);
     }
+    if (G.submitted && room.phase === 'playing') renderWaitingFor(room);
     // A guest can receive "all answers in" and "phase: validate" in the same snapshot
     // (e.g. back from another app) — go straight to validation instead of staying stuck here
     if (!G.isHost && allAnswered(room) && room.phase === 'validate') {
@@ -4342,7 +4444,7 @@ window.joinRoom = async () => {
   const snap = await get(roomRef(code));
   if (!snap.exists()) { toast(t('toastNotFound')); return; }
   const room = snap.val();
-  await update(roomRef(code), {[`players/${name}`]:G.playerEmoji, [`scores/${name}`]:room.scores?.[name] ?? 0, [`langs/${name}`]:LANG});
+  await update(roomRef(code), {[`players/${name}`]:G.playerEmoji, [`scores/${name}`]:room.scores?.[name] ?? 0, [`langs/${name}`]:LANG, [`left/${name}`]:null});
   saveSession(); subscribe(code); enterLobby(room);
 };
 
@@ -4392,6 +4494,7 @@ let G_lobbyRoomGroup = { id: '', name: '' }; // the room's group as last seen in
 let G_grpPanelOpen = false;
 let G_grpShowAll = false;
 let G_grpEdit = null;        // null | 'new' | 'rename'
+let G_grpConfirm = null;     // id of the group whose × was tapped (inline "remove?" row)
 
 function hostInitGroup(room) {
   G_grpPanelOpen = false; G_grpShowAll = false; G_grpEdit = null;
@@ -4442,10 +4545,15 @@ function renderGroupPicker() {
   if (!G_grpPanelOpen) { panel.innerHTML = ''; return; }
   const list = getMyGroups();
   const shown = G_grpShowAll ? list : list.slice(0, 3);
-  let html = shown.map(g => `<div class="grp-item${G_group && g.id === G_group.id ? ' sel' : ''}">`
-    + `<span class="grp-name" onclick="pickMyGroup('${g.id}')">${escHtml(g.name)}</span>`
-    + (g.def ? '<span class="grp-pin">📌</span>' : `<button class="grp-x" onclick="removeMyGroupUI('${g.id}')">×</button>`)
-    + '</div>').join('');
+  // Default group: first, no × (no 📌 — it read as "pin this"). × asks inline before removing (Session 27)
+  let html = shown.map(g => G_grpConfirm === g.id
+    ? `<div class="grp-item"><span class="grp-confirm">${escHtml(t('grpRemoveQ').replace('{g}', g.name))}</span>`
+      + `<button class="grp-cbtn yes" onclick="removeMyGroupUI('${g.id}')">${escHtml(t('grpYes'))}</button>`
+      + `<button class="grp-cbtn" onclick="cancelRemoveMyGroup()">${escHtml(t('grpNo'))}</button></div>`
+    : `<div class="grp-item${G_group && g.id === G_group.id ? ' sel' : ''}">`
+      + `<span class="grp-name" onclick="pickMyGroup('${g.id}')">${escHtml(g.name)}</span>`
+      + (g.def ? '' : `<button class="grp-x" aria-label="${escHtml(t('grpRemoveQ').replace('{g}', g.name))}" onclick="askRemoveMyGroup('${g.id}')">×</button>`)
+      + '</div>').join('');
   if (!G_grpShowAll && list.length > 3) html += `<div class="grp-more" onclick="showAllMyGroups()">${escHtml(t('grpSeeAll').replace('{n}', list.length))}</div>`;
   if (G_grpEdit) {
     html += `<div class="grp-edit"><input type="text" id="grp-edit-inp" maxlength="30" autocomplete="off" data-form-type="other" placeholder="${escHtml(t('groupPlaceholder'))}">`
@@ -4462,7 +4570,9 @@ function renderGroupPicker() {
   }
 }
 
-window.toggleGroupPanel = () => { G_grpPanelOpen = !G_grpPanelOpen; G_grpEdit = null; G_grpShowAll = false; renderGroupPicker(); };
+window.toggleGroupPanel = () => { G_grpPanelOpen = !G_grpPanelOpen; G_grpEdit = null; G_grpShowAll = false; G_grpConfirm = null; renderGroupPicker(); if (G_grpPanelOpen) syncMyGroups(); };
+window.askRemoveMyGroup = (id) => { G_grpConfirm = id; G_grpEdit = null; renderGroupPicker(); };
+window.cancelRemoveMyGroup = () => { G_grpConfirm = null; renderGroupPicker(); };
 window.showAllMyGroups = () => { G_grpShowAll = true; renderGroupPicker(); };
 
 window.pickMyGroup = (id) => {
@@ -4475,7 +4585,9 @@ window.pickMyGroup = (id) => {
 };
 
 window.removeMyGroupUI = (id) => {
+  G_grpConfirm = null;
   const list = removeMyGroup(id);
+  pushMyGroupRemoval(id);
   if (G_group && G_group.id === id) {
     const g = pickInitialGroup(list);
     G_group = g ? { id: g.id, name: g.name } : null;
@@ -4491,6 +4603,18 @@ window.saveGroupEdit = () => {
   const inp = document.getElementById('grp-edit-inp');
   const name = (inp ? inp.value : '').replace(/\s+/g, ' ').trim().slice(0, 30);
   if (!name) { if (inp) inp.focus(); return; }
+  // No two groups with the same name in my list (capitals/accents ignored) — Session 27
+  const sameName = getMyGroups().find(g => normalize(g.name) === normalize(name) && !(G_grpEdit === 'rename' && G_group && g.id === G_group.id));
+  if (sameName && G_grpEdit === 'new') {
+    touchMyGroup(sameName.id, sameName.name, Date.now());
+    G_group = { id: sameName.id, name: sameName.name };
+    toast(t('grpExists').replace('{g}', sameName.name));
+    G_grpEdit = null; G_grpPanelOpen = false;
+    writeRoomGroup();
+    renderGroupPicker();
+    return;
+  }
+  if (sameName && G_grpEdit === 'rename') { toast(t('grpNameTaken')); if (inp) inp.focus(); return; }
   if (G_grpEdit === 'new') {
     const id = newGroupId();
     touchMyGroup(id, name, Date.now());
@@ -4904,16 +5028,26 @@ window.callStop = async () => {
   setUrgencyPulse(false);
   const snap = await get(roomRef(G.roomCode));
   const room = snap.val();
-  if (!room.calledStop) await update(roomRef(G.roomCode), {calledStop:true, stopCaller:G.playerName});
+  // Only the first ¡Alto! counts: take stopCaller atomically, then flag calledStop (two presses at once kept the second name)
+  if (!room.calledStop) {
+    try {
+      const tx = await runTransaction(ref(db, 'rooms/' + G.roomCode + '/stopCaller'), cur => cur ? undefined : G.playerName);
+      if (tx.committed) await update(roomRef(G.roomCode), {calledStop:true});
+    } catch(e) { await update(roomRef(G.roomCode), {calledStop:true, stopCaller:G.playerName}); }
+  }
   await doSubmit(room);
 };
 
 async function doSubmit(room, timeUp=false) {
   if (G.submitted) return;
   G.submitted = true;
+  G.submittedAt = Date.now();
   clearInterval(G.timerInterval);
   setUrgencyPulse(false);
+  setTimerBubble(0, false); // stop the floating countdown numbers (they kept flying on the waiting screen)
   if (!room) { const s = await get(roomRef(G.roomCode)); room = s.val(); }
+  // Woke up after the round moved on (e.g. the host went on without me): don't add late answers
+  if (room && room.phase && room.phase !== 'playing') return;
   const answers = {};
   (room.categories||[]).forEach(cat => {
     const el = document.getElementById('a_'+cat);
@@ -4922,16 +5056,57 @@ async function doSubmit(room, timeUp=false) {
   const updates = {[`allAnswers/${G.playerName}`]:answers};
   if (timeUp && !room.calledStop) { updates.calledStop = true; updates.stopCaller = 'Tiempo'; }
   await update(roomRef(G.roomCode), updates);
-  document.getElementById('ans-inputs').innerHTML = '<p class="wait">✏️ Respuestas enviadas. Esperando a los demás…</p>';
+  document.getElementById('ans-inputs').innerHTML = `<p class="wait">${escHtml(t('waitingOthers'))}</p>`;
   const stopBtn = document.querySelector('.stop-btn');
   if (stopBtn) stopBtn.style.display = 'none';
 }
 
-function allAnswered(room) {
-  const players = Object.keys(room.players||{});
-  const answers = room.allAnswers||{};
-  return players.length>0 && players.every(p=>answers[p]);
+// Players still in the game: someone who tapped leave is marked left/{name} and no longer awaited (Session 27)
+function activePlayers(room) {
+  const left = room.left || {};
+  return Object.keys(room.players||{}).filter(p => !left[p]);
 }
+function missingAnswers(room) {
+  const answers = room.allAnswers||{};
+  return activePlayers(room).filter(p => !answers[p]);
+}
+function allAnswered(room) {
+  return activePlayers(room).length>0 && missingAnswers(room).length===0;
+}
+
+// "Waiting for…" after sending answers: names who are missing; after 15 s the host can go on without them
+const WAIT_SKIP_MS = 15000;
+let _waitSkipTimer = null;
+function renderWaitingFor(room) {
+  const box = document.getElementById('ans-inputs');
+  if (!box || !G.submitted) return;
+  const missing = missingAnswers(room);
+  if (!missing.length) return;
+  const names = missing.join(', ');
+  const canSkip = G.isHost && G.submittedAt && Date.now() - G.submittedAt >= WAIT_SKIP_MS;
+  const html = `<p class="wait">${escHtml(t('waitingFor').replace('{names}', names))}</p>`
+    + (canSkip ? `<button class="pri" onclick="skipMissingPlayers()">${escHtml(t('skipMissing').replace('{names}', names))}</button>` : '');
+  if (box.innerHTML !== html) box.innerHTML = html;
+  if (G.isHost && !canSkip && !_waitSkipTimer) {
+    _waitSkipTimer = setTimeout(async () => {
+      _waitSkipTimer = null;
+      if (G.screen !== 'playing' || !G.roomCode) return;
+      const s = await get(roomRef(G.roomCode)).catch(() => null);
+      if (s && s.exists() && s.val().phase === 'playing') renderWaitingFor(s.val());
+    }, Math.max(500, WAIT_SKIP_MS - (Date.now() - (G.submittedAt || Date.now())) + 300));
+  }
+}
+// Host: missing players get blank answers for this round (0 pts) so the game can go on; they can rejoin later
+window.skipMissingPlayers = async () => {
+  if (!G.isHost || !G.roomCode) return;
+  const s = await get(roomRef(G.roomCode)).catch(() => null);
+  if (!s || !s.exists()) return;
+  const room = s.val();
+  if (room.phase !== 'playing') return;
+  const upd = {};
+  missingAnswers(room).forEach(p => { upd['allAnswers/' + p] = { skipped: true }; });
+  if (Object.keys(upd).length) await update(roomRef(G.roomCode), upd);
+};
 
 function buildValidationHTML(room, invalidMap) {
   const cats = room.categories||[];
@@ -5480,6 +5655,7 @@ window.quickJoin = async () => {
   G.isHost = !!room.host && room.host === name;
   await update(roomRef(code), {
     [`players/${name}`]: G.playerEmoji,
+    [`left/${name}`]: null,
     [`scores/${name}`]: room.scores?.[name] ?? 0,
     [`langs/${name}`]: LANG
   });
@@ -5667,7 +5843,7 @@ function applyVotesAndReactions(room, isHost) {
   });
   // In democratic mode, auto-invalidate/restore based on current vote majority
   if (isHost && mode === 'democratic') {
-    const majority = Math.floor(players.length / 2) + 1;
+    const majority = Math.floor(players.filter(p => !(room.left||{})[p]).length / 2) + 1; // left players can't vote
     let changed = false;
     // Collect all keys that need checking: keys in votes AND keys already invalidated
     const keysToCheck = new Set([
@@ -5788,7 +5964,7 @@ window.finishValidation = async () => {
   Object.assign(G.invalidAnswers, firebaseInvalids);
   if ((room.validationMode||'host') === 'democratic') {
     const votes = room.votes || {};
-    const majority = Math.floor(players.length / 2) + 1;
+    const majority = Math.floor(players.filter(p => !(room.left||{})[p]).length / 2) + 1; // left players can't vote
     Object.entries(votes).forEach(([key, playerVotes]) => {
       const downs = Object.values(playerVotes).filter(v => v === 'down').length;
       if (downs >= majority) G.invalidAnswers[key] = true;
@@ -6451,6 +6627,8 @@ window.playAgain = async () => {
 };
 
 window.leaveGame = () => {
+  // Tell the room I'm gone so nobody waits for my answers (Session 27). Fire and forget.
+  if (G.roomCode && G.playerName) update(roomRef(G.roomCode), {[`left/${G.playerName}`]: true}).catch(() => {});
   closeCountdown();
   clearSession();
   G.playerName=''; G.roomCode=''; G.isHost=false;
@@ -6462,7 +6640,7 @@ window.continueSession = async () => {
   const snap = await get(roomRef(G.roomCode));
   if (!snap.exists()) { clearSession(); window.show('home'); return; }
   const room = snap.val();
-  await update(roomRef(G.roomCode), {[`players/${G.playerName}`]:G.playerEmoji, [`scores/${G.playerName}`]:room.scores?.[G.playerName]??0, [`langs/${G.playerName}`]:LANG});
+  await update(roomRef(G.roomCode), {[`players/${G.playerName}`]:G.playerEmoji, [`scores/${G.playerName}`]:room.scores?.[G.playerName]??0, [`langs/${G.playerName}`]:LANG, [`left/${G.playerName}`]:null});
   subscribe(G.roomCode);
   const phase = room.phase;
   if (phase==='lobby') enterLobby(room);
@@ -7130,6 +7308,7 @@ async function checkClaimStatus(name) {
       const d = JSON.parse(lsData);
       if (d.verified) {
         _claimState = 'mine';
+        syncMyGroups();
         pillBadge.textContent = cl().pillMine;
         showPill('claimed');
         return;
@@ -7230,6 +7409,7 @@ window.claimSubmit = async function() {
       // Save to localStorage
       localStorage.setItem(claimLsKey(safeName), JSON.stringify({ verified: true, claimedAt: Date.now() }));
       _claimState = 'mine';
+      syncMyGroups();
       claimClose();
       toast(l.successClaimed);
       // Update pill
@@ -7251,6 +7431,7 @@ window.claimSubmit = async function() {
         }
         localStorage.setItem(claimLsKey(safeName), JSON.stringify({ verified: true, verifiedAt: Date.now() }));
         _claimState = 'mine';
+        syncMyGroups();
         claimClose();
         toast(l.successVerified);
         const pill = document.getElementById('claim-pill');
@@ -7376,7 +7557,7 @@ setTimeout(() => updateDailyButtonDate(), 350);
 // Version freshness check — silently reload if a newer version is deployed
 // Runs once on load; does nothing if already on latest or if fetch fails
 (function() {
-  const RUNNING = 'v261007.339';
+  const RUNNING = 'v261007.344';
   if (sessionStorage.getItem('alto_ver_checked') === RUNNING) return; // already checked this session
   sessionStorage.setItem('alto_ver_checked', RUNNING);
   fetch(location.href, { cache: 'no-cache' })
@@ -7396,10 +7577,11 @@ window.addEventListener('pageshow', (e) => { if (e.persisted) updateDailyButtonD
 document.addEventListener('visibilitychange', () => { if (!document.hidden) updateDailyButtonDate(); });
 // Cross-device played state: fetch which langs this player has played today
 { const _initName = localStorage.getItem('alto_name') || ''; const _initSafe = claimSafeName(_initName); if (_initSafe) fetchPlayedState(_initSafe); }
+syncMyGroups(); // registered + verified name: bring in groups from the name's other devices
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v261007.339</div>
+  <div style="font-size: 11px;opacity:0.5">v261007.344</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
