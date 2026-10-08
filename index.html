@@ -3526,23 +3526,28 @@ window.recontest = async (idx, word, cat) => {
     await set(ref(db, contestEntryPath), true).catch(() => {});
     // Capture original verdict for logging and safe revert
     const originalVerdict = G_daily.aiResults[String(idx)] || G_daily.aiResults[idx] || 'invalid';
-    // Log contest outcome for AI tuning analysis (per-entry, under same path)
-    const aiRaw = res1.rawText;
-    await set(ref(db, contestPath + '_log/' + String(idx)), {
-      idx: String(idx),
+    // Log EVERY contest (upheld or overturned) inside the daily score, so one daily export has it all (Session 27).
+    // The "already contested" marker above stays under names/ — it enforces one contest per answer across devices.
+    // (Before v346 the full log went to names/{name}/contests/{date}/{lang}_log/{idx}; those old entries are kept.)
+    const contestEntry = {
+      word,
       category: cat,
       letter: G_daily.letter || '',
-      word,
-      originalVerdict: originalVerdict,
-      newVerdict: newRes,
-      votes,
+      original: originalVerdict,
+      result: newRes,
+      overturned: newRes === 'valid',
       method: CONTEST_METHOD,
-      aiResponse: aiRaw || null,
+      aiResponse: res1.rawText || null,
       model: res1.model || '',
       ...(res1.cut ? { cut: true } : {}),
       ...(res1.retried ? { retried: true } : {}),
+      ...(typeof res1.ms === 'number' ? { s: Math.round(res1.ms / 100) / 10 } : {}),
       timestamp: Date.now()
-    }).catch(() => {});
+    };
+    const contestScoreRef = G_daily.playerKey ? ref(db, 'daily/' + key + '/' + LANG + '/scores/' + G_daily.playerKey) : null;
+    if (contestScoreRef && newRes !== 'valid') {
+      await update(contestScoreRef, { [`contestLog/${String(idx)}`]: contestEntry }).catch(() => {});
+    }
 
     if (newRes === 'invalid') {
       // Not overturned — keep original verdict (unsure stays unsure, invalid stays invalid)
@@ -3577,7 +3582,7 @@ window.recontest = async (idx, word, cat) => {
         try {
           await update(scoreRef, {
             [`aiResults/${String(idx)}`]: newRes,
-            [`contestLog/${String(idx)}`]: { original: originalVerdict, overturned: newRes, timestamp: Date.now() },
+            [`contestLog/${String(idx)}`]: contestEntry,
             baseScore: newBaseScore,
             totalScore: newTotalScore,
             speedMultiplier: mult,
@@ -7566,7 +7571,7 @@ setTimeout(() => updateDailyButtonDate(), 350);
 // Version freshness check — silently reload if a newer version is deployed
 // Runs once on load; does nothing if already on latest or if fetch fails
 (function() {
-  const RUNNING = 'v261008.345';
+  const RUNNING = 'v261008.346';
   if (sessionStorage.getItem('alto_ver_checked') === RUNNING) return; // already checked this session
   sessionStorage.setItem('alto_ver_checked', RUNNING);
   fetch(location.href, { cache: 'no-cache' })
@@ -7590,7 +7595,7 @@ syncMyGroups(); // registered + verified name: bring in groups from the name's o
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v261008.345</div>
+  <div style="font-size: 11px;opacity:0.5">v261008.346</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
