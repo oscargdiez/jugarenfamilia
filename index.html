@@ -2552,6 +2552,10 @@ const DAILY_OVERRIDES = {
 // id: unique (✕ hides it on that device for good) · type: 'info' | 'warning' (red edge) · until: last day shown (YYYY-MM-DD)
 // es is required; en/fr fall back to es. Avoid "ayer"/"yesterday": a message stays up for days.
 const NEWS = [
+  { id: '2026-10-09-robot-fast', type: 'info', until: '2026-10-13',
+    es: '⚡ ¡El Robot ahora corrige más rápido!',
+    en: '⚡ The Robot now checks faster!',
+    fr: '⚡ Le Robot corrige plus vite !' },
   { id: '2026-09-30-historial', type: 'info', until: '2026-10-14',
     es: '📜 Nuevo: el historial de tu grupo',
     en: "📜 New: your group's game history",
@@ -7587,7 +7591,7 @@ setTimeout(() => updateDailyButtonDate(), 350);
 // Version freshness check — silently reload if a newer version is deployed
 // Runs once on load; does nothing if already on latest or if fetch fails
 (function() {
-  const RUNNING = 'v261008.353';
+  const RUNNING = 'v261009.354';
   if (sessionStorage.getItem('alto_ver_checked') === RUNNING) return; // already checked this session
   sessionStorage.setItem('alto_ver_checked', RUNNING);
   fetch(location.href, { cache: 'no-cache' })
@@ -7611,7 +7615,7 @@ syncMyGroups(); // registered + verified name: bring in groups from the name's o
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v261008.353</div>
+  <div style="font-size: 11px;opacity:0.5">v261009.354</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>

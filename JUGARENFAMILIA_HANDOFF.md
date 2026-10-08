@@ -1421,15 +1421,17 @@ Prices (OpenRouter, 8 Oct): Sante $0.042 in / $0.1232 out per M tokens, one prov
 
 **Session 27 summary (1–9 Oct):** production went v331 → v353. AI: one shared judge call, 2000 tokens, retry on empty/cut, timeouts retried on the next model, 3 answers at a time, `aiInfo` timings, every ¿Error? logged in the daily score, model order Sante paid → Ling Fin → Cohere free, sharper prompt (sound-alike misspellings, category fit). Daily: once per name (fresh check + transaction), no cross-language repeats from 10 Oct, ¿Error? ⏳ state. Multiplayer: rounds no longer stuck on a player who left/disappeared (leave marker, "Esperando a…", host "Seguir sin…" after 15 s), first ¡Alto! wins, floating numbers stop. Groups: no 📌, × with inline confirm, follow a verified registered name across devices, no duplicate names. Other: tagline removed, Spanish Google/share description, trilingual title "¡Alto! — Stop · Tutti Frutti · Petit Bac", join-screen logo goes home. Test kit: new `restore/stuck_scenarios.py`, groups/build5b checks updated (`tests_kit.zip` delivered with v344). Tools: AI scout v5.2.
 
-**Last versions: production v261008.353, staging v261007.343-tmp (older — build new staging from production).**
+**PRODUCTION v261009.354 — Robot news back** (Oscar, after the 34/34 scout): new id `2026-10-09-robot-fast` (so people who closed the 8 Oct one still see it), info, until **2026-10-13**: "⚡ ¡El Robot ahora corrige más rápido!" / "⚡ The Robot now checks faster!" / "⚡ Le Robot corrige plus vite !" (same wording as v351: one line ≥360 px, ES 2 lines at 320). Listed first, above the history news (until 14 Oct). Checklist OK, diff = news lines + version.
+
+**Last versions: production v261009.354, staging v261007.343-tmp (older — build new staging from production).**
 
 ---
 
 ## ▶ START HERE NEXT SESSION (Session 28)
 
-1. Upload the project zip (with `tests\` and `tools\`). Read this handoff (Session 27 log, especially the summary at its end). Production = **v261008.353**. Staging = v261007.343-tmp is OLD — build new staging from production. First thing: `cp index.html index_backup_s28.html`.
+1. Upload the project zip (with `tests\` and `tools\`). Read this handoff (Session 27 log, especially the summary at its end). Production = **v261009.354**. Staging = v261007.343-tmp is OLD — build new staging from production. First thing: `cp index.html index_backup_s28.html`.
 2. **Check the new Robot on real play:** ask Oscar for a recent daily export. Look at `aiInfo` (model should be Sante; `s` seconds — expect ~3 s, a whole daily ~7–10 s; any `timeout`/`retried`/`cut`/`error`), `aiResponses` and `contestLog` (each ¿Error?: word, original → result, model). Look for wrong verdicts the v353 rules may have caused (too strict on spelling? people categories? reordered titles like "Bel Air, el príncipe de" now ❌ by design).
-3. If the Robot looks good → Oscar may want the news back: ES "⚡ ¡El Robot ahora corrige más rápido!" / EN "⚡ The Robot now checks faster!" / FR "⚡ Le Robot corrige plus vite !" — keep news only ~4 days (Oscar's rule). The group-history news expires 14 Oct.
+3. Robot news is back in v354 until 13 Oct (wording below); if the Robot misbehaves, remove it: ES "⚡ ¡El Robot ahora corrige más rápido!" / EN "⚡ The Robot now checks faster!" / FR "⚡ Le Robot corrige plus vite !" — keep news only ~4 days (Oscar's rule). The group-history news expires 14 Oct.
 4. Still to confirm on real phones (v344): daily in two tabs with the same name (second shows the first score); group sync phone ↔ computer with a verified registered name; a real 3+ player game where someone leaves / locks the phone (host sees "Esperando a…", "Seguir sin…" after 15 s).
 5. Ask Oscar: Firebase backup exported? If all is well since v324 → delete `global/`, `groups/`, `groupNames/` + their three rules lines (window has arrived).
 6. **Do NOT run the AI scout on Oscar's home network** (router restarted twice during scouting on 8 Oct) — hotspot only. Re-run only after a prompt change or when a model fails. Pricier candidates parked (Haiku 5.5, GPT-6 Luna, DeepSeek V4.1 Flash, Qwen 3.8 Omni Flash) if the prompt fix proves not enough.
