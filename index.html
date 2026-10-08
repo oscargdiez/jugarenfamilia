@@ -2583,6 +2583,17 @@ function getDailyKey() {
   return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
 }
 
+// Daily seed per date + language (Session 27). The old seed was date number + 0/1/2 by language, so FR on day D
+// = EN on D+1 = ES on D+2 (same letter and categories). From DAILY_SEED_V2_FROM on, date and language are mixed
+// with a string hash so they never line up. Older dates keep the old seed so past/today's dailies don't change.
+const DAILY_SEED_V2_FROM = '2026-10-10';
+function dailySeed(key, lang) {
+  if (key < DAILY_SEED_V2_FROM) return parseInt(key.replace(/-/g,'')) + ({es: 0, en: 1, fr: 2}[lang] || 0);
+  let x = 2166136261 >>> 0; // FNV-1a
+  for (const c of 'alto-daily|' + key + '|' + (lang || 'es')) { x ^= c.charCodeAt(0); x = Math.imul(x, 16777619) >>> 0; }
+  return x | 0;
+}
+
 // Get deterministic daily setup — per language, per date
 function getDailySetup() {
   const key = getDailyKey();
@@ -2591,9 +2602,7 @@ function getDailySetup() {
   if (ov && ov.categories && ov.categories[LANG]) {
     return { letter: ov.letter, categories: ov.categories[LANG], key, theme: (ov.theme || {})[LANG] || null };
   }
-  const langOffset = {es: 0, en: 1, fr: 2}[LANG] || 0;
-  const seed = parseInt(key.replace(/-/g,'')) + langOffset;
-  const rng = mulberry32(seed);
+  const rng = mulberry32(dailySeed(key, LANG));
 
   // Pick letter from this language's easy pool
   const easyPool = LETTERS_EASY[LANG] || LETTERS_EASY.es;
@@ -7557,7 +7566,7 @@ setTimeout(() => updateDailyButtonDate(), 350);
 // Version freshness check — silently reload if a newer version is deployed
 // Runs once on load; does nothing if already on latest or if fetch fails
 (function() {
-  const RUNNING = 'v261007.344';
+  const RUNNING = 'v261008.345';
   if (sessionStorage.getItem('alto_ver_checked') === RUNNING) return; // already checked this session
   sessionStorage.setItem('alto_ver_checked', RUNNING);
   fetch(location.href, { cache: 'no-cache' })
@@ -7581,7 +7590,7 @@ syncMyGroups(); // registered + verified name: bring in groups from the name's o
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v261007.344</div>
+  <div style="font-size: 11px;opacity:0.5">v261008.345</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
