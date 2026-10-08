@@ -3301,14 +3301,14 @@ function aiParseVerdict(text) {
   return null;
 }
 async function aiJudgeCall(systemPrompt, prompt, models, timeoutMs) {
-  const once = async () => {
+  const once = async (useModels = models) => {
     const response = await fetch('https://api.oscar-g-diez.workers.dev/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       signal: AbortSignal.timeout(timeoutMs || AI_TIMEOUT_MS),
       body: JSON.stringify({
         // A list (AI_MODELS) goes as OpenRouter fallbacks; a single name is called on its own (consensus mode)
-        ...(Array.isArray(models) ? { models } : { model: models }),
+        ...(Array.isArray(useModels) ? { models: useModels } : { model: useModels }),
         messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: prompt }],
         max_tokens: AI_MAX_TOKENS,
         temperature: 0
@@ -3336,10 +3336,14 @@ async function aiJudgeCall(systemPrompt, prompt, models, timeoutMs) {
   let r, retried = false, timedOut = false;
   try { r = await once(); }
   catch (e) {
-    // Timeout (Session 27, 7 Oct: ~12% of daily answers): one fresh try before giving up. Other errors throw as before.
+    // Timeout (7 Oct ~12%, 8 Oct ~18% of daily answers, almost all Cohere's free queue): one fresh try before giving up.
+    // The retry SKIPS the first model, so it doesn't wait in the same busy queue again (8 Oct: retries on Cohere
+    // took up to 20 s more). A timeout cancels the request, so OpenRouter never got to the fallbacks on its own.
+    // Other errors throw as before.
     if (!isTimeoutErr(e)) throw e;
     timedOut = true; retried = true;
-    try { r = await once(); }
+    const rest = Array.isArray(models) && models.length > 1 ? models.slice(1) : models;
+    try { r = await once(rest); }
     catch (e2) { e2.ms = Date.now() - t0; e2.timedOut = true; throw e2; }
   }
   if (!r.verdict && (r.empty || r.cut) && !retried) {
@@ -7571,7 +7575,7 @@ setTimeout(() => updateDailyButtonDate(), 350);
 // Version freshness check — silently reload if a newer version is deployed
 // Runs once on load; does nothing if already on latest or if fetch fails
 (function() {
-  const RUNNING = 'v261008.346';
+  const RUNNING = 'v261008.347';
   if (sessionStorage.getItem('alto_ver_checked') === RUNNING) return; // already checked this session
   sessionStorage.setItem('alto_ver_checked', RUNNING);
   fetch(location.href, { cache: 'no-cache' })
@@ -7595,7 +7599,7 @@ syncMyGroups(); // registered + verified name: bring in groups from the name's o
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v261008.346</div>
+  <div style="font-size: 11px;opacity:0.5">v261008.347</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
