@@ -2449,10 +2449,13 @@ function mulberry32(seed) {
 // and is only reached if both free models fail.
 // Scout v4 (29 Sep, prompt v320, 21 answers + 11 contests): Cohere 21/21 11/11 no flips 4.6s -> first;
 // Sante 21/21 11/11 but 1 flip 2.2s -> second; Ling Fin 20/21 (accepted FR Jabali), 2 flips -> paid safety net only.
+// Scout v5 (8 Oct, 34 answers incl. real 1–8 Oct misses + 15 contests): Sante free is GONE ("unavailable for free,
+// the paid version is available now") -> removed. Cohere 28/34, contests 8/15, avg 7.5s, slowest 10% 14.8s;
+// Ling Fin 24/34 (several were dropped connections), contests 12/15, avg 3.5s, slowest 10% 8.1s. A timeout retry
+// skips the first model (v347), so it now goes straight to Ling Fin (paid, fast). Rerun planned with scout v5.1.
 // Keep at most 3: OpenRouter documents a 3-entry cap on fallback lists (400 error above that).
 const AI_MODELS = [
   'cohere/north-mini-code:free',
-  'inclusionai/ling-3.0-flash-sante:free',
   'inclusionai/ling-3.0-flash-fin'
 ];
 // DAILY_CONSENSUS: set true to use 2-model consensus + tiebreaker, false for single model
@@ -7575,7 +7578,7 @@ setTimeout(() => updateDailyButtonDate(), 350);
 // Version freshness check — silently reload if a newer version is deployed
 // Runs once on load; does nothing if already on latest or if fetch fails
 (function() {
-  const RUNNING = 'v261008.347';
+  const RUNNING = 'v261008.348';
   if (sessionStorage.getItem('alto_ver_checked') === RUNNING) return; // already checked this session
   sessionStorage.setItem('alto_ver_checked', RUNNING);
   fetch(location.href, { cache: 'no-cache' })
@@ -7599,7 +7602,7 @@ syncMyGroups(); // registered + verified name: bring in groups from the name's o
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v261008.347</div>
+  <div style="font-size: 11px;opacity:0.5">v261008.348</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
