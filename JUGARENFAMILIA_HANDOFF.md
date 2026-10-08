@@ -1,5 +1,5 @@
 # JugarEnFamilia.es — Project Handoff Document
-*Last updated: September 2026 — Session 26*
+*Last updated: 9 October 2026 — Session 27*
 
 > ⚠️ **HANDOFF INTEGRITY RULE — DO NOT DELETE CONTENT**
 > This document is append-and-update only. Never remove sections, rules, known issues, backlog items, or session log entries. Only add new content and update existing entries. A truncated handoff causes the next session to lose critical context.
@@ -80,6 +80,7 @@ A multiplayer browser-based version of the classic Spanish word game "Stop/Tutti
   2. `nvidia/nemotron-3-super-120b-a12b:free` — backup; in practice always answers "not sure" (thinking model; the 800-token limit probably runs out before the verdict).
   3. `z-ai/glm-5.2:free` — backup; **found DEAD (404) by the scout on 29 Sep** — replace when the scout results are in.
   The old "Spending cap: $4 (free tier only)" note above is out of date now that a paid model is first. **Oscar has set a credit limit on the key (29 Sep).**
+- **UPDATE Session 27 (8 Oct 2026): `AI_MODELS` = `inclusionai/ling-3.0-flash-sante` (PAID, one provider NovitaAI, $0.042/$0.1232 per M tokens) → `inclusionai/ling-3.0-flash-fin` (paid) → `cohere/north-mini-code:free`.** Sante FREE was withdrawn by OpenRouter on 8 Oct. Expected cost ~30 cents/month; the key's credit limit is the cap; if credit runs out OpenRouter falls through to free Cohere. See the Session 27 log for scout numbers.
 - **Paid Ling has two providers (NovitaAI, DeepInfra)** and they do not always agree, even at temperature 0 — the same answer can get VALID one call and INVALID the next. The free version ran only on Novita. Fix idea in Flagged for Future (pin one provider).
 - **Privacy settings (openrouter.ai/settings/privacy), 29 Sep:** "Allow free endpoints that train on request data" = ON; "Allow free endpoints that publish prompts" = OFF (Oscar may turn it on — only letter/category/word are ever sent); ZDR all off; paid training off. Many `:free` models answer 404 "No endpoints found matching your data policy" unless these are on — the scout cannot tell that apart from a removed model.
 - **Worker (`api.oscar-g-diez.workers.dev`, Cloudflare):** forwards the request body unchanged to OpenRouter with the key from the worker; only checks the `Origin` header (jugarenfamilia.es / www). ⚠️ A script can fake `Origin`, so anyone could run ANY model through it on Oscar's credit — see Flagged for Future (worker controls the model list).
@@ -1416,17 +1417,36 @@ Prices (OpenRouter, 8 Oct): Sante $0.042 in / $0.1232 out per M tokens, one prov
 - Scout v5.2: same prompt copied (`test_judge_prompt.mjs` 26/26: identical), default `ONLY = ['inclusionai/ling-3.0-flash-sante']` (~10 min). Checked: version grep (352 → 353), 12 screens, syntax, suites 239/239.
 - **Next:** Oscar runs scout v5.2 (Sante only, hotspot). Expect Vivora/Broccoli/Motocross/Tomate seco fixed; watch that nothing else broke (e.g. Edison, Maradona, Ma sorcière bien-aimée must stay ✅). If it doesn't help → try the pricier models.
 
-**Last versions: production v261008.353, staging v261007.343-tmp (older).**
+**Scout v5.2 result (Oscar, 9 Oct, Sante only, prompt v353):** **34/34** (ES 11/11, EN 10/10, FR 13/13), **¿Error? 15/15**, 0 unsure, 1 flip (question not identified), avg 3.3 s, slowest 10% 5.3 s, 0 timeouts. All four shared misses fixed; Edison / Maradona / Ma sorcière bien-aimée still ✅. Caveat: the rules were written with these test questions in mind — confirm on real dailies. Expected daily wait now ~7–10 s for 6 answers (was ~40–60 s on 8 Oct, ~1.5–2.5 min before v339).
+
+**Session 27 summary (1–9 Oct):** production went v331 → v353. AI: one shared judge call, 2000 tokens, retry on empty/cut, timeouts retried on the next model, 3 answers at a time, `aiInfo` timings, every ¿Error? logged in the daily score, model order Sante paid → Ling Fin → Cohere free, sharper prompt (sound-alike misspellings, category fit). Daily: once per name (fresh check + transaction), no cross-language repeats from 10 Oct, ¿Error? ⏳ state. Multiplayer: rounds no longer stuck on a player who left/disappeared (leave marker, "Esperando a…", host "Seguir sin…" after 15 s), first ¡Alto! wins, floating numbers stop. Groups: no 📌, × with inline confirm, follow a verified registered name across devices, no duplicate names. Other: tagline removed, Spanish Google/share description, trilingual title "¡Alto! — Stop · Tutti Frutti · Petit Bac", join-screen logo goes home. Test kit: new `restore/stuck_scenarios.py`, groups/build5b checks updated (`tests_kit.zip` delivered with v344). Tools: AI scout v5.2.
+
+**Last versions: production v261008.353, staging v261007.343-tmp (older — build new staging from production).**
 
 ---
 
 ## ▶ START HERE NEXT SESSION (Session 28)
+
+1. Upload the project zip (with `tests\` and `tools\`). Read this handoff (Session 27 log, especially the summary at its end). Production = **v261008.353**. Staging = v261007.343-tmp is OLD — build new staging from production. First thing: `cp index.html index_backup_s28.html`.
+2. **Check the new Robot on real play:** ask Oscar for a recent daily export. Look at `aiInfo` (model should be Sante; `s` seconds — expect ~3 s, a whole daily ~7–10 s; any `timeout`/`retried`/`cut`/`error`), `aiResponses` and `contestLog` (each ¿Error?: word, original → result, model). Look for wrong verdicts the v353 rules may have caused (too strict on spelling? people categories? reordered titles like "Bel Air, el príncipe de" now ❌ by design).
+3. If the Robot looks good → Oscar may want the news back: ES "⚡ ¡El Robot ahora corrige más rápido!" / EN "⚡ The Robot now checks faster!" / FR "⚡ Le Robot corrige plus vite !" — keep news only ~4 days (Oscar's rule). The group-history news expires 14 Oct.
+4. Still to confirm on real phones (v344): daily in two tabs with the same name (second shows the first score); group sync phone ↔ computer with a verified registered name; a real 3+ player game where someone leaves / locks the phone (host sees "Esperando a…", "Seguir sin…" after 15 s).
+5. Ask Oscar: Firebase backup exported? If all is well since v324 → delete `global/`, `groups/`, `groupNames/` + their three rules lines (window has arrived).
+6. **Do NOT run the AI scout on Oscar's home network** (router restarted twice during scouting on 8 Oct) — hotspot only. Re-run only after a prompt change or when a model fails. Pricier candidates parked (Haiku 5.5, GPT-6 Luna, DeepSeek V4.1 Flash, Qwen 3.8 Omni Flash) if the prompt fix proves not enough.
+7. Tests: run only when a change needs them. Full kit: `./run_all.sh ../index.html` → 239 unit + browser restore 19, countdown 12, groups 28, build5b 77, stuck 11 (run long ones one by one, 300 s sandbox limit).
+8. Next candidates (plan with Oscar first): help pages (Session 26 draft + open decisions — now also: leaving/skipping players, groups follow a registered name), room-HTML security fix (Security item 2), security build + AI step 1 (also closes: group lists under `names/` are publicly readable), AI step 2. Small parked: home emoji grid cut at 320 px, `#qj-name` inline `oninput` (rule 8), tomato/botanical rule, unexplained host-session loss, per-language share previews (`/en/`, `/fr/`).
+
+<details><summary>Previous START HERE (Session 27 → 28 draft) — kept for the record</summary>
+
+### (draft written mid-Session 27)
 
 1. Upload the project zip (with `tests\` and `tools\`). Read this handoff. Production = **v261008.353** (Session 27: shared AI judge call, 2000 tokens, retry on empty, `aiInfo`; news "Robots mejorados"; ¿Error? ⏳ state; tagline removed + new Google description). Staging = v261001.332-tmp. New staging builds start from production v353 (v353: sharper judge prompt — sound-alike misspellings, category fit; v350–352: robot news added then removed — only the history news is left; v349: AI order Sante paid → Ling Fin → Cohere free; v348: Sante free removed; v347: timeout retry skips Cohere; v346: every ¿Error? logged in the daily score `contestLog`; v345: daily seed per date+language from 10 Oct; v340–344: daily once per name, groups UI + sync by registered name + no duplicate names, stuck-round fixes, join-screen logo; v334–339: news, ¿Error? ⏳, tagline removed + Google description, share/page title, daily judged 3 at a time + timeout retry + timing in `aiInfo`). **First thing: check `aiInfo.s` / `timeout` / `error` in a daily export — still slow? still many timeouts? Then decide on tokens (1200?) or reasoning effort low, and the quality step (scout re-run with Vivora, Tarragon, Robin, Broccoli).** **News messages expire: history 14 Oct, robots 16 Oct** — ask Oscar if he wants new ones.
 2. Check a recent daily export: are the long reasoning replies gone? What does `aiInfo` show — which models judge, how often `retried` / `cut`, any Cohere empty replies without `cut`? Daily speed OK?
 3. Ask Oscar: Firebase backup exported? Any problems in real games since v324? If all is well → he deletes `global/`, `groups/`, `groupNames/` + their three rules lines.
 4. Tests: run only when a change needs them. Full kit: `./run_all.sh ../index.html` → 239 unit + 77 + 12 + 19 + 28 browser (run long browser ones one by one, 300 s sandbox limit).
 5. Next candidates (plan with Oscar first): help pages (Session 26 draft + open decisions), room-HTML fix (Security item 2), security build + AI step 1, AI step 2. Small parked: home emoji grid cut at 320 px, `#qj-name` inline `oninput` (rule 8), hard-coded Spanish in `doSubmit`, English words slipping through in FR/ES (Robin, Broccoli), tomato/botanical rule, unexplained host-session loss.
+
+</details>
 
 <details><summary>Previous START HERE (Session 27) — kept for the record</summary>
 
