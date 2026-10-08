@@ -3261,7 +3261,14 @@ function dailyBuildPrompt(category, letter, opts) {
   const langNames = {es:'Spanish',en:'English',fr:'French'};
   const gameLang = langNames[LANG] || 'Spanish';
   const foreignEx = FOREIGN_WORD_EXAMPLE[LANG] || FOREIGN_WORD_EXAMPLE.es;
-  let systemPrompt = `You are a fair and balanced judge of a ${gameLang}-language word game. Rules: (1) Ignore accents and tildes — Ramon=Ramón is fine. (2) Accept borderline, regional, informal, and less common but genuinely real answers. Reject made-up or unverifiable answers. (3) Language. Proper nouns are international — person names, surnames, singers, actors, writers, fictional characters, song/film/TV titles, brands, cities, and countries are accepted in any language. Everything else must be the ${gameLang} word: animals, plants, fruits, food, drinks, objects, body parts, jobs, colours, sports, instruments and any other common noun. A correctly spelled word from another language is INVALIDO even if it means the right thing (e.g. ${foreignEx}). Loanwords normally used in ${gameLang} are fine (e.g. pizza, sushi, jazz). (4) Spelling must be correct (accents/tildes excepted) — misspelled words are INVALIDO. (5) VALIDO for real correctly-spelled answers even if uncommon. INVALIDO for clearly wrong, made-up, or misspelled answers. DUDOSO when genuinely uncertain whether something exists.`;
+  // Rule (4) example per language (Session 27): real misspellings that sound right
+  const SPELLING_EXAMPLE = {
+    es: '"vivora" for "víbora", "broccoli" for "brócoli"',
+    en: '"brocoli" for "broccoli", "jiraffe" for "giraffe"',
+    fr: '"carote" for "carotte", "farmacie" for "pharmacie"',
+  };
+  const spellEx = SPELLING_EXAMPLE[LANG] || SPELLING_EXAMPLE.es;
+  let systemPrompt = `You are a fair and balanced judge of a ${gameLang}-language word game. Rules: (1) Ignore accents and tildes — Ramon=Ramón is fine. (2) Accept borderline, regional, informal, and less common but genuinely real answers. Reject made-up or unverifiable answers. (3) Language. Proper nouns are international — person names, surnames, singers, actors, writers, fictional characters, song/film/TV titles, brands, cities, and countries are accepted in any language. Everything else must be the ${gameLang} word: animals, plants, fruits, food, drinks, objects, body parts, jobs, colours, sports, instruments and any other common noun. A correctly spelled word from another language is INVALIDO even if it means the right thing (e.g. ${foreignEx}). Loanwords normally used in ${gameLang} are fine (e.g. pizza, sushi, jazz). (4) Spelling must be correct (accents/tildes excepted) — misspelled words are INVALIDO. Wrong, swapped, missing or extra letters are misspellings even when the word sounds the same (b/v, g/j, ll/y, c/s/z, a missing or extra h, a single letter doubled or a double letter single), e.g. ${spellEx}. (5) VALIDO for real correctly-spelled answers even if uncommon. INVALIDO for clearly wrong, made-up, or misspelled answers. DUDOSO when genuinely uncertain whether something exists. (6) Category fit. The answer must be the kind of thing the category names. A category of people — athlete or sportsperson (Deportista, Sportif), writer, singer, scientist, historical figure… — needs a person, not a sport, brand, place or object. A spice must be a spice or herb, not a dish or a prepared or powdered food. Only people's names may be written surname first ("Edison, Thomas" is fine); any other answer must be its normal name, not reordered to fit the letter.`;
   const userPrompt = gameLang + ' word game. Letter: "' + letter + '". Category: "' + category + '". Does the answer start with "' + letter + '" and genuinely belong to the category? Reply ONE word only: VALIDO, INVALIDO, or DUDOSO.';
   if (opts) {
     const swap = (from, to) => { systemPrompt = systemPrompt.replace(from, to); };
@@ -3274,7 +3281,7 @@ function dailyBuildPrompt(category, letter, opts) {
       systemPrompt += ' Relaxed mode: always prefer VALIDO on any close call.';
     }
     if (opts.looseSpelling) {
-      swap('(4) Spelling must be correct (accents/tildes excepted) — misspelled words are INVALIDO.',
+      swap(`(4) Spelling must be correct (accents/tildes excepted) — misspelled words are INVALIDO. Wrong, swapped, missing or extra letters are misspellings even when the word sounds the same (b/v, g/j, ll/y, c/s/z, a missing or extra h, a single letter doubled or a double letter single), e.g. ${spellEx}.`,
            '(4) Minor spelling mistakes and phonetic spellings are acceptable as long as the intended word is clear.');
       swap('VALIDO for real correctly-spelled answers even if uncommon. INVALIDO for clearly wrong, made-up, or misspelled answers.',
            'VALIDO for real answers even if uncommon or slightly misspelled. INVALIDO for clearly wrong or made-up answers.');
@@ -3518,7 +3525,7 @@ window.recontest = async (idx, word, cat) => {
     // Method A: strict scope, 2-of-3 threshold, DUDOSO upholds
     // Method B: generous scope only, 1-of-3 threshold, DUDOSO upholds, spelling always strict
     const systemPrompt = CONTEST_METHOD === 'B'
-      ? `You are a judge of a ${gameLang}-language word game. A previous judge ruled an answer INVALID. STRICT RULE on spelling: any spelling mistake beyond accents or tildes is INVALIDO — wrong letters, missing letters, or added letters are never acceptable (applies to common words; proper nouns like names and places must also be spelled correctly). Proper nouns are international — person names, surnames, singers, actors, writers, fictional characters, song/film/TV titles, brands, cities, and countries are accepted in any language; only common nouns must be in ${gameLang}. If spelling is correct, be generous with the category scope — if the answer could reasonably belong to the category, rule VALIDO. If in doubt about spelling, rule INVALIDO. If in doubt about category fit only, rule VALIDO. Reply with exactly one word: VALIDO, INVALIDO, or DUDOSO.`
+      ? `You are a judge of a ${gameLang}-language word game. A previous judge ruled an answer INVALID. STRICT RULE on spelling: any spelling mistake beyond accents or tildes is INVALIDO — wrong letters, missing letters, or added letters are never acceptable (applies to common words; proper nouns like names and places must also be spelled correctly). Proper nouns are international — person names, surnames, singers, actors, writers, fictional characters, song/film/TV titles, brands, cities, and countries are accepted in any language; only common nouns must be in ${gameLang}. Letters that sound the same are still spelling mistakes (b/v, g/j, ll/y, c/s/z, a missing or extra h). If spelling is correct, be generous with the category scope — if the answer could reasonably belong to the category, rule VALIDO — but it must still be the kind of thing the category names: a category of people (athlete or sportsperson, writer, singer…) needs a person, not a sport, brand or object, and a spice must be a spice or herb, not a dish or prepared food. If in doubt about spelling, rule INVALIDO. If in doubt about category fit only, rule VALIDO. Reply with exactly one word: VALIDO, INVALIDO, or DUDOSO.`
       : `You are a fair judge of a ${gameLang}-language word game. A previous judge ruled an answer INVALID. Overturn only if: (1) the answer clearly and unambiguously belongs to the category — do not stretch the category definition; and (2) any error is limited to accents or tildes only — spelling mistakes, wrong letters, or missing letters are NOT grounds to overturn. If in doubt, uphold the original INVALIDO verdict. Reply with exactly one word: VALIDO, INVALIDO, or DUDOSO.`;
     const prompt = CONTEST_METHOD === 'B'
       ? `${gameLang}-language game. Letter: "${letter}". Category: "${cat.trim()}". Answer: "${word}". Does the answer start with "${letter}" and genuinely belong to the category? Note: proper nouns (person names, surnames, singers, actors, writers, cities, countries) are valid in any language — do not reject for being non-${gameLang}. Common nouns (animals, plants, fruits, food, drinks, objects, body parts, etc.) must be the ${gameLang} word — a word from another language is INVALIDO even if it means the right thing; loanwords normally used in ${gameLang} are fine. Spelling must be correct beyond accents/tildes. Reply with ONE word only: VALIDO, INVALIDO, or DUDOSO.`
@@ -7580,7 +7587,7 @@ setTimeout(() => updateDailyButtonDate(), 350);
 // Version freshness check — silently reload if a newer version is deployed
 // Runs once on load; does nothing if already on latest or if fetch fails
 (function() {
-  const RUNNING = 'v261008.352';
+  const RUNNING = 'v261008.353';
   if (sessionStorage.getItem('alto_ver_checked') === RUNNING) return; // already checked this session
   sessionStorage.setItem('alto_ver_checked', RUNNING);
   fetch(location.href, { cache: 'no-cache' })
@@ -7604,7 +7611,7 @@ syncMyGroups(); // registered + verified name: bring in groups from the name's o
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v261008.352</div>
+  <div style="font-size: 11px;opacity:0.5">v261008.353</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
