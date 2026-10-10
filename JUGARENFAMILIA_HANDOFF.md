@@ -1575,3 +1575,13 @@ Session 25 plan: Build 5 — Groups and history
   `2026-10-10-lobby` until 2026-10-14: "🎛️ ¡Sala renovada! Más compacta y recuerda tus ajustes" / "🎛️ New room screen: more compact, remembers your settings" / "🎛️ Nouvelle salle : plus compacte, elle garde tes réglages".
 - Checklist: version grep before/after ✓, init block ✓, no -tmp outside the version-regex lookaheads ✓, 12 screens ✓, JS syntax ✓, 412 KB (size limit waived).
 - Still open: the flaky build5b check (see v360 entry); the help page should explain reaction points and validation modes.
+
+## START HERE (Session 29). Supersedes the Session 28 START HERE above
+1. Upload the project zip (with `tests\` and `tools\`) and read this handoff. **Production = v261010.363**; staging = v262 content (identical apart from the news line). First thing: `cp index.html index_backup_s29.html`.
+2. Ask Oscar how the new lobby went in real games: is the per-name memory surprising? Do hosts with 2 players trip on a remembered Democrático (the toast still blocks the start)?
+3. Open items:
+   - the flaky build5b check "Marta's buttons are the same elements…" (fails on v359 too, so not caused by the lobby change);
+   - add reaction points and the two validation modes to the help page;
+   - the news `2026-10-10-lobby` expires on 14 Oct;
+   - the empty "Lobby compacto — mockup" design canvas can be deleted.
+4. Rules unchanged: confirm the plan before building, deploy right after building, check the version with grep before and after, ASCII commit messages, the 6-slot fonts (16px is an existing slot, used for the mode cards under 360px).
