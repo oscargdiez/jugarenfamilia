@@ -886,7 +886,12 @@ body.screen-home .page, body.screen-welcome .page { padding-bottom: 2rem; }
 button.pill { font-family: 'Special Elite', monospace; font-size: 13px; font-weight: 400; padding: 6px 12px; border-radius: 20px; border: 1.5px solid var(--border-strong); background: var(--paper-dark); color: var(--ink); line-height: 1.2; }
 button.pill.on { border-color: var(--red); background: var(--red-light); color: var(--red); }
 button.pill:disabled { opacity: .4; cursor: default; }
-.mode-seg button.pill { padding: 6px 9px; white-space: nowrap; }
+.seg.mode-seg { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+/* Validation mode cards look like the theme buttons (.theme-btn / .active) */
+.mode-seg button.pill { display: block; padding: 4px; font-family: 'Caveat', cursive; font-size: 20px; font-weight: 400; line-height: 1.2; text-align: center; border-radius: var(--radius); border: 1.5px solid var(--border); background: var(--paper-dark); color: var(--ink); min-width: 0; }
+.mode-seg button.pill.on { border-color: var(--red); background: var(--red-light); color: var(--red); font-weight: 700; }
+.mode-seg .mode-ico { margin-right: .25em; }
+@media (max-width: 359px) { .mode-seg button.pill { font-size: 16px; } } /* "Démocratique" in bold would not fit at 20px */
 button.cfg-summary { width: 100%; display: flex; align-items: center; gap: 8px; margin: 0; padding: 0; border: none; border-radius: 0; background: transparent; font-family: 'Special Elite', monospace; font-size: 13px; font-weight: 400; color: var(--ink-sec); text-align: left; }
 button.cfg-summary:hover { background: transparent; color: var(--ink); }
 .cfg-summary .cfg-text { flex: 1; min-width: 0; line-height: 1.5; }
@@ -1128,8 +1133,8 @@ document.addEventListener('DOMContentLoaded', function() {
       <div class="config-body" id="config-body">
         <p class="lbl" id="lbl-validation-mode">modo de validación</p>
         <div class="seg mode-seg">
-          <button class="pill on" id="mode-host" onclick="setValidationMode('host')">👑 Normal</button>
-          <button class="pill" id="mode-democratic" onclick="setValidationMode('democratic')">🗳️ Democrático</button>
+          <button class="pill on" id="mode-host" onclick="setValidationMode('host')"><span class="mode-ico">👑</span><span class="mode-txt">Normal</span></button>
+          <button class="pill" id="mode-democratic" onclick="setValidationMode('democratic')"><span class="mode-ico">🗳️</span><span class="mode-txt">Democrático</span></button>
         </div>
         <p class="lbl" id="mode-hint" style="margin:6px 0 12px"></p>
         <p class="lbl" id="lbl-theme">tema</p>
@@ -1830,8 +1835,11 @@ window.applyLang = function() {
   s('btn-config-label', t('configLabel'));
   s('gc-status', t('gcInside'));
   s('lbl-validation-mode', {'es':'modo de validación','en':'validation mode','fr':'mode de validation'}[LANG]);
-  s('mode-host', t('modeHost'));
-  s('mode-democratic', t('modeDemocratic'));
+  // Mode cards: emoji + name, same look as the theme buttons
+  [['mode-host','modeHost'],['mode-democratic','modeDemocratic']].forEach(([id, key]) => {
+    const el = document.querySelector('#' + id + ' .mode-txt');
+    if (el) el.textContent = String(t(key) || '').replace(/^[^\p{L}]+/u, '').trim();
+  });
   s('lbl-ai-validation-text', t('aiValidation'));
   s('ai-relajado', t('aiRelajado'));
   s('ai-estricto', t('aiEstricto'));
@@ -4253,7 +4261,7 @@ function updateCfgSummary() {
   let vm = 'host'; try { vm = G_validationMode; } catch (e) {}
   const mode = String(t(vm === 'democratic' ? 'modeDemocratic' : 'modeHost') || '').replace(/^[^\p{L}]+/u, '').trim();
   // Open: just the title (the options are visible below). Closed: what is set.
-  el.textContent = '⚙️ ' + label + (open ? '' : ' (' + [mode, theme, rounds + ' ' + t('rounds'), time + ' s'].filter(Boolean).join(', ') + ')');
+  el.textContent = '⚙️ ' + label + (open ? '' : ' (' + [mode, theme, rounds + ' ' + t('rounds'), time + 's'].filter(Boolean).join(', ') + ')');
 }
 // The guests see what the host picked (mode, theme, rounds, seconds) while waiting
 // Only from the host's LOBBY, only when it changed: an extra room write during a round would make every
@@ -4283,7 +4291,7 @@ function renderGuestInfo(room) {
   if (G.isHost || !li) { el.style.display = 'none'; el.textContent = ''; return; }
   const themeName = Object.keys(getThemes())[li.themeIdx || 0] || '';
   const mode = li.mode === 'democratic' ? t('modeDemocratic') : t('modeHost');
-  el.textContent = [mode, themeName, (li.rounds || 5) + ' ' + t('rounds'), (li.time || 90) + ' s'].filter(Boolean).join(' · ');
+  el.textContent = [mode, themeName, (li.rounds || 5) + ' ' + t('rounds'), (li.time || 90) + 's'].filter(Boolean).join(' · ');
   el.style.display = '';
 }
 
@@ -7726,7 +7734,7 @@ setTimeout(() => updateDailyButtonDate(), 350);
 // Version freshness check — silently reload if a newer version is deployed
 // Runs once on load; does nothing if already on latest or if fetch fails
 (function() {
-  const RUNNING = 'v261010.360-tmp';
+  const RUNNING = 'v261010.361-tmp';
   if (sessionStorage.getItem('alto_ver_checked') === RUNNING) return; // already checked this session
   sessionStorage.setItem('alto_ver_checked', RUNNING);
   fetch(location.href, { cache: 'no-cache' })
@@ -7750,7 +7758,7 @@ syncMyGroups(); // registered + verified name: bring in groups from the name's o
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v261010.360-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v261010.361-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
