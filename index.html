@@ -875,6 +875,38 @@ body.screen-home .page, body.screen-welcome .page { padding-bottom: 2rem; }
   display: flex; align-items: center; justify-content: center; gap: 6px;
 }
 .btn-leave-room:hover { background: var(--paper-dark); border-color: var(--border-strong); }
+
+/* ── Compact lobby (Session 28) ── */
+#lob-role { display: none; }
+.share-row { display: flex; gap: 8px; align-items: center; }
+.share-row #btn-copy { flex: 1; min-width: 0; }
+.code-sm { flex-shrink: 0; font-family: 'Special Elite', monospace; font-size: 13px; letter-spacing: 2px; color: var(--ink-muted); }
+.lob-group { margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border); }
+.seg { display: flex; gap: 6px; flex-wrap: wrap; }
+button.pill { font-family: 'Special Elite', monospace; font-size: 13px; font-weight: 400; padding: 6px 12px; border-radius: 20px; border: 1.5px solid var(--border-strong); background: var(--paper-dark); color: var(--ink); line-height: 1.2; }
+button.pill.on { border-color: var(--red); background: var(--red-light); color: var(--red); }
+button.pill:disabled { opacity: .4; cursor: default; }
+.seg.mode-seg { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+/* Validation mode cards look like the theme buttons (.theme-btn / .active) */
+.mode-seg button.pill { display: block; padding: 4px; font-family: 'Caveat', cursive; font-size: 20px; font-weight: 400; line-height: 1.2; text-align: center; border-radius: var(--radius); border: 1.5px solid var(--border); background: var(--paper-dark); color: var(--ink); min-width: 0; }
+.mode-seg button.pill.on { border-color: var(--red); background: var(--red-light); color: var(--red); font-weight: 700; }
+.mode-seg .mode-ico { margin-right: .25em; }
+@media (max-width: 359px) { .mode-seg button.pill { font-size: 16px; } } /* "Démocratique" in bold would not fit at 20px */
+button.cfg-summary { width: 100%; display: flex; align-items: center; gap: 8px; margin: 0; padding: 0; border: none; border-radius: 0; background: transparent; font-family: 'Special Elite', monospace; font-size: 13px; font-weight: 400; color: var(--ink-sec); text-align: left; }
+button.cfg-summary:hover { background: transparent; color: var(--ink); }
+.cfg-summary .cfg-text { flex: 1; min-width: 0; line-height: 1.5; }
+.opt-row { display: flex; align-items: center; justify-content: space-between; gap: 6px 12px; flex-wrap: wrap; margin-top: 12px; }
+.opt-row .lbl { margin: 0; }
+.opt-note { font-family: 'Special Elite', monospace; font-size: 11px; color: var(--ink-muted); margin-top: 2px; }
+.config-body .theme-btn { padding: 4px; }
+.config-body .range-lbl { margin: 12px 0 2px; }
+button.leave-link { display: block; margin: 6px auto 0; padding: 8px 12px; border: none; background: transparent; font-family: 'Caveat', cursive; font-size: 20px; font-weight: 400; color: var(--ink-sec); }
+button.leave-link:hover { background: transparent; color: var(--ink); text-decoration: underline; }
+.guest-confirmed { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; text-align: left; padding: 0; }
+.guest-confirmed .gc-emoji { font-size: 26px; margin: 0; }
+.guest-confirmed .gc-status { margin: 0 0 0 auto; }
+.guest-confirmed .gc-group-row { width: 100%; }
+.guest-info { font-family: 'Special Elite', monospace; font-size: 13px; color: var(--ink-sec); text-align: center; margin: 0 0 8px; line-height: 1.5; }
 </style>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -1045,16 +1077,14 @@ document.addEventListener('DOMContentLoaded', function() {
 <div id="s-lobby" class="screen">
   <p class="sub" id="lob-role" style="text-align:center;margin-top:0.5rem;margin-bottom:1rem"></p>
 
-  <!-- Host: share code -->
+  <!-- Host: share (compact, Session 28) — the code is only for reference: nobody types it anywhere -->
   <div class="card host-only" style="display:none">
-    <p class="lbl" id="lbl-share-code">comparte el código con tu familia</p>
-    <div class="room-code" id="lob-code">----</div>
-    <div class="share-box">
-      <span class="share-url" id="share-url"></span>
-    </div>
-    <div style="display:flex;gap:8px;margin-top:8px">
-      <button onclick="copyLink()" style="flex:1;font-size:13px;padding:8px;font-family:'Special Elite',monospace" id="btn-copy">📋 <span id="btn-copy-text">Copiar enlace</span></button>
-      <button class="wa-btn" onclick="shareWhatsApp()" id="btn-wa" style="flex-shrink:0;padding:8px 12px">
+    <p class="lbl" id="lbl-share-code" style="margin:0">¡comparte!</p>
+    <div class="room-code" id="lob-code" style="padding:0 0 8px 12px">----</div>
+    <span id="share-url" style="display:none"></span>
+    <div class="share-row">
+      <button onclick="copyLink()" style="font-size:13px;padding:8px;font-family:'Special Elite',monospace" id="btn-copy">📋 <span id="btn-copy-text">Copiar enlace</span></button>
+      <button class="wa-btn" onclick="shareWhatsApp()" id="btn-wa" aria-label="WhatsApp" style="flex-shrink:0;padding:8px 12px">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
       </button>
     </div>
@@ -1086,22 +1116,27 @@ document.addEventListener('DOMContentLoaded', function() {
   <div class="card">
     <p class="lbl" id="lbl-players">jugadores <span id="lbl-solo-hint" style="display:none"></span></p>
     <div class="chips" id="lob-players"></div>
+    <div class="lob-group host-only" style="display:none">
+      <p class="lbl" id="lbl-group-name" style="margin:0 0 6px">grupo</p>
+      <div class="grp-row"><button class="grp-current" id="grp-current" onclick="toggleGroupPanel()"><span class="grp-current-name" id="grp-current-name"></span><span class="grp-caret" id="grp-caret">▾</span></button><button class="grp-hist" id="btn-grp-hist" onclick="openHistoryFromLobby()">📜</button></div>
+      <div class="grp-panel" id="grp-panel"></div>
+    </div>
   </div>
 
   <!-- Host panel -->
   <div id="host-panel" style="display:none">
     <div class="card">
-      <p class="lbl" id="lbl-group-name">grupo</p>
-      <div class="grp-row"><button class="grp-current" id="grp-current" onclick="toggleGroupPanel()"><span class="grp-current-name" id="grp-current-name"></span><span class="grp-caret" id="grp-caret">▾</span></button><button class="grp-hist" id="btn-grp-hist" onclick="openHistoryFromLobby()">📜</button></div>
-      <div class="grp-panel" id="grp-panel"></div>
-    </div>
-    <button class="pri" onclick="startGame()" style="width:100%;font-size: 20px;padding:14px" id="btn-start">¡Comenzar! →</button>
-    <button class="btn-leave-room" onclick="leaveGame()" id="btn-leave">← <span id="btn-leave-text">Salir de la sala</span></button>
-    <button class="config-toggle" id="btn-config-toggle" onclick="toggleLobbyConfig()" style="margin-top:12px">
-      <span id="config-toggle-icon">▼</span>&nbsp;<span id="btn-config-label">⚙️ Configuración</span>
-    </button>
-    <div class="config-body" id="config-body">
-      <div class="card">
+      <button class="cfg-summary" id="btn-config-toggle" onclick="toggleLobbyConfig()" aria-expanded="false" aria-controls="config-body">
+        <span class="cfg-text"><span id="btn-config-label" style="display:none">⚙️ Configuración</span><span id="cfg-summary">⚙️</span></span>
+        <span id="config-toggle-icon" aria-hidden="true">▾</span>
+      </button>
+      <div class="config-body" id="config-body">
+        <p class="lbl" id="lbl-validation-mode">modo de validación</p>
+        <div class="seg mode-seg">
+          <button class="pill on" id="mode-host" onclick="setValidationMode('host')"><span class="mode-ico">👑</span><span class="mode-txt">Normal</span></button>
+          <button class="pill" id="mode-democratic" onclick="setValidationMode('democratic')"><span class="mode-ico">🗳️</span><span class="mode-txt">Democrático</span></button>
+        </div>
+        <p class="lbl" id="mode-hint" style="margin:6px 0 12px"></p>
         <p class="lbl" id="lbl-theme">tema</p>
         <div class="themes" id="theme-btns"></div>
         <div id="cat-classic" style="display:none">
@@ -1118,58 +1153,51 @@ document.addEventListener('DOMContentLoaded', function() {
             <button id="btn-usar-ejemplos" onclick="fillExampleCats()" style="font-size:11px;padding:3px 8px;opacity:0.7">Usar ejemplos</button>
           </div>
           <textarea id="free-cats" rows="5" placeholder="Jugadores del Barça&#10;Películas de terror&#10;Cosas en la cocina" oninput="saveLobbyConfig();updateFreeCatRandomToggle()"></textarea>
-          <label class="cat-lbl" id="lbl-free-cat-random" style="margin-top:6px;opacity:0.4;pointer-events:none">
-            <input type="checkbox" id="free-cat-random" disabled onchange="saveLobbyConfig()">
-            <span id="lbl-free-cat-random-text">Elegir 8 al azar cada ronda</span>
-          </label>
+          <div class="opt-row" id="lbl-free-cat-random" style="opacity:0.4">
+            <span class="lbl" id="lbl-free-cat-random-text">Elegir 8 al azar cada ronda</span>
+            <div class="seg"><button class="pill" id="fcr-yes" onclick="setFreeCatRandom(true)" disabled><span class="yes-txt">Sí</span></button><button class="pill on" id="fcr-no" onclick="setFreeCatRandom(false)" disabled><span class="no-txt">No</span></button></div>
+          </div>
+          <input type="checkbox" id="free-cat-random" disabled hidden>
         </div>
-      </div>
-      <div class="card">
         <p class="lbl" style="display:none">letras fáciles <span style="font-size:11px;opacity:.7" id="lbl-easy-hint">(sin K, Ñ, Q, U, W, X, Y, Z)</span></p>
         <label class="cat-lbl" style="display:none">
           <input type="checkbox" id="easy-letters" checked onchange="toggleEasyLetters(this.checked)">
           <span id="lbl-easy-letters">solo letras fáciles</span>
         </label>
-        <p class="lbl" style="margin-top:14px" id="lbl-rounds">rondas</p>
+        <p class="lbl range-lbl" id="lbl-rounds">rondas</p>
         <div class="range-row">
           <input type="range" min="3" max="12" value="5" id="sl-rounds" oninput="document.getElementById('v-rounds').textContent=this.value;saveLobbyConfig()">
           <span class="range-val" id="v-rounds">5</span>
         </div>
-        <p class="lbl" style="margin-top:14px" id="lbl-seconds">segundos por ronda</p>
+        <p class="lbl range-lbl" id="lbl-seconds">segundos por ronda</p>
         <div class="range-row">
           <input type="range" min="30" max="120" step="10" value="90" id="sl-time" oninput="document.getElementById('v-time').textContent=this.value;saveLobbyConfig()">
           <span class="range-val" id="v-time">90</span>
         </div>
-        <label class="cat-lbl" style="margin-top:14px">
-          <input type="checkbox" id="reaction-points" checked onchange="saveLobbyConfig()">
-          <span id="lbl-reaction-points">🌶️ Reacciones con puntos</span>
-        </label>
-        <p style="margin:2px 0 0 22px;font-size:11px;color:var(--ink-muted)">🔥 +30 · 👏 +20 · 😂 +10 · 😬 0</p>
-        <div style="margin-top:16px;border-top:1px dashed var(--border);padding-top:12px">
-          <p class="lbl" style="margin-bottom:6px" id="lbl-validation-mode">🗳️ Modo de validación</p>
-          <div style="display:flex;gap:6px;margin-bottom:14px">
-            <button id="mode-host" onclick="setValidationMode('host')" style="font-size: 11px;padding:4px 10px;border-radius:20px;border:1.5px solid #c0392b;background:#fdf0ee;cursor:pointer">👑 Normal</button>
-            <button id="mode-democratic" onclick="setValidationMode('democratic')" style="font-size: 11px;padding:4px 10px;border-radius:20px;border:1.5px solid var(--border-strong);background:var(--paper-dark);cursor:pointer">🗳️ Democrático</button>
-          </div>
-          <p class="lbl" id="lbl-ai-validation" style="margin-bottom:6px"><span id="lbl-ai-validation-text">🤖 Asistente Robot</span></p>
-          <div style="display:flex;gap:6px;margin-bottom:8px">
-            <button id="ai-relajado" onclick="setAIStrictness('relajado')" style="font-size: 11px;padding:4px 10px;border-radius:20px;border:1.5px solid #c0392b;background:#fdf0ee;cursor:pointer">🟢 Relajada</button>
-            <button id="ai-estricto" onclick="setAIStrictness('estricto')" style="font-size: 11px;padding:4px 10px;border-radius:20px;border:1.5px solid var(--border-strong);background:var(--paper-dark);cursor:pointer">🔴 Estricta</button>
-          </div>
-          <p class="lbl" style="margin-bottom:4px"><span id="lbl-ai-spelling-text">✏️ Permitir faltas de ortografía</span></p>
-          <div style="display:flex;gap:6px">
-            <button id="ai-spelling-no" onclick="setAISpelling(false)" style="font-size: 11px;padding:4px 10px;border-radius:20px;border:1.5px solid #c0392b;background:#fdf0ee;cursor:pointer"><span id="lbl-ai-no">No</span></button>
-            <button id="ai-spelling-si" onclick="setAISpelling(true)" style="font-size: 11px;padding:4px 10px;border-radius:20px;border:1.5px solid var(--border-strong);background:var(--paper-dark);cursor:pointer"><span id="lbl-ai-yes">Sí</span></button>
-          </div>
+        <div class="opt-row">
+          <span class="lbl"><span id="lbl-reaction-points">👏 Reacciones con puntos</span></span>
+          <div class="seg"><button class="pill on" id="rp-yes" onclick="setReactionPoints(true)"><span class="yes-txt">Sí</span></button><button class="pill" id="rp-no" onclick="setReactionPoints(false)"><span class="no-txt">No</span></button></div>
+        </div>
+        <input type="checkbox" id="reaction-points" checked hidden>
+        <div class="opt-row">
+          <span class="lbl" id="lbl-ai-validation"><span id="lbl-ai-validation-text">🤖 Asistente Robot</span></span>
+          <div class="seg"><button class="pill on" id="ai-relajado" onclick="setAIStrictness('relajado')">🟢 Relajada</button><button class="pill" id="ai-estricto" onclick="setAIStrictness('estricto')">🔴 Estricta</button></div>
+        </div>
+        <div class="opt-row">
+          <span class="lbl"><span id="lbl-ai-spelling-text">✏️ Permitir faltas de ortografía</span></span>
+          <div class="seg"><button class="pill on" id="ai-spelling-no" onclick="setAISpelling(false)"><span id="lbl-ai-no">No</span></button><button class="pill" id="ai-spelling-si" onclick="setAISpelling(true)"><span id="lbl-ai-yes">Sí</span></button></div>
         </div>
       </div>
     </div>
+    <button class="pri" onclick="startGame()" style="width:100%;font-size: 20px;padding:14px" id="btn-start">¡Comenzar! →</button>
+    <button class="leave-link" onclick="leaveGame()" id="btn-leave">← <span id="btn-leave-text">Salir de la sala</span></button>
   </div>
 
   <!-- Guest panel -->
   <div id="guest-panel" style="display:none">
+    <p class="guest-info" id="guest-info" style="display:none"></p>
     <p class="wait" id="lbl-guest-wait">✏️ Esperando al anfitrión…</p>
-    <button class="btn-leave-room" onclick="leaveGame()" id="btn-leave-guest">← <span id="btn-leave-text-guest">Salir de la sala</span></button>
+    <button class="leave-link" onclick="leaveGame()" id="btn-leave-guest">← <span id="btn-leave-text-guest">Salir de la sala</span></button>
   </div>
 </div>
 <!-- ══ DAILY PLAY ══ -->
@@ -1397,7 +1425,7 @@ const T = {
     roomCode: 'código de sala',
     enter: 'Entrar',
     noReg: 'SIN REGISTRO · SIN DESCARGAS · GRATIS',
-    shareCode: 'comparte el código con tu familia',
+    shareCode: '¡comparte!',
     copyLink: 'Copiar', wa: 'Compartir por WhatsApp',
     players: 'jugadores', soloHint: '(¡mejor con más!)', host: 'Eres el anfitrión',
     waiting: '✏️ Esperando al anfitrión…',
@@ -1418,7 +1446,7 @@ const T = {
     endGame: 'Terminar', hostWait: 'Esperando al anfitrión…',
     endEarlyConfirm: 'La partida no está completa y no contará. ¿Terminar igualmente?',
     soloStart: '✏️ Practicar solo →',
-    reactionPoints: '🌶️ Reacciones con puntos',
+    reactionPoints: '👏 Reacciones con puntos',
     tieLine: '¡Empate! {names} con {pts} puntos', tieAnd: 'y',
     bdBase: 'base', bdReactions: 'reacciones',
     toastOwnReaction: 'No puedes reaccionar a tus propias respuestas',
@@ -1464,7 +1492,7 @@ const T = {
     roomCode: 'room code',
     enter: 'Enter',
     noReg: 'NO SIGN UP · NO DOWNLOAD · FREE',
-    shareCode: 'share this code with your group',
+    shareCode: 'share!',
     copyLink: 'Copy', wa: 'Share on WhatsApp',
     players: 'players', soloHint: '(better with more!)', host: 'You are the host',
     waiting: '✏️ Waiting for the host…',
@@ -1485,7 +1513,7 @@ const T = {
     endGame: 'End game', hostWait: 'Waiting for the host…',
     endEarlyConfirm: "The game isn't complete and won't count. End anyway?",
     soloStart: '✏️ Practise solo →',
-    reactionPoints: '🌶️ Reactions score points',
+    reactionPoints: '👏 Reactions score points',
     tieLine: "It's a tie! {names} with {pts} points", tieAnd: 'and',
     bdBase: 'base', bdReactions: 'reactions',
     toastOwnReaction: "You can't react to your own answers",
@@ -1531,7 +1559,7 @@ const T = {
     roomCode: 'code de la salle',
     enter: 'Entrer',
     noReg: 'SANS INSCRIPTION · SANS TÉLÉCHARGEMENT · GRATUIT',
-    shareCode: 'partage ce code avec ton groupe',
+    shareCode: 'partage !',
     copyLink: 'Copier', wa: 'Partager sur WhatsApp',
     players: 'joueurs', soloHint: '(mieux à plusieurs!)', host: "Tu es l'hôte",
     waiting: "✏️ En attente de l'hôte…",
@@ -1552,7 +1580,7 @@ const T = {
     endGame: 'Terminer', hostWait: "En attente de l'hôte…",
     endEarlyConfirm: "La partie n'est pas terminée et ne comptera pas. Terminer quand même ?",
     soloStart: "✏️ S'entraîner en solo →",
-    reactionPoints: '🌶️ Réactions avec points',
+    reactionPoints: '👏 Réactions avec points',
     tieLine: 'Égalité ! {names} avec {pts} points', tieAnd: 'et',
     bdBase: 'base', bdReactions: 'réactions',
     toastOwnReaction: 'Tu ne peux pas réagir à tes propres réponses',
@@ -1806,15 +1834,21 @@ window.applyLang = function() {
   s('btn-leave-text-guest', t('leaveRoom2') || t('leaveRoom'));
   s('btn-config-label', t('configLabel'));
   s('gc-status', t('gcInside'));
-  s('lbl-validation-mode', '🗳️ ' + {'es':'Modo de validación','en':'Validation mode','fr':'Mode de validation'}[LANG]);
-  s('mode-host', t('modeHost'));
-  s('mode-democratic', t('modeDemocratic'));
+  s('lbl-validation-mode', {'es':'modo de validación','en':'validation mode','fr':'mode de validation'}[LANG]);
+  // Mode cards: emoji + name, same look as the theme buttons
+  [['mode-host','modeHost'],['mode-democratic','modeDemocratic']].forEach(([id, key]) => {
+    const el = document.querySelector('#' + id + ' .mode-txt');
+    if (el) el.textContent = String(t(key) || '').replace(/^[^\p{L}]+/u, '').trim();
+  });
   s('lbl-ai-validation-text', t('aiValidation'));
   s('ai-relajado', t('aiRelajado'));
   s('ai-estricto', t('aiEstricto'));
   s('lbl-ai-spelling-text', t('aiSpelling'));
   s('lbl-ai-yes', t('aiYes'));
   s('lbl-ai-no', t('aiNo'));
+  document.querySelectorAll('.yes-txt').forEach(e => { e.textContent = t('aiYes'); });
+  document.querySelectorAll('.no-txt').forEach(e => { e.textContent = t('aiNo'); });
+  if (typeof updateModeHint === 'function') { updateModeHint(); updateCfgSummary(); }
   s('lbl-guest-wait', t('guestWait'));
   // Playing
   s('lbl-letter', t('letterLabel'));
@@ -1990,6 +2024,9 @@ window.fillExampleCats = () => {
   if (!ta) return;
   ta.value = (FREE_CAT_EXAMPLES[LANG] || FREE_CAT_EXAMPLES.es).join('\n');
   updateFreeCatRandomToggle();
+  // Examples are always 9+ → turn "pick 8 at random each round" on (Session 28)
+  const cbR = document.getElementById('free-cat-random');
+  if (cbR && !cbR.disabled) { cbR.checked = true; syncFreeCatPills(); }
   saveLobbyConfig();
 };
 
@@ -2004,6 +2041,7 @@ function updateFreeCatRandomToggle() {
   lbl.style.pointerEvents = enough ? 'auto' : 'none';
   cb.disabled = !enough;
   if (!enough) cb.checked = false;
+  syncFreeCatPills();
 }
 
 window.shareWhatsApp = async () => {
@@ -2552,6 +2590,10 @@ const DAILY_OVERRIDES = {
 // id: unique (✕ hides it on that device for good) · type: 'info' | 'warning' (red edge) · until: last day shown (YYYY-MM-DD)
 // es is required; en/fr fall back to es. Avoid "ayer"/"yesterday": a message stays up for days.
 const NEWS = [
+  { id: '2026-10-10-lobby', type: 'info', until: '2026-10-14',
+    es: '🎛️ ¡Sala renovada! Más compacta y recuerda tus ajustes',
+    en: '🎛️ New room screen: more compact, remembers your settings',
+    fr: '🎛️ Nouvelle salle : plus compacte, elle garde tes réglages' },
   { id: '2026-10-09-robot-fast', type: 'info', until: '2026-10-13',
     es: '⚡ ¡El Robot ahora corrige más rápido!',
     en: '⚡ The Robot now checks faster!',
@@ -4165,8 +4207,97 @@ window.toggleLobbyConfig = function() {
   const body = document.getElementById('config-body');
   const icon = document.getElementById('config-toggle-icon');
   const isOpen = body.classList.toggle('open');
-  if (icon) icon.textContent = isOpen ? '▲' : '▼';
+  if (icon) icon.textContent = isOpen ? '▴' : '▾';
+  const btn = document.getElementById('btn-config-toggle');
+  if (btn) btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+  updateCfgSummary();
 };
+
+// ── Compact lobby helpers (Session 28) ──
+// Two-pill switch: `onA` true = first pill selected
+function pillPair(a, b, onA) {
+  if (a) { a.classList.toggle('on', onA); a.setAttribute('aria-pressed', onA ? 'true' : 'false'); a.style.borderColor = ''; a.style.background = ''; }
+  if (b) { b.classList.toggle('on', !onA); b.setAttribute('aria-pressed', !onA ? 'true' : 'false'); b.style.borderColor = ''; b.style.background = ''; }
+}
+const MODE_HINT = {
+  host: { es: 'el anfitrión decide qué vale', en: 'the host decides what counts', fr: "l'hôte décide ce qui compte" },
+  democratic: { es: 'todos votan qué vale (mín. 3 jugadores)', en: 'everyone votes on what counts (min. 3 players)', fr: 'tout le monde vote (min. 3 joueurs)' },
+};
+function updateModeHint() {
+  const el = document.getElementById('mode-hint');
+  if (el) el.textContent = (MODE_HINT[G_validationMode] || MODE_HINT.host)[LANG] || MODE_HINT.host.es;
+}
+window.setReactionPoints = (on) => {
+  const cb = document.getElementById('reaction-points');
+  if (cb) cb.checked = !!on;
+  pillPair(document.getElementById('rp-yes'), document.getElementById('rp-no'), !!on);
+  saveLobbyConfig();
+};
+window.setFreeCatRandom = (on) => {
+  const cb = document.getElementById('free-cat-random');
+  if (!cb || cb.disabled) return;
+  cb.checked = !!on;
+  syncFreeCatPills();
+  saveLobbyConfig();
+};
+function syncFreeCatPills() {
+  const cb = document.getElementById('free-cat-random');
+  const y = document.getElementById('fcr-yes'), n = document.getElementById('fcr-no');
+  if (!cb || !y || !n) return;
+  y.disabled = n.disabled = cb.disabled;
+  pillPair(y, n, cb.checked);
+}
+function syncLobbyPills() {
+  const rp = document.getElementById('reaction-points');
+  pillPair(document.getElementById('rp-yes'), document.getElementById('rp-no'), !rp || rp.checked);
+  syncFreeCatPills();
+}
+// Settings bar: closed = mode, theme, rounds, seconds; open = just the title
+function updateCfgSummary() {
+  const el = document.getElementById('cfg-summary');
+  if (!el) return;
+  const rounds = document.getElementById('sl-rounds')?.value || 5;
+  const time = document.getElementById('sl-time')?.value || 90;
+  // Only the gear icon: strip the emoji from the theme name and the label
+  const theme = String(G.selectedTheme || '').replace(/^[^\p{L}]+/u, '').trim();
+  const label = String(t('configLabel') || '').replace(/^[^\p{L}]+/u, '').trim();
+  const open = document.getElementById('config-body')?.classList.contains('open');
+  let vm = 'host'; try { vm = G_validationMode; } catch (e) {}
+  const mode = String(t(vm === 'democratic' ? 'modeDemocratic' : 'modeHost') || '').replace(/^[^\p{L}]+/u, '').trim();
+  // Open: just the title (the options are visible below). Closed: what is set.
+  el.textContent = '⚙️ ' + label + (open ? '' : ' (' + [mode, theme, rounds + ' ' + t('rounds'), time + 's'].filter(Boolean).join(', ') + ')');
+}
+// The guests see what the host picked (mode, theme, rounds, seconds) while waiting
+// Only from the host's LOBBY, only when it changed: an extra room write during a round would make every
+// guest re-render (a tap landing during that re-render is lost — see the Session 26 "lost taps" fix).
+let _lobbyInfoTimer = null, _lobbyInfoLast = '';
+function pushLobbyInfo() {
+  if (!G.isHost || !G.roomCode || G.screen !== 'lobby') return;
+  clearTimeout(_lobbyInfoTimer);
+  _lobbyInfoTimer = setTimeout(() => {
+    if (!G.isHost || !G.roomCode || G.screen !== 'lobby') return;
+    const info = {
+      mode: G_validationMode,
+      themeIdx: Math.max(0, Object.keys(getThemes()).indexOf(G.selectedTheme)),
+      rounds: parseInt(document.getElementById('sl-rounds')?.value || 5),
+      time: parseInt(document.getElementById('sl-time')?.value || 90),
+    };
+    const key = G.roomCode + JSON.stringify(info);
+    if (key === _lobbyInfoLast) return;
+    _lobbyInfoLast = key;
+    update(roomRef(G.roomCode), { lobbyInfo: info }).catch(() => { _lobbyInfoLast = ''; });
+  }, 400);
+}
+function renderGuestInfo(room) {
+  const el = document.getElementById('guest-info');
+  if (!el) return;
+  const li = room && room.lobbyInfo;
+  if (G.isHost || !li) { el.style.display = 'none'; el.textContent = ''; return; }
+  const themeName = Object.keys(getThemes())[li.themeIdx || 0] || '';
+  const mode = li.mode === 'democratic' ? t('modeDemocratic') : t('modeHost');
+  el.textContent = [mode, themeName, (li.rounds || 5) + ' ' + t('rounds'), (li.time || 90) + 's'].filter(Boolean).join(' · ');
+  el.style.display = '';
+}
 
 // ── Daily challenge helpers ────────────────────────────
 function getDailyDateString(short) {
@@ -4320,12 +4451,19 @@ function clearSession() {
   setRoomInUrl('');
 }
 
+// Lobby settings are remembered per name on this device (Session 28), plus the last used ones as the
+// starting point for a name that has none yet. _cfgRestoring stops the setters from saving half-restored values.
+let _cfgRestoring = false;
+function lobbyCfgKey(name) { const s = claimSafeName(name || G.playerName || ''); return s ? 'alto_lobby_config:' + s : ''; }
 function saveLobbyConfig() {
+  updateCfgSummary();
+  if (_cfgRestoring) return;
   const rounds = document.getElementById('sl-rounds')?.value;
   const time = document.getElementById('sl-time')?.value;
   const freeCatRandom = document.getElementById('free-cat-random')?.checked || false;
   const reactionPoints = document.getElementById('reaction-points')?.checked !== false;
-  localStorage.setItem('alto_lobby_config', JSON.stringify({
+  const freeCats = document.getElementById('free-cats')?.value || '';
+  const cfgJson = JSON.stringify({
     theme: G.selectedTheme,
     groups: G.selectedGroups,
     rounds: rounds ? parseInt(rounds) : 5,
@@ -4335,14 +4473,23 @@ function saveLobbyConfig() {
     aiSpelling: G_aiSpelling,
     freeCatRandom,
     reactionPoints,
-  }));
+    freeCats,
+  });
+  try {
+    localStorage.setItem('alto_lobby_config', cfgJson);
+    const k = lobbyCfgKey(); if (k) localStorage.setItem(k, cfgJson);
+  } catch(e) { /* private mode */ }
+  pushLobbyInfo();
 }
 
 function restoreLobbyConfig() {
+  _cfgRestoring = true;
   try {
-    const raw = localStorage.getItem('alto_lobby_config');
+    const k = lobbyCfgKey();
+    const raw = (k && localStorage.getItem(k)) || localStorage.getItem('alto_lobby_config');
     if (!raw) return;
     const c = JSON.parse(raw);
+    if (typeof c.freeCats === 'string') { const ta = document.getElementById('free-cats'); if (ta) { ta.value = c.freeCats; updateFreeCatRandomToggle(); } }
     if (c.theme) G.selectedTheme = c.theme;
     if (c.groups && Array.isArray(c.groups) && c.groups.length >= 3) G.selectedGroups = c.groups;
     if (c.rounds) { const el = document.getElementById('sl-rounds'); if (el) { el.value = c.rounds; document.getElementById('v-rounds').textContent = c.rounds; } }
@@ -4353,6 +4500,13 @@ function restoreLobbyConfig() {
     if (c.reactionPoints !== undefined) { const rp = document.getElementById('reaction-points'); if (rp) rp.checked = c.reactionPoints; }
     if (c.freeCatRandom !== undefined) { const cb = document.getElementById('free-cat-random'); if (cb) cb.checked = c.freeCatRandom; updateFreeCatRandomToggle(); }
   } catch(e) { /* silent — corrupt config, start fresh */ }
+  finally {
+    _cfgRestoring = false;
+    syncLobbyPills();
+    updateModeHint();
+    updateCfgSummary();
+    pushLobbyInfo();
+  }
 }
 
 function subscribe(code) {
@@ -4365,8 +4519,9 @@ function subscribe(code) {
 
 function handleRoom(room) {
   if (G.screen === 'lobby') {
-    renderPlayers(room.players || {}, room.langs || {});
+    renderPlayers(room.players || {}, room.langs || {}, room.host || '');
     renderGuestGroup(room);
+    renderGuestInfo(room);
     if (room.phase === 'countdown') startCountdown(room);
     if (room.phase === 'playing') enterPlaying(room);
   }
@@ -4486,7 +4641,7 @@ function enterLobby(room) {
   stopConfetti();
   stopReactions();
   show('lobby');
-  if (G.isHost) { window.setAIEnabled(G_aiEnabled); window.setAIStrictness(G_aiStrictness); window.setAISpelling(G_aiSpelling); }
+  if (G.isHost) { _cfgRestoring = true; window.setAIEnabled(G_aiEnabled); window.setAIStrictness(G_aiStrictness); window.setAISpelling(G_aiSpelling); }
   // Apply host's game language for guests
   if (!G.isHost && room.gameLang && room.gameLang !== LANG) {
     window.setLang(room.gameLang);
@@ -4519,7 +4674,8 @@ function enterLobby(room) {
     document.getElementById('guest-panel').style.display = 'block';
   }
   renderGuestGroup(room);
-  renderPlayers(room.players || {}, room.langs || {});
+  renderGuestInfo(room);
+  renderPlayers(room.players || {}, room.langs || {}, room.host || '');
 }
 
 // ── Lobby group picker (host) ─────────────────────────
@@ -4687,9 +4843,9 @@ function renderGuestGroup(room) {
   if (btn) btn.style.display = isGroupId(room.groupId) ? '' : 'none';
 }
 
-function renderPlayers(players, langs={}) {
+function renderPlayers(players, langs={}, hostName='') {
   document.getElementById('lob-players').innerHTML =
-    Object.entries(players).map(([n,emoji]) => `<div class="chip ok">${n}<span style="font-size: 16px">${emoji||'🎲'}</span></div>`).join('');
+    Object.entries(players).map(([n,emoji]) => `<div class="chip ok">${n === hostName ? '👑 ' : ''}${escHtml(n)}<span style="font-size: 16px">${emoji||'🎲'}</span></div>`).join('');
   const hint = document.getElementById('lbl-solo-hint');
   if (hint) {
     const solo = Object.keys(players).length < 2;
@@ -4718,6 +4874,8 @@ function buildThemePicker() {
     `<div class="theme-btn ${name===G.selectedTheme?'active':''}" onclick="selectTheme('${name}')">${name}</div>`
   ).join('');
   updateCatVisibility();
+  updateCfgSummary();   // theme names are per language: refresh the summary + what guests see
+  pushLobbyInfo();
 }
 
 window.selectTheme = (name) => {
@@ -4809,6 +4967,7 @@ window.copyLink = () => {
 };
 
 window.startGame = async () => {
+  clearTimeout(_lobbyInfoTimer);
   let cats;
   const themeValue = getThemes()[G.selectedTheme];
   const isRandom = themeValue === 'random';
@@ -5543,13 +5702,7 @@ window.setAIStrictness = (level) => {
   const relajadoBtn = document.getElementById('ai-relajado');
   const estrictoBtn = document.getElementById('ai-estricto');
   if (!relajadoBtn || !estrictoBtn) return;
-  if (level === 'relajado') {
-    relajadoBtn.style.borderColor = '#c0392b'; relajadoBtn.style.background = '#fdf0ee';
-    estrictoBtn.style.borderColor = 'var(--border-strong)'; estrictoBtn.style.background = 'var(--paper-dark)';
-  } else {
-    estrictoBtn.style.borderColor = '#c0392b'; estrictoBtn.style.background = '#fdf0ee';
-    relajadoBtn.style.borderColor = 'var(--border-strong)'; relajadoBtn.style.background = 'var(--paper-dark)';
-  }
+  pillPair(relajadoBtn, estrictoBtn, level === 'relajado');
   saveLobbyConfig();
 };
 
@@ -5558,13 +5711,7 @@ window.setAISpelling = (allow) => {
   const siBtn = document.getElementById('ai-spelling-si');
   const noBtn = document.getElementById('ai-spelling-no');
   if (!siBtn || !noBtn) return;
-  if (allow) {
-    siBtn.style.borderColor = '#c0392b'; siBtn.style.background = '#fdf0ee';
-    noBtn.style.borderColor = 'var(--border-strong)'; noBtn.style.background = 'var(--paper-dark)';
-  } else {
-    noBtn.style.borderColor = '#c0392b'; noBtn.style.background = '#fdf0ee';
-    siBtn.style.borderColor = 'var(--border-strong)'; siBtn.style.background = 'var(--paper-dark)';
-  }
+  pillPair(siBtn, noBtn, !!allow);
   saveLobbyConfig();
 };
 
@@ -5741,9 +5888,9 @@ window.setValidationMode = (mode) => {
   ['host','democratic'].forEach(m => {
     const btn = document.getElementById('mode-' + m);
     if (!btn) return;
-    if (m === mode) { btn.style.borderColor = '#c0392b'; btn.style.background = '#fdf0ee'; }
-    else { btn.style.borderColor = 'var(--border-strong)'; btn.style.background = 'var(--paper-dark)'; }
+    btn.classList.toggle('on', m === mode); btn.setAttribute('aria-pressed', m === mode ? 'true' : 'false');
   });
+  updateModeHint();
   // Update validation screen subtitles to reflect current mode
   const sub1 = document.getElementById('lbl-validate-sub1');
   const sub2 = document.getElementById('lbl-validate-sub2');
@@ -6393,7 +6540,7 @@ window.lbBack = async () => {
     if (from === 'lobby') {
       // Back to the same lobby; catch up on what changed while browsing
       show('lobby');
-      renderPlayers(room.players || {}, room.langs || {});
+      renderPlayers(room.players || {}, room.langs || {}, room.host || '');
       renderGuestGroup(room);
     } else enterLobby(room); // the host started a new game (Jugar de nuevo) while we were browsing
     return;
@@ -7591,7 +7738,7 @@ setTimeout(() => updateDailyButtonDate(), 350);
 // Version freshness check — silently reload if a newer version is deployed
 // Runs once on load; does nothing if already on latest or if fetch fails
 (function() {
-  const RUNNING = 'v261009.357';
+  const RUNNING = 'v261010.363';
   if (sessionStorage.getItem('alto_ver_checked') === RUNNING) return; // already checked this session
   sessionStorage.setItem('alto_ver_checked', RUNNING);
   fetch(location.href, { cache: 'no-cache' })
@@ -7615,7 +7762,7 @@ syncMyGroups(); // registered + verified name: bring in groups from the name's o
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v261009.357</div>
+  <div style="font-size: 11px;opacity:0.5">v261010.363</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>

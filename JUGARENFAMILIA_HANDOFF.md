@@ -1440,13 +1440,34 @@ Prices (OpenRouter, 8 Oct): Sante $0.042 in / $0.1232 out per M tokens, one prov
 
 **10 Oct daily review (17 players, ~85 answers, v357):** all Sante, typically 2–4 s; one player ~12 s (three answers slow together), two retries 12–16 s; most dailies ~5–8 s. Verdicts almost all right: correct ❌ Masseur (FR word in ES), Echar / Enebre (ES words in FR), Marvel (studio, not a series), Escalier (not a building), Écrevisse (not a fish), Leggins / Lewis Caroll (misspellings); correct ✅ Éperlan, Murder She Wrote, Los Brincos, Mano izquierda, Madroño, Médula. ¿Error?: 12 re-checks, 1 overturned (Monumento as building, fair), 11 upheld, all reasonable — v357 is not a rubber stamp. **One clear mistake: EN "Luxemburg" ❌ as European country (German / old English spelling), upheld on contest, while "Lituania" ✅ passed the same day** — the strict spelling rule read it as a typo of Luxembourg. Proposed fix ("A proper noun written the way another language spells it (Luxemburg, Lituania, Londres) is not a misspelling") — **Oscar: no, it's OK as is.** Minor, left alone: Manomanista 🤔 (real Basque pelota player), EN "Lama" ✅ mammal (llama).
 
-**Last versions: production v261009.357, staging v261007.343-tmp (older — build new staging from production).**
+**STAGING v261010.358-tmp — compact multiplayer lobby (Oscar's request; text mockup agreed first).** Built on production v357.
+- **Share card:** one row `[📋 Copiar enlace] [WhatsApp] CODE` — the code is small/grey (`.code-sm`, 13px): nobody can type a code anywhere (no join-by-code box), it's only for reference. Heading and URL box removed (`#lbl-share-code`, `#share-url` kept as hidden spans: `copyLink` reads `#share-url`).
+- **"Eres el anfitrión" line hidden** (`#lob-role{display:none}`, element kept for debug); instead a 👑 on the host's chip (`renderPlayers(players, langs, hostName)`, callers pass `room.host`; names now go through `escHtml`).
+- **Group picker moved into the players card** (`.lob-group.host-only`, same ids `#grp-current`, `#grp-panel`, `#btn-grp-hist`; `#lbl-group-name` hidden span).
+- **New settings card:** mode as a big two-button switch (`.seg.big`, Caveat 20px, 16px below 360 px; buttons size to their text so FR "Démocratique" fits at 320) + one-line hint `#mode-hint` (`MODE_HINT` ES/EN/FR: "el anfitrión decide qué vale" / "todos votan qué vale"); under it `#btn-config-toggle` = a summary line `#cfg-summary` ("⚙️ 🎲 Clásico · 5 rondas · 90 s · 🔥 · 🤖 estricta", `updateCfgSummary()`), shows "⚙️ Configuración" when open; `#config-body` opens INSIDE the card. Then ¡Comenzar! and "Salir de la sala" as a text link (`button.leave-link`, host and guest).
+- **One pill style** (`button.pill` / `.on`, 13px Special Elite) for every switch; old inline-style toggling in `setValidationMode` / `setAIStrictness` / `setAISpelling` replaced by `pillPair()` (+ `aria-pressed`). "Reacciones con puntos" and "Elegir 8 al azar" are now Sí/No pills (`#rp-yes/#rp-no`, `#fcr-yes/#fcr-no`, `setReactionPoints`, `setFreeCatRandom`, `syncFreeCatPills`, `syncLobbyPills`); their checkboxes stay as hidden inputs (startGame and the config read `.checked`). Sí/No texts via `.yes-txt/.no-txt` in applyLang.
+- **"Usar ejemplos" turns "8 al azar" on** (examples are always ≥9).
+- **Settings remembered per name on the device:** `alto_lobby_config:{safeName}` (+ `alto_lobby_config` = last used, the starting point for a name with none). Now also saves the custom category list (`freeCats`). `_cfgRestoring` stops the setters from saving half-restored values (enterLobby's early setter calls used to save the previous values under the new name).
+- **Guests see the host's choices** under the player list: `#guest-info` "🗳️ Democrático · 🎲 Clásico · 5 rondas · 90 s" from `room.lobbyInfo {mode, themeIdx, rounds, time}` (themeIdx so it shows in the guest's language). Written by `pushLobbyInfo()` — ONLY from the host's lobby (re-checked when the 400 ms debounce fires), only when changed, cancelled by startGame. **Lesson:** a first version without those guards wrote during a round and broke build5b's "your buttons are never replaced" check (an extra room write re-renders guests) — 77/77 again after the guards, twice.
+- Guest card compacted: emoji + name + "✅ ESTÁS DENTRO" on one row, group row below.
+- Checked: version grep (357 → 358-tmp), 12 screens, init once, syntax, unit 239/239, browser restore 19, countdown 12, groups 28, build5b 77 (×2), stuck 11; a two-browser lobby test (fonts real) at 320/360/390/414 in ES/EN/FR: no horizontal overflow, mode buttons not cut, ¡Comenzar! visible without scrolling (bottom at ~550–590 px), guest summary live, Libre + examples → 8 al azar ON, per-name memory (Oscar's settings back after leaving; a new name "Pepa" starts from the last used; Oscar keeps his own after Pepa changes hers). File 412 KB (waived). The lobby test is `/tmp/claude-work/lobby_test.py` in the sandbox only — not yet in the kit.
+- **Oscar to test on staging (index_tmp.html):** host and guest phones; open/close settings; switch mode (guest line updates); Libre + Usar ejemplos; leave and re-create the room with the same name → settings back.
+
+**STAGING v261010.359-tmp — lobby tweaks after Oscar's first look ("not bad at all!"):**
+- Share card: short label `#lbl-share-code` = T `shareCode` now "¡comparte!" / "share!" / "partage !" (was "comparte el código con tu familia"…), then the code back in BIG RED (`.room-code`, 56px Caveat, the original style; `padding-left:12px` balances the letter-spacing so it centres), then [📋 Copiar] [WhatsApp]. `.code-sm` no longer used.
+- Settings bar: `updateCfgSummary()` → "⚙️ Configuración (Clásico, 5 rondas, 90 s)" / "⚙️ Settings (Classic, 5 rounds, 90 s)" / "⚙️ Paramètres (Classique, 5 manches, 90 s)" — gear only (emoji stripped from the theme name and `configLabel`), no reactions/robot in it; same text open or closed (`#btn-config-label` no longer shown).
+- Reactions row: T `reactionPoints` 🌶️ → 👏 ("👏 Reacciones con puntos" / "👏 Reactions score points" / "👏 Réactions avec points"), the "🔥 +30 · 👏 +20 · 😂 +10 · 😬 0" line removed (→ help page). All four option labels now measured 20px Caveat, same row layout.
+- ¡Comenzar! bottom now ~615–670 px (was ~550–590): visible without scrolling on 844-px-tall phones; on small phones (iPhone SE class) a short scroll.
+- Checked: version grep (358 → 359-tmp), 12 screens, syntax, unit 239/239, groups 28, build5b 77, lobby test 390 ES / 320 FR / 414 EN (no overflow, mode buttons not cut, per-name memory OK).
+- **Help page note:** the reaction points (🔥 +30 · 👏 +20 · 😂 +10 · 😬 0) must be explained there now that the lobby no longer shows them.
+
+**Last versions: production v261009.357, staging v261010.359-tmp (compact lobby + tweaks).**
 
 ---
 
 ## ▶ START HERE NEXT SESSION (Session 28)
 
-1. Upload the project zip (with `tests\` and `tools\`). Read this handoff (Session 27 log, especially the summary at its end). Production = **v261009.357**. Staging = v261007.343-tmp is OLD — build new staging from production. First thing: `cp index.html index_backup_s28.html`.
+1. Upload the project zip (with `tests\` and `tools\`). Read this handoff (Session 27 log, especially the summary at its end). Production = **v261009.357**. Staging = **v261010.359-tmp** (compact lobby + tweaks, waiting for Oscar's test → promote as v360). First thing: `cp index.html index_backup_s28.html`.
 2. **Check the new Robot on real play** (v357 re-check = "slightly more generous than the first judge" — check `contestLog`: real-but-uncommon answers rescued? foreign words and wrong-kind answers (library as shop, quilt as invention) kept ❌? Don't tune on single scout flips): ask Oscar for a recent daily export. Look at `aiInfo` (model should be Sante; `s` seconds — expect ~3 s, a whole daily ~7–10 s; any `timeout`/`retried`/`cut`/`error`), `aiResponses` and `contestLog` (each ¿Error?: word, original → result, model). Look for wrong verdicts the v353 rules may have caused (too strict on spelling? people categories? reordered titles like "Bel Air, el príncipe de" now ❌ by design).
 3. Robot news is back in v354 until 13 Oct (wording below); if the Robot misbehaves, remove it: ES "⚡ ¡El Robot ahora corrige más rápido!" / EN "⚡ The Robot now checks faster!" / FR "⚡ Le Robot corrige plus vite !" — keep news only ~4 days (Oscar's rule). The group-history news expires 14 Oct.
 4. Still to confirm on real phones (v344): daily in two tabs with the same name (second shows the first score); group sync phone ↔ computer with a verified registered name; a real 3+ player game where someone leaves / locks the phone (host sees "Esperando a…", "Seguir sin…" after 15 s).
@@ -1529,3 +1550,28 @@ Session 25 plan: Build 5 — Groups and history
 **Last version deployed: v260926.311 (production). Staging (index_tmp.html) = v260926.310-tmp, identical code.**
 
 </details>
+
+### v261010.360-tmp (staging, 10 Oct) — supersedes the "Staging = v359-tmp → promote as v360" line above
+- **Group label:** `#lbl-group-name` is now a visible `p.lbl` ("grupo / group / groupe") above the group picker.
+- **Validation mode moved inside Configuración**, first item above "tema": `p.lbl#lbl-validation-mode` (lowercase, no emoji, like "tema"), `.seg.mode-seg` with the two normal 13px pills (natural width, padding 6px 9px, so "🗳️ Démocratique" fits on one line at 320px FR), and `#mode-hint` is now a `p.lbl` (same style as the theme sublabel "8 categorías fijas…"). The `.seg.big` and `.mode-hint` CSS are gone.
+- **Settings bar:** it is now the first thing in the host card (no top border/margin). Closed = `⚙️ Configuración (Normal, Clásico, 5 rondas, 90 s)` (mode added); open = just `⚙️ Configuración ▴`. `updateCfgSummary()` reads the open state; `toggleLobbyConfig()` calls it. It updates on every change through `saveLobbyConfig()`. It reads `G_validationMode` inside try/catch because that `let` is declared further down the script.
+- The open/closed state of the settings is kept between rooms in the same page (not reset by enterLobby). That's fine; the bar text follows it.
+- **Tests:** unit 239 ✓; countdown 12, groups 28, restore 19, stuck 11 ✓; two-browser lobby test (`lobby360.py`) at 390 ES / 320 FR / 414 EN: no overflow, no page errors, per-name memory ✓.
+- **build5b is flaky** on the check "Marta's buttons are the same elements after Pepe reacted and voted elsewhere": it failed 0–3 times per run on **both v359 and v360** in this container, so it is not caused by this change. Investigate next session: something re-renders Marta's row during that step (timing), maybe the lobbyInfo write or a heartbeat.
+- **Promote:** after Oscar's test → production as **v361**.
+
+### v261010.361-tmp (staging, 10 Oct)
+- **"90s" without a space** in the settings bar and in the guests' waiting line (`renderGuestInfo`).
+- **Validation mode buttons look like the theme buttons:** `.seg.mode-seg` is a 2-column grid; `.mode-seg button.pill` copies `.theme-btn` (Caveat 20px, radius, paper-dark, border) and `.on` copies `.theme-btn.active` (red, bold). Markup is `<span class="mode-ico">👑</span><span class="mode-txt">Normal</span>`; applyLang now fills only `.mode-txt` (emoji stripped from T modeHost/modeDemocratic), so `s('mode-host', …)` is gone. Under 360px the mode cards drop to 16px (existing slot) so bold "Démocratique" fits; the emoji then wraps above, like the theme buttons do.
+- Tests: all suites green (build5b 77/77 this run; still worth watching the flaky check noted under v360).
+- **Promote:** after Oscar's test → production as **v362**.
+
+### v261010.362-tmp (staging, 10 Oct)
+- MODE_HINT.democratic now says the minimum: "todos votan qué vale (mín. 3 jugadores)" / "everyone votes on what counts (min. 3 players)" / "tout le monde vote (min. 3 joueurs)". The start check (`toastDemoMin`) is unchanged. Text-only change: checklist run, no test suites (Oscar's call).
+- **Promote:** after Oscar's test → production as **v363**.
+
+### v261010.363: PRODUCTION (10 Oct). Supersedes the "promote as v360/v361/v362/v363" lines above
+- Production = staging v362-tmp (compact lobby: "¡comparte!" + red code, group label, settings bar with live "(mode, theme, rounds, 90s)", validation mode inside settings as theme-style cards, hint with "mín. 3 jugadores" for Democrático, 👏 reactions row, per-name settings memory, guests see the host's choices) **plus a news line**:
+  `2026-10-10-lobby` until 2026-10-14: "🎛️ ¡Sala renovada! Más compacta y recuerda tus ajustes" / "🎛️ New room screen: more compact, remembers your settings" / "🎛️ Nouvelle salle : plus compacte, elle garde tes réglages".
+- Checklist: version grep before/after ✓, init block ✓, no -tmp outside the version-regex lookaheads ✓, 12 screens ✓, JS syntax ✓, 412 KB (size limit waived).
+- Still open: the flaky build5b check (see v360 entry); the help page should explain reaction points and validation modes.
