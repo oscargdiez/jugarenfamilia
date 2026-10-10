@@ -886,11 +886,8 @@ body.screen-home .page, body.screen-welcome .page { padding-bottom: 2rem; }
 button.pill { font-family: 'Special Elite', monospace; font-size: 13px; font-weight: 400; padding: 6px 12px; border-radius: 20px; border: 1.5px solid var(--border-strong); background: var(--paper-dark); color: var(--ink); line-height: 1.2; }
 button.pill.on { border-color: var(--red); background: var(--red-light); color: var(--red); }
 button.pill:disabled { opacity: .4; cursor: default; }
-.seg.big { flex-wrap: nowrap; }
-.seg.big button.pill { flex: 1 1 auto; min-width: 0; font-family: 'Caveat', cursive; font-size: 20px; font-weight: 600; padding: 8px 4px; border-radius: var(--radius); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-@media (max-width: 359px) { .seg.big button.pill { font-size: 16px; padding: 8px 2px; } }
-.mode-hint { font-family: 'Special Elite', monospace; font-size: 11px; color: var(--ink-muted); margin-top: 6px; text-align: center; }
-button.cfg-summary { width: 100%; display: flex; align-items: center; gap: 8px; margin-top: 12px; padding: 10px 0 0; border: none; border-top: 1px dashed var(--border); border-radius: 0; background: transparent; font-family: 'Special Elite', monospace; font-size: 13px; font-weight: 400; color: var(--ink-sec); text-align: left; }
+.mode-seg button.pill { padding: 6px 9px; white-space: nowrap; }
+button.cfg-summary { width: 100%; display: flex; align-items: center; gap: 8px; margin: 0; padding: 0; border: none; border-radius: 0; background: transparent; font-family: 'Special Elite', monospace; font-size: 13px; font-weight: 400; color: var(--ink-sec); text-align: left; }
 button.cfg-summary:hover { background: transparent; color: var(--ink); }
 .cfg-summary .cfg-text { flex: 1; min-width: 0; line-height: 1.5; }
 .opt-row { display: flex; align-items: center; justify-content: space-between; gap: 6px 12px; flex-wrap: wrap; margin-top: 12px; }
@@ -1115,7 +1112,7 @@ document.addEventListener('DOMContentLoaded', function() {
     <p class="lbl" id="lbl-players">jugadores <span id="lbl-solo-hint" style="display:none"></span></p>
     <div class="chips" id="lob-players"></div>
     <div class="lob-group host-only" style="display:none">
-      <span id="lbl-group-name" style="display:none"></span>
+      <p class="lbl" id="lbl-group-name" style="margin:0 0 6px">grupo</p>
       <div class="grp-row"><button class="grp-current" id="grp-current" onclick="toggleGroupPanel()"><span class="grp-current-name" id="grp-current-name"></span><span class="grp-caret" id="grp-caret">▾</span></button><button class="grp-hist" id="btn-grp-hist" onclick="openHistoryFromLobby()">📜</button></div>
       <div class="grp-panel" id="grp-panel"></div>
     </div>
@@ -1124,17 +1121,17 @@ document.addEventListener('DOMContentLoaded', function() {
   <!-- Host panel -->
   <div id="host-panel" style="display:none">
     <div class="card">
-      <span id="lbl-validation-mode" style="display:none"></span>
-      <div class="seg big">
-        <button class="pill on" id="mode-host" onclick="setValidationMode('host')">👑 Normal</button>
-        <button class="pill" id="mode-democratic" onclick="setValidationMode('democratic')">🗳️ Democrático</button>
-      </div>
-      <p class="mode-hint" id="mode-hint"></p>
       <button class="cfg-summary" id="btn-config-toggle" onclick="toggleLobbyConfig()" aria-expanded="false" aria-controls="config-body">
         <span class="cfg-text"><span id="btn-config-label" style="display:none">⚙️ Configuración</span><span id="cfg-summary">⚙️</span></span>
         <span id="config-toggle-icon" aria-hidden="true">▾</span>
       </button>
       <div class="config-body" id="config-body">
+        <p class="lbl" id="lbl-validation-mode">modo de validación</p>
+        <div class="seg mode-seg">
+          <button class="pill on" id="mode-host" onclick="setValidationMode('host')">👑 Normal</button>
+          <button class="pill" id="mode-democratic" onclick="setValidationMode('democratic')">🗳️ Democrático</button>
+        </div>
+        <p class="lbl" id="mode-hint" style="margin:6px 0 12px"></p>
         <p class="lbl" id="lbl-theme">tema</p>
         <div class="themes" id="theme-btns"></div>
         <div id="cat-classic" style="display:none">
@@ -1832,7 +1829,7 @@ window.applyLang = function() {
   s('btn-leave-text-guest', t('leaveRoom2') || t('leaveRoom'));
   s('btn-config-label', t('configLabel'));
   s('gc-status', t('gcInside'));
-  s('lbl-validation-mode', '🗳️ ' + {'es':'Modo de validación','en':'Validation mode','fr':'Mode de validation'}[LANG]);
+  s('lbl-validation-mode', {'es':'modo de validación','en':'validation mode','fr':'mode de validation'}[LANG]);
   s('mode-host', t('modeHost'));
   s('mode-democratic', t('modeDemocratic'));
   s('lbl-ai-validation-text', t('aiValidation'));
@@ -4201,6 +4198,7 @@ window.toggleLobbyConfig = function() {
   if (icon) icon.textContent = isOpen ? '▴' : '▾';
   const btn = document.getElementById('btn-config-toggle');
   if (btn) btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+  updateCfgSummary();
 };
 
 // ── Compact lobby helpers (Session 28) ──
@@ -4242,7 +4240,7 @@ function syncLobbyPills() {
   pillPair(document.getElementById('rp-yes'), document.getElementById('rp-no'), !rp || rp.checked);
   syncFreeCatPills();
 }
-// Summary line on the closed settings button: theme · rounds · seconds · reactions · robot
+// Settings bar: closed = mode, theme, rounds, seconds; open = just the title
 function updateCfgSummary() {
   const el = document.getElementById('cfg-summary');
   if (!el) return;
@@ -4251,7 +4249,11 @@ function updateCfgSummary() {
   // Only the gear icon: strip the emoji from the theme name and the label
   const theme = String(G.selectedTheme || '').replace(/^[^\p{L}]+/u, '').trim();
   const label = String(t('configLabel') || '').replace(/^[^\p{L}]+/u, '').trim();
-  el.textContent = '⚙️ ' + label + ' (' + [theme, rounds + ' ' + t('rounds'), time + ' s'].filter(Boolean).join(', ') + ')';
+  const open = document.getElementById('config-body')?.classList.contains('open');
+  let vm = 'host'; try { vm = G_validationMode; } catch (e) {}
+  const mode = String(t(vm === 'democratic' ? 'modeDemocratic' : 'modeHost') || '').replace(/^[^\p{L}]+/u, '').trim();
+  // Open: just the title (the options are visible below). Closed: what is set.
+  el.textContent = '⚙️ ' + label + (open ? '' : ' (' + [mode, theme, rounds + ' ' + t('rounds'), time + ' s'].filter(Boolean).join(', ') + ')');
 }
 // The guests see what the host picked (mode, theme, rounds, seconds) while waiting
 // Only from the host's LOBBY, only when it changed: an extra room write during a round would make every
@@ -7724,7 +7726,7 @@ setTimeout(() => updateDailyButtonDate(), 350);
 // Version freshness check — silently reload if a newer version is deployed
 // Runs once on load; does nothing if already on latest or if fetch fails
 (function() {
-  const RUNNING = 'v261010.359-tmp';
+  const RUNNING = 'v261010.360-tmp';
   if (sessionStorage.getItem('alto_ver_checked') === RUNNING) return; // already checked this session
   sessionStorage.setItem('alto_ver_checked', RUNNING);
   fetch(location.href, { cache: 'no-cache' })
@@ -7748,7 +7750,7 @@ syncMyGroups(); // registered + verified name: bring in groups from the name's o
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v261010.359-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v261010.360-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
