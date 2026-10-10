@@ -4217,7 +4217,7 @@ function pillPair(a, b, onA) {
 }
 const MODE_HINT = {
   host: { es: 'el anfitrión decide qué vale', en: 'the host decides what counts', fr: "l'hôte décide ce qui compte" },
-  democratic: { es: 'todos votan qué vale', en: 'everyone votes on what counts', fr: 'tout le monde vote' },
+  democratic: { es: 'todos votan qué vale (mín. 3 jugadores)', en: 'everyone votes on what counts (min. 3 players)', fr: 'tout le monde vote (min. 3 joueurs)' },
 };
 function updateModeHint() {
   const el = document.getElementById('mode-hint');
@@ -7734,7 +7734,7 @@ setTimeout(() => updateDailyButtonDate(), 350);
 // Version freshness check — silently reload if a newer version is deployed
 // Runs once on load; does nothing if already on latest or if fetch fails
 (function() {
-  const RUNNING = 'v261010.361-tmp';
+  const RUNNING = 'v261010.362-tmp';
   if (sessionStorage.getItem('alto_ver_checked') === RUNNING) return; // already checked this session
   sessionStorage.setItem('alto_ver_checked', RUNNING);
   fetch(location.href, { cache: 'no-cache' })
@@ -7758,7 +7758,7 @@ syncMyGroups(); // registered + verified name: bring in groups from the name's o
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v261010.361-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v261010.362-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
