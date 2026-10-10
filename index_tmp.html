@@ -875,6 +875,36 @@ body.screen-home .page, body.screen-welcome .page { padding-bottom: 2rem; }
   display: flex; align-items: center; justify-content: center; gap: 6px;
 }
 .btn-leave-room:hover { background: var(--paper-dark); border-color: var(--border-strong); }
+
+/* ── Compact lobby (Session 28) ── */
+#lob-role { display: none; }
+.share-row { display: flex; gap: 8px; align-items: center; }
+.share-row #btn-copy { flex: 1; min-width: 0; }
+.code-sm { flex-shrink: 0; font-family: 'Special Elite', monospace; font-size: 13px; letter-spacing: 2px; color: var(--ink-muted); }
+.lob-group { margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border); }
+.seg { display: flex; gap: 6px; flex-wrap: wrap; }
+button.pill { font-family: 'Special Elite', monospace; font-size: 13px; font-weight: 400; padding: 6px 12px; border-radius: 20px; border: 1.5px solid var(--border-strong); background: var(--paper-dark); color: var(--ink); line-height: 1.2; }
+button.pill.on { border-color: var(--red); background: var(--red-light); color: var(--red); }
+button.pill:disabled { opacity: .4; cursor: default; }
+.seg.big { flex-wrap: nowrap; }
+.seg.big button.pill { flex: 1 1 auto; min-width: 0; font-family: 'Caveat', cursive; font-size: 20px; font-weight: 600; padding: 8px 4px; border-radius: var(--radius); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 359px) { .seg.big button.pill { font-size: 16px; padding: 8px 2px; } }
+.mode-hint { font-family: 'Special Elite', monospace; font-size: 11px; color: var(--ink-muted); margin-top: 6px; text-align: center; }
+button.cfg-summary { width: 100%; display: flex; align-items: center; gap: 8px; margin-top: 12px; padding: 10px 0 0; border: none; border-top: 1px dashed var(--border); border-radius: 0; background: transparent; font-family: 'Special Elite', monospace; font-size: 13px; font-weight: 400; color: var(--ink-sec); text-align: left; }
+button.cfg-summary:hover { background: transparent; color: var(--ink); }
+.cfg-summary .cfg-text { flex: 1; min-width: 0; line-height: 1.5; }
+.opt-row { display: flex; align-items: center; justify-content: space-between; gap: 6px 12px; flex-wrap: wrap; margin-top: 12px; }
+.opt-row .lbl { margin: 0; }
+.opt-note { font-family: 'Special Elite', monospace; font-size: 11px; color: var(--ink-muted); margin-top: 2px; }
+.config-body .theme-btn { padding: 4px; }
+.config-body .range-lbl { margin: 12px 0 2px; }
+button.leave-link { display: block; margin: 6px auto 0; padding: 8px 12px; border: none; background: transparent; font-family: 'Caveat', cursive; font-size: 20px; font-weight: 400; color: var(--ink-sec); }
+button.leave-link:hover { background: transparent; color: var(--ink); text-decoration: underline; }
+.guest-confirmed { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; text-align: left; padding: 0; }
+.guest-confirmed .gc-emoji { font-size: 26px; margin: 0; }
+.guest-confirmed .gc-status { margin: 0 0 0 auto; }
+.guest-confirmed .gc-group-row { width: 100%; }
+.guest-info { font-family: 'Special Elite', monospace; font-size: 13px; color: var(--ink-sec); text-align: center; margin: 0 0 8px; line-height: 1.5; }
 </style>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -1045,18 +1075,15 @@ document.addEventListener('DOMContentLoaded', function() {
 <div id="s-lobby" class="screen">
   <p class="sub" id="lob-role" style="text-align:center;margin-top:0.5rem;margin-bottom:1rem"></p>
 
-  <!-- Host: share code -->
+  <!-- Host: share (compact, Session 28) — the code is only for reference: nobody types it anywhere -->
   <div class="card host-only" style="display:none">
-    <p class="lbl" id="lbl-share-code">comparte el código con tu familia</p>
-    <div class="room-code" id="lob-code">----</div>
-    <div class="share-box">
-      <span class="share-url" id="share-url"></span>
-    </div>
-    <div style="display:flex;gap:8px;margin-top:8px">
-      <button onclick="copyLink()" style="flex:1;font-size:13px;padding:8px;font-family:'Special Elite',monospace" id="btn-copy">📋 <span id="btn-copy-text">Copiar enlace</span></button>
-      <button class="wa-btn" onclick="shareWhatsApp()" id="btn-wa" style="flex-shrink:0;padding:8px 12px">
+    <span id="lbl-share-code" style="display:none"></span><span id="share-url" style="display:none"></span>
+    <div class="share-row">
+      <button onclick="copyLink()" style="font-size:13px;padding:8px;font-family:'Special Elite',monospace" id="btn-copy">📋 <span id="btn-copy-text">Copiar enlace</span></button>
+      <button class="wa-btn" onclick="shareWhatsApp()" id="btn-wa" aria-label="WhatsApp" style="flex-shrink:0;padding:8px 12px">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
       </button>
+      <span class="code-sm" id="lob-code">----</span>
     </div>
   </div>
 
@@ -1086,22 +1113,27 @@ document.addEventListener('DOMContentLoaded', function() {
   <div class="card">
     <p class="lbl" id="lbl-players">jugadores <span id="lbl-solo-hint" style="display:none"></span></p>
     <div class="chips" id="lob-players"></div>
+    <div class="lob-group host-only" style="display:none">
+      <span id="lbl-group-name" style="display:none"></span>
+      <div class="grp-row"><button class="grp-current" id="grp-current" onclick="toggleGroupPanel()"><span class="grp-current-name" id="grp-current-name"></span><span class="grp-caret" id="grp-caret">▾</span></button><button class="grp-hist" id="btn-grp-hist" onclick="openHistoryFromLobby()">📜</button></div>
+      <div class="grp-panel" id="grp-panel"></div>
+    </div>
   </div>
 
   <!-- Host panel -->
   <div id="host-panel" style="display:none">
     <div class="card">
-      <p class="lbl" id="lbl-group-name">grupo</p>
-      <div class="grp-row"><button class="grp-current" id="grp-current" onclick="toggleGroupPanel()"><span class="grp-current-name" id="grp-current-name"></span><span class="grp-caret" id="grp-caret">▾</span></button><button class="grp-hist" id="btn-grp-hist" onclick="openHistoryFromLobby()">📜</button></div>
-      <div class="grp-panel" id="grp-panel"></div>
-    </div>
-    <button class="pri" onclick="startGame()" style="width:100%;font-size: 20px;padding:14px" id="btn-start">¡Comenzar! →</button>
-    <button class="btn-leave-room" onclick="leaveGame()" id="btn-leave">← <span id="btn-leave-text">Salir de la sala</span></button>
-    <button class="config-toggle" id="btn-config-toggle" onclick="toggleLobbyConfig()" style="margin-top:12px">
-      <span id="config-toggle-icon">▼</span>&nbsp;<span id="btn-config-label">⚙️ Configuración</span>
-    </button>
-    <div class="config-body" id="config-body">
-      <div class="card">
+      <span id="lbl-validation-mode" style="display:none"></span>
+      <div class="seg big">
+        <button class="pill on" id="mode-host" onclick="setValidationMode('host')">👑 Normal</button>
+        <button class="pill" id="mode-democratic" onclick="setValidationMode('democratic')">🗳️ Democrático</button>
+      </div>
+      <p class="mode-hint" id="mode-hint"></p>
+      <button class="cfg-summary" id="btn-config-toggle" onclick="toggleLobbyConfig()" aria-expanded="false" aria-controls="config-body">
+        <span class="cfg-text"><span id="btn-config-label" style="display:none">⚙️ Configuración</span><span id="cfg-summary">⚙️</span></span>
+        <span id="config-toggle-icon" aria-hidden="true">▾</span>
+      </button>
+      <div class="config-body" id="config-body">
         <p class="lbl" id="lbl-theme">tema</p>
         <div class="themes" id="theme-btns"></div>
         <div id="cat-classic" style="display:none">
@@ -1118,58 +1150,52 @@ document.addEventListener('DOMContentLoaded', function() {
             <button id="btn-usar-ejemplos" onclick="fillExampleCats()" style="font-size:11px;padding:3px 8px;opacity:0.7">Usar ejemplos</button>
           </div>
           <textarea id="free-cats" rows="5" placeholder="Jugadores del Barça&#10;Películas de terror&#10;Cosas en la cocina" oninput="saveLobbyConfig();updateFreeCatRandomToggle()"></textarea>
-          <label class="cat-lbl" id="lbl-free-cat-random" style="margin-top:6px;opacity:0.4;pointer-events:none">
-            <input type="checkbox" id="free-cat-random" disabled onchange="saveLobbyConfig()">
-            <span id="lbl-free-cat-random-text">Elegir 8 al azar cada ronda</span>
-          </label>
+          <div class="opt-row" id="lbl-free-cat-random" style="opacity:0.4">
+            <span class="lbl" id="lbl-free-cat-random-text">Elegir 8 al azar cada ronda</span>
+            <div class="seg"><button class="pill" id="fcr-yes" onclick="setFreeCatRandom(true)" disabled><span class="yes-txt">Sí</span></button><button class="pill on" id="fcr-no" onclick="setFreeCatRandom(false)" disabled><span class="no-txt">No</span></button></div>
+          </div>
+          <input type="checkbox" id="free-cat-random" disabled hidden>
         </div>
-      </div>
-      <div class="card">
         <p class="lbl" style="display:none">letras fáciles <span style="font-size:11px;opacity:.7" id="lbl-easy-hint">(sin K, Ñ, Q, U, W, X, Y, Z)</span></p>
         <label class="cat-lbl" style="display:none">
           <input type="checkbox" id="easy-letters" checked onchange="toggleEasyLetters(this.checked)">
           <span id="lbl-easy-letters">solo letras fáciles</span>
         </label>
-        <p class="lbl" style="margin-top:14px" id="lbl-rounds">rondas</p>
+        <p class="lbl range-lbl" id="lbl-rounds">rondas</p>
         <div class="range-row">
           <input type="range" min="3" max="12" value="5" id="sl-rounds" oninput="document.getElementById('v-rounds').textContent=this.value;saveLobbyConfig()">
           <span class="range-val" id="v-rounds">5</span>
         </div>
-        <p class="lbl" style="margin-top:14px" id="lbl-seconds">segundos por ronda</p>
+        <p class="lbl range-lbl" id="lbl-seconds">segundos por ronda</p>
         <div class="range-row">
           <input type="range" min="30" max="120" step="10" value="90" id="sl-time" oninput="document.getElementById('v-time').textContent=this.value;saveLobbyConfig()">
           <span class="range-val" id="v-time">90</span>
         </div>
-        <label class="cat-lbl" style="margin-top:14px">
-          <input type="checkbox" id="reaction-points" checked onchange="saveLobbyConfig()">
-          <span id="lbl-reaction-points">🌶️ Reacciones con puntos</span>
-        </label>
-        <p style="margin:2px 0 0 22px;font-size:11px;color:var(--ink-muted)">🔥 +30 · 👏 +20 · 😂 +10 · 😬 0</p>
-        <div style="margin-top:16px;border-top:1px dashed var(--border);padding-top:12px">
-          <p class="lbl" style="margin-bottom:6px" id="lbl-validation-mode">🗳️ Modo de validación</p>
-          <div style="display:flex;gap:6px;margin-bottom:14px">
-            <button id="mode-host" onclick="setValidationMode('host')" style="font-size: 11px;padding:4px 10px;border-radius:20px;border:1.5px solid #c0392b;background:#fdf0ee;cursor:pointer">👑 Normal</button>
-            <button id="mode-democratic" onclick="setValidationMode('democratic')" style="font-size: 11px;padding:4px 10px;border-radius:20px;border:1.5px solid var(--border-strong);background:var(--paper-dark);cursor:pointer">🗳️ Democrático</button>
-          </div>
-          <p class="lbl" id="lbl-ai-validation" style="margin-bottom:6px"><span id="lbl-ai-validation-text">🤖 Asistente Robot</span></p>
-          <div style="display:flex;gap:6px;margin-bottom:8px">
-            <button id="ai-relajado" onclick="setAIStrictness('relajado')" style="font-size: 11px;padding:4px 10px;border-radius:20px;border:1.5px solid #c0392b;background:#fdf0ee;cursor:pointer">🟢 Relajada</button>
-            <button id="ai-estricto" onclick="setAIStrictness('estricto')" style="font-size: 11px;padding:4px 10px;border-radius:20px;border:1.5px solid var(--border-strong);background:var(--paper-dark);cursor:pointer">🔴 Estricta</button>
-          </div>
-          <p class="lbl" style="margin-bottom:4px"><span id="lbl-ai-spelling-text">✏️ Permitir faltas de ortografía</span></p>
-          <div style="display:flex;gap:6px">
-            <button id="ai-spelling-no" onclick="setAISpelling(false)" style="font-size: 11px;padding:4px 10px;border-radius:20px;border:1.5px solid #c0392b;background:#fdf0ee;cursor:pointer"><span id="lbl-ai-no">No</span></button>
-            <button id="ai-spelling-si" onclick="setAISpelling(true)" style="font-size: 11px;padding:4px 10px;border-radius:20px;border:1.5px solid var(--border-strong);background:var(--paper-dark);cursor:pointer"><span id="lbl-ai-yes">Sí</span></button>
-          </div>
+        <div class="opt-row">
+          <span class="lbl" id="lbl-reaction-points">🌶️ Reacciones con puntos</span>
+          <div class="seg"><button class="pill on" id="rp-yes" onclick="setReactionPoints(true)"><span class="yes-txt">Sí</span></button><button class="pill" id="rp-no" onclick="setReactionPoints(false)"><span class="no-txt">No</span></button></div>
+        </div>
+        <p class="opt-note">🔥 +30 · 👏 +20 · 😂 +10 · 😬 0</p>
+        <input type="checkbox" id="reaction-points" checked hidden>
+        <div class="opt-row">
+          <span class="lbl" id="lbl-ai-validation"><span id="lbl-ai-validation-text">🤖 Asistente Robot</span></span>
+          <div class="seg"><button class="pill on" id="ai-relajado" onclick="setAIStrictness('relajado')">🟢 Relajada</button><button class="pill" id="ai-estricto" onclick="setAIStrictness('estricto')">🔴 Estricta</button></div>
+        </div>
+        <div class="opt-row">
+          <span class="lbl"><span id="lbl-ai-spelling-text">✏️ Permitir faltas de ortografía</span></span>
+          <div class="seg"><button class="pill on" id="ai-spelling-no" onclick="setAISpelling(false)"><span id="lbl-ai-no">No</span></button><button class="pill" id="ai-spelling-si" onclick="setAISpelling(true)"><span id="lbl-ai-yes">Sí</span></button></div>
         </div>
       </div>
     </div>
+    <button class="pri" onclick="startGame()" style="width:100%;font-size: 20px;padding:14px" id="btn-start">¡Comenzar! →</button>
+    <button class="leave-link" onclick="leaveGame()" id="btn-leave">← <span id="btn-leave-text">Salir de la sala</span></button>
   </div>
 
   <!-- Guest panel -->
   <div id="guest-panel" style="display:none">
+    <p class="guest-info" id="guest-info" style="display:none"></p>
     <p class="wait" id="lbl-guest-wait">✏️ Esperando al anfitrión…</p>
-    <button class="btn-leave-room" onclick="leaveGame()" id="btn-leave-guest">← <span id="btn-leave-text-guest">Salir de la sala</span></button>
+    <button class="leave-link" onclick="leaveGame()" id="btn-leave-guest">← <span id="btn-leave-text-guest">Salir de la sala</span></button>
   </div>
 </div>
 <!-- ══ DAILY PLAY ══ -->
@@ -1815,6 +1841,9 @@ window.applyLang = function() {
   s('lbl-ai-spelling-text', t('aiSpelling'));
   s('lbl-ai-yes', t('aiYes'));
   s('lbl-ai-no', t('aiNo'));
+  document.querySelectorAll('.yes-txt').forEach(e => { e.textContent = t('aiYes'); });
+  document.querySelectorAll('.no-txt').forEach(e => { e.textContent = t('aiNo'); });
+  if (typeof updateModeHint === 'function') { updateModeHint(); updateCfgSummary(); }
   s('lbl-guest-wait', t('guestWait'));
   // Playing
   s('lbl-letter', t('letterLabel'));
@@ -1990,6 +2019,9 @@ window.fillExampleCats = () => {
   if (!ta) return;
   ta.value = (FREE_CAT_EXAMPLES[LANG] || FREE_CAT_EXAMPLES.es).join('\n');
   updateFreeCatRandomToggle();
+  // Examples are always 9+ → turn "pick 8 at random each round" on (Session 28)
+  const cbR = document.getElementById('free-cat-random');
+  if (cbR && !cbR.disabled) { cbR.checked = true; syncFreeCatPills(); }
   saveLobbyConfig();
 };
 
@@ -2004,6 +2036,7 @@ function updateFreeCatRandomToggle() {
   lbl.style.pointerEvents = enough ? 'auto' : 'none';
   cb.disabled = !enough;
   if (!enough) cb.checked = false;
+  syncFreeCatPills();
 }
 
 window.shareWhatsApp = async () => {
@@ -2449,11 +2482,20 @@ function mulberry32(seed) {
 // and is only reached if both free models fail.
 // Scout v4 (29 Sep, prompt v320, 21 answers + 11 contests): Cohere 21/21 11/11 no flips 4.6s -> first;
 // Sante 21/21 11/11 but 1 flip 2.2s -> second; Ling Fin 20/21 (accepted FR Jabali), 2 flips -> paid safety net only.
+// Scout v5 (8 Oct, 34 answers incl. real 1–8 Oct misses + 15 contests): Sante free is GONE ("unavailable for free,
+// the paid version is available now") -> removed. Cohere 28/34, contests 8/15, avg 7.5s, slowest 10% 14.8s;
+// Ling Fin 24/34 (several were dropped connections), contests 12/15, avg 3.5s, slowest 10% 8.1s. A timeout retry
+// skips the first model (v347), so it now goes straight to Ling Fin (paid, fast).
+// Scout v5.1 (8 Oct, clean run): Sante PAID 30/34, contests 10/10, 1 flip, avg 3.0s, slowest 10% 4.6s, 0 timeouts
+// (one provider, NovitaAI — consistent verdicts); Ling Fin 27/34, 13/15, 0 flips, 3.0s/4.8s (accepted FR "5" as a
+// body part); Cohere free 27/34, 13/15, 4 flips, 7.4s/15.6s. Cost: $0.042 / $0.12 per M tokens in/out, about
+// $0.00003 per judgement (~30 cents a month at 300 a day). Order (Oscar, 8 Oct): Sante first; a timeout retry skips
+// it and goes to Ling Fin; free Cohere last, so the game still works if the OpenRouter credit runs out.
 // Keep at most 3: OpenRouter documents a 3-entry cap on fallback lists (400 error above that).
 const AI_MODELS = [
-  'cohere/north-mini-code:free',
-  'inclusionai/ling-3.0-flash-sante:free',
-  'inclusionai/ling-3.0-flash-fin'
+  'inclusionai/ling-3.0-flash-sante',
+  'inclusionai/ling-3.0-flash-fin',
+  'cohere/north-mini-code:free'
 ];
 // DAILY_CONSENSUS: set true to use 2-model consensus + tiebreaker, false for single model
 const DAILY_CONSENSUS = false;
@@ -2543,10 +2585,10 @@ const DAILY_OVERRIDES = {
 // id: unique (✕ hides it on that device for good) · type: 'info' | 'warning' (red edge) · until: last day shown (YYYY-MM-DD)
 // es is required; en/fr fall back to es. Avoid "ayer"/"yesterday": a message stays up for days.
 const NEWS = [
-  { id: '2026-10-02-robots', type: 'info', until: '2026-10-16',
-    es: '🤖 ¡Robots mejorados! Ahora piensan más',
-    en: '🤖 Robots upgraded: they think first!',
-    fr: '🤖 Robots améliorés ! Ils pensent mieux' },
+  { id: '2026-10-09-robot-fast', type: 'info', until: '2026-10-13',
+    es: '⚡ ¡El Robot ahora corrige más rápido!',
+    en: '⚡ The Robot now checks faster!',
+    fr: '⚡ Le Robot corrige plus vite !' },
   { id: '2026-09-30-historial', type: 'info', until: '2026-10-14',
     es: '📜 Nuevo: el historial de tu grupo',
     en: "📜 New: your group's game history",
@@ -2583,6 +2625,17 @@ function getDailyKey() {
   return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
 }
 
+// Daily seed per date + language (Session 27). The old seed was date number + 0/1/2 by language, so FR on day D
+// = EN on D+1 = ES on D+2 (same letter and categories). From DAILY_SEED_V2_FROM on, date and language are mixed
+// with a string hash so they never line up. Older dates keep the old seed so past/today's dailies don't change.
+const DAILY_SEED_V2_FROM = '2026-10-10';
+function dailySeed(key, lang) {
+  if (key < DAILY_SEED_V2_FROM) return parseInt(key.replace(/-/g,'')) + ({es: 0, en: 1, fr: 2}[lang] || 0);
+  let x = 2166136261 >>> 0; // FNV-1a
+  for (const c of 'alto-daily|' + key + '|' + (lang || 'es')) { x ^= c.charCodeAt(0); x = Math.imul(x, 16777619) >>> 0; }
+  return x | 0;
+}
+
 // Get deterministic daily setup — per language, per date
 function getDailySetup() {
   const key = getDailyKey();
@@ -2591,9 +2644,7 @@ function getDailySetup() {
   if (ov && ov.categories && ov.categories[LANG]) {
     return { letter: ov.letter, categories: ov.categories[LANG], key, theme: (ov.theme || {})[LANG] || null };
   }
-  const langOffset = {es: 0, en: 1, fr: 2}[LANG] || 0;
-  const seed = parseInt(key.replace(/-/g,'')) + langOffset;
-  const rng = mulberry32(seed);
+  const rng = mulberry32(dailySeed(key, LANG));
 
   // Pick letter from this language's easy pool
   const easyPool = LETTERS_EASY[LANG] || LETTERS_EASY.es;
@@ -3247,7 +3298,14 @@ function dailyBuildPrompt(category, letter, opts) {
   const langNames = {es:'Spanish',en:'English',fr:'French'};
   const gameLang = langNames[LANG] || 'Spanish';
   const foreignEx = FOREIGN_WORD_EXAMPLE[LANG] || FOREIGN_WORD_EXAMPLE.es;
-  let systemPrompt = `You are a fair and balanced judge of a ${gameLang}-language word game. Rules: (1) Ignore accents and tildes — Ramon=Ramón is fine. (2) Accept borderline, regional, informal, and less common but genuinely real answers. Reject made-up or unverifiable answers. (3) Language. Proper nouns are international — person names, surnames, singers, actors, writers, fictional characters, song/film/TV titles, brands, cities, and countries are accepted in any language. Everything else must be the ${gameLang} word: animals, plants, fruits, food, drinks, objects, body parts, jobs, colours, sports, instruments and any other common noun. A correctly spelled word from another language is INVALIDO even if it means the right thing (e.g. ${foreignEx}). Loanwords normally used in ${gameLang} are fine (e.g. pizza, sushi, jazz). (4) Spelling must be correct (accents/tildes excepted) — misspelled words are INVALIDO. (5) VALIDO for real correctly-spelled answers even if uncommon. INVALIDO for clearly wrong, made-up, or misspelled answers. DUDOSO when genuinely uncertain whether something exists.`;
+  // Rule (4) example per language (Session 27): real misspellings that sound right
+  const SPELLING_EXAMPLE = {
+    es: '"vivora" for "víbora", "broccoli" for "brócoli"',
+    en: '"brocoli" for "broccoli", "jiraffe" for "giraffe"',
+    fr: '"carote" for "carotte", "farmacie" for "pharmacie"',
+  };
+  const spellEx = SPELLING_EXAMPLE[LANG] || SPELLING_EXAMPLE.es;
+  let systemPrompt = `You are a fair and balanced judge of a ${gameLang}-language word game. Rules: (1) Ignore accents and tildes — Ramon=Ramón is fine. (2) Accept borderline, regional, informal, and less common but genuinely real answers. Reject made-up or unverifiable answers. (3) Language. Proper nouns are international — person names, surnames, singers, actors, writers, fictional characters, song/film/TV titles, brands, cities, and countries are accepted in any language. Everything else must be the ${gameLang} word: animals, plants, fruits, food, drinks, objects, body parts, jobs, colours, sports, instruments and any other common noun. A correctly spelled word from another language is INVALIDO even if it means the right thing (e.g. ${foreignEx}). Loanwords normally used in ${gameLang} are fine (e.g. pizza, sushi, jazz). (4) Spelling must be correct (accents/tildes excepted) — misspelled words are INVALIDO. Wrong, swapped, missing or extra letters are misspellings even when the word sounds the same (b/v, g/j, ll/y, c/s/z, a missing or extra h, a single letter doubled or a double letter single), e.g. ${spellEx}. (5) VALIDO for real correctly-spelled answers even if uncommon. INVALIDO for clearly wrong, made-up, or misspelled answers. DUDOSO when genuinely uncertain whether something exists. (6) Category fit. The answer must be the kind of thing the category names. A category of people — athlete or sportsperson (Deportista, Sportif), writer, singer, scientist, historical figure… — needs a person, not a sport, brand, place or object. A spice must be a spice or herb, not a dish or a prepared or powdered food. Only people's names may be written surname first ("Edison, Thomas" is fine); any other answer must be its normal name, not reordered to fit the letter.`;
   const userPrompt = gameLang + ' word game. Letter: "' + letter + '". Category: "' + category + '". Does the answer start with "' + letter + '" and genuinely belong to the category? Reply ONE word only: VALIDO, INVALIDO, or DUDOSO.';
   if (opts) {
     const swap = (from, to) => { systemPrompt = systemPrompt.replace(from, to); };
@@ -3260,7 +3318,7 @@ function dailyBuildPrompt(category, letter, opts) {
       systemPrompt += ' Relaxed mode: always prefer VALIDO on any close call.';
     }
     if (opts.looseSpelling) {
-      swap('(4) Spelling must be correct (accents/tildes excepted) — misspelled words are INVALIDO.',
+      swap(`(4) Spelling must be correct (accents/tildes excepted) — misspelled words are INVALIDO. Wrong, swapped, missing or extra letters are misspellings even when the word sounds the same (b/v, g/j, ll/y, c/s/z, a missing or extra h, a single letter doubled or a double letter single), e.g. ${spellEx}.`,
            '(4) Minor spelling mistakes and phonetic spellings are acceptable as long as the intended word is clear.');
       swap('VALIDO for real correctly-spelled answers even if uncommon. INVALIDO for clearly wrong, made-up, or misspelled answers.',
            'VALIDO for real answers even if uncommon or slightly misspelled. INVALIDO for clearly wrong or made-up answers.');
@@ -3292,14 +3350,14 @@ function aiParseVerdict(text) {
   return null;
 }
 async function aiJudgeCall(systemPrompt, prompt, models, timeoutMs) {
-  const once = async () => {
+  const once = async (useModels = models) => {
     const response = await fetch('https://api.oscar-g-diez.workers.dev/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       signal: AbortSignal.timeout(timeoutMs || AI_TIMEOUT_MS),
       body: JSON.stringify({
         // A list (AI_MODELS) goes as OpenRouter fallbacks; a single name is called on its own (consensus mode)
-        ...(Array.isArray(models) ? { models } : { model: models }),
+        ...(Array.isArray(useModels) ? { models: useModels } : { model: useModels }),
         messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: prompt }],
         max_tokens: AI_MAX_TOKENS,
         temperature: 0
@@ -3327,10 +3385,14 @@ async function aiJudgeCall(systemPrompt, prompt, models, timeoutMs) {
   let r, retried = false, timedOut = false;
   try { r = await once(); }
   catch (e) {
-    // Timeout (Session 27, 7 Oct: ~12% of daily answers): one fresh try before giving up. Other errors throw as before.
+    // Timeout (7 Oct ~12%, 8 Oct ~18% of daily answers, almost all Cohere's free queue): one fresh try before giving up.
+    // The retry SKIPS the first model, so it doesn't wait in the same busy queue again (8 Oct: retries on Cohere
+    // took up to 20 s more). A timeout cancels the request, so OpenRouter never got to the fallbacks on its own.
+    // Other errors throw as before.
     if (!isTimeoutErr(e)) throw e;
     timedOut = true; retried = true;
-    try { r = await once(); }
+    const rest = Array.isArray(models) && models.length > 1 ? models.slice(1) : models;
+    try { r = await once(rest); }
     catch (e2) { e2.ms = Date.now() - t0; e2.timedOut = true; throw e2; }
   }
   if (!r.verdict && (r.empty || r.cut) && !retried) {
@@ -3500,7 +3562,7 @@ window.recontest = async (idx, word, cat) => {
     // Method A: strict scope, 2-of-3 threshold, DUDOSO upholds
     // Method B: generous scope only, 1-of-3 threshold, DUDOSO upholds, spelling always strict
     const systemPrompt = CONTEST_METHOD === 'B'
-      ? `You are a judge of a ${gameLang}-language word game. A previous judge ruled an answer INVALID. STRICT RULE on spelling: any spelling mistake beyond accents or tildes is INVALIDO — wrong letters, missing letters, or added letters are never acceptable (applies to common words; proper nouns like names and places must also be spelled correctly). Proper nouns are international — person names, surnames, singers, actors, writers, fictional characters, song/film/TV titles, brands, cities, and countries are accepted in any language; only common nouns must be in ${gameLang}. If spelling is correct, be generous with the category scope — if the answer could reasonably belong to the category, rule VALIDO. If in doubt about spelling, rule INVALIDO. If in doubt about category fit only, rule VALIDO. Reply with exactly one word: VALIDO, INVALIDO, or DUDOSO.`
+      ? `You are a judge of a ${gameLang}-language word game. A previous judge ruled an answer INVALID. STRICT RULE on spelling: any spelling mistake beyond accents or tildes is INVALIDO — wrong letters, missing letters, or added letters are never acceptable (applies to common words; proper nouns like names and places must also be spelled correctly). Proper nouns are international — person names, surnames, singers, actors, writers, fictional characters, song/film/TV titles, brands, cities, and countries are accepted in any language; only common nouns must be in ${gameLang}. Letters that sound the same are still spelling mistakes (b/v, g/j, ll/y, c/s/z, a missing or extra h). If spelling is correct, be slightly more generous than the first judge: rule VALIDO if the answer reasonably belongs to the category, even if it is uncommon or a borderline case. It must still be the kind of thing the category names: a category of people (athlete or sportsperson, writer, singer…) needs a person, not a sport, brand or object, and a spice must be a spice or herb, not a dish or prepared food. A common noun from another language stays INVALIDO. If in doubt about spelling, rule INVALIDO. Reply with exactly one word: VALIDO, INVALIDO, or DUDOSO.`
       : `You are a fair judge of a ${gameLang}-language word game. A previous judge ruled an answer INVALID. Overturn only if: (1) the answer clearly and unambiguously belongs to the category — do not stretch the category definition; and (2) any error is limited to accents or tildes only — spelling mistakes, wrong letters, or missing letters are NOT grounds to overturn. If in doubt, uphold the original INVALIDO verdict. Reply with exactly one word: VALIDO, INVALIDO, or DUDOSO.`;
     const prompt = CONTEST_METHOD === 'B'
       ? `${gameLang}-language game. Letter: "${letter}". Category: "${cat.trim()}". Answer: "${word}". Does the answer start with "${letter}" and genuinely belong to the category? Note: proper nouns (person names, surnames, singers, actors, writers, cities, countries) are valid in any language — do not reject for being non-${gameLang}. Common nouns (animals, plants, fruits, food, drinks, objects, body parts, etc.) must be the ${gameLang} word — a word from another language is INVALIDO even if it means the right thing; loanwords normally used in ${gameLang} are fine. Spelling must be correct beyond accents/tildes. Reply with ONE word only: VALIDO, INVALIDO, or DUDOSO.`
@@ -3517,23 +3579,28 @@ window.recontest = async (idx, word, cat) => {
     await set(ref(db, contestEntryPath), true).catch(() => {});
     // Capture original verdict for logging and safe revert
     const originalVerdict = G_daily.aiResults[String(idx)] || G_daily.aiResults[idx] || 'invalid';
-    // Log contest outcome for AI tuning analysis (per-entry, under same path)
-    const aiRaw = res1.rawText;
-    await set(ref(db, contestPath + '_log/' + String(idx)), {
-      idx: String(idx),
+    // Log EVERY contest (upheld or overturned) inside the daily score, so one daily export has it all (Session 27).
+    // The "already contested" marker above stays under names/ — it enforces one contest per answer across devices.
+    // (Before v346 the full log went to names/{name}/contests/{date}/{lang}_log/{idx}; those old entries are kept.)
+    const contestEntry = {
+      word,
       category: cat,
       letter: G_daily.letter || '',
-      word,
-      originalVerdict: originalVerdict,
-      newVerdict: newRes,
-      votes,
+      original: originalVerdict,
+      result: newRes,
+      overturned: newRes === 'valid',
       method: CONTEST_METHOD,
-      aiResponse: aiRaw || null,
+      aiResponse: res1.rawText || null,
       model: res1.model || '',
       ...(res1.cut ? { cut: true } : {}),
       ...(res1.retried ? { retried: true } : {}),
+      ...(typeof res1.ms === 'number' ? { s: Math.round(res1.ms / 100) / 10 } : {}),
       timestamp: Date.now()
-    }).catch(() => {});
+    };
+    const contestScoreRef = G_daily.playerKey ? ref(db, 'daily/' + key + '/' + LANG + '/scores/' + G_daily.playerKey) : null;
+    if (contestScoreRef && newRes !== 'valid') {
+      await update(contestScoreRef, { [`contestLog/${String(idx)}`]: contestEntry }).catch(() => {});
+    }
 
     if (newRes === 'invalid') {
       // Not overturned — keep original verdict (unsure stays unsure, invalid stays invalid)
@@ -3568,7 +3635,7 @@ window.recontest = async (idx, word, cat) => {
         try {
           await update(scoreRef, {
             [`aiResults/${String(idx)}`]: newRes,
-            [`contestLog/${String(idx)}`]: { original: originalVerdict, overturned: newRes, timestamp: Date.now() },
+            [`contestLog/${String(idx)}`]: contestEntry,
             baseScore: newBaseScore,
             totalScore: newTotalScore,
             speedMultiplier: mult,
@@ -4131,8 +4198,98 @@ window.toggleLobbyConfig = function() {
   const body = document.getElementById('config-body');
   const icon = document.getElementById('config-toggle-icon');
   const isOpen = body.classList.toggle('open');
-  if (icon) icon.textContent = isOpen ? '▲' : '▼';
+  if (icon) icon.textContent = isOpen ? '▴' : '▾';
+  const btn = document.getElementById('btn-config-toggle');
+  if (btn) btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+  // Closed: the summary of what's set. Open: just "⚙️ Configuración" above the rows.
+  const lbl = document.getElementById('btn-config-label'), sum = document.getElementById('cfg-summary');
+  if (lbl) lbl.style.display = isOpen ? '' : 'none';
+  if (sum) sum.style.display = isOpen ? 'none' : '';
 };
+
+// ── Compact lobby helpers (Session 28) ──
+// Two-pill switch: `onA` true = first pill selected
+function pillPair(a, b, onA) {
+  if (a) { a.classList.toggle('on', onA); a.setAttribute('aria-pressed', onA ? 'true' : 'false'); a.style.borderColor = ''; a.style.background = ''; }
+  if (b) { b.classList.toggle('on', !onA); b.setAttribute('aria-pressed', !onA ? 'true' : 'false'); b.style.borderColor = ''; b.style.background = ''; }
+}
+const MODE_HINT = {
+  host: { es: 'el anfitrión decide qué vale', en: 'the host decides what counts', fr: "l'hôte décide ce qui compte" },
+  democratic: { es: 'todos votan qué vale', en: 'everyone votes on what counts', fr: 'tout le monde vote' },
+};
+function updateModeHint() {
+  const el = document.getElementById('mode-hint');
+  if (el) el.textContent = (MODE_HINT[G_validationMode] || MODE_HINT.host)[LANG] || MODE_HINT.host.es;
+}
+window.setReactionPoints = (on) => {
+  const cb = document.getElementById('reaction-points');
+  if (cb) cb.checked = !!on;
+  pillPair(document.getElementById('rp-yes'), document.getElementById('rp-no'), !!on);
+  saveLobbyConfig();
+};
+window.setFreeCatRandom = (on) => {
+  const cb = document.getElementById('free-cat-random');
+  if (!cb || cb.disabled) return;
+  cb.checked = !!on;
+  syncFreeCatPills();
+  saveLobbyConfig();
+};
+function syncFreeCatPills() {
+  const cb = document.getElementById('free-cat-random');
+  const y = document.getElementById('fcr-yes'), n = document.getElementById('fcr-no');
+  if (!cb || !y || !n) return;
+  y.disabled = n.disabled = cb.disabled;
+  pillPair(y, n, cb.checked);
+}
+function syncLobbyPills() {
+  const rp = document.getElementById('reaction-points');
+  pillPair(document.getElementById('rp-yes'), document.getElementById('rp-no'), !rp || rp.checked);
+  syncFreeCatPills();
+}
+// Summary line on the closed settings button: theme · rounds · seconds · reactions · robot
+function updateCfgSummary() {
+  const el = document.getElementById('cfg-summary');
+  if (!el) return;
+  const rounds = document.getElementById('sl-rounds')?.value || 5;
+  const time = document.getElementById('sl-time')?.value || 90;
+  const rp = document.getElementById('reaction-points')?.checked !== false;
+  const robot = String(t(G_aiStrictness === 'relajado' ? 'aiRelajado' : 'aiEstricto') || '').replace(/^[^\p{L}]+/u, '').toLowerCase();
+  const parts = [G.selectedTheme || '', rounds + ' ' + t('rounds'), time + ' s'];
+  if (rp) parts.push('🔥');
+  if (robot) parts.push('🤖 ' + robot);
+  el.textContent = '⚙️ ' + parts.filter(Boolean).join(' · ');
+}
+// The guests see what the host picked (mode, theme, rounds, seconds) while waiting
+// Only from the host's LOBBY, only when it changed: an extra room write during a round would make every
+// guest re-render (a tap landing during that re-render is lost — see the Session 26 "lost taps" fix).
+let _lobbyInfoTimer = null, _lobbyInfoLast = '';
+function pushLobbyInfo() {
+  if (!G.isHost || !G.roomCode || G.screen !== 'lobby') return;
+  clearTimeout(_lobbyInfoTimer);
+  _lobbyInfoTimer = setTimeout(() => {
+    if (!G.isHost || !G.roomCode || G.screen !== 'lobby') return;
+    const info = {
+      mode: G_validationMode,
+      themeIdx: Math.max(0, Object.keys(getThemes()).indexOf(G.selectedTheme)),
+      rounds: parseInt(document.getElementById('sl-rounds')?.value || 5),
+      time: parseInt(document.getElementById('sl-time')?.value || 90),
+    };
+    const key = G.roomCode + JSON.stringify(info);
+    if (key === _lobbyInfoLast) return;
+    _lobbyInfoLast = key;
+    update(roomRef(G.roomCode), { lobbyInfo: info }).catch(() => { _lobbyInfoLast = ''; });
+  }, 400);
+}
+function renderGuestInfo(room) {
+  const el = document.getElementById('guest-info');
+  if (!el) return;
+  const li = room && room.lobbyInfo;
+  if (G.isHost || !li) { el.style.display = 'none'; el.textContent = ''; return; }
+  const themeName = Object.keys(getThemes())[li.themeIdx || 0] || '';
+  const mode = li.mode === 'democratic' ? t('modeDemocratic') : t('modeHost');
+  el.textContent = [mode, themeName, (li.rounds || 5) + ' ' + t('rounds'), (li.time || 90) + ' s'].filter(Boolean).join(' · ');
+  el.style.display = '';
+}
 
 // ── Daily challenge helpers ────────────────────────────
 function getDailyDateString(short) {
@@ -4286,12 +4443,19 @@ function clearSession() {
   setRoomInUrl('');
 }
 
+// Lobby settings are remembered per name on this device (Session 28), plus the last used ones as the
+// starting point for a name that has none yet. _cfgRestoring stops the setters from saving half-restored values.
+let _cfgRestoring = false;
+function lobbyCfgKey(name) { const s = claimSafeName(name || G.playerName || ''); return s ? 'alto_lobby_config:' + s : ''; }
 function saveLobbyConfig() {
+  updateCfgSummary();
+  if (_cfgRestoring) return;
   const rounds = document.getElementById('sl-rounds')?.value;
   const time = document.getElementById('sl-time')?.value;
   const freeCatRandom = document.getElementById('free-cat-random')?.checked || false;
   const reactionPoints = document.getElementById('reaction-points')?.checked !== false;
-  localStorage.setItem('alto_lobby_config', JSON.stringify({
+  const freeCats = document.getElementById('free-cats')?.value || '';
+  const cfgJson = JSON.stringify({
     theme: G.selectedTheme,
     groups: G.selectedGroups,
     rounds: rounds ? parseInt(rounds) : 5,
@@ -4301,14 +4465,23 @@ function saveLobbyConfig() {
     aiSpelling: G_aiSpelling,
     freeCatRandom,
     reactionPoints,
-  }));
+    freeCats,
+  });
+  try {
+    localStorage.setItem('alto_lobby_config', cfgJson);
+    const k = lobbyCfgKey(); if (k) localStorage.setItem(k, cfgJson);
+  } catch(e) { /* private mode */ }
+  pushLobbyInfo();
 }
 
 function restoreLobbyConfig() {
+  _cfgRestoring = true;
   try {
-    const raw = localStorage.getItem('alto_lobby_config');
+    const k = lobbyCfgKey();
+    const raw = (k && localStorage.getItem(k)) || localStorage.getItem('alto_lobby_config');
     if (!raw) return;
     const c = JSON.parse(raw);
+    if (typeof c.freeCats === 'string') { const ta = document.getElementById('free-cats'); if (ta) { ta.value = c.freeCats; updateFreeCatRandomToggle(); } }
     if (c.theme) G.selectedTheme = c.theme;
     if (c.groups && Array.isArray(c.groups) && c.groups.length >= 3) G.selectedGroups = c.groups;
     if (c.rounds) { const el = document.getElementById('sl-rounds'); if (el) { el.value = c.rounds; document.getElementById('v-rounds').textContent = c.rounds; } }
@@ -4319,6 +4492,13 @@ function restoreLobbyConfig() {
     if (c.reactionPoints !== undefined) { const rp = document.getElementById('reaction-points'); if (rp) rp.checked = c.reactionPoints; }
     if (c.freeCatRandom !== undefined) { const cb = document.getElementById('free-cat-random'); if (cb) cb.checked = c.freeCatRandom; updateFreeCatRandomToggle(); }
   } catch(e) { /* silent — corrupt config, start fresh */ }
+  finally {
+    _cfgRestoring = false;
+    syncLobbyPills();
+    updateModeHint();
+    updateCfgSummary();
+    pushLobbyInfo();
+  }
 }
 
 function subscribe(code) {
@@ -4331,8 +4511,9 @@ function subscribe(code) {
 
 function handleRoom(room) {
   if (G.screen === 'lobby') {
-    renderPlayers(room.players || {}, room.langs || {});
+    renderPlayers(room.players || {}, room.langs || {}, room.host || '');
     renderGuestGroup(room);
+    renderGuestInfo(room);
     if (room.phase === 'countdown') startCountdown(room);
     if (room.phase === 'playing') enterPlaying(room);
   }
@@ -4452,7 +4633,7 @@ function enterLobby(room) {
   stopConfetti();
   stopReactions();
   show('lobby');
-  if (G.isHost) { window.setAIEnabled(G_aiEnabled); window.setAIStrictness(G_aiStrictness); window.setAISpelling(G_aiSpelling); }
+  if (G.isHost) { _cfgRestoring = true; window.setAIEnabled(G_aiEnabled); window.setAIStrictness(G_aiStrictness); window.setAISpelling(G_aiSpelling); }
   // Apply host's game language for guests
   if (!G.isHost && room.gameLang && room.gameLang !== LANG) {
     window.setLang(room.gameLang);
@@ -4485,7 +4666,8 @@ function enterLobby(room) {
     document.getElementById('guest-panel').style.display = 'block';
   }
   renderGuestGroup(room);
-  renderPlayers(room.players || {}, room.langs || {});
+  renderGuestInfo(room);
+  renderPlayers(room.players || {}, room.langs || {}, room.host || '');
 }
 
 // ── Lobby group picker (host) ─────────────────────────
@@ -4653,9 +4835,9 @@ function renderGuestGroup(room) {
   if (btn) btn.style.display = isGroupId(room.groupId) ? '' : 'none';
 }
 
-function renderPlayers(players, langs={}) {
+function renderPlayers(players, langs={}, hostName='') {
   document.getElementById('lob-players').innerHTML =
-    Object.entries(players).map(([n,emoji]) => `<div class="chip ok">${n}<span style="font-size: 16px">${emoji||'🎲'}</span></div>`).join('');
+    Object.entries(players).map(([n,emoji]) => `<div class="chip ok">${n === hostName ? '👑 ' : ''}${escHtml(n)}<span style="font-size: 16px">${emoji||'🎲'}</span></div>`).join('');
   const hint = document.getElementById('lbl-solo-hint');
   if (hint) {
     const solo = Object.keys(players).length < 2;
@@ -4684,6 +4866,8 @@ function buildThemePicker() {
     `<div class="theme-btn ${name===G.selectedTheme?'active':''}" onclick="selectTheme('${name}')">${name}</div>`
   ).join('');
   updateCatVisibility();
+  updateCfgSummary();   // theme names are per language: refresh the summary + what guests see
+  pushLobbyInfo();
 }
 
 window.selectTheme = (name) => {
@@ -4775,6 +4959,7 @@ window.copyLink = () => {
 };
 
 window.startGame = async () => {
+  clearTimeout(_lobbyInfoTimer);
   let cats;
   const themeValue = getThemes()[G.selectedTheme];
   const isRandom = themeValue === 'random';
@@ -5509,13 +5694,7 @@ window.setAIStrictness = (level) => {
   const relajadoBtn = document.getElementById('ai-relajado');
   const estrictoBtn = document.getElementById('ai-estricto');
   if (!relajadoBtn || !estrictoBtn) return;
-  if (level === 'relajado') {
-    relajadoBtn.style.borderColor = '#c0392b'; relajadoBtn.style.background = '#fdf0ee';
-    estrictoBtn.style.borderColor = 'var(--border-strong)'; estrictoBtn.style.background = 'var(--paper-dark)';
-  } else {
-    estrictoBtn.style.borderColor = '#c0392b'; estrictoBtn.style.background = '#fdf0ee';
-    relajadoBtn.style.borderColor = 'var(--border-strong)'; relajadoBtn.style.background = 'var(--paper-dark)';
-  }
+  pillPair(relajadoBtn, estrictoBtn, level === 'relajado');
   saveLobbyConfig();
 };
 
@@ -5524,13 +5703,7 @@ window.setAISpelling = (allow) => {
   const siBtn = document.getElementById('ai-spelling-si');
   const noBtn = document.getElementById('ai-spelling-no');
   if (!siBtn || !noBtn) return;
-  if (allow) {
-    siBtn.style.borderColor = '#c0392b'; siBtn.style.background = '#fdf0ee';
-    noBtn.style.borderColor = 'var(--border-strong)'; noBtn.style.background = 'var(--paper-dark)';
-  } else {
-    noBtn.style.borderColor = '#c0392b'; noBtn.style.background = '#fdf0ee';
-    siBtn.style.borderColor = 'var(--border-strong)'; siBtn.style.background = 'var(--paper-dark)';
-  }
+  pillPair(siBtn, noBtn, !!allow);
   saveLobbyConfig();
 };
 
@@ -5707,9 +5880,9 @@ window.setValidationMode = (mode) => {
   ['host','democratic'].forEach(m => {
     const btn = document.getElementById('mode-' + m);
     if (!btn) return;
-    if (m === mode) { btn.style.borderColor = '#c0392b'; btn.style.background = '#fdf0ee'; }
-    else { btn.style.borderColor = 'var(--border-strong)'; btn.style.background = 'var(--paper-dark)'; }
+    btn.classList.toggle('on', m === mode); btn.setAttribute('aria-pressed', m === mode ? 'true' : 'false');
   });
+  updateModeHint();
   // Update validation screen subtitles to reflect current mode
   const sub1 = document.getElementById('lbl-validate-sub1');
   const sub2 = document.getElementById('lbl-validate-sub2');
@@ -6359,7 +6532,7 @@ window.lbBack = async () => {
     if (from === 'lobby') {
       // Back to the same lobby; catch up on what changed while browsing
       show('lobby');
-      renderPlayers(room.players || {}, room.langs || {});
+      renderPlayers(room.players || {}, room.langs || {}, room.host || '');
       renderGuestGroup(room);
     } else enterLobby(room); // the host started a new game (Jugar de nuevo) while we were browsing
     return;
@@ -7557,7 +7730,7 @@ setTimeout(() => updateDailyButtonDate(), 350);
 // Version freshness check — silently reload if a newer version is deployed
 // Runs once on load; does nothing if already on latest or if fetch fails
 (function() {
-  const RUNNING = 'v261007.343-tmp';
+  const RUNNING = 'v261010.358-tmp';
   if (sessionStorage.getItem('alto_ver_checked') === RUNNING) return; // already checked this session
   sessionStorage.setItem('alto_ver_checked', RUNNING);
   fetch(location.href, { cache: 'no-cache' })
@@ -7581,7 +7754,7 @@ syncMyGroups(); // registered + verified name: bring in groups from the name's o
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v261007.343-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v261010.358-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
