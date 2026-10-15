@@ -1629,3 +1629,30 @@ Session 25 plan: Build 5 — Groups and history
 - **"Follows you" badge** needs a reverse index (`names/{safe}/followers/{otherSafe}`) written together with `following`, so a leaderboard doesn't have to scan everyone's lists. Two writes per follow; unfollow removes both.
 - **Security:** `names/` is currently open read/write. A follow graph there is readable and editable by anyone until the security build closes it, so build it after (or together with) that.
 - **Registration status:** check whether the "unverified name label" (`Peter? 🎸`, designed Session 13) was ever built. The ★ rule depends on knowing which leaderboard rows are registered.
+- **Decided 15 Oct (Oscar):** with "Siguiendo" on, followed players who haven't played that day are SHOWN at the bottom, greyed out, as "aún no ha jugado" ("no jugó" when browsing past days).
+- **Layout decided 15 Oct (Oscar)**, replacing the 12 Sep three-state "★ + badge" idea:
+  - One star per row, between the rank and the name (its own tap target, so tapping it doesn't open the answers panel). States: **grey outline ☆** = not following; **silver filled ★** = you follow them; **gold filled ★** = you follow each other. No separate "follows you" badge. Outline vs filled is what separates "not following" from the other two, so it doesn't rely only on grey vs silver.
+  - Someone who follows you but whom you don't follow keeps a grey ☆; it turns gold only when you follow them back.
+  - No star on your own row or on unregistered names.
+  - Above the list: pills `[ Todos ] [ ★ Siguiendo ]` (same pill style as the lobby) and 🔍, which opens a type-to-filter search box in place of the pills.
+  - With Siguiendo on: show ALL followed players, whatever their rank (today the list is top 10 + me), keeping their overall rank numbers (🥇, 🥉, 5…), your own row included. Followed players who haven't played go at the bottom, greyed out: "aún no ha jugado" / "no jugó" on past days.
+  - Mockup:
+    ```
+     [ Todos ]  [ ★ Siguiendo ]          🔍
+     🥇 ★ Marina 🎸          580 pts (⚡×1.3) ▶   gold (mutual)
+     🥈 ☆ Pepe 🦊            540 pts          ▶   grey outline
+     🥉 ★ Abuela 🌻          510 pts (+50✨)  ▶   silver
+      5   Oscar 🌈           460 pts          ▶   you
+        ★ Tío Juan 🎺   aún no ha jugado            (Siguiendo only, grey)
+    ```
+  - Use the text glyphs ☆ / ★ (U+2606/U+2605) coloured with CSS, not emoji. Explain the colours in the help page.
+- **Legend decided 15 Oct (Oscar):** one 11px line under the pills: "☆ seguir · ★ sigues · ★ os seguís" (stars coloured grey/silver/gold); EN "☆ follow · ★ following · ★ mutual", FR "☆ suivre · ★ suivi · ★ mutuel". Shown only until the player has followed someone (then the help page explains it). Unregistered players see instead: "☆ Registra tu nombre para seguir a otros jugadores", which opens name registration.
+
+### v261015.368-tmp (staging, 15 Oct): Follow system built
+- **Data:** `names/{me}/following/{them} = {n: name as shown incl. emoji, t}` and `names/{them}/followers/{me} = t`, both written in one `update()`; unfollow nulls both. The tap is optimistic and reverts with a toast if the save fails. Daily scores now carry **`reg: true`** when played under a name registered AND verified on that device (`claimLsKey(safe).verified`). The ☆ shows only on rows with `reg` (or on someone you already follow), so stars appear on scores from this version on.
+- **Who can follow:** `G_follow.me = myGroupsSyncName()` (verified name on this device, same rule as groups). `followLoad()` runs in parallel with the scores read in `loadDailyLeaderboard`, so a new follower's gold ★ appears on the next load. `followEnsure()` in `renderLeaderboard` reloads when the name changes; the claim/verify success also redraws.
+- **UI** (`#lb-follow-bar` between the date nav and the list): pills `#lb-mode-all` / `#lb-mode-following` (`pillPair`, mode saved in `alto_lb_mode`, hidden for unregistered), `#lb-search-btn` 🔍/✕ toggling `input#lb-search` (type=search, 16px so iOS doesn't zoom; listener via addEventListener). `#lb-follow-legend`: the coloured legend until you follow someone; for unregistered players with a name, the "Registra tu nombre…" line, which opens `claimOpen()`.
+- **Rows:** `renderLeaderboard` now builds rows through `rowHtml(e, idx, id)`. Row ids stay the overall index (answer panels and `toggleDailyAnswers` unchanged; 'me' for my row outside the top 10). Search: every matching entry, any rank. Siguiendo: me + followed, overall ranks, then followed-but-not-played rows (`.lb-notplayed`, name from `following.n`, escaped) with "aún no ha jugado" (`np-long`) or "sin jugar" (`np-short`, under 360px), or "no jugó" on past days. Star: `button.lb-star.s-none|s-follow|s-mutual` (☆/★ text glyphs, 20px, colours var(--ink-muted) / #9aa3ad / #d4a017), `event.stopPropagation()` so it never opens the answers. Rows without a star get `.lb-star-sp` so names line up. The star column costs about 12px of name width.
+- **Known/accepted:** at 320px, your own row with the "(+50✨)" tag already squeezed the name before this change ("Os…"); it's now "O…". Search only covers the day being viewed (finding any registered name needs the names list, which is for after the security build). Followed players are per leaderboard language: a friend who played only EN shows as "aún no ha jugado" on the ES tab.
+- **Tests:** NEW `tests/restore/follow_scenarios.py` (34 checks: unregistered view, stars, both Firebase lists, gold/silver/grey, legend, Siguiendo with ranks + not-played, mode after reload, unfollow, past day, search, answer panels, second device, the other side sees gold, 320 FR / 320 ES / 390 ES / 414 EN without overflow). All suites green; build5b's flaky "Marta's buttons…" failed in 2 runs then passed 3/3 on both v367 and v368. The groups unit test evals this code outside a browser, hence the `typeof document` guard on the search listener.
+- **Still to do:** help page text for the stars (and why register); the security build must cover `following`/`followers`.
