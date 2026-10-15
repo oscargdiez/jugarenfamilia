@@ -1610,3 +1610,22 @@ Session 25 plan: Build 5 — Groups and history
 - **Fixed vs v364:** Van gogh is accepted on both the judge and the re-check; re-check now upholds Vivora, Helia Kazan and Guava; FR Tarragon is rejected.
 - **Still wrong:** FR "Robin" accepted; "Vallas, salto de" accepted (the reorder rule is ignored); the re-check overturns Library (Type of shop), Edredón and Esterilla (Invento), so it stretches categories. Flips went from 1 to 3: watch the dailies.
 - **Possible next step:** a re-check line along the lines of "the answer must be what the category names, not something merely related to it (a library is not a shop; a quilt is not an invention)". Only if real dailies keep showing it.
+
+## 👥 Follow System (friends): design RESTORED 15 Oct
+*Designed with Oscar on 12 Sep (Session 14, chat "++ ALTO 12"). It was written into the handoff then as "### Follow System (designed Session 14, not yet built)", but that section later went missing; only the one-liner "Favourites/friends list" under Other survived. Restored here from the chat. Not built.*
+
+**Decisions (Oscar, 12 Sep):**
+- **One-way following** (Instagram/Twitter model): you follow someone to see their scores; no confirmation, requests or notifications. Rejected in this order: mutual friend requests (too complex: pending state, accept/decline UI), permanent groups joined by a link, and a "bulk mutual friend request" link (everyone who taps it becomes friends). Oscar: "a follow on leaderboards + search box is simpler".
+- **★ on each daily leaderboard row**, tap to follow or unfollow. Three states: grey/empty = not following; yellow/filled = you follow them; yellow + small "follows you"/👥 badge = mutual.
+- **Search box on the leaderboard** to filter rows by name as you type (needed as player numbers grow; useful even without follows). A separate "find a player" screen, which works even if the friend hasn't played today, was discussed as the cleaner add flow; it was not decided.
+- **"Following" toggle** on the leaderboard shows only people you follow. You always see yourself.
+- **Registered names only:** unregistered names show no ★ and cannot be followed. The help panel gets a "¿Por qué registrar tu nombre?" section listing the benefits (leaderboard, cross-device history, follow and be followed, mutual badge, verified badge). Oscar may enforce registration later.
+- **Cross-device:** stored in Firebase under your name. The 12 Sep design said `following/{safeName}: [safeName1, …]`.
+- **View layer only:** it never changes official scores. Earlier notes (Sessions 13–14) also flag using it to filter history and daily originality ("how original was I among my friends").
+- Still open from 12 Sep: should a followed player who hasn't played today show as "not played yet" or be hidden?
+
+**Since then (notes for whoever builds it):**
+- **Groups now exist** and follow a verified registered name (`names/{safe}/groups`, see the groups sync entry). Following could live next to it (`names/{safe}/following/{otherSafe} = time`), reusing the same pull/merge pattern. A "players from my groups" filter could cover part of the need; ask Oscar whether that's enough as a first step.
+- **"Follows you" badge** needs a reverse index (`names/{safe}/followers/{otherSafe}`) written together with `following`, so a leaderboard doesn't have to scan everyone's lists. Two writes per follow; unfollow removes both.
+- **Security:** `names/` is currently open read/write. A follow graph there is readable and editable by anyone until the security build closes it, so build it after (or together with) that.
+- **Registration status:** check whether the "unverified name label" (`Peter? 🎸`, designed Session 13) was ever built. The ★ rule depends on knowing which leaderboard rows are registered.
