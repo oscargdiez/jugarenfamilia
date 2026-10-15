@@ -1272,7 +1272,7 @@ document.addEventListener('DOMContentLoaded', function() {
         <button class="pill on" id="lb-mode-all" onclick="lbSetMode('all')">Todos</button>
         <button class="pill" id="lb-mode-following" onclick="lbSetMode('following')">★ Siguiendo</button>
       </div>
-      <input type="search" id="lb-search" class="lb-search" autocomplete="off" placeholder="🔍 buscar">
+      <input type="search" id="lb-search" class="lb-search" autocomplete="off" placeholder="buscar">
     </div>
     <p class="lb-follow-legend" id="lb-follow-legend" style="display:none"></p>
     <div id="daily-lb-list"></div>
@@ -2138,15 +2138,15 @@ try { if (localStorage.getItem('alto_lb_mode') === 'following') G_follow.mode = 
 let _lbLast = null;          // last renderLeaderboard() input, to redraw after a ★ tap or a filter change
 let _followLoading = null;   // name being loaded (no double loads)
 const FOLLOW_T = {
-  es: { all: 'Todos', following: '★ Siguiendo', search: '🔍 buscar', follow: 'Seguir', unfollow: 'Dejar de seguir',
+  es: { all: 'Todos', following: '★ Siguiendo', search: 'buscar', follow: 'Seguir', unfollow: 'Dejar de seguir',
         legend: '<span class="st-none">☆</span> seguir · <span class="st-follow">★</span> sigues · <span class="st-mutual">★</span> os seguís',
         register: '☆ Registra tu nombre para seguir a otros jugadores', np: 'aún no ha jugado', npShort: 'sin jugar', npPast: 'no jugó',
         noMatch: 'nadie con ese nombre', noFollow: 'aún no sigues a nadie — toca ☆ junto a un nombre', saveErr: 'No se pudo guardar — inténtalo de nuevo' },
-  en: { all: 'Everyone', following: '★ Following', search: '🔍 search', follow: 'Follow', unfollow: 'Unfollow',
+  en: { all: 'Everyone', following: '★ Following', search: 'search', follow: 'Follow', unfollow: 'Unfollow',
         legend: '<span class="st-none">☆</span> follow · <span class="st-follow">★</span> following · <span class="st-mutual">★</span> mutual',
         register: '☆ Register your name to follow other players', np: 'not played yet', npShort: 'not yet', npPast: "didn't play",
         noMatch: 'no one by that name', noFollow: "you don't follow anyone yet — tap ☆ next to a name", saveErr: "Couldn't save — try again" },
-  fr: { all: 'Tous', following: '★ Suivis', search: '🔍 chercher', follow: 'Suivre', unfollow: 'Ne plus suivre',
+  fr: { all: 'Tous', following: '★ Suivis', search: 'chercher', follow: 'Suivre', unfollow: 'Ne plus suivre',
         legend: '<span class="st-none">☆</span> suivre · <span class="st-follow">★</span> suivi · <span class="st-mutual">★</span> mutuel',
         register: "☆ Réserve ton nom pour suivre d'autres joueurs", np: 'pas encore joué', npShort: 'pas joué', npPast: "n'a pas joué",
         noMatch: 'personne avec ce nom', noFollow: "tu ne suis personne — touche ☆ à côté d'un nom", saveErr: "Échec de l'enregistrement — réessaie" },
@@ -2206,11 +2206,12 @@ function renderFollowBar() {
   pillPair(all, fol, G_follow.mode !== 'following');
   pills.style.display = canFollow ? '' : 'none';
   input.placeholder = FT.search;
-  input.setAttribute('aria-label', FT.search.replace(/^\S+\s/, ''));
-  // Legend until the player follows someone; unregistered players get the "register to follow" line instead
+  input.setAttribute('aria-label', FT.search);
+  // Legend always shown for registered players (Oscar, 15 Oct: the colours matter most once you follow people);
+  // unregistered players get the "register to follow" line instead
   const hasName = !!(G.playerName || document.getElementById('inp-name')?.value?.trim() || localStorage.getItem('alto_name'));
   if (canFollow) {
-    const show = G_follow.loadedFor === G_follow.me && !Object.keys(G_follow.following).length;
+    const show = true;
     legend.style.display = show ? '' : 'none';
     legend.className = 'lb-follow-legend';
     legend.onclick = null;
@@ -7950,7 +7951,7 @@ setTimeout(() => updateDailyButtonDate(), 350);
 // Version freshness check — silently reload if a newer version is deployed
 // Runs once on load; does nothing if already on latest or if fetch fails
 (function() {
-  const RUNNING = 'v261015.369-tmp';
+  const RUNNING = 'v261015.370-tmp';
   if (sessionStorage.getItem('alto_ver_checked') === RUNNING) return; // already checked this session
   sessionStorage.setItem('alto_ver_checked', RUNNING);
   fetch(location.href, { cache: 'no-cache' })
@@ -7974,7 +7975,7 @@ syncMyGroups(); // registered + verified name: bring in groups from the name's o
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v261015.369-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v261015.370-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
