@@ -668,11 +668,12 @@ body.screen-home .page, body.screen-welcome .page { padding-bottom: 2rem; }
 .daily-lb-lang-btn.active { opacity: 1; background: var(--paper-dark); border-color: var(--border-strong); }
 #btn-lb-hist-next:disabled { opacity: 0.25; cursor: default; }
 /* Follow system (v368): one star per row — grey outline ☆ = not following, silver ★ = following, gold ★ = mutual */
-.lb-follow-bar { display: flex; align-items: center; justify-content: flex-end; gap: 6px; margin-bottom: 6px; }
-.lb-follow-pills { flex: 1 1 auto; }
-input.lb-search { flex: 1 1 auto; min-width: 0; font-family: 'Special Elite', monospace; font-size: 16px; padding: 4px 10px; border: 1.5px solid var(--border-strong); border-radius: 20px; background: var(--paper); color: var(--ink); outline: none; }
-input.lb-search:focus { border-color: var(--red); }
-button.lb-search-btn { flex: 0 0 auto; padding: 4px 6px; border: none; background: transparent; font-size: 16px; line-height: 1; }
+.lb-follow-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-bottom: 6px; }
+.lb-follow-pills { flex: 0 0 auto; }
+/* Search: always visible, same look as the game's text boxes (Caveat, underline) at the row-name size; 20px also stops iOS zooming */
+input.lb-search { flex: 1 1 90px; min-width: 0; font-family: 'Caveat', cursive; font-size: 20px; padding: 2px 2px; border: none; border-bottom: 2px solid var(--border-strong); border-radius: 0; background: transparent; color: var(--ink); outline: none; }
+input.lb-search:focus { border-bottom-color: var(--red); }
+input.lb-search::placeholder { color: var(--ink-muted); }
 .lb-follow-legend { font-family: 'Special Elite', monospace; font-size: 11px; color: var(--ink-muted); margin: 0 0 6px; }
 .lb-follow-legend.link { cursor: pointer; text-decoration: underline dotted; }
 button.lb-star { flex: 0 0 auto; width: 18px; margin: 0 -6px 0 -8px; padding: 2px 0; border: none; background: transparent; font-family: 'Special Elite', monospace; font-size: 20px; font-weight: 400; line-height: 1; text-align: center; overflow: visible; }
@@ -1265,14 +1266,13 @@ document.addEventListener('DOMContentLoaded', function() {
       <span id="lb-hist-date-label" style="font-family:'Special Elite',monospace;font-size:11px;color:var(--ink-muted);min-width:52px;text-align:center">hoy</span>
       <button id="btn-lb-hist-next" onclick="lbHistNav(1)" disabled style="font-family:'Special Elite',monospace;font-size:13px;padding:2px 10px;border:1px solid var(--border);border-radius:4px;background:transparent;cursor:pointer;color:var(--ink-sec);opacity:0.35">▶</button>
     </div>
-    <!-- Follow system (v368): Todos / ★ Siguiendo, 🔍 search, legend — filled by renderFollowBar() -->
+    <!-- Follow system (v368/369): Todos / ★ Siguiendo, search box (always visible), legend — filled by renderFollowBar() -->
     <div class="lb-follow-bar" id="lb-follow-bar">
       <div class="seg lb-follow-pills" id="lb-follow-pills" style="display:none">
         <button class="pill on" id="lb-mode-all" onclick="lbSetMode('all')">Todos</button>
         <button class="pill" id="lb-mode-following" onclick="lbSetMode('following')">★ Siguiendo</button>
       </div>
-      <input type="search" id="lb-search" class="lb-search" autocomplete="off" style="display:none">
-      <button class="lb-search-btn" id="lb-search-btn" onclick="lbToggleSearch()" aria-label="buscar">🔍</button>
+      <input type="search" id="lb-search" class="lb-search" autocomplete="off" placeholder="🔍 buscar">
     </div>
     <p class="lb-follow-legend" id="lb-follow-legend" style="display:none"></p>
     <div id="daily-lb-list"></div>
@@ -2131,20 +2131,22 @@ function myGroupsSyncName() {
 // One-way follows between REGISTERED names, shown on the daily leaderboard (handoff: "Follow System").
 // Firebase: names/{me}/following/{them} = {n: name as shown, t}; names/{them}/followers/{me} = t (reverse list → gold ★).
 // Only when my name is registered AND verified on this device (myGroupsSyncName). View only: scores never change.
-const G_follow = { me: null, following: {}, followers: {}, loadedFor: null, mode: 'all', q: '', searchOpen: false };
+const G_follow = { me: null, following: {}, followers: {}, loadedFor: null, mode: 'all', q: '' };
+// Registered-name lookups for rows without `reg` (scores from before v368): safe → true/false, 'p' while reading
+const _regCache = {};
 try { if (localStorage.getItem('alto_lb_mode') === 'following') G_follow.mode = 'following'; } catch(e) {}
 let _lbLast = null;          // last renderLeaderboard() input, to redraw after a ★ tap or a filter change
 let _followLoading = null;   // name being loaded (no double loads)
 const FOLLOW_T = {
-  es: { all: 'Todos', following: '★ Siguiendo', search: 'buscar nombre…', follow: 'Seguir', unfollow: 'Dejar de seguir',
+  es: { all: 'Todos', following: '★ Siguiendo', search: '🔍 buscar', follow: 'Seguir', unfollow: 'Dejar de seguir',
         legend: '<span class="st-none">☆</span> seguir · <span class="st-follow">★</span> sigues · <span class="st-mutual">★</span> os seguís',
         register: '☆ Registra tu nombre para seguir a otros jugadores', np: 'aún no ha jugado', npShort: 'sin jugar', npPast: 'no jugó',
         noMatch: 'nadie con ese nombre', noFollow: 'aún no sigues a nadie — toca ☆ junto a un nombre', saveErr: 'No se pudo guardar — inténtalo de nuevo' },
-  en: { all: 'Everyone', following: '★ Following', search: 'search name…', follow: 'Follow', unfollow: 'Unfollow',
+  en: { all: 'Everyone', following: '★ Following', search: '🔍 search', follow: 'Follow', unfollow: 'Unfollow',
         legend: '<span class="st-none">☆</span> follow · <span class="st-follow">★</span> following · <span class="st-mutual">★</span> mutual',
         register: '☆ Register your name to follow other players', np: 'not played yet', npShort: 'not yet', npPast: "didn't play",
         noMatch: 'no one by that name', noFollow: "you don't follow anyone yet — tap ☆ next to a name", saveErr: "Couldn't save — try again" },
-  fr: { all: 'Tous', following: '★ Suivis', search: 'chercher un nom…', follow: 'Suivre', unfollow: 'Ne plus suivre',
+  fr: { all: 'Tous', following: '★ Suivis', search: '🔍 chercher', follow: 'Suivre', unfollow: 'Ne plus suivre',
         legend: '<span class="st-none">☆</span> suivre · <span class="st-follow">★</span> suivi · <span class="st-mutual">★</span> mutuel',
         register: "☆ Réserve ton nom pour suivre d'autres joueurs", np: 'pas encore joué', npShort: 'pas joué', npPast: "n'a pas joué",
         noMatch: 'personne avec ce nom', noFollow: "tu ne suis personne — touche ☆ à côté d'un nom", saveErr: "Échec de l'enregistrement — réessaie" },
@@ -2177,6 +2179,16 @@ function followState(safe) {
   if (!G_follow.following[safe]) return 'none';
   return G_follow.followers[safe] ? 'mutual' : 'follow';
 }
+// Scores played before v368 have no `reg`: ask once per name whether it is registered (names/{safe}/displayName
+// exists only for registered names). Only for rows actually on screen; answers cached for the visit.
+function followCheckReg(safes) {
+  const todo = [...new Set(safes)].filter(sf => sf && _regCache[sf] === undefined);
+  if (!todo.length) return;
+  todo.forEach(sf => { _regCache[sf] = 'p'; });
+  Promise.all(todo.map(sf => get(ref(db, 'names/' + sf + '/displayName'))
+    .then(sn => { _regCache[sf] = sn.exists(); }).catch(() => { delete _regCache[sf]; })))
+    .then(() => { if (todo.some(sf => _regCache[sf] === true)) lbRerender(); });
+}
 function lbRerender() {
   if (_lbLast) renderLeaderboard(_lbLast.allScores, _lbLast.hideAnswers);
   else renderFollowBar();
@@ -2186,18 +2198,15 @@ function renderFollowBar() {
   const canFollow = !!G_follow.me;
   const pills = document.getElementById('lb-follow-pills');
   const input = document.getElementById('lb-search');
-  const sbtn = document.getElementById('lb-search-btn');
   const legend = document.getElementById('lb-follow-legend');
-  if (!pills || !input || !sbtn || !legend) return;
+  if (!pills || !input || !legend) return;
   const all = document.getElementById('lb-mode-all'), fol = document.getElementById('lb-mode-following');
   if (all) all.textContent = FT.all;
   if (fol) fol.textContent = FT.following;
   pillPair(all, fol, G_follow.mode !== 'following');
-  pills.style.display = canFollow && !G_follow.searchOpen ? '' : 'none';
-  input.style.display = G_follow.searchOpen ? '' : 'none';
+  pills.style.display = canFollow ? '' : 'none';
   input.placeholder = FT.search;
-  sbtn.textContent = G_follow.searchOpen ? '✕' : '🔍';
-  sbtn.setAttribute('aria-label', G_follow.searchOpen ? 'x' : FT.search);
+  input.setAttribute('aria-label', FT.search.replace(/^\S+\s/, ''));
   // Legend until the player follows someone; unregistered players get the "register to follow" line instead
   const hasName = !!(G.playerName || document.getElementById('inp-name')?.value?.trim() || localStorage.getItem('alto_name'));
   if (canFollow) {
@@ -2217,13 +2226,6 @@ window.lbSetMode = function(mode) {
   G_follow.mode = mode === 'following' ? 'following' : 'all';
   try { localStorage.setItem('alto_lb_mode', G_follow.mode); } catch(e) {}
   lbRerender();
-};
-window.lbToggleSearch = function() {
-  const input = document.getElementById('lb-search');
-  G_follow.searchOpen = !G_follow.searchOpen;
-  if (!G_follow.searchOpen) { G_follow.q = ''; if (input) input.value = ''; }
-  lbRerender();
-  if (G_follow.searchOpen && input) setTimeout(() => input.focus(), 30);
 };
 if (typeof document !== 'undefined') document.getElementById('lb-search')?.addEventListener('input', (ev) => {
   G_follow.q = String(ev.target.value || '').trim();
@@ -3998,9 +4000,14 @@ function renderLeaderboard(allScores, hideAnswers) {
   const FT = FOLLOW_T[LANG] || FOLLOW_T.es;
   const canFollow = !!G_follow.me;
   const isFollowed = e => !!(e.safeName && G_follow.following[e.safeName]);
+  const needReg = [];
   function starHtml(e) {
     if (!canFollow) return '';
-    if (isMe(e) || !e.safeName || e.safeName === G_follow.me || !(e.reg === true || isFollowed(e))) return '<span class="lb-star-sp"></span>';
+    if (isMe(e) || !e.safeName || e.safeName === G_follow.me) return '<span class="lb-star-sp"></span>';
+    if (!(e.reg === true || isFollowed(e) || _regCache[e.safeName] === true)) {
+      if (e.reg !== true && _regCache[e.safeName] === undefined) needReg.push(e.safeName);
+      return '<span class="lb-star-sp"></span>';
+    }
     return starBtn(e.safeName);
   }
   function starBtn(safe) {
@@ -4020,24 +4027,27 @@ function renderLeaderboard(allScores, hideAnswers) {
     </div>${hideAnswers ? '' : buildAnswerPanel(e, id)}`;
   }
   const indexed = entries.map((e, i) => ({ e, i }));
-  const nq = G_follow.searchOpen && G_follow.q ? normalize(G_follow.q) : '';
+  // Search filters the current view (Todos: everyone that day, any rank; Siguiendo: the people I follow)
+  const nq = G_follow.q ? normalize(G_follow.q) : '';
+  const hit = n => !nq || normalize(String(n || '')).includes(nq);
   let html = '';
-  if (nq) {
-    const hits = indexed.filter(({ e }) => normalize(String(e.name || '')).includes(nq));
-    html = hits.length ? hits.map(({ e, i }) => rowHtml(e, i, i)).join('') : `<div class="lb-empty">${FT.noMatch}</div>`;
-  } else if (canFollow && G_follow.mode === 'following') {
+  if (canFollow && G_follow.mode === 'following') {
     // Everyone I follow, whatever their rank (overall rank numbers kept), then the ones who haven't played, greyed
-    const rows = indexed.filter(({ e }) => isMe(e) || isFollowed(e));
+    const rows = indexed.filter(({ e }) => (isMe(e) || isFollowed(e)) && hit(e.name));
     html = rows.map(({ e, i }) => rowHtml(e, i, i)).join('');
     const played = new Set(entries.map(e => e.safeName).filter(Boolean));
     const missing = Object.keys(G_follow.following).filter(sf => !played.has(sf))
       .map(sf => ({ sf, n: String((G_follow.following[sf] && G_follow.following[sf].n) || sf) }))
+      .filter(({ n }) => hit(n))
       .sort((a, b) => a.n.localeCompare(b.n));
     html += missing.map(({ sf, n }) => `<div class="daily-lb-row lb-notplayed">
       <span class="daily-lb-rank"></span>${starBtn(sf)}<span class="daily-lb-name">${escHtml(n)}</span>
       <span class="lb-np">${_lbDate === null ? `<span class="np-long">${FT.np}</span><span class="np-short">${FT.npShort}</span>` : FT.npPast}</span>
     </div>`).join('');
-    if (!rows.length && !missing.length) html = `<div class="lb-empty">${FT.noFollow}</div>`;
+    if (!rows.length && !missing.length) html = `<div class="lb-empty">${nq ? FT.noMatch : FT.noFollow}</div>`;
+  } else if (nq) {
+    const hits = indexed.filter(({ e }) => hit(e.name));
+    html = hits.length ? hits.map(({ e, i }) => rowHtml(e, i, i)).join('') : `<div class="lb-empty">${FT.noMatch}</div>`;
   } else {
     html = top10.map((e, i) => rowHtml(e, i, i)).join('');
     // Show my row if outside top 10
@@ -4046,6 +4056,7 @@ function renderLeaderboard(allScores, hideAnswers) {
       html += rowHtml(entries[myIdx], myIdx, 'me');
     }
   }
+  if (canFollow) followCheckReg(needReg);
   renderFollowBar();
 
   lbEl.innerHTML = html;
@@ -7939,7 +7950,7 @@ setTimeout(() => updateDailyButtonDate(), 350);
 // Version freshness check — silently reload if a newer version is deployed
 // Runs once on load; does nothing if already on latest or if fetch fails
 (function() {
-  const RUNNING = 'v261015.368-tmp';
+  const RUNNING = 'v261015.369-tmp';
   if (sessionStorage.getItem('alto_ver_checked') === RUNNING) return; // already checked this session
   sessionStorage.setItem('alto_ver_checked', RUNNING);
   fetch(location.href, { cache: 'no-cache' })
@@ -7963,7 +7974,7 @@ syncMyGroups(); // registered + verified name: bring in groups from the name's o
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v261015.368-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v261015.369-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
