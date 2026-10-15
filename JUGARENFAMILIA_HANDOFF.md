@@ -1597,3 +1597,16 @@ Session 25 plan: Build 5 — Groups and history
 
 ### v261014.365: PRODUCTION (14 Oct)
 - The practice countdown is now **5 s** (`startDailyCountdown`: `G_daily.practiceMode ? 5 : 10`). The daily keeps 10 and multiplayer is unchanged. The overlay is opaque (full-screen paper), so categories are never visible during the countdown. Checklist only.
+
+### v261015.366-tmp (staging, 15 Oct): robot instruction changes, waiting for the scout
+- **Dailies 14–15 Oct with Ling 3.0 Flash:** all answers went to Ling, 1–4 s (max 7.8 s when 3 answers ran in parallel), 0 timeouts, 0 Cohere fallbacks. Errors: "Van gogh" (Pintor famoso) rejected on first judgement AND on re-check, while "Van Gogh" was accepted for others; re-check overturned "Vivora" (Reptil, the prompt's own misspelling example) and "Helia Kazan" (Elia Kazan with an H added); "Vallas, salto de" (Deporte) was accepted despite the no-reordering rule. The re-check is too generous (also seen in scout: Guava, Library, Edredón).
+- **Daily rule (1):** "Ignore accents, tildes and capital letters — Ramon=Ramón=ramón is fine."
+- **Re-check (method B):** "check it again with fresh eyes. Ignore capital letters."; the spelling rule now has the per-language example (`spellEx`, same words as daily rule 4, defined inside the contest function); NEW "Never accept a name or word changed to fit the letter: an added, dropped or swapped first letter makes it INVALIDO. Only people's names may be written surname first; any other answer reordered to fit the letter is INVALIDO."; "be slightly more generous than the first judge … reasonably belongs … borderline case" was REPLACED by "rule VALIDO if the answer genuinely belongs to the category, including uncommon but real answers". 
+- **Scout v5.7:** same prompts (test_judge_prompt 26/26), 'Animal prehistórico' → 'Animal extinto', +2 judge cases (Van gogh ✓, Vallas, salto de ✗), +3 re-check cases (Vivora ✗, Helia Kazan ✗, Van gogh ✓). Now 36 + 23. Baseline to beat (v5.6 on v364): 32/34, re-checks 17/20.
+- Unit suites green; browser suites not run (prompt-only change).
+
+### v261015.367: PRODUCTION (15 Oct) = staging v366-tmp
+- **Scout v5.7 on v366 (Oscar, hotspot), Ling 3.0 Flash:** 34/36 (ES 12/13, EN 10/10, FR 12/13), re-checks 20/23, 3 flips, avg 2.9 s, slowest 10% 4.4 s, 0 timeouts.
+- **Fixed vs v364:** Van gogh is accepted on both the judge and the re-check; re-check now upholds Vivora, Helia Kazan and Guava; FR Tarragon is rejected.
+- **Still wrong:** FR "Robin" accepted; "Vallas, salto de" accepted (the reorder rule is ignored); the re-check overturns Library (Type of shop), Edredón and Esterilla (Invento), so it stretches categories. Flips went from 1 to 3: watch the dailies.
+- **Possible next step:** a re-check line along the lines of "the answer must be what the category names, not something merely related to it (a library is not a shop; a quilt is not an invention)". Only if real dailies keep showing it.
