@@ -1,5 +1,5 @@
 # JugarEnFamilia.es — Project Handoff Document
-*Last updated: 9 October 2026 — Session 27*
+*Last updated: 31 October 2026 — Session 30*
 
 > ⚠️ **HANDOFF INTEGRITY RULE — DO NOT DELETE CONTENT**
 > This document is append-and-update only. Never remove sections, rules, known issues, backlog items, or session log entries. Only add new content and update existing entries. A truncated handoff causes the next session to lose critical context.
@@ -1720,8 +1720,27 @@ Session 25 plan: Build 5 — Groups and history
 
 ## START HERE (Session 30). Supersedes earlier START HERE sections
 1. Upload the project zip (with `tests\` and `tools\`; replace `tests\restore\follow_scenarios.py` with the v376 one, 47 checks) and read this handoff from "Session 29 summary". **Production = v261031.376.** First thing: `cp index.html index_backup_s30.html`.
-2. ⚠️ **Must do first: the reserved-name gate (plan A, see the v373 entry).** A reserved name is not protected today. Gate Crear sala / Reto diario / Unirse when the name is reserved and not verified on this device (verify or pick another name; practice can stay open). Then update the texts back: `descFree` ("nadie más podrá usarlo") and the home ❓ 🔒 note. Confirm the plan with Oscar first.
+2. ⚠️ **Must do first: the reserved-name gate (plan A, see the v373 entry).** → **BUILT on staging v261031.377-tmp (Session 30), see below; waiting for Oscar's test, then promote.**
+   ⚠️ **Must do first: the reserved-name gate (plan A, see the v373 entry).** A reserved name is not protected today. Gate Crear sala / Reto diario / Unirse when the name is reserved and not verified on this device (verify or pick another name; practice can stay open). Then update the texts back: `descFree` ("nadie más podrá usarlo") and the home ❓ 🔒 note. Confirm the plan with Oscar first.
 3. Then: the security build (`names/` open: secrets readable, 4-digit PIN hashes trivially reversible, `following`/`followers` editable), AI step 1.
 4. Watch the dailies for Ling 3.0 Flash: re-check over-generosity (Library, Edredón, Esterilla), FR English words (Robin), flips.
 5. Small parked: flaky build5b "Marta's buttons…" check (passes most runs), the "top 10" cut can split a tie, own-row name squeezed at 320 px with the "(+50✨)" tag, search covers only the viewed day, the unused T key `rulesBtn`.
 6. Rules unchanged: confirm the plan before building (mockups as plain text, or a quick screenshot before long tests: Oscar prefers seeing it before a 10-minute test run), deploy right after building, check the version with grep before and after, ASCII commit messages, the six font sizes (documented exceptions: 19px daily/practice buttons, 22px help titles), the handoff is append-only.
+
+## Session 30 (31 Oct)
+- Start: production v261031.376 confirmed with grep, backup `index_backup_s30.html`, checklist clean, test kit ALL GREEN on production.
+
+### v261031.377-tmp (staging, 31 Oct): reserved-name gate (plan A)
+- **Plan confirmed by Oscar before building.** `nameGateOk(name, nameElId, retry)` (in the claim block, after `claimClose`) is called by `createRoom`, `joinRoom`, `quickJoin` (invite link, field `qj-name`) and `startDailyChallenge` (also covers "¡Hecho! Ver puntuación" and the duplicate-daily re-call), right after the empty-name check.
+  - Passes: names starting with `__` (test/debug), safe name shorter than 2, `alto_claim_{safe}.verified` on this device, no `names/{safe}/secret`, or the Firebase read failing / taking more than 5 s (never lock anyone out on a bad network).
+  - Blocks: reserved and not verified here → sets `_claimCurrentName`, `_claimState='taken'`, `_gatePending = {retry, nameElId}` and opens `claimOpen(name)` in **gate mode** (overlay class `gate`): title `gateTitle`, text `gateDesc`, button `btnGate` ("Verificar y jugar →"), and `#claim-other` "Usar otro nombre" (CSS-only show via `#claim-overlay.gate #claim-other`).
+  - After a correct email/PIN, `claimSubmit` restores the accented display name into the field the gate came from (`nameElId`: `inp-name` or `qj-name`), closes, and runs `retry` (the same entry function again, which now passes). Wrong PIN: error, nothing happens.
+  - "Usar otro nombre" (`claimGateOther`) closes and focuses + selects that name field. `claimClose` always clears `_gatePending` and the `gate` class; opening from the pill clears it too (normal panel, no continue).
+  - **Not gated:** Práctica, session restore, welcome back.
+  - Also closes the invite-link host takeover (`quickJoin` made you host when your name equalled `room.host`) for reserved names.
+- **Found:** there is no "join by code" field on the page any more (`#inp-code` doesn't exist), so `joinRoom` is dead code; all joins go through the invite link. Gate added there anyway; the test injects the field.
+- **Texts restored (ES/EN/FR):** `descFree` again promises "nadie más podrá jugar con él" / "nobody else can play with it" / "personne d'autre ne pourra jouer avec"; home ❓ note "🔒 Reserva tu nombre (opcional): nadie más podrá usarlo, …" (EN "nobody else can use it", FR "personne d'autre ne peut l'utiliser"). New CLAIM_LABELS keys: `gateTitle`, `gateDesc`, `btnGate`, `gateOther`. Fonts: existing slots only (13px link, 26/32/13/11 in the panel as before).
+- **Still true / not done:** the protection is client-side only. While `names/` is open, someone with the console can still write under any name. The security build is still needed (salted PIN, unreadable secrets, rules). Meta descriptions still say "sin registro", which is still correct (reserving is optional).
+- **Tests:** NEW `tests/restore/gate_scenarios.py` (40 checks): Crear sala gated + wrong/right PIN + room created by itself + device verified; verified device not gated; "Usar otro nombre" focus; pill opens the normal panel; joinRoom; invite link with accent restore (José) + focus; host takeover; daily gated / Práctica open / daily after PIN; free name, `__` name and Firebase error let through; EN/FR texts + 320 px fit; descFree + help note. Fails on v376 (as it should). Full kit on v377-tmp: ALL GREEN (gate 40, follow 47, build5b 77, groups 28, restore 19, countdown 12, stuck 11, unit 239). 426 KB.
+- **Delivered:** `jugarenfamilia_tmp.html` + `gitinfo_tmp.txt` + `tests_kit.zip` (adds gate_scenarios.py). The handoff goes with the production promotion.
+
