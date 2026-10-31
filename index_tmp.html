@@ -3573,11 +3573,11 @@ async function showDailyResult(answers, baseScore, totalScore, aiResults, secsLe
     const base = (word && res === 'valid') ? 100 : (word && res === 'unsure') ? 50 : 0;
     const canContest = isToday && (res === 'invalid' || res === 'unsure') && word && safeName;
     return `<div class="daily-result-row" id="daily-row-${i}">
-      <span class="daily-result-cat">${cat}</span>
-      <span class="daily-result-word">${word || '<span style="opacity:0.4">—</span>'}</span>
+      <span class="daily-result-cat">${escHtml(cat)}</span>
+      <span class="daily-result-word">${word ? escHtml(word) : '<span style="opacity:0.4">—</span>'}</span>
       <span class="daily-result-ai" id="daily-ai-${i}">${aiIcon[res] || '🤔'}</span>
       ${base ? `<span class="daily-result-pts" id="daily-pts-${i}">+${base}</span>` : `<span class="daily-result-pts" id="daily-pts-${i}" style="display:none"></span>`}
-      ${canContest ? `<button class="daily-reconsider-btn" id="daily-reconsider-${i}" onclick="recontest(${i},'${word.replace(/'/g,"\\'")}','${cat.trim()}')">${{es:'¿Error?',en:'Error?',fr:'Erreur?'}[LANG]||'¿Error?'}</button>` : ''}
+      ${canContest ? `<button class="daily-reconsider-btn" id="daily-reconsider-${i}" onclick="recontest(${i},'${jsq(word)}','${jsq(cat.trim())}')">${{es:'¿Error?',en:'Error?',fr:'Erreur?'}[LANG]||'¿Error?'}</button>` : ''}
       <span class="daily-result-orig" id="daily-orig-${i}"></span>
     </div>`;
   }).join('');
@@ -3904,8 +3904,8 @@ function renderLeaderboard(allScores, hideAnswers) {
       const origBadge = isUnique ? `<span class="daily-lb-orig" style="font-size:11px">+50✨</span>` : '';
       const ptsHtml = pts ? `<span class="daily-lb-answer-pts${ai === 'invalid' ? ' zero' : ''}">${pts}</span>` : '';
       return `<div class="daily-lb-answer-row">
-        <span class="daily-lb-answer-cat">${cat}</span>
-        <span class="daily-lb-answer-val${val ? '' : ' empty'}">${val || '—'}</span>
+        <span class="daily-lb-answer-cat">${escHtml(cat)}</span>
+        <span class="daily-lb-answer-val${val ? '' : ' empty'}">${val ? escHtml(val) : '—'}</span>
         <span class="daily-lb-answer-ai">${aiIcon}</span>
         ${ptsHtml}${origBadge}
       </div>`;
@@ -3940,7 +3940,7 @@ function renderLeaderboard(allScores, hideAnswers) {
     const clickHandler = hideAnswers ? '' : ` onclick="toggleDailyAnswers(${typeof id === 'number' ? id : "'" + id + "'"})"`;
     return `<div class="daily-lb-row${_isMe ? ' daily-lb-me' : ''}" id="daily-row-${id}"${clickHandler}>
       <span class="daily-lb-rank">${rankLabel(idx)}</span>
-      ${starHtml(e)}<span class="daily-lb-name">${e.name}</span>
+      ${starHtml(e)}<span class="daily-lb-name">${escHtml(e.name)}</span>
       <span class="daily-lb-score">${grandTotal} pts</span>
       ${scoreTag(e)}${chevron}
     </div>${hideAnswers ? '' : buildAnswerPanel(e, id)}`;
@@ -4971,7 +4971,7 @@ function renderGuestGroup(room) {
 
 function renderPlayers(players, langs={}, hostName='') {
   document.getElementById('lob-players').innerHTML =
-    Object.entries(players).map(([n,emoji]) => `<div class="chip ok">${n === hostName ? '👑 ' : ''}${escHtml(n)}<span style="font-size: 16px">${emoji||'🎲'}</span></div>`).join('');
+    Object.entries(players).map(([n,emoji]) => `<div class="chip ok">${n === hostName ? '👑 ' : ''}${escHtml(n)}<span style="font-size: 16px">${escHtml(emoji||'🎲')}</span></div>`).join('');
   const hint = document.getElementById('lbl-solo-hint');
   if (hint) {
     const solo = Object.keys(players).length < 2;
@@ -5248,8 +5248,8 @@ function enterPlaying(room) {
   if (stopBtn) stopBtn.style.display = '';
   document.getElementById('ans-inputs').innerHTML = (room.categories||[]).map(cat =>
     `<div class="ans-row">
-      <span class="ans-lbl">${cat}</span>
-      <input type="text" class="ans-inp" id="a_${cat}" placeholder="${room.currentLetter}..." autocomplete="off">
+      <span class="ans-lbl">${escHtml(cat)}</span>
+      <input type="text" class="ans-inp" id="a_${escHtml(cat)}" placeholder="${room.currentLetter}..." autocomplete="off">
     </div>`
   ).join('');
   document.querySelector('.ans-inp')?.focus();
@@ -5436,7 +5436,7 @@ function buildValidationHTML(room, invalidMap) {
   const mode = room.validationMode||'host';
   let html = '';
   cats.forEach(cat => {
-    html += `<div class="card"><p class="lbl">${cat}</p>`;
+    html += `<div class="card"><p class="lbl">${escHtml(cat)}</p>`;
     const answers = players.map(p => ({p, ans:(allAns[p]||{})[cat]||''}));
     const lowers = answers.map(a => normalize(a.ans)).filter(Boolean);
     answers.forEach(({p, ans}) => {
@@ -5447,24 +5447,24 @@ function buildValidationHTML(room, invalidMap) {
       const pts = ans ? (isDup?50:100) : 0;
       const gSafeAns = ans ? ans.replace(/'/g,"\\'") : '';
       const existingGAI = ans && room.aiResults && room.aiResults[key];
-      const dictBtn = ans ? `<button class="dict-btn" id="gdictbtn_${key}" onclick="lookupWordGuest('${gSafeAns}','${key}')">${'📖'}</button>` : '';
+      const dictBtn = ans ? `<button class="dict-btn" id="gdictbtn_${escHtml(key)}" onclick="lookupWordGuest('${jsq(ans)}','${jsq(key)}')">${'📖'}</button>` : '';
       const voteHtml = ans ? renderVotes(key, votes[key]||{}, mode, players, false) : '';
       const emojiHtml = renderEntryEmojis(key, entryReactions[key]||{}, false);
       const gEntryClass = isInvalid ? 'val-entry invalid' : (ans ? 'val-entry democratic-valid' : 'val-entry');
-      html += `<div class="${gEntryClass}" id="ve_${key}">
+      html += `<div class="${gEntryClass}" id="ve_${escHtml(key)}">
         <div class="val-entry-top">
-          <span class="val-name">${p}</span>
-          <span class="ans-disp">${ans||'<span style="color:var(--ink-muted)">—</span>'}</span>
+          <span class="val-name">${escHtml(p)}</span>
+          <span class="ans-disp">${ans ? escHtml(ans) : '<span style="color:var(--ink-muted)">—</span>'}</span>
         </div>
         ${ans ? `<div class="val-entry-bottom">
-          <div class="val-entry-actions"><span class="pts-badge" id="pb_g_${key}" data-pts="${pts}">${isInvalid?t('invalidated'):pts+' pts'}</span></div>
-          <div class="val-entry-emojis" id="emojis_${key}">${emojiHtml}</div>
-          <div class="val-entry-votes" id="votes_${key}">${voteHtml}</div>
-          <div class="val-entry-right">${dictBtn}${(ans && G_aiEnabled && !existingGAI) ? `<button class="ai-btn" id="ai_btn_${key}" onclick="askAI('${gSafeAns}','${cat}','${room.currentLetter}','${key}')">🤖</button>` : ''}</div>
+          <div class="val-entry-actions"><span class="pts-badge" id="pb_g_${escHtml(key)}" data-pts="${pts}">${isInvalid?t('invalidated'):pts+' pts'}</span></div>
+          <div class="val-entry-emojis" id="emojis_${escHtml(key)}">${emojiHtml}</div>
+          <div class="val-entry-votes" id="votes_${escHtml(key)}">${voteHtml}</div>
+          <div class="val-entry-right">${dictBtn}${(ans && G_aiEnabled && !existingGAI) ? `<button class="ai-btn" id="ai_btn_${escHtml(key)}" onclick="askAI('${jsq(ans)}','${jsq(cat)}','${jsq(room.currentLetter)}','${jsq(key)}')">🤖</button>` : ''}</div>
         </div>` : ''}
       </div>
-      ${ans?`<div class="dict-result" id="gdict_${key}"></div>`:''}
-      ${ans?`<div class="${existingGAI?('ai-result show '+(existingGAI.cls||(existingGAI.html.includes('✅')?'valid':existingGAI.html.includes('❌')?'invalid':'unsure'))):('ai-result')}" id="ai_res_${key}">${existingGAI?existingGAI.html:''}</div>`:''}`;
+      ${ans?`<div class="dict-result" id="gdict_${escHtml(key)}"></div>`:''}
+      ${ans?`<div class="${existingGAI?('ai-result show '+aiClsOf(existingGAI)):('ai-result')}" id="ai_res_${escHtml(key)}">${existingGAI?aiLabelHtml(aiClsOf(existingGAI)):''}</div>`:''}`;
     });
     html += '</div>';
   });
@@ -5499,7 +5499,7 @@ function showValidation(room) {
   const allAns = room.allAnswers||{};
   let html = '';
   cats.forEach(cat => {
-    html += `<div class="card"><p class="lbl">${cat}</p>`;
+    html += `<div class="card"><p class="lbl">${escHtml(cat)}</p>`;
     const answers = players.map(p => ({p, ans:(allAns[p]||{})[cat]||''}));
     const lowers = answers.map(a => normalize(a.ans)).filter(Boolean);
     answers.forEach(({p, ans}) => {
@@ -5508,26 +5508,26 @@ function showValidation(room) {
       const key = p+'__'+cat;
       const pts = ans ? (isDup?50:100) : 0;
       const safeAns = ans ? ans.replace(/'/g,"\'") : '';
-      const dictBtn = ans ? `<button class="dict-btn" id="dictbtn_${key}" onclick="lookupWord('${safeAns}','${key}')">📖</button>` : '';
+      const dictBtn = ans ? `<button class="dict-btn" id="dictbtn_${escHtml(key)}" onclick="lookupWord('${jsq(ans)}','${jsq(key)}')">📖</button>` : '';
       const isInv = !!(ans && G.invalidAnswers[key]);
-      const invBtn = (ans && G_validationMode !== 'democratic') ? `<button class="inv-btn" id="ib_${key}" onclick="toggleInvalid('${key}',${pts})">${isInv ? '↩' : '✕'}</button>` : '';
-      const ptsBadge = ans ? `<span class="pts-badge" id="pb_${key}">${pts} pts</span>` : '';
-      const dictDiv = ans ? `<div class="dict-result" id="dict_${key}"></div>` : '';
+      const invBtn = (ans && G_validationMode !== 'democratic') ? `<button class="inv-btn" id="ib_${escHtml(key)}" onclick="toggleInvalid('${jsq(key)}',${pts})">${isInv ? '↩' : '✕'}</button>` : '';
+      const ptsBadge = ans ? `<span class="pts-badge" id="pb_${escHtml(key)}">${pts} pts</span>` : '';
+      const dictDiv = ans ? `<div class="dict-result" id="dict_${escHtml(key)}"></div>` : '';
       const existingAI = ans && room.aiResults && room.aiResults[key];
-      const aiBtn = (ans && G_aiEnabled && !existingAI) ? `<button class="ai-btn" id="ai_btn_${key}" onclick="askAI('${ans.replace(/'/g,"\'")}','${cat}','${room.currentLetter}','${key}')">🤖</button>` : '';
-      const aiCls = existingAI ? ('ai-result show ' + (existingAI.cls || (existingAI.html.includes('✅') ? 'valid' : existingAI.html.includes('❌') ? 'invalid' : 'unsure'))) : 'ai-result';
-      const aiRes = ans ? `<div class="ai-result ${aiCls}" id="ai_res_${key}">${existingAI ? existingAI.html : ''}</div>` : '';
+      const aiBtn = (ans && G_aiEnabled && !existingAI) ? `<button class="ai-btn" id="ai_btn_${escHtml(key)}" onclick="askAI('${jsq(ans)}','${jsq(cat)}','${jsq(room.currentLetter)}','${jsq(key)}')">🤖</button>` : '';
+      const aiCls = existingAI ? ('ai-result show ' + aiClsOf(existingAI)) : 'ai-result';
+      const aiRes = ans ? `<div class="ai-result ${aiCls}" id="ai_res_${escHtml(key)}">${existingAI ? aiLabelHtml(aiClsOf(existingAI)) : ''}</div>` : '';
       const voteHtml = ans ? renderVotes(key, {}, G_validationMode, players, true) : '';
       const entryClass = !ans ? 'val-entry' : (isInv ? 'val-entry invalid' : 'val-entry democratic-valid');
-      html += `<div class="${entryClass}" id="ve_${key}">
+      html += `<div class="${entryClass}" id="ve_${escHtml(key)}">
         <div class="val-entry-top">
-          <span class="val-name">${p}</span>
-          <span class="ans-disp">${ans||'<span style="color:var(--ink-muted)">—</span>'}</span>
+          <span class="val-name">${escHtml(p)}</span>
+          <span class="ans-disp">${ans ? escHtml(ans) : '<span style="color:var(--ink-muted)">—</span>'}</span>
         </div>
         ${ans ? `<div class="val-entry-bottom">
           <div class="val-entry-actions">${ptsBadge}</div>
-          <div class="val-entry-emojis" id="emojis_${key}">${renderEntryEmojis(key, {}, true)}</div>
-          <div class="val-entry-votes" id="votes_${key}">${voteHtml}</div>
+          <div class="val-entry-emojis" id="emojis_${escHtml(key)}">${renderEntryEmojis(key, {}, true)}</div>
+          <div class="val-entry-votes" id="votes_${escHtml(key)}">${voteHtml}</div>
           <div class="val-entry-right">${dictBtn}${aiBtn}${invBtn}</div>
         </div>` : ''}
       </div>
@@ -5646,7 +5646,7 @@ window.lookupWord = async (word, key) => {
       const data = await wikiRes.json();
       if (data.extract && data.type !== 'disambiguation') {
         const short = data.extract.split('.')[0] + '.';
-        const html = `<div class="dict-word">${data.title}</div>${short}`;
+        const html = `<div class="dict-word">${escHtml(data.title)}</div>${escHtml(short)}`;
         resultEl.innerHTML = html;
         return;
       }
@@ -5657,7 +5657,7 @@ window.lookupWord = async (word, key) => {
       const data = await dictRes.json();
       const meaning = data[0]?.meanings[0]?.definitions[0]?.definition;
       if (meaning) {
-        const html = `<div class="dict-word">${word}</div>${meaning}`;
+        const html = `<div class="dict-word">${escHtml(word)}</div>${escHtml(meaning)}`;
         resultEl.innerHTML = html;
         return;
       }
@@ -5670,16 +5670,16 @@ window.lookupWord = async (word, key) => {
       const titles = searchData[1] || [];
       const suggestion = titles.find(t => normalize(t) !== normalize(word));
       if (suggestion) {
-        const html = `<span class="dict-error">${t('notFoundWord')} "<strong>${word}</strong>"</span><br><span style="font-size:20px;color:var(--ink-sec)">${t('didYouMean')} <button onclick="lookupWord('${suggestion}','${key}')" style="font-family:'Caveat',cursive;font-size:20px;color:var(--red);border:none;background:none;cursor:pointer;padding:0;text-decoration:underline">${suggestion}</button>?</span>`;
+        const html = `<span class="dict-error">${t('notFoundWord')} "<strong>${escHtml(word)}</strong>"</span><br><span style="font-size:20px;color:var(--ink-sec)">${t('didYouMean')} <button onclick="lookupWord('${jsq(suggestion)}','${jsq(key)}')" style="font-family:'Caveat',cursive;font-size:20px;color:var(--red);border:none;background:none;cursor:pointer;padding:0;text-decoration:underline">${suggestion}</button>?</span>`;
         resultEl.innerHTML = html;
         update(roomRef(G.roomCode), {dictLookup: {word, key, result: html, source: 'suggest'}});
         return;
       }
     }
-    const notFound = `<span class="dict-error">${t('noDefinition')} "<strong>${word}</strong>"</span>`;
+    const notFound = `<span class="dict-error">${t('noDefinition')} "<strong>${escHtml(word)}</strong>"</span>`;
     resultEl.innerHTML = notFound;
   } catch(e) {
-    const errMsg = `<span class="dict-error">${t('noDefinition')} "<strong>${word}</strong>"</span>`;
+    const errMsg = `<span class="dict-error">${t('noDefinition')} "<strong>${escHtml(word)}</strong>"</span>`;
     resultEl.innerHTML = errMsg;
   }
 };
@@ -5702,13 +5702,13 @@ window.lookupWordGuest = async (word, key) => {
     const wikiRes = await fetchWT(`https://${lang}.wikipedia.org/api/rest_v1/page/summary/${encoded}`, 6000);
     if (wikiRes.ok) {
       const data = await wikiRes.json();
-      if (data.extract && data.type !== 'disambiguation') { resultEl.innerHTML = `<div class="dict-word">${data.title}</div>${data.extract.split('.')[0]}.`; return; }
+      if (data.extract && data.type !== 'disambiguation') { resultEl.innerHTML = `<div class="dict-word">${escHtml(data.title)}</div>${escHtml(data.extract.split('.')[0])}.`; return; }
     }
     const dictRes = await fetchWT(`https://api.dictionaryapi.dev/api/v2/entries/en/${encoded}`, 5000);
     if (dictRes.ok) {
       const data = await dictRes.json();
       const meaning = data[0]?.meanings[0]?.definitions[0]?.definition;
-      if (meaning) { resultEl.innerHTML = `<div class="dict-word">${word}</div>${meaning}`; return; }
+      if (meaning) { resultEl.innerHTML = `<div class="dict-word">${escHtml(word)}</div>${escHtml(meaning)}`; return; }
     }
     // Did you mean? Use opensearch
     const searchRes = await fetchWT(`https://${lang}.wikipedia.org/w/api.php?action=opensearch&search=${encoded}&limit=3&format=json&origin=*`, 5000);
@@ -5717,21 +5717,21 @@ window.lookupWordGuest = async (word, key) => {
       const titles = searchData[1] || [];
       const suggestion = titles.find(t => normalize(t) !== normalize(word));
       if (suggestion) {
-        resultEl.innerHTML = `<span class="dict-error">${t('notFoundWord')} "<strong>${word}</strong>"</span><br><span style="font-size:20px;color:var(--ink-sec)">${t('didYouMean')} <button onclick="lookupWordGuest('${suggestion}','${key}')" style="font-family:'Caveat',cursive;font-size:20px;color:var(--red);border:none;background:none;cursor:pointer;padding:0;text-decoration:underline">${suggestion}</button>?</span>`;
+        resultEl.innerHTML = `<span class="dict-error">${t('notFoundWord')} "<strong>${escHtml(word)}</strong>"</span><br><span style="font-size:20px;color:var(--ink-sec)">${t('didYouMean')} <button onclick="lookupWordGuest('${jsq(suggestion)}','${jsq(key)}')" style="font-family:'Caveat',cursive;font-size:20px;color:var(--red);border:none;background:none;cursor:pointer;padding:0;text-decoration:underline">${suggestion}</button>?</span>`;
         return;
       }
     }
-    resultEl.innerHTML = `<span class="dict-error">${t('noDefinition')} "<strong>${word}</strong>"</span>`;
-  } catch(e) { resultEl.innerHTML = `<span class="dict-error">${t('noDefinition')} "<strong>${word}</strong>"</span>`; }
+    resultEl.innerHTML = `<span class="dict-error">${t('noDefinition')} "<strong>${escHtml(word)}</strong>"</span>`;
+  } catch(e) { resultEl.innerHTML = `<span class="dict-error">${t('noDefinition')} "<strong>${escHtml(word)}</strong>"</span>`; }
 };
 
 function applyAIResults(aiResults) {
   if (!aiResults || !G_aiEnabled) return;
   Object.entries(aiResults).forEach(([key, data]) => {
     const el = document.getElementById('ai_res_' + key);
-    if (el && data.html) {
-      el.innerHTML = data.html;
-      const cls = data.cls || (data.html.includes('✅') ? 'valid' : data.html.includes('❌') ? 'invalid' : 'unsure');
+    if (el && data && (data.cls || data.html)) {
+      const cls = aiClsOf(data);
+      el.innerHTML = aiLabelHtml(cls); // built here, in this device's language (v379)
       el.className = 'ai-result show ' + cls;
     }
     // Hide the AI button — result is in, no need to query again
@@ -5841,6 +5841,32 @@ window.setAISpelling = (allow) => {
   saveLobbyConfig();
 };
 
+// Robot verdict for a multiplayer answer (v379). Rooms store only cls ('valid'|'invalid'|'unsure');
+// older rooms stored ready-made html, read here only to recover the verdict (never shown as HTML).
+function aiClsOf(d) {
+  if (d && ['valid', 'invalid', 'unsure'].includes(d.cls)) return d.cls;
+  const h = (d && typeof d.html === 'string') ? d.html : '';
+  return h.includes('✅') ? 'valid' : h.includes('❌') ? 'invalid' : 'unsure';
+}
+function aiLabelHtml(cls) {
+  const labelMap = {
+    valid:   {es:'¡El robot cree que es válido!',   en:'Robot thinks it\'s valid!',      fr:'Le robot pense que c\'est valide!'},
+    invalid: {es:'¡El robot cree que es inválido!', en:'Robot thinks it\'s invalid!',    fr:'Le robot pense que c\'est invalide!'},
+    unsure:  {es:'¡El robot no está seguro!',       en:'Robot is not sure!',              fr:'Le robot n\'est pas sûr!'}
+  };
+  const colorMap = { valid: 'var(--success)', invalid: 'var(--red)', unsure: '#f39c12' };
+  const verdictMap = {
+    valid:   {es:'válido',   en:'valid',   fr:'valide'},
+    invalid: {es:'inválido', en:'invalid', fr:'invalide'},
+    unsure:  {es:'seguro',   en:'sure',    fr:'sûr'}
+  };
+  const label = (labelMap[cls]||labelMap.unsure)[LANG] || (labelMap[cls]||labelMap.unsure).es;
+  const color = colorMap[cls] || colorMap.unsure;
+  const verdict = (verdictMap[cls]||verdictMap.unsure)[LANG] || (verdictMap[cls]||verdictMap.unsure).es;
+  const coloredLabel = label.replace(verdict, `<span style="font-weight:700;color:${color}">${verdict}</span>`);
+  return `🤖 ${coloredLabel}`;
+}
+
 window.askAI = async (word, category, letter, key) => {
   const btn = document.getElementById('ai_btn_' + key);
   const result = document.getElementById('ai_res_' + key);
@@ -5869,26 +5895,11 @@ window.askAI = async (word, category, letter, key) => {
     const cls = judged.verdict;
     console.log('[AI] multiplayer', { word, category, cls, model: judged.model, cut: judged.cut, retried: judged.retried });
 
-    const icon = cls === 'valid' ? '✅' : cls === 'invalid' ? '❌' : '🤔';
-    const labelMap = {
-      valid:   {es:'¡El robot cree que es válido!',   en:'Robot thinks it\'s valid!',      fr:'Le robot pense que c\'est valide!'},
-      invalid: {es:'¡El robot cree que es inválido!', en:'Robot thinks it\'s invalid!',    fr:'Le robot pense que c\'est invalide!'},
-      unsure:  {es:'¡El robot no está seguro!',       en:'Robot is not sure!',              fr:'Le robot n\'est pas sûr!'}
-    };
-    const colorMap = { valid: 'var(--success)', invalid: 'var(--red)', unsure: '#f39c12' };
-    const verdictMap = {
-      valid:   {es:'válido',   en:'valid',   fr:'valide'},
-      invalid: {es:'inválido', en:'invalid', fr:'invalide'},
-      unsure:  {es:'seguro',   en:'sure',    fr:'sûr'}
-    };
-    const label = (labelMap[cls]||labelMap.unsure)[LANG] || (labelMap[cls]||labelMap.unsure).es;
-    const color = colorMap[cls] || colorMap.unsure;
-    const verdict = (verdictMap[cls]||verdictMap.unsure)[LANG] || (verdictMap[cls]||verdictMap.unsure).es;
-    const coloredLabel = label.replace(verdict, `<span style="font-weight:700;color:${color}">${verdict}</span>`);
-    const aiHtml = `🤖 ${coloredLabel}`;
+    const aiHtml = aiLabelHtml(cls);
     result.innerHTML = aiHtml;
     // Broadcast to guests via Firebase
-    update(roomRef(G.roomCode), { [`aiResults/${key}`]: { html: aiHtml, cls, key } });
+    // Only the verdict travels (v379): each device builds its own label in its own language. No HTML in the room.
+    update(roomRef(G.roomCode), { [`aiResults/${key}`]: { cls: aiClsOf({ cls }), key } });
     result.className = 'ai-result show ' + cls;
     btn.style.display = 'none'; // hide button — result locked in
   } catch(e) {
@@ -5897,7 +5908,7 @@ window.askAI = async (word, category, letter, key) => {
     const _retry = {es:'Reintentar', en:'Retry', fr:'Réessayer'}[LANG] || 'Reintentar';
     const _unavail = {es:'Robot no disponible', en:'Robot unavailable', fr:'Robot indisponible'}[LANG] || 'Robot no disponible';
     result.innerHTML = isTimeout
-      ? `${_slow} <button onclick="askAI('${word.replace(/'/g,"\\'")}','${category}','${letter}','${key}')" style="font-size:11px;padding:2px 6px;margin-left:4px;border-radius:4px;border:1px solid var(--border);cursor:pointer;background:var(--paper-dark)">${_retry}</button>`
+      ? `${_slow} <button onclick="askAI('${jsq(word)}','${jsq(category)}','${jsq(letter)}','${jsq(key)}')" style="font-size:11px;padding:2px 6px;margin-left:4px;border-radius:4px;border:1px solid var(--border);cursor:pointer;background:var(--paper-dark)">${_retry}</button>`
       : '⚠️ ' + (e.message || _unavail);
     result.className = 'ai-result show unsure';
     btn.textContent = '🤖';
@@ -6100,7 +6111,7 @@ function renderVotes(key, votes, mode, players, isHost) {
   const downClass = myVote === 'down' ? 'vote-btn thumbs-down voted' : 'vote-btn thumbs-down';
   // Thumbs only shown in democratic mode
   if (mode !== 'democratic') return '';
-  return `${democraticResult}<button class="${downClass}" onclick="voteEntry('${key}','down')">👎 <span class="vote-count">${downs}</span></button>`;
+  return `${democraticResult}<button class="${downClass}" onclick="voteEntry('${jsq(key)}','down')">👎 <span class="vote-count">${downs}</span></button>`;
 }
 
 function renderEntryEmojis(key, entryReactions, isHost) {
@@ -6117,7 +6128,7 @@ function renderEntryEmojis(key, entryReactions, isHost) {
     const count = counts[e] || 0;
     const active = !own && G_myEntryEmojis[key + '_' + e];
     const cls = 'entry-emoji-btn' + (active ? ' active' : '') + (own ? ' own' : '') + (own && count > 0 ? ' got' : '');
-    return `<button class="${cls}" onclick="reactToEntry('${key}','${e}')">${e}${count > 0 ? `<sup style="font-size: 11px">${count}</sup>` : ''}</button>`;
+    return `<button class="${cls}" onclick="reactToEntry('${jsq(key)}','${e}')">${e}${count > 0 ? `<sup style="font-size: 11px">${count}</sup>` : ''}</button>`;
   }).join('');
 
   return `<div class="entry-emoji-strip">${strip}</div>`;
@@ -6217,7 +6228,7 @@ function showReactionFloat(emoji, name, id) {
   el.className = 'reaction-float';
   el.id = 'rf_' + id;
   el.style.left = left + '%';
-  el.innerHTML = `<span class="r-emoji">${emoji}</span><span class="r-name">${name}</span>`;
+  el.innerHTML = `<span class="r-emoji">${escHtml(emoji)}</span><span class="r-name">${escHtml(name)}</span>`;
   stage.appendChild(el);
   setTimeout(() => el.remove(), 5200);
 }
@@ -6351,6 +6362,10 @@ window.finishValidation = async () => {
 };
 
 // Minimal HTML escaping for player-typed text drawn with innerHTML
+// A value placed inside a quoted JS string in an HTML attribute, e.g. onclick="fn('${jsq(v)}')" (v379):
+// backslash-escape for JS first, then HTML-escape, so quotes and apostrophes in names, answers or categories
+// can neither break the handler (Film d'animation, L'ours) nor end the attribute.
+function jsq(v) { return escHtml(String(v ?? '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\r?\n/g, ' ')); }
 function escHtml(v) {
   return String(v ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
@@ -6395,7 +6410,7 @@ function mpRowHTML({ id, rank, name, emoji, total, extra, isCaller, isHost, oncl
   const me = name === G.playerName;
   return `<div class="daily-lb-row mp-row${me ? ' daily-lb-me' : ''}${open ? ' expanded' : ''}" id="${id}"${onclick ? ` onclick="${onclick}"` : ' style="cursor:default"'}>
       <span class="daily-lb-rank">${rank}</span>
-      <span class="mp-namewrap"><span class="daily-lb-name">${escHtml(name)} ${emoji}</span>${isCaller ? '<span class="sc-alto">A</span>' : ''}${isHost ? `<span class="mp-host">${escHtml(t('hostBadge'))}</span>` : ''}</span>
+      <span class="mp-namewrap"><span class="daily-lb-name">${escHtml(name)} ${escHtml(emoji)}</span>${isCaller ? '<span class="sc-alto">A</span>' : ''}${isHost ? `<span class="mp-host">${escHtml(t('hostBadge'))}</span>` : ''}</span>
       <span class="daily-lb-score">${total}<span class="sc-unit"> pts</span></span>
       ${extra ? `<span class="daily-lb-speed">(${extra})</span>` : ''}
       ${onclick ? '<span class="daily-lb-chevron">▶</span>' : ''}
@@ -6441,7 +6456,7 @@ function showScores(room) {
   document.getElementById('sc-list').innerHTML = (rl && rl.players)
     ? sorted.map(([n,total],i) => scoreCardHTML(i, n, total, medals[i] || ranks[i], players[n]||'🎲', rl, room)).join('')
     : sorted.map(([n,pts],i) =>  // fallback: no roundLog for this round (older room)
-        `<div class="score-row"><span>${medals[i]} ${escHtml(n)} ${players[n]||'🎲'}</span><span class="pts">${pts} pts</span></div>`
+        `<div class="score-row"><span>${medals[i]} ${escHtml(n)} ${escHtml(players[n]||'🎲')}</span><span class="pts">${pts} pts</span></div>`
       ).join('');
   let btns = '';
   if (G.isHost) {
@@ -6815,7 +6830,7 @@ function gameCardsHTML(room, prefix) {
   return rounds.length
     ? sorted.map(([n,pts],i) => finalCardHTML(i, n, pts, fMedals[i] || fRanks[i], fPlayers[n]||'🎲', room, rounds, prefix, host === n)).join('')
     : sorted.map(([n,pts],i) =>  // fallback: no roundLog (older room)
-        `<div class="score-row"><span>${fMedals[i]} ${escHtml(n)} ${fPlayers[n]||'🎲'}</span><span class="pts">${pts} pts</span></div>`
+        `<div class="score-row"><span>${fMedals[i]} ${escHtml(n)} ${escHtml(fPlayers[n]||'🎲')}</span><span class="pts">${pts} pts</span></div>`
       ).join('');
 }
 
@@ -7926,7 +7941,7 @@ setTimeout(() => updateDailyButtonDate(), 350);
 // Version freshness check — silently reload if a newer version is deployed
 // Runs once on load; does nothing if already on latest or if fetch fails
 (function() {
-  const RUNNING = 'v261031.377-tmp';
+  const RUNNING = 'v261031.379-tmp';
   if (sessionStorage.getItem('alto_ver_checked') === RUNNING) return; // already checked this session
   sessionStorage.setItem('alto_ver_checked', RUNNING);
   fetch(location.href, { cache: 'no-cache' })
@@ -7950,7 +7965,7 @@ syncMyGroups(); // registered + verified name: bring in groups from the name's o
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v261031.377-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v261031.379-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
