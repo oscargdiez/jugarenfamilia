@@ -1765,4 +1765,5 @@ Read-only audit of v377-tmp: parser pass over the 372 top-level definitions + sc
 2. Open the audit doc (link above). Next build = **escaping (S1, S2, S3)**, the leaderboard one first; add the hostile-text scenario first. Confirm the plan with Oscar.
 3. Then buttons/names, clocks, cleanup, handoff split, security build. B4 needs Oscar's decision.
 4. Rules unchanged (plan first, deploy right after building, grep the version before and after, ASCII commit messages, six font slots, append-only handoff).
+- **Decision (Oscar, 31 Oct): B4 dropped.** The daily stays on each device's local date: it's an international game and each country's players use their own clock. Changing the phone's clock to see tomorrow early is accepted ("just a game"). Don't propose a server or Madrid date again. B2 (the daily clock freezing on an app switch, also by accident) stays in the clock build.
 
