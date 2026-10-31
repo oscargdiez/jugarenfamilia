@@ -1705,3 +1705,23 @@ Session 25 plan: Build 5 — Groups and history
   - multi: 🎲 ✏️ 🛑 steps · Puntos table (única 100, repetida 50, anulada/vacía 0, ¡Alto! sin fallos (con 8 categorías) +250, ¡Alto! por cada anulada −100) · 👑 🗳️ 🤖 😂 🎮 steps · note: solo = práctica, unfinished games don't count.
 - French: non-breaking space before : ? ! in the help (a lone ":" started a line at 320 px).
 - Checked at 320 FR / 390 ES / 390 EN: no points row overflows. Heights: home ~500–620 px, daily ~700–850, multi ~860–1010 (scrolls). ALL GREEN.
+
+### v261031.376: PRODUCTION (31 Oct) = v375-tmp + home help layout
+- **Home help** reworked to follow the original menu help (Oscar): a section title, an intro line without an icon (invisible `·` with `opacity:0`, the same small offset as the original, on purpose), then emoji steps; no emoji repeated in the panel (Práctica uses 🔁). New item type `['i', text]`.
+- **Help titles `.help-h` = 22px bold Caveat**, exactly the original help titles (pre-v373 inline style). Oscar: keep consistent with the old look. 22px is outside the six font slots, but it was already in the original help. The note box is 11px Special Elite (the old home "Validación" box was 12px).
+- Includes everything since v372: lean help content in the rules-card look (v373/375), honest name reservation texts, Siguiendo without not-played rows, the emoji grid fix (v374). News `2026-10-31-follow` ("Toca ☆ en la clasificación…") still runs until 2026-11-04.
+- ALL GREEN (follow 47, build5b 77, groups 28, restore 19, countdown 12, stuck 11, unit suites), checklist clean, 421 KB.
+
+## Session 29 summary (10–31 Oct). Production v261010.363 → v261031.376
+- **Lobby:** compact redesign (v358–363): "¡comparte!" + red code, settings bar with live summary, validation mode inside settings as theme-style cards, per-name settings memory, guests see the host's choices.
+- **Robot:** Sante and Ling Fin disappeared from OpenRouter (13 Oct) → `AI_MODELS = ['inclusionai/ling-3.0-flash', 'cohere/north-mini-code:free']` (v364). Judge ignores capital letters; neutral re-check prompt with a spelling example and no letter-fitting (v367). Scout v5.7: 34/36, re-checks 20/23. One-letter answers rejected locally. "Animal prehistórico" → "Animal extinto". Practice countdown 5 s.
+- **Follow system** (designed 12 Sep, restored and built): ☆/silver ★/gold ★, Todos/★ Siguiendo, always-visible search, legend, `reg` flag + registered-name lookup for older scores (v368–371, v374). Daily ties share medals like multiplayer. Fix: today's answers no longer revealed after ◀ ▶.
+- **Help** rewritten (v373–376) + honest name reservation texts. **Emoji grid** fixed below 390 px.
+
+## START HERE (Session 30). Supersedes earlier START HERE sections
+1. Upload the project zip (with `tests\` and `tools\`; replace `tests\restore\follow_scenarios.py` with the v376 one, 47 checks) and read this handoff from "Session 29 summary". **Production = v261031.376.** First thing: `cp index.html index_backup_s30.html`.
+2. ⚠️ **Must do first: the reserved-name gate (plan A, see the v373 entry).** A reserved name is not protected today. Gate Crear sala / Reto diario / Unirse when the name is reserved and not verified on this device (verify or pick another name; practice can stay open). Then update the texts back: `descFree` ("nadie más podrá usarlo") and the home ❓ 🔒 note. Confirm the plan with Oscar first.
+3. Then: the security build (`names/` open: secrets readable, 4-digit PIN hashes trivially reversible, `following`/`followers` editable), AI step 1.
+4. Watch the dailies for Ling 3.0 Flash: re-check over-generosity (Library, Edredón, Esterilla), FR English words (Robin), flips.
+5. Small parked: flaky build5b "Marta's buttons…" check (passes most runs), the "top 10" cut can split a tie, own-row name squeezed at 320 px with the "(+50✨)" tag, search covers only the viewed day, the unused T key `rulesBtn`.
+6. Rules unchanged: confirm the plan before building (mockups as plain text, or a quick screenshot before long tests: Oscar prefers seeing it before a 10-minute test run), deploy right after building, check the version with grep before and after, ASCII commit messages, the six font sizes (documented exceptions: 19px daily/practice buttons, 22px help titles), the handoff is append-only.

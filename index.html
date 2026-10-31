@@ -679,14 +679,9 @@ input.lb-search::placeholder { color: var(--ink-muted); }
 button.lb-star { flex: 0 0 auto; width: 18px; margin: 0 -6px 0 -8px; padding: 2px 0; border: none; background: transparent; font-family: 'Special Elite', monospace; font-size: 20px; font-weight: 400; line-height: 1; text-align: center; overflow: visible; }
 button.lb-star:hover { background: transparent; }
 .lb-star-sp { flex: 0 0 auto; width: 18px; margin: 0 -6px 0 -8px; }
-.lb-np .np-short { display: none; }
-@media (max-width: 359px) { .lb-np .np-long { display: none; } .lb-np .np-short { display: inline; } }
 .lb-star.s-none, .st-none { color: var(--ink-muted); }
 .lb-star.s-follow, .st-follow { color: #9aa3ad; }
 .lb-star.s-mutual, .st-mutual { color: #d4a017; }
-.daily-lb-row.lb-notplayed { cursor: default; }
-.daily-lb-row.lb-notplayed .daily-lb-name { opacity: .5; flex: 0 1 auto; }
-.lb-np { font-family: 'Special Elite', monospace; font-size: 11px; color: var(--ink-muted); flex: 1 1 0; min-width: 0; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .lb-empty { font-family: 'Special Elite', monospace; font-size: 11px; color: var(--ink-muted); text-align: center; padding: 8px 0; }
 .daily-lb-row.daily-lb-me { background: var(--red-light); border: 1.5px solid var(--red); }
 .daily-lb-row { cursor: pointer; }
@@ -856,6 +851,13 @@ button.lb-star:hover { background: transparent; }
 .rules-scoring { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border-strong); }
 .rules-score-row { display: flex; justify-content: space-between; font-family: 'Caveat', cursive; font-size:20px; padding: 3px 0; }
 .rules-pts { color: var(--red); font-weight: 700; }
+/* Help card (v375): heading, separator after the points table, note box, section divider */
+.rules-score-row { gap: 10px; }
+.rules-score-row .rules-pts { flex-shrink: 0; white-space: nowrap; }
+.rules-scoring { margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px dashed var(--border-strong); }
+.help-h { font-family: 'Caveat', cursive; font-size: 22px; font-weight: 700; color: var(--ink); margin-bottom: 10px; } /* 22px = the original help titles (pre-v373), kept on purpose (Oscar) */
+.help-note { margin-top: 10px; padding: 8px 10px; background: var(--paper-dark); border-radius: var(--radius); font-family: 'Special Elite', monospace; font-size: 11px; color: var(--ink-sec); line-height: 1.5; }
+.help-hr { margin: 1.25rem 0; border-top: 2px dashed var(--border); }
 
 /* ── Language picker ── */
 .lang-bar { display: flex; justify-content: flex-end; gap: 4px; margin-bottom: 1rem; }
@@ -867,10 +869,12 @@ button.lb-star:hover { background: transparent; }
 .wa-btn:hover { background: #1da851; }
 
 /* ── Emoji picker ── */
-.emoji-grid { display: grid; grid-template-columns: repeat(8,1fr); gap: 2px; margin-top: 6px; }
+.emoji-grid { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 2px; margin-top: 6px; }
 .emoji-opt { font-size: 24px; text-align: center; padding: 3px 2px; border-radius: 6px; cursor: pointer; border: 2px solid transparent; box-sizing: border-box; }
 .emoji-opt:hover { background: #f0efe9; border-color: #b8a890; }
 .emoji-opt.selected { border: 3px solid #c0392b; background: #fdf0ee; box-shadow: 0 0 0 2px #c0392b; }
+/* v374: on phones under 390 px, 8 emojis at 24px did not fit the card (last column cut at 320, spilling at 360) */
+@media (max-width: 389px) { .emoji-opt { font-size: 20px; padding: 2px 0; } }
 .emoji-display { font-size: 28px; display: inline-block; margin-left: 8px; vertical-align: middle; }
 
 /* ── Leave link ── */
@@ -1679,136 +1683,7 @@ window.setLang = function(lang) {
 
 
 
-function dailyRulesHTML() {
-  const d = {
-    es: { h: 'Reto diario', r1: 'Una letra y 6 categorías fijas, iguales para todo el mundo cada día', r2: 'Rellena todas las categorías con palabras que empiecen por esa letra — ¡lo más rápido posible!', r3: 'El asistente Robot valida cada respuesta — en el reto diario su decisión es definitiva', s: 'Puntuación:', u: 'Respuesta válida', spd: 'Bonus por velocidad', orig: 'Bonus por originalidad (respuesta única entre todos)', e: 'Respuesta inválida o en blanco' },
-    en: { h: 'Daily challenge', r1: 'One letter and 6 fixed categories, the same for everyone each day', r2: 'Fill all categories with words starting with that letter — as fast as you can!', r3: 'The Robot assistant validates each answer — in the daily challenge its decision is final', s: 'Scoring:', u: 'Valid answer', spd: 'Speed bonus', orig: 'Originality bonus (unique answer among all players)', e: 'Invalid or blank answer' },
-    fr: { h: 'Défi du jour', r1: 'Une lettre et 6 catégories fixes, identiques pour tout le monde chaque jour', r2: 'Remplis toutes les catégories avec des mots commençant par cette lettre — le plus vite possible!', r3: "L'assistant Robot valide chaque réponse — dans le défi du jour sa décision est définitive", s: 'Points:', u: 'Réponse valide', spd: 'Bonus de vitesse', orig: "Bonus d'originalité (réponse unique parmi tous les joueurs)", e: 'Réponse invalide ou vide' },
-  };
-  const r = d[LANG] || d.es;
-  return `
-    <div class="rules-step"><span class="rules-icon">📅</span><span class="rules-text">${r.r1}</span></div>
-    <div class="rules-step"><span class="rules-icon">✏️</span><span class="rules-text">${r.r2}</span></div>
-    <div class="rules-step"><span class="rules-icon">🤖</span><span class="rules-text">${r.r3}</span></div>
-    <div class="rules-scoring">
-      <div class="rules-score-row"><span>${r.s}</span></div>
-      <div class="rules-score-row"><span>${r.u}</span><span class="rules-pts">100 pts</span></div>
-      <div class="rules-score-row"><span>${r.spd}</span><span class="rules-pts">×1.0–2.0</span></div>
-      <div class="rules-score-row"><span>${r.orig}</span><span class="rules-pts">+50 pts</span></div>
-      <div class="rules-score-row"><span>${r.e}</span><span class="rules-pts">0 pts</span></div>
-    </div>`;
-}
-
-function rulesHTML() {
-  const rules = rulesHTML._data = {
-    es: { h: 'Reglas del juego', r1: 'Se elige una letra al azar para cada ronda', r2: 'Rellena todas las categorías con palabras que empiecen por esa letra — ¡lo más rápido posible!', r3: 'El primero en terminar pulsa ¡Alto! para terminar la ronda', s: 'Puntuación:', u: 'Respuesta única', d: 'Respuesta repetida', e: 'Sin respuesta', penalty: '🛑 Quien pulsa ¡Alto! gana +250 pts si todo es válido, y pierde 100 por cada respuesta anulada (con 8 categorías).' },
-    en: { h: 'How to play', r1: 'A random letter is chosen for each round', r2: 'Fill all categories with words starting with that letter — as fast as you can!', r3: 'The first to finish taps ¡Alto! to end the round', s: 'Scoring:', u: 'Unique answer', d: 'Duplicate answer', e: 'No answer', penalty: '🛑 Whoever taps ¡Alto! gets +250 pts if everything is valid, and loses 100 for each invalid answer (with 8 categories).' },
-    fr: { h: 'Règles du jeu', r1: 'Une lettre aléatoire est choisie pour chaque manche', r2: 'Remplis toutes les catégories avec des mots commençant par cette lettre — le plus vite possible!', r3: 'Le premier à finir appuie sur ¡Alto! pour terminer la manche', s: 'Points:', u: 'Réponse unique', d: 'Réponse en double', e: 'Sans réponse', penalty: "🛑 Celui qui appuie sur ¡Alto! gagne +250 pts si tout est valide, et perd 100 par réponse annulée (avec 8 catégories)." },
-  };
-  const r = rules[LANG] || rules.es;
-  return `
-    <div class="rules-step"><span class="rules-icon">🎲</span><span class="rules-text">${r.r1}</span></div>
-    <div class="rules-step"><span class="rules-icon">✏️</span><span class="rules-text">${r.r2}</span></div>
-    <div class="rules-step"><span class="rules-icon">🏆</span><span class="rules-text">${r.r3}</span></div>
-    <div class="rules-scoring">
-      <div class="rules-score-row"><span>${r.s}</span></div>
-      <div class="rules-score-row"><span>${r.u}</span><span class="rules-pts">100 pts</span></div>
-      <div class="rules-score-row"><span>${r.d}</span><span class="rules-pts">50 pts</span></div>
-      <div class="rules-score-row"><span>${r.e}</span><span class="rules-pts">0 pts</span></div>
-    </div>
-    <div style="margin-top:10px;padding:8px 10px;background:var(--paper-dark);border-radius:var(--radius);font-family:'Special Elite',monospace;font-size:11px;color:var(--ink-sec);line-height:1.5">${r.penalty}</div>`;
-}
-
-window.toggleRules = () => {
-  const box = document.getElementById('rules-box');
-  const isOpen = box.classList.toggle('open');
-  if (isOpen) box.innerHTML = rulesHTML();
-  updateRulesBtn();
-};
-
-window.updateRulesBtn = function() {
-  const labels = {es:'¿Cómo se juega?',en:'How to play?',fr:'Comment jouer?'};
-  const btn = document.getElementById('rules-btn');
-  if (!btn) return;
-  const isOpen = document.getElementById('rules-box').classList.contains('open');
-  btn.textContent = (isOpen ? '▲ ' : '▼ ') + (labels[LANG]||labels.es);
-  if (isOpen) document.getElementById('rules-box').innerHTML = rulesHTML();
-}
-
-
-// ── Help section ──────────────────────────────────────
-function helpHTML() {
-  const h = {
-    es: {
-      t1: '🔍 Revisar respuestas',
-      b1: 'Después de cada ronda el anfitrión revisa las respuestas:',
-      l1: ['📖 Busca la definición en Wikipedia', '🤖 Consulta al asistente Robot — su opinión es orientativa, el anfitrión decide', '✕ El anfitrión puede anular una respuesta manualmente'],
-      t2: '🗳️ Modo democrático',
-      b2: 'Las respuestas se consideran válidas por defecto. Los jugadores pueden votar 👎 en contra. Si la mayoría vota en contra, la respuesta se anula automáticamente. Requiere mínimo 3 jugadores.',
-      t3: '🤖 Asistente Robot',
-      b3: 'El anfitrión activa el asistente Robot. Su opinión es orientativa — el anfitrión tiene la última palabra.',
-      l3: ['🟢 Relajada — se aceptan respuestas borderline y creativas', '🔴 Estricta — solo respuestas claras e indiscutibles', '✏️ Faltas de ortografía — activar si queréis ser más permisivos con la escritura'],
-      t4: '🏆 Marcador',
-      b4: 'Tu grupo acumula victorias a lo largo de todas las partidas. El marcador global compara con jugadores de todo el mundo.',
-      t5: '🎮 Grupo',
-      b5: 'El anfitrión escribe un nombre de grupo (ej. "Los García"). Tus partidas y victorias se guardan bajo ese nombre. ¡Siempre usa el mismo para acumular historia!',
-      btnLabel: '▲ ❓ Ayuda — funciones avanzadas',
-    },
-    en: {
-      t1: '🔍 Reviewing answers',
-      b1: 'After each round the host reviews all answers:',
-      l1: ['📖 Look up the definition on Wikipedia', '🤖 Ask the Robot assistant — its opinion is a guide, the host decides', '✕ The host can manually invalidate an answer'],
-      t2: '🗳️ Democratic mode',
-      b2: 'Answers are valid by default. Players can vote 👎 against any answer. If the majority votes against, the answer is automatically invalidated. Requires at least 3 players.',
-      t3: '🤖 Robot Assistant',
-      b3: 'The host enables the Robot assistant. Its opinion is a guide — the host always has the final say.',
-      l3: ['🟢 Relaxed — borderline and creative answers accepted', '🔴 Strict — only clear and unambiguous answers accepted', '✏️ Spelling mistakes — enable if you want to be more lenient with spelling'],
-      t4: '🏆 Leaderboard',
-      b4: 'Your group accumulates wins across all games. The global leaderboard compares you with players worldwide.',
-      t5: '🎮 Group',
-      b5: 'The host types a group name (e.g. "The Smiths"). Your games and wins are saved under that name. Always use the same one to build up history!',
-      btnLabel: '▲ ❓ Help — advanced features',
-    },
-    fr: {
-      t1: '🔍 Vérifier les réponses',
-      b1: "Après chaque manche l'hôte vérifie toutes les réponses:",
-      l1: ["📖 Cherche la définition sur Wikipedia", "🤖 Consulte l'assistant Robot — son avis est indicatif, l'hôte décide", "✕ L'hôte peut annuler une réponse manuellement"],
-      t2: '🗳️ Mode démocratique',
-      b2: "Les réponses sont valides par défaut. Les joueurs peuvent voter 👎 contre une réponse. Si la majorité vote contre, la réponse est automatiquement annulée. Nécessite au moins 3 joueurs.",
-      t3: '🤖 Assistant Robot',
-      b3: "L'hôte active l'assistant Robot. Son avis est indicatif — l'hôte a toujours le dernier mot.",
-      l3: ['🟢 Détendue — réponses créatives et limites acceptées', '🔴 Stricte — uniquement des réponses claires et indiscutables', '✏️ Fautes d\'orthographe — activez si vous voulez être plus permissifs avec l\'écriture'],
-      t4: '🏆 Classement',
-      b4: 'Votre groupe accumule des victoires sur toutes les parties. Le classement mondial vous compare aux joueurs du monde entier.',
-      t5: '🎮 Groupe',
-      b5: "L'hôte tape un nom de groupe (ex. 'Les Dupont'). Vos parties et victoires sont sauvegardées sous ce nom. Utilisez toujours le même pour accumuler l'historique!",
-      btnLabel: '▲ ❓ Aide — fonctions avancées',
-    },
-  };
-  const d = h[LANG] || h.es;
-  const li = (items) => items.map(i => `<li>${i}</li>`).join('');
-  return `
-    <div class="help-section">
-      <div class="help-title">${d.t1}</div>
-      <div class="help-text">${d.b1}<ul>${li(d.l1)}</ul></div>
-    </div>
-    <div class="help-section">
-      <div class="help-title">${d.t2}</div>
-      <div class="help-text">${d.b2}</div>
-    </div>
-    <div class="help-section">
-      <div class="help-title">${d.t3}</div>
-      <div class="help-text">${d.b3}<ul>${li(d.l3)}</ul></div>
-    </div>
-    <div class="help-section">
-      <div class="help-title">${d.t4}</div>
-      <div class="help-text">${d.b4}</div>
-    </div>
-    <div class="help-section">
-      <div class="help-title">${d.t5}</div>
-      <div class="help-text">${d.b5}</div>
-    </div>`;
-}
+/* Help texts moved to helpContent()/helpSectionsHTML() (v373) */
 
 
 
@@ -1824,7 +1699,6 @@ window.applyLang = function() {
   s('inp-name', null, t('namePlaceholder'));
   s('lbl-choose-emoji', t('chooseEmoji') + ' ');
   s('btn-create', t('createRoom') + ' →');
-  s('rules-btn', '▼ ' + t('rulesBtn'));
   s('btn-enter', t('enter'));
   s('footer-noreg', t('noReg'));
   // Update claim pill text for current language if visible
@@ -1932,7 +1806,6 @@ window.applyLang = function() {
     buildThemePicker();
   }
   // Rules & lang bar
-  updateRulesBtn();
   // Guest confirmed status
   const gcStatus = document.getElementById('gc-status');
   if (gcStatus) gcStatus.textContent = {es:'✅ ESTÁS DENTRO',en:'✅ YOU\'RE IN',fr:'✅ TU ES DEDANS'}[LANG] || '✅ ESTÁS DENTRO';
@@ -2140,15 +2013,15 @@ let _followLoading = null;   // name being loaded (no double loads)
 const FOLLOW_T = {
   es: { all: 'Todos', following: '★ Siguiendo', search: 'buscar', follow: 'Seguir', unfollow: 'Dejar de seguir',
         legend: '<span class="st-none">☆</span> seguir · <span class="st-follow">★</span> sigues · <span class="st-mutual">★</span> os seguís',
-        register: '☆ Registra tu nombre para seguir a otros jugadores', np: 'aún no ha jugado', npShort: 'sin jugar', npPast: 'no jugó',
+        register: '☆ Registra tu nombre para seguir a otros jugadores', noneYet: 'nadie a quien sigues ha jugado todavía',
         noMatch: 'nadie con ese nombre', noFollow: 'aún no sigues a nadie — toca ☆ junto a un nombre', saveErr: 'No se pudo guardar — inténtalo de nuevo' },
   en: { all: 'Everyone', following: '★ Following', search: 'search', follow: 'Follow', unfollow: 'Unfollow',
         legend: '<span class="st-none">☆</span> follow · <span class="st-follow">★</span> following · <span class="st-mutual">★</span> mutual',
-        register: '☆ Register your name to follow other players', np: 'not played yet', npShort: 'not yet', npPast: "didn't play",
+        register: '☆ Register your name to follow other players', noneYet: 'no one you follow has played yet',
         noMatch: 'no one by that name', noFollow: "you don't follow anyone yet — tap ☆ next to a name", saveErr: "Couldn't save — try again" },
   fr: { all: 'Tous', following: '★ Suivis', search: 'chercher', follow: 'Suivre', unfollow: 'Ne plus suivre',
         legend: '<span class="st-none">☆</span> suivre · <span class="st-follow">★</span> suivi · <span class="st-mutual">★</span> mutuel',
-        register: "☆ Réserve ton nom pour suivre d'autres joueurs", np: 'pas encore joué', npShort: 'pas joué', npPast: "n'a pas joué",
+        register: "☆ Réserve ton nom pour suivre d'autres joueurs", noneYet: "personne que tu suis n'a encore joué",
         noMatch: 'personne avec ce nom', noFollow: "tu ne suis personne — touche ☆ à côté d'un nom", saveErr: "Échec de l'enregistrement — réessaie" },
 };
 async function followLoad() {
@@ -2503,88 +2376,118 @@ window.shellLogoClick = function() {
 
 // Room pill is a non-interactive badge — copy is handled in lobby
 
-// Help overlay
-function homeRulesHTML() {
-  const d = {
-    es: {
-      h1: '🎲 Clásico — multijugador',
-      r1: 'Se elige una letra al azar para cada ronda. Todas las respuestas deben empezar por esa letra',
-      r2: 'Rellena todas las categorías lo más rápido posible',
-      r3: 'El primero en terminar pulsa ¡Alto!',
-      r4: 'Ideal para jugar en grupo',
-      val: 'Validación: modo <b>Normal</b> → el anfitrión decide · modo <b>Democrático</b> → votación entre todos',
-      s: 'Puntuación:', u: 'Respuesta única', rep: 'Respuesta repetida', e: 'Sin respuesta',
-      altoOk: '¡Alto! con todo válido', altoBad: '¡Alto! por cada anulada',
-      h2: '📅 Reto diario &amp; Práctica — un jugador',
-      d1: 'Una letra y 6 categorías fijas, iguales para todo el mundo cada día. Todas las respuestas deben empezar por esa letra',
-      d2: 'Práctica: mismas reglas pero letra aleatoria y sin límite de intentos',
-      d3: 'Pulsa ¡Alto! cuando termines — ¡cuanto antes, mejor para el bonus de velocidad!',
-      d4: 'El Robot valida cada respuesta — su decisión es definitiva',
-      ds: 'Puntuación:', dv: 'Respuesta válida', dspd: 'Bonus velocidad', dorig: 'Originalidad (respuesta única entre todos)', de: 'Respuesta inválida o en blanco',
-    },
-    en: {
-      h1: '🎲 Classic — multiplayer',
-      r1: 'A random letter is chosen each round. All answers must start with that letter',
-      r2: 'Fill all categories as fast as you can',
-      r3: 'First to finish taps ¡Alto!',
-      r4: 'Best played in a group',
-      val: 'Validation: <b>Normal</b> mode → the host decides · <b>Democratic</b> mode → everyone votes',
-      s: 'Scoring:', u: 'Unique answer', rep: 'Duplicate answer', e: 'No answer',
-      altoOk: '¡Alto! with all valid', altoBad: '¡Alto! per invalid answer',
-      h2: '📅 Daily challenge &amp; Practice — single player',
-      d1: 'One letter, 6 fixed categories — the same for everyone each day. All answers must start with that letter',
-      d2: 'Practice: same rules but a random letter and unlimited attempts',
-      d3: "Tap ¡Alto! when you're done — the sooner the better for the speed bonus!",
-      d4: 'The Robot validates each answer — its decision is final',
-      ds: 'Scoring:', dv: 'Valid answer', dspd: 'Speed bonus', dorig: 'Originality bonus (unique answer among all players)', de: 'Invalid or blank answer',
-    },
-    fr: {
-      h1: '🎲 Classique — multijoueur',
-      r1: 'Une lettre aléatoire est choisie à chaque manche. Toutes les réponses doivent commencer par cette lettre',
-      r2: 'Remplis toutes les catégories le plus vite possible',
-      r3: 'Le premier à finir appuie sur ¡Alto!',
-      r4: 'Idéal pour jouer en groupe',
-      val: "Validation: mode <b>Normal</b> → l'hôte décide · mode <b>Démocratique</b> → tout le monde vote",
-      s: 'Points:', u: 'Réponse unique', rep: 'Réponse en double', e: 'Sans réponse',
-      altoOk: '¡Alto! tout valide', altoBad: '¡Alto! par réponse annulée',
-      h2: '📅 Défi du jour &amp; Pratique — un joueur',
-      d1: 'Une lettre et 6 catégories fixes, identiques pour tout le monde chaque jour. Toutes les réponses doivent commencer par cette lettre',
-      d2: 'Pratique: mêmes règles mais lettre aléatoire et tentatives illimitées',
-      d3: 'Appuie sur ¡Alto! quand tu as fini — plus vite tu le fais, meilleur est le bonus de vitesse!',
-      d4: 'Le Robot valide chaque réponse — sa décision est définitive',
-      ds: 'Points:', dv: 'Réponse valide', dspd: 'Bonus de vitesse', dorig: "Bonus d'originalité (réponse unique parmi tous les joueurs)", de: 'Réponse invalide ou vide',
-    },
-  };
-  const r = d[LANG] || d.es;
-  const divider = '<div style="margin:1.25rem 0;border-top:2px dashed var(--border)"></div>';
-  return `
-    <div style="font-family:'Caveat',cursive;font-size:22px;font-weight:700;color:var(--ink);margin-bottom:10px">${r.h1}</div>
-    <div class="rules-step"><span class="rules-icon" style="opacity:0">·</span><span class="rules-text">${r.r1}</span></div>
-    <div class="rules-step"><span class="rules-icon">✏️</span><span class="rules-text">${r.r2}</span></div>
-    <div class="rules-step"><span class="rules-icon">🏆</span><span class="rules-text">${r.r3}</span></div>
-    <div class="rules-step"><span class="rules-icon">👥</span><span class="rules-text">${r.r4}</span></div>
-    <div style="margin:8px 0 10px;padding:7px 10px;background:var(--paper-dark);border-radius:var(--radius);font-size:12px;color:var(--ink-sec);line-height:1.5">${r.val}</div>
-    <div class="rules-scoring">
-      <div class="rules-score-row"><span>${r.s}</span></div>
-      <div class="rules-score-row"><span>${r.u}</span><span class="rules-pts">100 pts</span></div>
-      <div class="rules-score-row"><span>${r.rep}</span><span class="rules-pts">50 pts</span></div>
-      <div class="rules-score-row"><span>${r.e}</span><span class="rules-pts">0 pts</span></div>
-      <div class="rules-score-row"><span>${r.altoOk}</span><span class="rules-pts">+250 pts</span></div>
-      <div class="rules-score-row"><span>${r.altoBad}</span><span class="rules-pts">−100 pts</span></div>
-    </div>
-    ${divider}
-    <div style="font-family:'Caveat',cursive;font-size:22px;font-weight:700;color:var(--ink);margin-bottom:10px">${r.h2}</div>
-    <div class="rules-step"><span class="rules-icon" style="opacity:0">·</span><span class="rules-text">${r.d1}</span></div>
-    <div class="rules-step"><span class="rules-icon">✏️</span><span class="rules-text">${r.d2}</span></div>
-    <div class="rules-step"><span class="rules-icon">🏆</span><span class="rules-text">${r.d3}</span></div>
-    <div class="rules-step"><span class="rules-icon">🤖</span><span class="rules-text">${r.d4}</span></div>
-    <div class="rules-scoring">
-      <div class="rules-score-row"><span>${r.ds}</span></div>
-      <div class="rules-score-row"><span>${r.dv}</span><span class="rules-pts">100 pts</span></div>
-      <div class="rules-score-row"><span>${r.dspd}</span><span class="rules-pts">×1.0–2.0</span></div>
-      <div class="rules-score-row"><span>${r.dorig}</span><span class="rules-pts">+50 pts</span></div>
-      <div class="rules-score-row"><span>${r.de}</span><span class="rules-pts">0 pts</span></div>
-    </div>`;
+// Help overlay (v373 content, v375 look): one text per context — home, daily/practice, multiplayer.
+// Back to the old "rules card" look Oscar liked: big emoji + handwritten step, points table with red numbers, small note box.
+// Items: ['h', heading] · ['i', intro line without icon] · ['s', icon, text] · ['pts', title, [[label, points], …]] · ['note', text] · ['hr']
+const ST = '<span class="st-none">☆</span>', SF = '<span class="st-follow">★</span>', SM = '<span class="st-mutual">★</span>';
+const HELP = {
+  home: {
+    es: [['h', '🎲 Clásico — en grupo'],
+         ['i', 'Cada ronda sale una letra al azar: todas las respuestas empiezan por ella'],
+         ['s', '✏️', 'Rellena las categorías lo más rápido posible'],
+         ['s', '🛑', 'Quien termina primero pulsa ¡Alto!'],
+         ['s', '👥', 'Crea una sala y comparte el enlace con tu gente'],
+         ['hr'],
+         ['h', '📅 Reto diario — tú solo'],
+         ['i', 'Una letra y 6 categorías al día, iguales para todos'],
+         ['s', '🏆', 'Una partida, y a la clasificación'],
+         ['s', '🔁', 'Práctica: letra al azar, sin límite, no cuenta'],
+         ['note', `🔒 Reserva tu nombre (opcional): tu reto cuenta en cualquier dispositivo, tus grupos van contigo y puedes seguir a otros jugadores con ${ST}.`]],
+    en: [['h', '🎲 Classic — in a group'],
+         ['i', 'Each round has a random letter: every answer starts with it'],
+         ['s', '✏️', 'Fill in the categories as fast as you can'],
+         ['s', '🛑', 'Whoever finishes first taps ¡Alto!'],
+         ['s', '👥', 'Create a room and share the link with your people'],
+         ['hr'],
+         ['h', '📅 Daily challenge — on your own'],
+         ['i', 'One letter and 6 categories a day, the same for everyone'],
+         ['s', '🏆', 'One go, then the leaderboard'],
+         ['s', '🔁', "Practice: random letter, unlimited, doesn't count"],
+         ['note', `🔒 Claim your name (optional): your daily counts on any device, your groups come with you and you can follow other players with ${ST}.`]],
+    fr: [['h', '🎲 Classique — en groupe'],
+         ['i', 'À chaque manche, une lettre au hasard\u00a0: toutes les réponses commencent par elle'],
+         ['s', '✏️', 'Remplis les catégories le plus vite possible'],
+         ['s', '🛑', 'Le premier qui a fini appuie sur ¡Alto!'],
+         ['s', '👥', 'Crée une salle et partage le lien avec tes proches'],
+         ['hr'],
+         ['h', '📅 Défi du jour — en solo'],
+         ['i', 'Une lettre et 6 catégories par jour, les mêmes pour tous'],
+         ['s', '🏆', 'Une partie, puis le classement'],
+         ['s', '🔁', 'Pratique\u00a0: lettre au hasard, sans limite, ne compte pas'],
+         ['note', `🔒 Réserve ton nom (facultatif)\u00a0: ton défi compte sur tous tes appareils, tes groupes te suivent et tu peux suivre d'autres joueurs avec ${ST}.`]],
+  },
+  daily: {
+    es: [['s', '📅', 'Una letra y 6 categorías al día, iguales para todos. Una partida por nombre e idioma'],
+         ['s', '✏️', 'Rellénalas y pulsa ¡Alto!: cuanto antes, más bonus'],
+         ['s', '🤖', 'El Robot corrige. ¿No estás de acuerdo? Toca <b>¿Error?</b> y lo mira otra vez'],
+         ['pts', 'Puntos:', [['Respuesta válida', '100 pts'], ['Dudosa 🤔', '50 pts'], ['Inválida o en blanco', '0 pts'], ['Bonus de velocidad', '×1–×2'], ['Única (nadie más la puso)', '+50 pts']]],
+         ['s', '🏅', 'Mismos puntos, misma medalla'],
+         ['s', '📆', '◀ ▶ para ver otros días; las respuestas de hoy, cuando hayas jugado'],
+         ['s', '👀', `${ST} seguir · ${SF} sigues · ${SM} os seguís — con <b>Siguiendo</b> ves solo a tu gente`],
+         ['note', '✏️ Práctica: letra al azar, intentos sin límite, no cuenta para la clasificación.']],
+    en: [['s', '📅', 'One letter and 6 categories a day, the same for everyone. One go per name and language'],
+         ['s', '✏️', 'Fill them in and tap ¡Alto!: the sooner, the bigger the bonus'],
+         ['s', '🤖', 'The Robot marks your answers. Disagree? Tap <b>Error?</b> and it checks again'],
+         ['pts', 'Points:', [['Valid answer', '100 pts'], ['Unsure 🤔', '50 pts'], ['Invalid or blank', '0 pts'], ['Speed bonus', '×1–×2'], ['Unique (nobody else wrote it)', '+50 pts']]],
+         ['s', '🏅', 'Same points, same medal'],
+         ['s', '📆', "◀ ▶ for other days; today's answers once you've played"],
+         ['s', '👀', `${ST} follow · ${SF} following · ${SM} mutual — <b>Following</b> shows just your people`],
+         ['note', "✏️ Practice: random letter, unlimited tries, doesn't count for the leaderboard."]],
+    fr: [['s', '📅', 'Une lettre et 6 catégories par jour, les mêmes pour tous. Une partie par nom et par langue'],
+         ['s', '✏️', 'Remplis-les et appuie sur ¡Alto! : plus tôt, plus de bonus'],
+         ['s', '🤖', "Le Robot corrige. Pas d'accord ? Touche <b>Erreur?</b> et il revérifie"],
+         ['pts', 'Points :', [['Réponse valide', '100 pts'], ['Douteuse 🤔', '50 pts'], ['Invalide ou vide', '0 pts'], ['Bonus de vitesse', '×1–×2'], ["Unique (personne d'autre)", '+50 pts']]],
+         ['s', '🏅', 'Mêmes points, même médaille'],
+         ['s', '📆', '◀ ▶ pour les autres jours ; les réponses du jour une fois que tu as joué'],
+         ['s', '👀', `${ST} suivre · ${SF} suivi · ${SM} mutuel — <b>Suivis</b> montre seulement tes proches`],
+         ['note', '✏️ Pratique : lettre au hasard, essais illimités, ne compte pas pour le classement.']],
+  },
+  multi: {
+    es: [['s', '🎲', 'Cada ronda sale una letra al azar'],
+         ['s', '✏️', 'Rellena las categorías lo más rápido posible'],
+         ['s', '🛑', 'Pulsa ¡Alto!: la ronda termina para todos (si se acaba el tiempo, se envía lo que haya)'],
+         ['pts', 'Puntos:', [['Respuesta única', '100 pts'], ['Respuesta repetida', '50 pts'], ['Anulada o vacía', '0 pts'], ['¡Alto! sin fallos (con 8 categorías)', '+250 pts'], ['¡Alto! por cada anulada', '−100 pts']]],
+         ['s', '👑', 'Normal: decide el anfitrión'],
+         ['s', '🗳️', 'Democrático: todos votan 👎 (mín. 3 jugadores)'],
+         ['s', '🤖', 'El Robot y 📖 Wikipedia ayudan, pero no deciden'],
+         ['s', '😂', 'Reacciones 🔥 👏 😂 😬 · con puntos: +30 +20 +10 · al final, premios 🙌 😂 ✨'],
+         ['s', '🎮', 'Elige el grupo; 📜 guarda marcador e historial. Empate: comparten medalla y victoria'],
+         ['note', 'Jugar solo es práctica y no se guarda. Las partidas sin terminar tampoco cuentan.']],
+    en: [['s', '🎲', 'Each round has a random letter'],
+         ['s', '✏️', 'Fill in the categories as fast as you can'],
+         ['s', '🛑', "Tap ¡Alto!: the round ends for everyone (if time runs out, what you've written is sent)"],
+         ['pts', 'Points:', [['Unique answer', '100 pts'], ['Duplicate answer', '50 pts'], ['Invalid or blank', '0 pts'], ['¡Alto! with no mistakes (8 categories)', '+250 pts'], ['¡Alto! per invalid answer', '−100 pts']]],
+         ['s', '👑', 'Normal: the host decides'],
+         ['s', '🗳️', 'Democratic: everyone can vote 👎 (3 players min.)'],
+         ['s', '🤖', "The Robot and 📖 Wikipedia help, but they don't decide"],
+         ['s', '😂', 'Reactions 🔥 👏 😂 😬 · with points: +30 +20 +10 · awards at the end 🙌 😂 ✨'],
+         ['s', '🎮', 'Pick the group; 📜 keeps scoreboard and history. Ties share the medal and the win'],
+         ['note', "Playing alone is practice and isn't saved. Unfinished games don't count either."]],
+    fr: [['s', '🎲', 'À chaque manche, une lettre au hasard'],
+         ['s', '✏️', 'Remplis les catégories le plus vite possible'],
+         ['s', '🛑', "Appuie sur ¡Alto! : la manche s'arrête pour tout le monde (si le temps est écoulé, ce que tu as écrit est envoyé)"],
+         ['pts', 'Points :', [['Réponse unique', '100 pts'], ['Réponse en double', '50 pts'], ['Annulée ou vide', '0 pts'], ['¡Alto! sans erreur (8 catégories)', '+250 pts'], ['¡Alto! par réponse annulée', '−100 pts']]],
+         ['s', '👑', "Normal : l'hôte décide"],
+         ['s', '🗳️', 'Démocratique : chacun vote 👎 (3 joueurs min.)'],
+         ['s', '🤖', 'Le Robot et 📖 Wikipedia aident, mais ne décident pas'],
+         ['s', '😂', 'Réactions 🔥 👏 😂 😬 · avec points : +30 +20 +10 · prix à la fin 🙌 😂 ✨'],
+         ['s', '🎮', 'Choisis le groupe ; 📜 garde classement et historique. Égalité : médaille et victoire partagées'],
+         ['note', "Jouer seul, c'est de la pratique : rien n'est enregistré. Les parties non terminées ne comptent pas non plus."]],
+  },
+};
+function helpSectionsHTML(which) {
+  const set = HELP[which] || HELP.home;
+  const list = set[LANG] || set.es;
+  return list.map(([k, a, b]) => {
+    if (k === 'h') return `<div class="help-h">${a}</div>`;
+    if (k === 's') return `<div class="rules-step"><span class="rules-icon">${a}</span><span class="rules-text">${b}</span></div>`;
+    if (k === 'i') return `<div class="rules-step"><span class="rules-icon" style="opacity:0">·</span><span class="rules-text">${a}</span></div>`; // intro line, no icon: invisible dot, same as the original help (small offset on purpose — Oscar)
+    if (k === 'pts') return `<div class="rules-scoring"><div class="rules-score-row"><span>${a}</span></div>` +
+      b.map(([l, p]) => `<div class="rules-score-row"><span>${l}</span><span class="rules-pts">${p}</span></div>`).join('') + '</div>';
+    if (k === 'note') return `<div class="help-note">${a}</div>`;
+    if (k === 'hr') return '<div class="help-hr"></div>';
+    return '';
+  }).join('');
 }
 
 window.shellHelpOpen = function() {
@@ -2598,13 +2501,7 @@ window.shellHelpOpen = function() {
   const isHomeScreen  = ['home','welcome'].includes(G.screen);
   const isDailyScreen = ['daily-play','daily-result'].includes(G.screen);
   if (body) {
-    if (isHomeScreen) {
-      body.innerHTML = homeRulesHTML();
-    } else if (isDailyScreen) {
-      body.innerHTML = dailyRulesHTML();
-    } else {
-      body.innerHTML = rulesHTML() + '<div style="margin-top:1.5rem;border-top:2px dashed var(--border);padding-top:1.25rem">' + helpHTML() + '</div>';
-    }
+    body.innerHTML = helpSectionsHTML(isHomeScreen ? 'home' : isDailyScreen ? 'daily' : 'multi');
   }
   if (overlay) overlay.classList.add('open');
 }
@@ -4045,19 +3942,14 @@ function renderLeaderboard(allScores, hideAnswers) {
   const hit = n => !nq || normalize(String(n || '')).includes(nq);
   let html = '';
   if (canFollow && G_follow.mode === 'following') {
-    // Everyone I follow, whatever their rank (overall rank numbers kept), then the ones who haven't played, greyed
+    // Everyone I follow who played that day, whatever their rank (overall rank numbers kept), plus me.
+    // v374 (Oscar): followed players who haven't played are no longer listed (confusing).
     const rows = indexed.filter(({ e }) => (isMe(e) || isFollowed(e)) && hit(e.name));
     html = rows.map(({ e, i }) => rowHtml(e, i, i)).join('');
-    const played = new Set(entries.map(e => e.safeName).filter(Boolean));
-    const missing = Object.keys(G_follow.following).filter(sf => !played.has(sf))
-      .map(sf => ({ sf, n: String((G_follow.following[sf] && G_follow.following[sf].n) || sf) }))
-      .filter(({ n }) => hit(n))
-      .sort((a, b) => a.n.localeCompare(b.n));
-    html += missing.map(({ sf, n }) => `<div class="daily-lb-row lb-notplayed">
-      <span class="daily-lb-rank"></span>${starBtn(sf)}<span class="daily-lb-name">${escHtml(n)}</span>
-      <span class="lb-np">${_lbDate === null ? `<span class="np-long">${FT.np}</span><span class="np-short">${FT.npShort}</span>` : FT.npPast}</span>
-    </div>`).join('');
-    if (!rows.length && !missing.length) html = `<div class="lb-empty">${nq ? FT.noMatch : FT.noFollow}</div>`;
+    if (!rows.some(({ e }) => !isMe(e))) {
+      const none = nq ? FT.noMatch : (Object.keys(G_follow.following).length ? FT.noneYet : FT.noFollow);
+      html += `<div class="lb-empty">${none}</div>`;
+    }
   } else if (nq) {
     const hits = indexed.filter(({ e }) => hit(e.name));
     html = hits.length ? hits.map(({ e, i }) => rowHtml(e, i, i)).join('') : `<div class="lb-empty">${FT.noMatch}</div>`;
@@ -7591,8 +7483,8 @@ const CLAIM_LABELS = {
     placeholder: 'tucorreo@email.com o 1234',
     btnClaim: 'Reservar →',
     btnVerify: 'Verificar →',
-    privacy: '🔒 Tu email solo se usa para identificarte aquí. No lo guardamos en ningún servidor propio ni te enviaremos nada nunca. Si usas un PIN, solo tú lo sabes.',
-    descFree: (name) => `"${name}" aún no está reservado. Si lo reservas, nadie más podrá usarlo en JugarEnFamilia.`,
+    privacy: '🔒 Guardamos solo una versión cifrada de tu email o PIN para reconocerte, nunca el email tal cual, y nunca te escribiremos.',
+    descFree: (name) => `"${name}" aún no está reservado. Si lo reservas, tu reto contará en todos tus dispositivos, tus grupos irán contigo y podrás seguir a otros jugadores.`,
     descMine: (name) => `"${name}" ya es tuyo. Introduce tu email o PIN para verificar tu identidad en este dispositivo.`,
     descTaken: (name) => `"${name}" ya está reservado. ¿Eres tú? Introduce tu email o PIN para verificar.`,
     pillFree: '¡Disponible! Resérvalo →',
@@ -7602,7 +7494,7 @@ const CLAIM_LABELS = {
     errorPin: 'El PIN debe tener exactamente 4 dígitos',
     errorNoMatch: 'No coincide — inténtalo de nuevo',
     errorFail: 'No se pudo conectar, inténtalo más tarde',
-    successClaimed: '¡Nombre reservado! Solo tú puedes usarlo.',
+    successClaimed: '¡Nombre reservado!',
     successVerified: '¡Verificado! Este dispositivo reconoce tu nombre.',
   },
   en: {
@@ -7612,8 +7504,8 @@ const CLAIM_LABELS = {
     placeholder: 'you@email.com or 1234',
     btnClaim: 'Claim →',
     btnVerify: 'Verify →',
-    privacy: '🔒 Your email is only used to identify you here. We don\'t store it on our own servers and will never contact you. If you use a PIN, only you know it.',
-    descFree: (name) => `"${name}" hasn\'t been claimed yet. Claim it and no one else will be able to use it on JugarEnFamilia.`,
+    privacy: '🔒 We only keep an encrypted version of your email or PIN to recognise you, never the email itself, and we will never contact you.',
+    descFree: (name) => `"${name}" hasn\'t been claimed yet. Claim it and your daily counts on all your devices, your groups come with you and you can follow other players.`,
     descMine: (name) => `"${name}" is already yours. Enter your email or PIN to verify your identity on this device.`,
     descTaken: (name) => `"${name}" is already claimed. Is that you? Enter your email or PIN to verify.`,
     pillFree: 'Available! Claim it →',
@@ -7623,7 +7515,7 @@ const CLAIM_LABELS = {
     errorPin: 'PIN must be exactly 4 digits',
     errorNoMatch: 'Doesn\'t match — try again',
     errorFail: 'Couldn\'t connect, try again later',
-    successClaimed: 'Name claimed! Only you can use it.',
+    successClaimed: 'Name claimed!',
     successVerified: 'Verified! This device recognises your name.',
   },
   fr: {
@@ -7633,8 +7525,8 @@ const CLAIM_LABELS = {
     placeholder: 'toi@email.com ou 1234',
     btnClaim: 'Réserver →',
     btnVerify: 'Vérifier →',
-    privacy: '🔒 Ton email sert uniquement à t\'identifier ici. Nous ne le stockons pas sur nos propres serveurs et ne te contacterons jamais. Si tu utilises un PIN, seul toi le connais.',
-    descFree: (name) => `"${name}" n\'est pas encore réservé. Réserve-le et personne d\'autre ne pourra l\'utiliser sur JugarEnFamilia.`,
+    privacy: '🔒 Nous gardons seulement une version chiffrée de ton email ou PIN pour te reconnaître, jamais l\'email lui-même, et nous ne te contacterons jamais.',
+    descFree: (name) => `"${name}" n\'est pas encore réservé. Réserve-le : ton défi comptera sur tous tes appareils, tes groupes te suivront et tu pourras suivre d\'autres joueurs.`,
     descMine: (name) => `"${name}" est déjà le tien. Entre ton email ou PIN pour vérifier ton identité sur cet appareil.`,
     descTaken: (name) => `"${name}" est déjà réservé. C\'est toi ? Entre ton email ou PIN pour vérifier.`,
     pillFree: 'Disponible ! Réserve-le →',
@@ -7644,7 +7536,7 @@ const CLAIM_LABELS = {
     errorPin: 'Le PIN doit avoir exactement 4 chiffres',
     errorNoMatch: 'Ne correspond pas — réessaie',
     errorFail: 'Impossible de se connecter, réessaie plus tard',
-    successClaimed: 'Nom réservé ! Toi seul peux l\'utiliser.',
+    successClaimed: 'Nom réservé !',
     successVerified: 'Vérifié ! Cet appareil reconnaît ton nom.',
   },
 };
@@ -7963,7 +7855,7 @@ setTimeout(() => updateDailyButtonDate(), 350);
 // Version freshness check — silently reload if a newer version is deployed
 // Runs once on load; does nothing if already on latest or if fetch fails
 (function() {
-  const RUNNING = 'v261031.372';
+  const RUNNING = 'v261031.376';
   if (sessionStorage.getItem('alto_ver_checked') === RUNNING) return; // already checked this session
   sessionStorage.setItem('alto_ver_checked', RUNNING);
   fetch(location.href, { cache: 'no-cache' })
@@ -7987,7 +7879,7 @@ syncMyGroups(); // registered + verified name: bring in groups from the name's o
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v261031.372</div>
+  <div style="font-size: 11px;opacity:0.5">v261031.376</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
