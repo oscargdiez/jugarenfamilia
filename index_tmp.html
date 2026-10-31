@@ -505,6 +505,13 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
   border-radius: 4px; background: transparent; color: var(--ink-sec); cursor: pointer;
   letter-spacing: 1px;
 }
+/* Reserved-name gate (v377): "use another name" link, shown only when the panel opens as a gate */
+#claim-other {
+  display: none; margin: 0 auto; background: transparent; border: none; cursor: pointer;
+  font-family: 'Special Elite', monospace; font-size: 13px; color: var(--ink-sec);
+  text-decoration: underline; padding: 8px 12px;
+}
+#claim-overlay.gate #claim-other { display: block; }
 /* Claim pill — right of name label */
 #claim-pill-badge {
   font-family: 'Special Elite', monospace; font-size: 11px;
@@ -855,7 +862,7 @@ button.lb-star:hover { background: transparent; }
 .rules-score-row { gap: 10px; }
 .rules-score-row .rules-pts { flex-shrink: 0; white-space: nowrap; }
 .rules-scoring { margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px dashed var(--border-strong); }
-.help-h { font-family: 'Caveat', cursive; font-size: 20px; font-weight: 700; color: var(--ink); margin-bottom: 10px; }
+.help-h { font-family: 'Caveat', cursive; font-size: 22px; font-weight: 700; color: var(--ink); margin-bottom: 10px; } /* 22px = the original help titles (pre-v373), kept on purpose (Oscar) */
 .help-note { margin-top: 10px; padding: 8px 10px; background: var(--paper-dark); border-radius: var(--radius); font-family: 'Special Elite', monospace; font-size: 11px; color: var(--ink-sec); line-height: 1.5; }
 .help-hr { margin: 1.25rem 0; border-top: 2px dashed var(--border); }
 
@@ -1013,6 +1020,7 @@ document.addEventListener('DOMContentLoaded', function() {
         <p id="claim-error" style="font-family:'Special Elite',monospace;font-size:11px;color:var(--red);margin-bottom:8px;display:none"></p>
         <button class="pri" onclick="claimSubmit()" style="width:100%;font-size:20px;padding:14px" id="claim-btn">Reservar →</button>
       </div>
+      <button id="claim-other" onclick="claimGateOther()">Usar otro nombre</button>
     </div>
   </div>
 </div>
@@ -2378,40 +2386,43 @@ window.shellLogoClick = function() {
 
 // Help overlay (v373 content, v375 look): one text per context — home, daily/practice, multiplayer.
 // Back to the old "rules card" look Oscar liked: big emoji + handwritten step, points table with red numbers, small note box.
-// Items: ['h', heading] · ['s', icon, text] · ['pts', title, [[label, points], …]] · ['note', text] · ['hr']
+// Items: ['h', heading] · ['i', intro line without icon] · ['s', icon, text] · ['pts', title, [[label, points], …]] · ['note', text] · ['hr']
 const ST = '<span class="st-none">☆</span>', SF = '<span class="st-follow">★</span>', SM = '<span class="st-mutual">★</span>';
 const HELP = {
   home: {
     es: [['h', '🎲 Clásico — en grupo'],
-         ['s', '🔗', 'Crea una sala y comparte el enlace'],
-         ['s', '🔤', 'Cada ronda sale una letra: todas las respuestas empiezan por ella'],
+         ['i', 'Cada ronda sale una letra al azar: todas las respuestas empiezan por ella'],
+         ['s', '✏️', 'Rellena las categorías lo más rápido posible'],
          ['s', '🛑', 'Quien termina primero pulsa ¡Alto!'],
+         ['s', '👥', 'Crea una sala y comparte el enlace con tu gente'],
          ['hr'],
          ['h', '📅 Reto diario — tú solo'],
-         ['s', '📅', 'Una letra y 6 categorías al día, iguales para todos'],
+         ['i', 'Una letra y 6 categorías al día, iguales para todos'],
          ['s', '🏆', 'Una partida, y a la clasificación'],
-         ['s', '✏️', 'Práctica: letra al azar, sin límite, no cuenta'],
-         ['note', `🔒 Reserva tu nombre (opcional): tu reto cuenta en cualquier dispositivo, tus grupos van contigo y puedes seguir a otros jugadores con ${ST}.`]],
+         ['s', '🔁', 'Práctica: letra al azar, sin límite, no cuenta'],
+         ['note', `🔒 Reserva tu nombre (opcional): nadie más podrá usarlo, tu reto cuenta en cualquier dispositivo, tus grupos van contigo y puedes seguir a otros jugadores con ${ST}.`]],
     en: [['h', '🎲 Classic — in a group'],
-         ['s', '🔗', 'Create a room and share the link'],
-         ['s', '🔤', 'Each round has a letter: every answer starts with it'],
+         ['i', 'Each round has a random letter: every answer starts with it'],
+         ['s', '✏️', 'Fill in the categories as fast as you can'],
          ['s', '🛑', 'Whoever finishes first taps ¡Alto!'],
+         ['s', '👥', 'Create a room and share the link with your people'],
          ['hr'],
          ['h', '📅 Daily challenge — on your own'],
-         ['s', '📅', 'One letter and 6 categories a day, the same for everyone'],
+         ['i', 'One letter and 6 categories a day, the same for everyone'],
          ['s', '🏆', 'One go, then the leaderboard'],
-         ['s', '✏️', "Practice: random letter, unlimited, doesn't count"],
-         ['note', `🔒 Claim your name (optional): your daily counts on any device, your groups come with you and you can follow other players with ${ST}.`]],
+         ['s', '🔁', "Practice: random letter, unlimited, doesn't count"],
+         ['note', `🔒 Claim your name (optional): nobody else can use it, your daily counts on any device, your groups come with you and you can follow other players with ${ST}.`]],
     fr: [['h', '🎲 Classique — en groupe'],
-         ['s', '🔗', 'Crée une salle et partage le lien'],
-         ['s', '🔤', 'À chaque manche, une lettre : toutes les réponses commencent par elle'],
+         ['i', 'À chaque manche, une lettre au hasard\u00a0: toutes les réponses commencent par elle'],
+         ['s', '✏️', 'Remplis les catégories le plus vite possible'],
          ['s', '🛑', 'Le premier qui a fini appuie sur ¡Alto!'],
+         ['s', '👥', 'Crée une salle et partage le lien avec tes proches'],
          ['hr'],
          ['h', '📅 Défi du jour — en solo'],
-         ['s', '📅', 'Une lettre et 6 catégories par jour, les mêmes pour tous'],
+         ['i', 'Une lettre et 6 catégories par jour, les mêmes pour tous'],
          ['s', '🏆', 'Une partie, puis le classement'],
-         ['s', '✏️', 'Pratique : lettre au hasard, sans limite, ne compte pas'],
-         ['note', `🔒 Réserve ton nom (facultatif) : ton défi compte sur tous tes appareils, tes groupes te suivent et tu peux suivre d'autres joueurs avec ${ST}.`]],
+         ['s', '🔁', 'Pratique\u00a0: lettre au hasard, sans limite, ne compte pas'],
+         ['note', `🔒 Réserve ton nom (facultatif)\u00a0: personne d'autre ne peut l'utiliser, ton défi compte sur tous tes appareils, tes groupes te suivent et tu peux suivre d'autres joueurs avec ${ST}.`]],
   },
   daily: {
     es: [['s', '📅', 'Una letra y 6 categorías al día, iguales para todos. Una partida por nombre e idioma'],
@@ -2478,6 +2489,7 @@ function helpSectionsHTML(which) {
   return list.map(([k, a, b]) => {
     if (k === 'h') return `<div class="help-h">${a}</div>`;
     if (k === 's') return `<div class="rules-step"><span class="rules-icon">${a}</span><span class="rules-text">${b}</span></div>`;
+    if (k === 'i') return `<div class="rules-step"><span class="rules-icon" style="opacity:0">·</span><span class="rules-text">${a}</span></div>`; // intro line, no icon: invisible dot, same as the original help (small offset on purpose — Oscar)
     if (k === 'pts') return `<div class="rules-scoring"><div class="rules-score-row"><span>${a}</span></div>` +
       b.map(([l, p]) => `<div class="rules-score-row"><span>${l}</span><span class="rules-pts">${p}</span></div>`).join('') + '</div>';
     if (k === 'note') return `<div class="help-note">${a}</div>`;
@@ -2832,6 +2844,7 @@ function resetGDaily(practiceMode) {
 window.startDailyChallenge = async function() {
   const _nameCheck = document.getElementById('inp-name')?.value?.trim();
   if (!_nameCheck) { toast(t('toastName')); return; }
+  if (!(await nameGateOk(_nameCheck, 'inp-name', () => window.startDailyChallenge()))) return;
 
   reloadIfOutdated();
   resetGDaily(false);
@@ -4711,6 +4724,7 @@ window.createRoom = async () => {
   reloadIfOutdated();
   let name = document.getElementById('inp-name').value.trim();
   if (!name) { toast(t('toastName')); return; }
+  if (!(await nameGateOk(name, 'inp-name', () => window.createRoom()))) return;
   // If this name is verified on this device, use the stored display name (preserves accents)
   const _snCR = claimSafeName(name);
   const _lsCR = _snCR ? localStorage.getItem(claimLsKey(_snCR)) : null;
@@ -4735,6 +4749,7 @@ window.joinRoom = async () => {
   const code = document.getElementById('inp-code').value.trim().toUpperCase();
   if (!name) { toast(t('toastName')); return; }
   if (code.length !== 4) { toast(t('toastCode')); return; }
+  if (!(await nameGateOk(name, 'inp-name', () => window.joinRoom()))) return;
   // If this name is verified on this device, use the stored display name (preserves accents)
   const _snJR = claimSafeName(name);
   const _lsJR = _snJR ? localStorage.getItem(claimLsKey(_snJR)) : null;
@@ -5929,6 +5944,7 @@ window.quickJoin = async () => {
   const nameEl = document.getElementById('qj-name');
   const name = nameEl ? nameEl.value.trim() : '';
   if (!name) { toast(t('toastName')); return; }
+  if (!(await nameGateOk(name, 'qj-name', () => window.quickJoin()))) return;
   G.playerName = name;
   localStorage.setItem('alto_last_name', name);
   // Join the room
@@ -7480,7 +7496,7 @@ const CLAIM_LABELS = {
     btnClaim: 'Reservar →',
     btnVerify: 'Verificar →',
     privacy: '🔒 Guardamos solo una versión cifrada de tu email o PIN para reconocerte, nunca el email tal cual, y nunca te escribiremos.',
-    descFree: (name) => `"${name}" aún no está reservado. Si lo reservas, tu reto contará en todos tus dispositivos, tus grupos irán contigo y podrás seguir a otros jugadores.`,
+    descFree: (name) => `"${name}" aún no está reservado. Si lo reservas, nadie más podrá jugar con él, tu reto contará en todos tus dispositivos, tus grupos irán contigo y podrás seguir a otros jugadores.`,
     descMine: (name) => `"${name}" ya es tuyo. Introduce tu email o PIN para verificar tu identidad en este dispositivo.`,
     descTaken: (name) => `"${name}" ya está reservado. ¿Eres tú? Introduce tu email o PIN para verificar.`,
     pillFree: '¡Disponible! Resérvalo →',
@@ -7492,6 +7508,10 @@ const CLAIM_LABELS = {
     errorFail: 'No se pudo conectar, inténtalo más tarde',
     successClaimed: '¡Nombre reservado!',
     successVerified: '¡Verificado! Este dispositivo reconoce tu nombre.',
+    gateTitle: '🔒 Nombre reservado',
+    gateDesc: (name) => `"${name}" ya está reservado. Si eres tú, pon tu email o PIN y seguimos. Si no, elige otro nombre.`,
+    btnGate: 'Verificar y jugar →',
+    gateOther: 'Usar otro nombre',
   },
   en: {
     title: '🔒 Claim your name',
@@ -7501,7 +7521,7 @@ const CLAIM_LABELS = {
     btnClaim: 'Claim →',
     btnVerify: 'Verify →',
     privacy: '🔒 We only keep an encrypted version of your email or PIN to recognise you, never the email itself, and we will never contact you.',
-    descFree: (name) => `"${name}" hasn\'t been claimed yet. Claim it and your daily counts on all your devices, your groups come with you and you can follow other players.`,
+    descFree: (name) => `"${name}" hasn\'t been claimed yet. Claim it and nobody else can play with it, your daily counts on all your devices, your groups come with you and you can follow other players.`,
     descMine: (name) => `"${name}" is already yours. Enter your email or PIN to verify your identity on this device.`,
     descTaken: (name) => `"${name}" is already claimed. Is that you? Enter your email or PIN to verify.`,
     pillFree: 'Available! Claim it →',
@@ -7513,6 +7533,10 @@ const CLAIM_LABELS = {
     errorFail: 'Couldn\'t connect, try again later',
     successClaimed: 'Name claimed!',
     successVerified: 'Verified! This device recognises your name.',
+    gateTitle: '🔒 Name claimed',
+    gateDesc: (name) => `"${name}" is already claimed. If it's you, enter your email or PIN and we'll carry on. If not, choose another name.`,
+    btnGate: 'Verify and play →',
+    gateOther: 'Use another name',
   },
   fr: {
     title: '🔒 Réserver ton nom',
@@ -7522,7 +7546,7 @@ const CLAIM_LABELS = {
     btnClaim: 'Réserver →',
     btnVerify: 'Vérifier →',
     privacy: '🔒 Nous gardons seulement une version chiffrée de ton email ou PIN pour te reconnaître, jamais l\'email lui-même, et nous ne te contacterons jamais.',
-    descFree: (name) => `"${name}" n\'est pas encore réservé. Réserve-le : ton défi comptera sur tous tes appareils, tes groupes te suivront et tu pourras suivre d\'autres joueurs.`,
+    descFree: (name) => `"${name}" n\'est pas encore réservé. Réserve-le\u00a0: personne d\'autre ne pourra jouer avec, ton défi comptera sur tous tes appareils, tes groupes te suivront et tu pourras suivre d\'autres joueurs.`,
     descMine: (name) => `"${name}" est déjà le tien. Entre ton email ou PIN pour vérifier ton identité sur cet appareil.`,
     descTaken: (name) => `"${name}" est déjà réservé. C\'est toi ? Entre ton email ou PIN pour vérifier.`,
     pillFree: 'Disponible ! Réserve-le →',
@@ -7534,6 +7558,10 @@ const CLAIM_LABELS = {
     errorFail: 'Impossible de se connecter, réessaie plus tard',
     successClaimed: 'Nom réservé !',
     successVerified: 'Vérifié ! Cet appareil reconnaît ton nom.',
+    gateTitle: '🔒 Nom réservé',
+    gateDesc: (name) => `"${name}" est déjà réservé. Si c'est toi, entre ton email ou PIN et on continue. Sinon, choisis un autre nom.`,
+    btnGate: 'Vérifier et jouer →',
+    gateOther: 'Utiliser un autre nom',
   },
 };
 
@@ -7625,10 +7653,12 @@ async function checkClaimStatus(name) {
   }
 }
 
-window.claimOpen = async function() {
+window.claimOpen = async function(gateName) {
   const l = cl();
+  const gate = typeof gateName === 'string' && !!_gatePending;
   // Always read the current input value — not the debounced _claimCurrentName
-  const currentInput = document.getElementById('inp-name')?.value?.trim() || '';
+  const currentInput = gate ? '' : (document.getElementById('inp-name')?.value?.trim() || '');
+  if (!gate) _gatePending = null; // opened from the pill: nothing to continue afterwards
   if (currentInput && currentInput !== _claimCurrentName) {
     // Name changed since last debounce — re-check before opening
     await checkClaimStatus(currentInput);
@@ -7653,7 +7683,14 @@ window.claimOpen = async function() {
   if (input) { input.value = ''; input.placeholder = l.placeholder; }
   if (err) { err.style.display = 'none'; err.textContent = ''; }
 
-  if (_claimState === 'free') {
+  const other = document.getElementById('claim-other');
+  if (other) other.textContent = l.gateOther;
+  if (btn) btn.disabled = false;
+  if (gate) {
+    if (title) title.textContent = l.gateTitle;
+    if (desc) desc.textContent = l.gateDesc(name);
+    if (btn) btn.textContent = l.btnGate;
+  } else if (_claimState === 'free') {
     if (desc) desc.textContent = l.descFree(name);
     if (btn) btn.textContent = l.btnClaim;
   } else {
@@ -7661,12 +7698,48 @@ window.claimOpen = async function() {
     if (btn) btn.textContent = l.btnVerify;
   }
 
-  if (overlay) overlay.classList.add('open');
+  if (overlay) { overlay.classList.toggle('gate', gate); overlay.classList.add('open'); }
 };
 
 window.claimClose = function() {
   const overlay = document.getElementById('claim-overlay');
-  if (overlay) overlay.classList.remove('open');
+  if (overlay) overlay.classList.remove('open', 'gate');
+  _gatePending = null;
+};
+
+// ══ RESERVED-NAME GATE (v377) ══════════════════════════════════════════════
+// Crear sala / Unirse / invite-link join / Reto diario call nameGateOk() first. A name that is
+// reserved (names/{safe}/secret exists) and not verified on this device opens the claim panel as
+// a gate; after a correct email/PIN the original action runs again by itself (retry). Práctica,
+// session restore and "welcome back" are not gated. Test names starting with "__" are never gated.
+// If Firebase can't be read (offline / slow, 5 s), the player is let through: never lock anyone out.
+let _gatePending = null; // { retry: fn, nameElId: 'inp-name' | 'qj-name' }
+async function nameGateOk(name, nameElId, retry) {
+  if (!name || name.startsWith('__')) return true;
+  const safe = claimSafeName(name);
+  if (!safe || safe.length < 2) return true;
+  try { const d = JSON.parse(localStorage.getItem(claimLsKey(safe)) || 'null'); if (d && d.verified) return true; } catch(e) {}
+  let reserved = false;
+  try {
+    const snap = await Promise.race([
+      get(ref(db, 'names/' + safe + '/secret')),
+      new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 5000))
+    ]);
+    reserved = snap.exists();
+  } catch(e) { return true; }
+  if (!reserved) return true;
+  _claimCurrentName = name;
+  _claimState = 'taken';
+  _gatePending = { retry, nameElId };
+  await window.claimOpen(name);
+  return false;
+}
+
+window.claimGateOther = function() {
+  const elId = _gatePending?.nameElId || 'inp-name';
+  claimClose();
+  const el = document.getElementById(elId);
+  if (el) { try { el.focus(); el.select(); } catch(e) {} }
 };
 
 window.claimInputChanged = function() {
@@ -7719,19 +7792,21 @@ window.claimSubmit = async function() {
         const dnSnap = await get(ref(db, 'names/' + safeName + '/displayName'));
         if (dnSnap.exists()) {
           const originalName = dnSnap.val();
-          const nameInput = document.getElementById('inp-name');
+          const nameInput = document.getElementById(_gatePending?.nameElId || 'inp-name');
           if (nameInput) { nameInput.value = originalName; localStorage.setItem('alto_name', originalName); _claimCurrentName = originalName; }
         }
         localStorage.setItem(claimLsKey(safeName), JSON.stringify({ verified: true, verifiedAt: Date.now() }));
         _claimState = 'mine';
         syncMyGroups();
         try { lbRerender(); } catch(e) {}
+        const _gateRetry = _gatePending?.retry; // gate: carry on with what the player tapped
         claimClose();
         toast(l.successVerified);
         const pill = document.getElementById('claim-pill');
         const pillBadge = document.getElementById('claim-pill-badge');
         if (pill) { pill.className = 'claimed'; }
         if (pillBadge) pillBadge.textContent = l.pillMine;
+        if (_gateRetry) { try { await _gateRetry(); } catch(e) { console.warn('gate retry', e); } }
       } else {
         showClaimError(l.errorNoMatch);
         if (btn) { btn.disabled = false; btn.textContent = _claimState === 'free' ? l.btnClaim : l.btnVerify; }
@@ -7851,7 +7926,7 @@ setTimeout(() => updateDailyButtonDate(), 350);
 // Version freshness check — silently reload if a newer version is deployed
 // Runs once on load; does nothing if already on latest or if fetch fails
 (function() {
-  const RUNNING = 'v261031.375-tmp';
+  const RUNNING = 'v261031.377-tmp';
   if (sessionStorage.getItem('alto_ver_checked') === RUNNING) return; // already checked this session
   sessionStorage.setItem('alto_ver_checked', RUNNING);
   fetch(location.href, { cache: 'no-cache' })
@@ -7875,7 +7950,7 @@ syncMyGroups(); // registered + verified name: bring in groups from the name's o
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v261031.375-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v261031.377-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
