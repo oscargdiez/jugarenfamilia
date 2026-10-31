@@ -851,6 +851,13 @@ button.lb-star:hover { background: transparent; }
 .rules-scoring { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border-strong); }
 .rules-score-row { display: flex; justify-content: space-between; font-family: 'Caveat', cursive; font-size:20px; padding: 3px 0; }
 .rules-pts { color: var(--red); font-weight: 700; }
+/* Help card (v375): heading, separator after the points table, note box, section divider */
+.rules-score-row { gap: 10px; }
+.rules-score-row .rules-pts { flex-shrink: 0; white-space: nowrap; }
+.rules-scoring { margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px dashed var(--border-strong); }
+.help-h { font-family: 'Caveat', cursive; font-size: 20px; font-weight: 700; color: var(--ink); margin-bottom: 10px; }
+.help-note { margin-top: 10px; padding: 8px 10px; background: var(--paper-dark); border-radius: var(--radius); font-family: 'Special Elite', monospace; font-size: 11px; color: var(--ink-sec); line-height: 1.5; }
+.help-hr { margin: 1.25rem 0; border-top: 2px dashed var(--border); }
 
 /* ── Language picker ── */
 .lang-bar { display: flex; justify-content: flex-end; gap: 4px; margin-bottom: 1rem; }
@@ -2369,63 +2376,114 @@ window.shellLogoClick = function() {
 
 // Room pill is a non-interactive badge — copy is handled in lobby
 
-// Help overlay (v373, rewritten lean with Oscar): one text per context — home, daily/practice, multiplayer.
-// Each entry: [title, body]; body may hold <b>, <br> and the coloured follow stars.
+// Help overlay (v373 content, v375 look): one text per context — home, daily/practice, multiplayer.
+// Back to the old "rules card" look Oscar liked: big emoji + handwritten step, points table with red numbers, small note box.
+// Items: ['h', heading] · ['s', icon, text] · ['pts', title, [[label, points], …]] · ['note', text] · ['hr']
 const ST = '<span class="st-none">☆</span>', SF = '<span class="st-follow">★</span>', SM = '<span class="st-mutual">★</span>';
 const HELP = {
   home: {
-    es: [['¡Alto!', 'Una letra, varias categorías, y a escribir rápido.'],
-         ['🎲 Clásico — en grupo', 'Crea una sala y comparte el enlace. Cada ronda sale una letra; quien termina primero pulsa ¡Alto!'],
-         ['📅 Reto diario — tú solo', 'Una letra y 6 categorías al día, iguales para todos. Una partida y a la clasificación.<br>✏️ <b>Práctica:</b> igual, con letra al azar y sin que cuente.'],
-         ['🔒 Reserva tu nombre (opcional)', `Tu reto cuenta en cualquier dispositivo, tus grupos van contigo y puedes seguir a otros jugadores con ${ST}.`]],
-    en: [['¡Alto!', 'One letter, several categories — write fast.'],
-         ['🎲 Classic — in a group', 'Create a room and share the link. Each round has a letter; whoever finishes first taps ¡Alto!'],
-         ['📅 Daily challenge — on your own', "One letter and 6 categories a day, the same for everyone. One go, then the leaderboard.<br>✏️ <b>Practice:</b> the same, with a random letter, and it doesn't count."],
-         ['🔒 Claim your name (optional)', `Your daily counts on any device, your groups come with you, and you can follow other players with ${ST}.`]],
-    fr: [['¡Alto!', 'Une lettre, plusieurs catégories, et on écrit vite.'],
-         ['🎲 Classique — en groupe', "Crée une salle et partage le lien. À chaque manche, une lettre ; le premier qui a fini appuie sur ¡Alto!"],
-         ['📅 Défi du jour — en solo', "Une lettre et 6 catégories par jour, les mêmes pour tout le monde. Une partie, puis le classement.<br>✏️ <b>Pratique :</b> pareil, avec une lettre au hasard, et ça ne compte pas."],
-         ['🔒 Réserve ton nom (facultatif)', `Ton défi compte sur tous tes appareils, tes groupes te suivent et tu peux suivre d'autres joueurs avec ${ST}.`]],
+    es: [['h', '🎲 Clásico — en grupo'],
+         ['s', '🔗', 'Crea una sala y comparte el enlace'],
+         ['s', '🔤', 'Cada ronda sale una letra: todas las respuestas empiezan por ella'],
+         ['s', '🛑', 'Quien termina primero pulsa ¡Alto!'],
+         ['hr'],
+         ['h', '📅 Reto diario — tú solo'],
+         ['s', '📅', 'Una letra y 6 categorías al día, iguales para todos'],
+         ['s', '🏆', 'Una partida, y a la clasificación'],
+         ['s', '✏️', 'Práctica: letra al azar, sin límite, no cuenta'],
+         ['note', `🔒 Reserva tu nombre (opcional): tu reto cuenta en cualquier dispositivo, tus grupos van contigo y puedes seguir a otros jugadores con ${ST}.`]],
+    en: [['h', '🎲 Classic — in a group'],
+         ['s', '🔗', 'Create a room and share the link'],
+         ['s', '🔤', 'Each round has a letter: every answer starts with it'],
+         ['s', '🛑', 'Whoever finishes first taps ¡Alto!'],
+         ['hr'],
+         ['h', '📅 Daily challenge — on your own'],
+         ['s', '📅', 'One letter and 6 categories a day, the same for everyone'],
+         ['s', '🏆', 'One go, then the leaderboard'],
+         ['s', '✏️', "Practice: random letter, unlimited, doesn't count"],
+         ['note', `🔒 Claim your name (optional): your daily counts on any device, your groups come with you and you can follow other players with ${ST}.`]],
+    fr: [['h', '🎲 Classique — en groupe'],
+         ['s', '🔗', 'Crée une salle et partage le lien'],
+         ['s', '🔤', 'À chaque manche, une lettre : toutes les réponses commencent par elle'],
+         ['s', '🛑', 'Le premier qui a fini appuie sur ¡Alto!'],
+         ['hr'],
+         ['h', '📅 Défi du jour — en solo'],
+         ['s', '📅', 'Une lettre et 6 catégories par jour, les mêmes pour tous'],
+         ['s', '🏆', 'Une partie, puis le classement'],
+         ['s', '✏️', 'Pratique : lettre au hasard, sans limite, ne compte pas'],
+         ['note', `🔒 Réserve ton nom (facultatif) : ton défi compte sur tous tes appareils, tes groupes te suivent et tu peux suivre d'autres joueurs avec ${ST}.`]],
   },
   daily: {
-    es: [['📅 Reto diario', 'Una letra y 6 categorías, iguales para todos ese día (cada idioma tiene el suyo). Una partida por nombre. Pulsa ¡Alto! en cuanto termines: cuanto antes, más bonus.'],
-         ['Puntos', '✅ 100 · 🤔 dudosa 50 · ❌ 0<br>⚡ velocidad ×1 a ×2 · ✨ única (nadie más la puso) +50'],
-         ['🤖 Robot', 'El Robot corrige. ¿No estás de acuerdo? Toca <b>¿Error?</b> y lo revisa otra vez.'],
-         ['🏆 Clasificación', `Mismos puntos, misma medalla. ◀ ▶ para otros días; las respuestas de hoy se ven cuando has jugado.<br>${ST} seguir · ${SF} sigues · ${SM} os seguís — con <b>Siguiendo</b> ves solo a tu gente (con tu nombre reservado).`],
-         ['✏️ Práctica', 'Letra al azar, sin límite, no cuenta.']],
-    en: [['📅 Daily challenge', 'One letter and 6 categories, the same for everyone that day (each language has its own). One go per name. Tap ¡Alto! as soon as you finish: the sooner, the bigger the bonus.'],
-         ['Points', '✅ 100 · 🤔 unsure 50 · ❌ 0<br>⚡ speed ×1 to ×2 · ✨ unique (nobody else wrote it) +50'],
-         ['🤖 Robot', 'The Robot marks your answers. Disagree? Tap <b>Error?</b> and it checks again.'],
-         ['🏆 Leaderboard', `Same points, same medal. ◀ ▶ for other days; today's answers show once you've played.<br>${ST} follow · ${SF} following · ${SM} mutual — <b>Following</b> shows just your people (with a claimed name).`],
-         ['✏️ Practice', "Random letter, unlimited, doesn't count."]],
-    fr: [['📅 Défi du jour', "Une lettre et 6 catégories, les mêmes pour tout le monde ce jour-là (chaque langue a le sien). Une partie par nom. Appuie sur ¡Alto! dès que tu as fini : plus tôt, plus de bonus."],
-         ['Points', "✅ 100 · 🤔 douteuse 50 · ❌ 0<br>⚡ vitesse ×1 à ×2 · ✨ unique (personne d'autre ne l'a écrite) +50"],
-         ['🤖 Robot', "Le Robot corrige. Pas d'accord ? Touche <b>Erreur?</b> et il revérifie."],
-         ['🏆 Classement', `Mêmes points, même médaille. ◀ ▶ pour les autres jours ; les réponses du jour s'affichent quand tu as joué.<br>${ST} suivre · ${SF} suivi · ${SM} mutuel — <b>Suivis</b> montre seulement tes proches (avec ton nom réservé).`],
-         ['✏️ Pratique', 'Lettre au hasard, sans limite, ne compte pas.']],
+    es: [['s', '📅', 'Una letra y 6 categorías al día, iguales para todos. Una partida por nombre e idioma'],
+         ['s', '✏️', 'Rellénalas y pulsa ¡Alto!: cuanto antes, más bonus'],
+         ['s', '🤖', 'El Robot corrige. ¿No estás de acuerdo? Toca <b>¿Error?</b> y lo mira otra vez'],
+         ['pts', 'Puntos:', [['Respuesta válida', '100 pts'], ['Dudosa 🤔', '50 pts'], ['Inválida o en blanco', '0 pts'], ['Bonus de velocidad', '×1–×2'], ['Única (nadie más la puso)', '+50 pts']]],
+         ['s', '🏅', 'Mismos puntos, misma medalla'],
+         ['s', '📆', '◀ ▶ para ver otros días; las respuestas de hoy, cuando hayas jugado'],
+         ['s', '👀', `${ST} seguir · ${SF} sigues · ${SM} os seguís — con <b>Siguiendo</b> ves solo a tu gente`],
+         ['note', '✏️ Práctica: letra al azar, intentos sin límite, no cuenta para la clasificación.']],
+    en: [['s', '📅', 'One letter and 6 categories a day, the same for everyone. One go per name and language'],
+         ['s', '✏️', 'Fill them in and tap ¡Alto!: the sooner, the bigger the bonus'],
+         ['s', '🤖', 'The Robot marks your answers. Disagree? Tap <b>Error?</b> and it checks again'],
+         ['pts', 'Points:', [['Valid answer', '100 pts'], ['Unsure 🤔', '50 pts'], ['Invalid or blank', '0 pts'], ['Speed bonus', '×1–×2'], ['Unique (nobody else wrote it)', '+50 pts']]],
+         ['s', '🏅', 'Same points, same medal'],
+         ['s', '📆', "◀ ▶ for other days; today's answers once you've played"],
+         ['s', '👀', `${ST} follow · ${SF} following · ${SM} mutual — <b>Following</b> shows just your people`],
+         ['note', "✏️ Practice: random letter, unlimited tries, doesn't count for the leaderboard."]],
+    fr: [['s', '📅', 'Une lettre et 6 catégories par jour, les mêmes pour tous. Une partie par nom et par langue'],
+         ['s', '✏️', 'Remplis-les et appuie sur ¡Alto! : plus tôt, plus de bonus'],
+         ['s', '🤖', "Le Robot corrige. Pas d'accord ? Touche <b>Erreur?</b> et il revérifie"],
+         ['pts', 'Points :', [['Réponse valide', '100 pts'], ['Douteuse 🤔', '50 pts'], ['Invalide ou vide', '0 pts'], ['Bonus de vitesse', '×1–×2'], ["Unique (personne d'autre)", '+50 pts']]],
+         ['s', '🏅', 'Mêmes points, même médaille'],
+         ['s', '📆', '◀ ▶ pour les autres jours ; les réponses du jour une fois que tu as joué'],
+         ['s', '👀', `${ST} suivre · ${SF} suivi · ${SM} mutuel — <b>Suivis</b> montre seulement tes proches`],
+         ['note', '✏️ Pratique : lettre au hasard, essais illimités, ne compte pas pour le classement.']],
   },
   multi: {
-    es: [['🎲 Cómo se juega', 'Cada ronda sale una letra. Rellena las categorías y pulsa ¡Alto!: la ronda termina para todos. Si se acaba el tiempo, se envía lo que haya.'],
-         ['Puntos', 'única 100 · repetida 50 · anulada o vacía 0<br><b>¡Alto!:</b> unos 30 por categoría (+250 con 8), menos 100 por cada respuesta tuya anulada. ¡Ojo con pulsarlo a lo loco!'],
-         ['🔍 Revisión', '<b>Normal:</b> decide el anfitrión. <b>Democrático:</b> todos votan 👎 y, si la mayoría vota en contra, se anula (mín. 3 jugadores). 📖 Wikipedia y 🤖 Robot ayudan, pero el Robot solo opina.'],
-         ['😂 Reacciones', '🔥 👏 😂 😬 en las respuestas de los demás. Con «Reacciones con puntos»: 🔥 +30 · 👏 +20 · 😂 +10. Al final hay premios: 🙌 popularidad, 😂 risas, ✨ originalidad.'],
-         ['🎮 Grupo', 'Elige el grupo en la sala; 📜 guarda su marcador e historial. Empate: comparten medalla y victoria.<br><b>Jugar solo es práctica:</b> no se guarda. Las partidas terminadas antes de la última ronda tampoco cuentan.']],
-    en: [['🎲 How to play', "Each round has a letter. Fill in the categories and tap ¡Alto!: the round ends for everyone. If time runs out, whatever you've written is sent."],
-         ['Points', "unique 100 · duplicate 50 · invalid or blank 0<br><b>¡Alto!:</b> about 30 per category (+250 with 8), minus 100 for each of your answers that gets invalidated. Don't tap it too soon!"],
-         ['🔍 Review', "<b>Normal:</b> the host decides. <b>Democratic:</b> everyone can vote 👎 and if most vote against, it's invalid (3 players min.). 📖 Wikipedia and 🤖 Robot help, but the Robot only gives an opinion."],
-         ['😂 Reactions', "🔥 👏 😂 😬 on other players' answers. With «Reactions score points»: 🔥 +30 · 👏 +20 · 😂 +10. At the end there are awards: 🙌 popularity, 😂 laughs, ✨ originality."],
-         ['🎮 Group', "Pick the group in the room; 📜 keeps its scoreboard and history. Ties share the medal and the win.<br><b>Playing alone is practice:</b> it isn't saved. Games ended before the last round don't count either."]],
-    fr: [['🎲 Comment jouer', "À chaque manche, une lettre. Remplis les catégories et appuie sur ¡Alto! : la manche s'arrête pour tout le monde. Si le temps est écoulé, ce que tu as écrit est envoyé."],
-         ['Points', "unique 100 · en double 50 · annulée ou vide 0<br><b>¡Alto! :</b> environ 30 par catégorie (+250 avec 8), moins 100 pour chacune de tes réponses annulées. Ne l'appuie pas trop vite !"],
-         ['🔍 Vérification', "<b>Normal :</b> l'hôte décide. <b>Démocratique :</b> chacun peut voter 👎 et si la majorité vote contre, c'est annulé (3 joueurs min.). 📖 Wikipedia et 🤖 Robot aident, mais le Robot donne seulement son avis."],
-         ['😂 Réactions', "🔥 👏 😂 😬 sur les réponses des autres. Avec « Réactions avec points » : 🔥 +30 · 👏 +20 · 😂 +10. À la fin, des prix : 🙌 popularité, 😂 rires, ✨ originalité."],
-         ['🎮 Groupe', "Choisis le groupe dans la salle ; 📜 garde son classement et son historique. Égalité : médaille et victoire partagées.<br><b>Jouer seul, c'est de la pratique :</b> rien n'est enregistré. Les parties terminées avant la dernière manche ne comptent pas non plus."]],
+    es: [['s', '🎲', 'Cada ronda sale una letra al azar'],
+         ['s', '✏️', 'Rellena las categorías lo más rápido posible'],
+         ['s', '🛑', 'Pulsa ¡Alto!: la ronda termina para todos (si se acaba el tiempo, se envía lo que haya)'],
+         ['pts', 'Puntos:', [['Respuesta única', '100 pts'], ['Respuesta repetida', '50 pts'], ['Anulada o vacía', '0 pts'], ['¡Alto! sin fallos (con 8 categorías)', '+250 pts'], ['¡Alto! por cada anulada', '−100 pts']]],
+         ['s', '👑', 'Normal: decide el anfitrión'],
+         ['s', '🗳️', 'Democrático: todos votan 👎 (mín. 3 jugadores)'],
+         ['s', '🤖', 'El Robot y 📖 Wikipedia ayudan, pero no deciden'],
+         ['s', '😂', 'Reacciones 🔥 👏 😂 😬 · con puntos: +30 +20 +10 · al final, premios 🙌 😂 ✨'],
+         ['s', '🎮', 'Elige el grupo; 📜 guarda marcador e historial. Empate: comparten medalla y victoria'],
+         ['note', 'Jugar solo es práctica y no se guarda. Las partidas sin terminar tampoco cuentan.']],
+    en: [['s', '🎲', 'Each round has a random letter'],
+         ['s', '✏️', 'Fill in the categories as fast as you can'],
+         ['s', '🛑', "Tap ¡Alto!: the round ends for everyone (if time runs out, what you've written is sent)"],
+         ['pts', 'Points:', [['Unique answer', '100 pts'], ['Duplicate answer', '50 pts'], ['Invalid or blank', '0 pts'], ['¡Alto! with no mistakes (8 categories)', '+250 pts'], ['¡Alto! per invalid answer', '−100 pts']]],
+         ['s', '👑', 'Normal: the host decides'],
+         ['s', '🗳️', 'Democratic: everyone can vote 👎 (3 players min.)'],
+         ['s', '🤖', "The Robot and 📖 Wikipedia help, but they don't decide"],
+         ['s', '😂', 'Reactions 🔥 👏 😂 😬 · with points: +30 +20 +10 · awards at the end 🙌 😂 ✨'],
+         ['s', '🎮', 'Pick the group; 📜 keeps scoreboard and history. Ties share the medal and the win'],
+         ['note', "Playing alone is practice and isn't saved. Unfinished games don't count either."]],
+    fr: [['s', '🎲', 'À chaque manche, une lettre au hasard'],
+         ['s', '✏️', 'Remplis les catégories le plus vite possible'],
+         ['s', '🛑', "Appuie sur ¡Alto! : la manche s'arrête pour tout le monde (si le temps est écoulé, ce que tu as écrit est envoyé)"],
+         ['pts', 'Points :', [['Réponse unique', '100 pts'], ['Réponse en double', '50 pts'], ['Annulée ou vide', '0 pts'], ['¡Alto! sans erreur (8 catégories)', '+250 pts'], ['¡Alto! par réponse annulée', '−100 pts']]],
+         ['s', '👑', "Normal : l'hôte décide"],
+         ['s', '🗳️', 'Démocratique : chacun vote 👎 (3 joueurs min.)'],
+         ['s', '🤖', 'Le Robot et 📖 Wikipedia aident, mais ne décident pas'],
+         ['s', '😂', 'Réactions 🔥 👏 😂 😬 · avec points : +30 +20 +10 · prix à la fin 🙌 😂 ✨'],
+         ['s', '🎮', 'Choisis le groupe ; 📜 garde classement et historique. Égalité : médaille et victoire partagées'],
+         ['note', "Jouer seul, c'est de la pratique : rien n'est enregistré. Les parties non terminées ne comptent pas non plus."]],
   },
 };
 function helpSectionsHTML(which) {
   const set = HELP[which] || HELP.home;
   const list = set[LANG] || set.es;
-  return list.map(([title, body]) => `<div class="help-section"><div class="help-title">${title}</div><div class="help-text">${body}</div></div>`).join('');
+  return list.map(([k, a, b]) => {
+    if (k === 'h') return `<div class="help-h">${a}</div>`;
+    if (k === 's') return `<div class="rules-step"><span class="rules-icon">${a}</span><span class="rules-text">${b}</span></div>`;
+    if (k === 'pts') return `<div class="rules-scoring"><div class="rules-score-row"><span>${a}</span></div>` +
+      b.map(([l, p]) => `<div class="rules-score-row"><span>${l}</span><span class="rules-pts">${p}</span></div>`).join('') + '</div>';
+    if (k === 'note') return `<div class="help-note">${a}</div>`;
+    if (k === 'hr') return '<div class="help-hr"></div>';
+    return '';
+  }).join('');
 }
 
 window.shellHelpOpen = function() {
@@ -7793,7 +7851,7 @@ setTimeout(() => updateDailyButtonDate(), 350);
 // Version freshness check — silently reload if a newer version is deployed
 // Runs once on load; does nothing if already on latest or if fetch fails
 (function() {
-  const RUNNING = 'v261031.374-tmp';
+  const RUNNING = 'v261031.375-tmp';
   if (sessionStorage.getItem('alto_ver_checked') === RUNNING) return; // already checked this session
   sessionStorage.setItem('alto_ver_checked', RUNNING);
   fetch(location.href, { cache: 'no-cache' })
@@ -7817,7 +7875,7 @@ syncMyGroups(); // registered + verified name: bring in groups from the name's o
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v261031.374-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v261031.375-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
