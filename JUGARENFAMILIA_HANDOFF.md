@@ -1656,3 +1656,28 @@ Session 25 plan: Build 5 — Groups and history
 - **Known/accepted:** at 320px, your own row with the "(+50✨)" tag already squeezed the name before this change ("Os…"); it's now "O…". Search only covers the day being viewed (finding any registered name needs the names list, which is for after the security build). Followed players are per leaderboard language: a friend who played only EN shows as "aún no ha jugado" on the ES tab.
 - **Tests:** NEW `tests/restore/follow_scenarios.py` (34 checks: unregistered view, stars, both Firebase lists, gold/silver/grey, legend, Siguiendo with ranks + not-played, mode after reload, unfollow, past day, search, answer panels, second device, the other side sees gold, 320 FR / 320 ES / 390 ES / 414 EN without overflow). All suites green; build5b's flaky "Marta's buttons…" failed in 2 runs then passed 3/3 on both v367 and v368. The groups unit test evals this code outside a browser, hence the `typeof document` guard on the search listener.
 - **Still to do:** help page text for the stars (and why register); the security build must cover `following`/`followers`.
+
+### v261015.369-tmp (staging, 15 Oct): follow fixes after Oscar's first look
+- **No stars on Oscar's board:** all of that day's scores came from production (before `reg`). Fix: `followCheckReg()` looks up `names/{safe}/displayName` (exists only for registered names; the secret is not read) for on-screen rows without `reg`, cached in `_regCache` for the visit, then redraws. At most ~a dozen small reads per board. Older days get stars too.
+- **Search always visible** (Oscar): the 🔍/✕ toggle is gone. `input#lb-search` (placeholder "🔍 buscar" / "🔍 search" / "🔍 chercher") sits beside the pills, `flex: 1 1 90px`: one line at 390/414px, its own line under the pills at 320px. Look: Caveat 20px with an underline, like the game's other text boxes and the row names (the old 16px Special Elite matched nothing). Filters the current view: Todos = everyone that day, any rank; Siguiendo = followed players incl. the not-played rows. `G_follow.searchOpen` removed.
+- Tests: follow_scenarios 38/38 (+ Ana: registered, score without reg → ☆ after lookup; search box font Caveat 20px; pills + box both visible; search in Siguiendo). All suites green (build5b 77/77 this run).
+
+### v261015.370-tmp (staging, 15 Oct)
+- **Legend always shown** for registered players (Oscar: "for now"), replacing "until you follow someone"; the colours matter most once you follow people. Unregistered players still get the register line.
+- Search placeholder is plain text without the emoji: "buscar" / "search" / "chercher".
+- follow_scenarios 38/38 (legend check flipped), unit suites green, checklist clean.
+
+### v261015.371-tmp (staging, 15 Oct): daily ties share a medal
+- **Daily leaderboard ranks are now dense, like multiplayer's `denseMedals`** (Oscar chose this over sports-style 1,1,3 as "fairer"): 600, 600, 580, 580, 550, 500 → 🥇 🥇 🥈 🥈 🥉 4. `renderLeaderboard` builds `ranks[]` from the rounded grand total ((totalScore + originality) × 10); `rankLabel(i)` = medal for ranks 1–3, else the number. Applies in Todos, Siguiendo and search.
+- **Order within a tie:** earliest `timestamp` first (the sort used to have no tiebreak).
+- `G_daily.myRank` is now the dense rank, so the share text medal/position agrees with the board.
+- **Known trade-off (accepted):** with many daily players a big tie at the top means many golds, and the next score gets 🥈 even with many people above it. The "top 10" cut is still the first 10 rows, so it can split a tie.
+- follow_scenarios 40/40 (+F14 ties: ranks and order), unit suites green, checklist clean.
+
+### v261031.372: PRODUCTION (31 Oct) = staging v371-tmp + reveal fix + news
+- Brings to production: the follow system (v368–370), always-visible search, the legend always shown, and daily ties sharing medals (v371).
+- **Bug (Oscar):** played ES, open the EN tab (not played), ◀ to yesterday, open a player, ▶ back to today → today's EN answers were visible. Cause: `lbHistNav` reloaded the board without the "not played" flag (only `switchDailyLbLang` passed it). Fix in `loadDailyLeaderboard` itself: if `key` is today and the tab's language isn't played (`_playedLangs[lbLang]` or `alto_daily_{key}_{lbLang}`), `hideAnswers = true` whatever the caller passes, which covers ▶, flags, refresh and future callers. Debug `__` names don't write that localStorage key, so their own board hides answers after playing; acceptable.
+- **News:** `2026-10-31-follow` until 2026-11-04: "⭐ ¡Sigue a tu gente en el reto diario y mira cómo les va!" / "⭐ Follow your people on the daily challenge and see how they did!" / "⭐ Suis tes proches dans le défi du jour et vois leurs scores !" (Oscar: "sigue a tu gente" rather than "familia").
+- Tests: follow_scenarios 42/42 (+F15 reproduces the bug: fails on v371, passes on v372). ALL GREEN, checklist clean, 429 KB.
+- **Next:** help page (stars + why register, ties); security build must cover `following` / `followers`.
+- **News text changed before deploy (Oscar):** option B, "Toca ☆ en la clasificación para seguir a tu gente" / "Tap ☆ on the leaderboard to follow your people" / "Touche ☆ dans le classement pour suivre tes proches". This replaces the "⭐ ¡Sigue a tu gente…" line above. It uses the same ☆ glyph as the board, so it reads as the button to tap. Same id and dates.

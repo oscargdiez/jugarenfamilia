@@ -667,6 +667,27 @@ body.screen-home .page, body.screen-welcome .page { padding-bottom: 2rem; }
 .daily-lb-lang-btn { padding: 2px 3px; border: 1.5px solid transparent; background: transparent; cursor: pointer; border-radius: 4px; opacity: 0.45; line-height: 1; vertical-align: middle; }
 .daily-lb-lang-btn.active { opacity: 1; background: var(--paper-dark); border-color: var(--border-strong); }
 #btn-lb-hist-next:disabled { opacity: 0.25; cursor: default; }
+/* Follow system (v368): one star per row — grey outline ☆ = not following, silver ★ = following, gold ★ = mutual */
+.lb-follow-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-bottom: 6px; }
+.lb-follow-pills { flex: 0 0 auto; }
+/* Search: always visible, same look as the game's text boxes (Caveat, underline) at the row-name size; 20px also stops iOS zooming */
+input.lb-search { flex: 1 1 90px; min-width: 0; font-family: 'Caveat', cursive; font-size: 20px; padding: 2px 2px; border: none; border-bottom: 2px solid var(--border-strong); border-radius: 0; background: transparent; color: var(--ink); outline: none; }
+input.lb-search:focus { border-bottom-color: var(--red); }
+input.lb-search::placeholder { color: var(--ink-muted); }
+.lb-follow-legend { font-family: 'Special Elite', monospace; font-size: 11px; color: var(--ink-muted); margin: 0 0 6px; }
+.lb-follow-legend.link { cursor: pointer; text-decoration: underline dotted; }
+button.lb-star { flex: 0 0 auto; width: 18px; margin: 0 -6px 0 -8px; padding: 2px 0; border: none; background: transparent; font-family: 'Special Elite', monospace; font-size: 20px; font-weight: 400; line-height: 1; text-align: center; overflow: visible; }
+button.lb-star:hover { background: transparent; }
+.lb-star-sp { flex: 0 0 auto; width: 18px; margin: 0 -6px 0 -8px; }
+.lb-np .np-short { display: none; }
+@media (max-width: 359px) { .lb-np .np-long { display: none; } .lb-np .np-short { display: inline; } }
+.lb-star.s-none, .st-none { color: var(--ink-muted); }
+.lb-star.s-follow, .st-follow { color: #9aa3ad; }
+.lb-star.s-mutual, .st-mutual { color: #d4a017; }
+.daily-lb-row.lb-notplayed { cursor: default; }
+.daily-lb-row.lb-notplayed .daily-lb-name { opacity: .5; flex: 0 1 auto; }
+.lb-np { font-family: 'Special Elite', monospace; font-size: 11px; color: var(--ink-muted); flex: 1 1 0; min-width: 0; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lb-empty { font-family: 'Special Elite', monospace; font-size: 11px; color: var(--ink-muted); text-align: center; padding: 8px 0; }
 .daily-lb-row.daily-lb-me { background: var(--red-light); border: 1.5px solid var(--red); }
 .daily-lb-row { cursor: pointer; }
 .daily-lb-row.expanded { border-radius: var(--radius) var(--radius) 0 0; margin-bottom: 0; }
@@ -1245,6 +1266,15 @@ document.addEventListener('DOMContentLoaded', function() {
       <span id="lb-hist-date-label" style="font-family:'Special Elite',monospace;font-size:11px;color:var(--ink-muted);min-width:52px;text-align:center">hoy</span>
       <button id="btn-lb-hist-next" onclick="lbHistNav(1)" disabled style="font-family:'Special Elite',monospace;font-size:13px;padding:2px 10px;border:1px solid var(--border);border-radius:4px;background:transparent;cursor:pointer;color:var(--ink-sec);opacity:0.35">▶</button>
     </div>
+    <!-- Follow system (v368/369): Todos / ★ Siguiendo, search box (always visible), legend — filled by renderFollowBar() -->
+    <div class="lb-follow-bar" id="lb-follow-bar">
+      <div class="seg lb-follow-pills" id="lb-follow-pills" style="display:none">
+        <button class="pill on" id="lb-mode-all" onclick="lbSetMode('all')">Todos</button>
+        <button class="pill" id="lb-mode-following" onclick="lbSetMode('following')">★ Siguiendo</button>
+      </div>
+      <input type="search" id="lb-search" class="lb-search" autocomplete="off" placeholder="buscar">
+    </div>
+    <p class="lb-follow-legend" id="lb-follow-legend" style="display:none"></p>
     <div id="daily-lb-list"></div>
     <div id="daily-lb-not-played" style="display:none;font-family:'Special Elite',monospace;font-size:11px;color:var(--ink-muted);text-align:center;padding:4px 0 8px;opacity:0.7"></div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
@@ -2097,6 +2127,135 @@ function myGroupsSyncName() {
     return d && d.verified ? safe : null;
   } catch(e) { return null; }
 }
+// ── Follow system (v368) ─────────────────────────────────────────────
+// One-way follows between REGISTERED names, shown on the daily leaderboard (handoff: "Follow System").
+// Firebase: names/{me}/following/{them} = {n: name as shown, t}; names/{them}/followers/{me} = t (reverse list → gold ★).
+// Only when my name is registered AND verified on this device (myGroupsSyncName). View only: scores never change.
+const G_follow = { me: null, following: {}, followers: {}, loadedFor: null, mode: 'all', q: '' };
+// Registered-name lookups for rows without `reg` (scores from before v368): safe → true/false, 'p' while reading
+const _regCache = {};
+try { if (localStorage.getItem('alto_lb_mode') === 'following') G_follow.mode = 'following'; } catch(e) {}
+let _lbLast = null;          // last renderLeaderboard() input, to redraw after a ★ tap or a filter change
+let _followLoading = null;   // name being loaded (no double loads)
+const FOLLOW_T = {
+  es: { all: 'Todos', following: '★ Siguiendo', search: 'buscar', follow: 'Seguir', unfollow: 'Dejar de seguir',
+        legend: '<span class="st-none">☆</span> seguir · <span class="st-follow">★</span> sigues · <span class="st-mutual">★</span> os seguís',
+        register: '☆ Registra tu nombre para seguir a otros jugadores', np: 'aún no ha jugado', npShort: 'sin jugar', npPast: 'no jugó',
+        noMatch: 'nadie con ese nombre', noFollow: 'aún no sigues a nadie — toca ☆ junto a un nombre', saveErr: 'No se pudo guardar — inténtalo de nuevo' },
+  en: { all: 'Everyone', following: '★ Following', search: 'search', follow: 'Follow', unfollow: 'Unfollow',
+        legend: '<span class="st-none">☆</span> follow · <span class="st-follow">★</span> following · <span class="st-mutual">★</span> mutual',
+        register: '☆ Register your name to follow other players', np: 'not played yet', npShort: 'not yet', npPast: "didn't play",
+        noMatch: 'no one by that name', noFollow: "you don't follow anyone yet — tap ☆ next to a name", saveErr: "Couldn't save — try again" },
+  fr: { all: 'Tous', following: '★ Suivis', search: 'chercher', follow: 'Suivre', unfollow: 'Ne plus suivre',
+        legend: '<span class="st-none">☆</span> suivre · <span class="st-follow">★</span> suivi · <span class="st-mutual">★</span> mutuel',
+        register: "☆ Réserve ton nom pour suivre d'autres joueurs", np: 'pas encore joué', npShort: 'pas joué', npPast: "n'a pas joué",
+        noMatch: 'personne avec ce nom', noFollow: "tu ne suis personne — touche ☆ à côté d'un nom", saveErr: "Échec de l'enregistrement — réessaie" },
+};
+async function followLoad() {
+  const me = myGroupsSyncName();
+  if (me !== G_follow.loadedFor) { G_follow.following = {}; G_follow.followers = {}; G_follow.loadedFor = null; }
+  G_follow.me = me;
+  if (!me) return false;
+  _followLoading = me;
+  try {
+    const [a, b] = await Promise.all([get(ref(db, 'names/' + me + '/following')), get(ref(db, 'names/' + me + '/followers'))]);
+    if (myGroupsSyncName() !== me) return false; // name changed while loading
+    G_follow.following = a.val() || {};
+    G_follow.followers = b.val() || {};
+    G_follow.loadedFor = me;
+    return true;
+  } catch(e) { console.warn('[follow] load failed', e); return false; }
+  finally { if (_followLoading === me) _followLoading = null; }
+}
+// Called on every leaderboard render: the name may have changed (or just been registered) since the last load
+function followEnsure() {
+  const me = myGroupsSyncName();
+  if (me === G_follow.loadedFor) { G_follow.me = me; return; }
+  if (me && _followLoading === me) return;
+  followLoad().then(ok => { if (ok) lbRerender(); });
+  G_follow.me = me; // stars show (grey) straight away; the real state arrives with the load
+}
+function followState(safe) {
+  if (!G_follow.following[safe]) return 'none';
+  return G_follow.followers[safe] ? 'mutual' : 'follow';
+}
+// Scores played before v368 have no `reg`: ask once per name whether it is registered (names/{safe}/displayName
+// exists only for registered names). Only for rows actually on screen; answers cached for the visit.
+function followCheckReg(safes) {
+  const todo = [...new Set(safes)].filter(sf => sf && _regCache[sf] === undefined);
+  if (!todo.length) return;
+  todo.forEach(sf => { _regCache[sf] = 'p'; });
+  Promise.all(todo.map(sf => get(ref(db, 'names/' + sf + '/displayName'))
+    .then(sn => { _regCache[sf] = sn.exists(); }).catch(() => { delete _regCache[sf]; })))
+    .then(() => { if (todo.some(sf => _regCache[sf] === true)) lbRerender(); });
+}
+function lbRerender() {
+  if (_lbLast) renderLeaderboard(_lbLast.allScores, _lbLast.hideAnswers);
+  else renderFollowBar();
+}
+function renderFollowBar() {
+  const FT = FOLLOW_T[LANG] || FOLLOW_T.es;
+  const canFollow = !!G_follow.me;
+  const pills = document.getElementById('lb-follow-pills');
+  const input = document.getElementById('lb-search');
+  const legend = document.getElementById('lb-follow-legend');
+  if (!pills || !input || !legend) return;
+  const all = document.getElementById('lb-mode-all'), fol = document.getElementById('lb-mode-following');
+  if (all) all.textContent = FT.all;
+  if (fol) fol.textContent = FT.following;
+  pillPair(all, fol, G_follow.mode !== 'following');
+  pills.style.display = canFollow ? '' : 'none';
+  input.placeholder = FT.search;
+  input.setAttribute('aria-label', FT.search);
+  // Legend always shown for registered players (Oscar, 15 Oct: the colours matter most once you follow people);
+  // unregistered players get the "register to follow" line instead
+  const hasName = !!(G.playerName || document.getElementById('inp-name')?.value?.trim() || localStorage.getItem('alto_name'));
+  if (canFollow) {
+    const show = true;
+    legend.style.display = show ? '' : 'none';
+    legend.className = 'lb-follow-legend';
+    legend.onclick = null;
+    if (show) legend.innerHTML = FT.legend;
+  } else if (hasName) {
+    legend.style.display = '';
+    legend.className = 'lb-follow-legend link';
+    legend.textContent = FT.register;
+    legend.onclick = () => { try { claimOpen(); } catch(e) {} };
+  } else legend.style.display = 'none';
+}
+window.lbSetMode = function(mode) {
+  G_follow.mode = mode === 'following' ? 'following' : 'all';
+  try { localStorage.setItem('alto_lb_mode', G_follow.mode); } catch(e) {}
+  lbRerender();
+};
+if (typeof document !== 'undefined') document.getElementById('lb-search')?.addEventListener('input', (ev) => {
+  G_follow.q = String(ev.target.value || '').trim();
+  lbRerender();
+});
+window.lbToggleFollow = function(safe, ev) {
+  if (ev) { ev.stopPropagation(); ev.preventDefault(); }
+  const me = G_follow.me;
+  if (!me || !safe || safe === me || G_follow.loadedFor !== me) return;
+  const prev = G_follow.following[safe] || null;
+  let rec = null;
+  if (prev) delete G_follow.following[safe];
+  else {
+    const e = _lbLast && Object.values(_lbLast.allScores || {}).find(x => x && x.safeName === safe);
+    rec = { n: String((e && e.name) || safe), t: Date.now() };
+    G_follow.following[safe] = rec;
+  }
+  lbRerender();
+  update(ref(db), {
+    ['names/' + me + '/following/' + safe]: rec,
+    ['names/' + safe + '/followers/' + me]: rec ? rec.t : null,
+  }).catch(err => {
+    console.warn('[follow] save failed', err);
+    if (prev) G_follow.following[safe] = prev; else delete G_follow.following[safe];
+    lbRerender();
+    toast((FOLLOW_T[LANG] || FOLLOW_T.es).saveErr);
+  });
+};
+
 function pushMyGroups(list) {
   const safe = myGroupsSyncName();
   if (!safe || _grpSyncedFor !== safe) return;
@@ -2592,6 +2751,10 @@ const DAILY_OVERRIDES = {
 // id: unique (✕ hides it on that device for good) · type: 'info' | 'warning' (red edge) · until: last day shown (YYYY-MM-DD)
 // es is required; en/fr fall back to es. Avoid "ayer"/"yesterday": a message stays up for days.
 const NEWS = [
+  { id: '2026-10-31-follow', type: 'info', until: '2026-11-04',
+    es: 'Toca ☆ en la clasificación para seguir a tu gente',
+    en: 'Tap ☆ on the leaderboard to follow your people',
+    fr: 'Touche ☆ dans le classement pour suivre tes proches' },
   { id: '2026-10-10-lobby', type: 'info', until: '2026-10-14',
     es: '🎛️ ¡Sala renovada! Más compacta y recuerda tus ajustes',
     en: '🎛️ New room screen: more compact, remembers your settings',
@@ -3261,9 +3424,13 @@ window.dailySubmit = async function(fromTimer = false) {
       }
     }
     const dailyRef = ref(db, 'daily/' + G_daily.key + '/' + LANG + '/scores/' + playerKey);
+    // reg: played under a name that is registered AND verified on this device — the follow ☆ only shows on these rows (v368)
+    let _regNow = false;
+    try { const _cd = JSON.parse(localStorage.getItem(claimLsKey(safeNameIdx)) || 'null'); _regNow = !!(safeNameIdx && _cd && _cd.verified); } catch(e) {}
     await set(dailyRef, {
       name: displayName,
       safeName: safeNameIdx || '',
+      ...(_regNow ? { reg: true } : {}),
       baseScore, totalScore, originality: 0, speedMultiplier,
       answers: answersObj,
       aiResults: aiResults,
@@ -3721,13 +3888,17 @@ window.recontest = async (idx, word, cat) => {
 async function loadDailyLeaderboard(key, lbLang, hideAnswers) {
   lbLang = lbLang || LANG;
   hideAnswers = !!hideAnswers;
+  // Today on a language not played (here or on another device) → answers stay hidden, whoever called.
+  // v372: ◀ to a past day then ▶ back to today used to reload the board without this check and show today's answers.
+  if (key === getDailyKey() && !_playedLangs[lbLang] && !localStorage.getItem('alto_daily_' + key + '_' + lbLang)) hideAnswers = true;
   const lbEl = document.getElementById('daily-lb-list');
   if (!lbEl) return;
   const l = (typeof DAILY_LABELS !== 'undefined' ? DAILY_LABELS[LANG] : null) || { noResults: 'Sin resultados aún', errorLb: 'Error cargando clasificación' };
   lbEl.innerHTML = `<div style="font-family:'Special Elite',monospace;font-size:11px;color:var(--ink-muted);text-align:center;padding:8px">cargando…</div>`;
   try {
-    const snap = await get(ref(db, 'daily/' + key + '/' + lbLang + '/scores'));
-    if (!snap.exists()) { lbEl.innerHTML = `<div style="text-align:center;opacity:0.5;font-size:13px">${l.noResults}</div>`; return; }
+    // Follows load alongside the scores (fresh each time, so a new follower's gold ★ shows up)
+    const [snap] = await Promise.all([get(ref(db, 'daily/' + key + '/' + lbLang + '/scores')), followLoad().catch(() => false)]);
+    if (!snap.exists()) { _lbLast = null; renderFollowBar(); lbEl.innerHTML = `<div style="text-align:center;opacity:0.5;font-size:13px">${l.noResults}</div>`; return; }
     const allScores = snap.val();
     renderLeaderboard(allScores, hideAnswers);
     if (lbLang === LANG || _playedLangs[lbLang]) computeAndUpdateOriginality(allScores, key, lbLang);
@@ -3782,12 +3953,17 @@ function renderLeaderboard(allScores, hideAnswers) {
   const entries = Object.values(allScores)
     .filter(e => e && e.name)
     .map(e => ({ ...e, totalScore: e.totalScore ?? e.score ?? 0 }))
-    .sort((a,b) => (b.totalScore + (b.originality||0)) - (a.totalScore + (a.originality||0)));
+    .sort((a,b) => ((b.totalScore + (b.originality||0)) - (a.totalScore + (a.originality||0))) || ((a.timestamp||0) - (b.timestamp||0)));
   const medals = ['🥇','🥈','🥉'];
+  // Ties share a place, like multiplayer (denseMedals): 600, 600, 580, 550 → 🥇 🥇 🥈 🥉 (Oscar, 15 Oct).
+  // Within a tie, whoever played first is listed first.
+  const ranks = [];
+  { let r = 0, prev = null; entries.forEach((e, i) => { const sc = Math.round((e.totalScore + (e.originality||0)) * 10); if (sc !== prev) { r++; prev = sc; } ranks[i] = r; }); }
+  const rankLabel = i => medals[ranks[i] - 1] || ranks[i];
   const top10 = entries.slice(0, 10);
   const myIdx = entries.findIndex(e => isMe(e));
   const isInTop10 = myIdx >= 0 && myIdx < 10;
-  G_daily.myRank = myIdx >= 0 ? myIdx + 1 : null;
+  G_daily.myRank = myIdx >= 0 ? ranks[myIdx] : null;
 
   // Ensure categories are available even when leaderboard viewed after session
   if (!G_daily.categories || !G_daily.categories.length) {
@@ -3831,33 +4007,70 @@ function renderLeaderboard(allScores, hideAnswers) {
     return `<div class="daily-lb-answers" id="daily-ans-${idx}">${rows}</div>`;
   }
 
-  let html = top10.map((e, i) => {
+  // ── Rows (v368): all / followed only / search. Row ids stay the overall index so answer panels keep working.
+  _lbLast = { allScores, hideAnswers };
+  followEnsure();
+  const FT = FOLLOW_T[LANG] || FOLLOW_T.es;
+  const canFollow = !!G_follow.me;
+  const isFollowed = e => !!(e.safeName && G_follow.following[e.safeName]);
+  const needReg = [];
+  function starHtml(e) {
+    if (!canFollow) return '';
+    if (isMe(e) || !e.safeName || e.safeName === G_follow.me) return '<span class="lb-star-sp"></span>';
+    if (!(e.reg === true || isFollowed(e) || _regCache[e.safeName] === true)) {
+      if (e.reg !== true && _regCache[e.safeName] === undefined) needReg.push(e.safeName);
+      return '<span class="lb-star-sp"></span>';
+    }
+    return starBtn(e.safeName);
+  }
+  function starBtn(safe) {
+    const st = followState(safe);
+    return `<button class="lb-star s-${st}" onclick="lbToggleFollow('${safe}', event)" aria-pressed="${st !== 'none'}" title="${st === 'none' ? FT.follow : FT.unfollow}">${st === 'none' ? '☆' : '★'}</button>`;
+  }
+  function rowHtml(e, idx, id) {
     const _isMe = isMe(e);
     const grandTotal = (e.totalScore + (e.originality||0)) * 10;
     const chevron = hideAnswers ? '' : `<span class="daily-lb-chevron">▶</span>`;
-    const clickHandler = hideAnswers ? '' : ` onclick="toggleDailyAnswers(${i})"`;
-    return `<div class="daily-lb-row${_isMe ? ' daily-lb-me' : ''}" id="daily-row-${i}"${clickHandler}>
-      <span class="daily-lb-rank">${medals[i] || (i+1)}</span>
-      <span class="daily-lb-name">${e.name}</span>
+    const clickHandler = hideAnswers ? '' : ` onclick="toggleDailyAnswers(${typeof id === 'number' ? id : "'" + id + "'"})"`;
+    return `<div class="daily-lb-row${_isMe ? ' daily-lb-me' : ''}" id="daily-row-${id}"${clickHandler}>
+      <span class="daily-lb-rank">${rankLabel(idx)}</span>
+      ${starHtml(e)}<span class="daily-lb-name">${e.name}</span>
       <span class="daily-lb-score">${grandTotal} pts</span>
       ${scoreTag(e)}${chevron}
-    </div>${hideAnswers ? '' : buildAnswerPanel(e, i)}`;
-  }).join('');
-
-  // Show my row if outside top 10
-  if (!isInTop10 && myIdx >= 0) {
-    const me = entries[myIdx];
-    const myGrandTotal = (me.totalScore + (me.originality||0)) * 10;
-    const chevron = hideAnswers ? '' : `<span class="daily-lb-chevron">▶</span>`;
-    const clickHandler = hideAnswers ? '' : ` onclick="toggleDailyAnswers('me')"`;
-    html += `<div class="daily-lb-sep">· · ·</div>`;
-    html += `<div class="daily-lb-row daily-lb-me" id="daily-row-me"${clickHandler}>
-      <span class="daily-lb-rank">${myIdx+1}</span>
-      <span class="daily-lb-name">${me.name}</span>
-      <span class="daily-lb-score">${myGrandTotal} pts</span>
-      ${scoreTag(me)}${chevron}
-    </div>${hideAnswers ? '' : buildAnswerPanel(me, 'me')}`;
+    </div>${hideAnswers ? '' : buildAnswerPanel(e, id)}`;
   }
+  const indexed = entries.map((e, i) => ({ e, i }));
+  // Search filters the current view (Todos: everyone that day, any rank; Siguiendo: the people I follow)
+  const nq = G_follow.q ? normalize(G_follow.q) : '';
+  const hit = n => !nq || normalize(String(n || '')).includes(nq);
+  let html = '';
+  if (canFollow && G_follow.mode === 'following') {
+    // Everyone I follow, whatever their rank (overall rank numbers kept), then the ones who haven't played, greyed
+    const rows = indexed.filter(({ e }) => (isMe(e) || isFollowed(e)) && hit(e.name));
+    html = rows.map(({ e, i }) => rowHtml(e, i, i)).join('');
+    const played = new Set(entries.map(e => e.safeName).filter(Boolean));
+    const missing = Object.keys(G_follow.following).filter(sf => !played.has(sf))
+      .map(sf => ({ sf, n: String((G_follow.following[sf] && G_follow.following[sf].n) || sf) }))
+      .filter(({ n }) => hit(n))
+      .sort((a, b) => a.n.localeCompare(b.n));
+    html += missing.map(({ sf, n }) => `<div class="daily-lb-row lb-notplayed">
+      <span class="daily-lb-rank"></span>${starBtn(sf)}<span class="daily-lb-name">${escHtml(n)}</span>
+      <span class="lb-np">${_lbDate === null ? `<span class="np-long">${FT.np}</span><span class="np-short">${FT.npShort}</span>` : FT.npPast}</span>
+    </div>`).join('');
+    if (!rows.length && !missing.length) html = `<div class="lb-empty">${nq ? FT.noMatch : FT.noFollow}</div>`;
+  } else if (nq) {
+    const hits = indexed.filter(({ e }) => hit(e.name));
+    html = hits.length ? hits.map(({ e, i }) => rowHtml(e, i, i)).join('') : `<div class="lb-empty">${FT.noMatch}</div>`;
+  } else {
+    html = top10.map((e, i) => rowHtml(e, i, i)).join('');
+    // Show my row if outside top 10
+    if (!isInTop10 && myIdx >= 0) {
+      html += `<div class="daily-lb-sep">· · ·</div>`;
+      html += rowHtml(entries[myIdx], myIdx, 'me');
+    }
+  }
+  if (canFollow) followCheckReg(needReg);
+  renderFollowBar();
 
   lbEl.innerHTML = html;
 }
@@ -7601,6 +7814,7 @@ window.claimSubmit = async function() {
       localStorage.setItem(claimLsKey(safeName), JSON.stringify({ verified: true, claimedAt: Date.now() }));
       _claimState = 'mine';
       syncMyGroups();
+      try { lbRerender(); } catch(e) {}
       claimClose();
       toast(l.successClaimed);
       // Update pill
@@ -7623,6 +7837,7 @@ window.claimSubmit = async function() {
         localStorage.setItem(claimLsKey(safeName), JSON.stringify({ verified: true, verifiedAt: Date.now() }));
         _claimState = 'mine';
         syncMyGroups();
+        try { lbRerender(); } catch(e) {}
         claimClose();
         toast(l.successVerified);
         const pill = document.getElementById('claim-pill');
@@ -7748,7 +7963,7 @@ setTimeout(() => updateDailyButtonDate(), 350);
 // Version freshness check — silently reload if a newer version is deployed
 // Runs once on load; does nothing if already on latest or if fetch fails
 (function() {
-  const RUNNING = 'v261015.367';
+  const RUNNING = 'v261031.372';
   if (sessionStorage.getItem('alto_ver_checked') === RUNNING) return; // already checked this session
   sessionStorage.setItem('alto_ver_checked', RUNNING);
   fetch(location.href, { cache: 'no-cache' })
@@ -7772,7 +7987,7 @@ syncMyGroups(); // registered + verified name: bring in groups from the name's o
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v261015.367</div>
+  <div style="font-size: 11px;opacity:0.5">v261031.372</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
