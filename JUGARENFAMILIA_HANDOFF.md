@@ -11,12 +11,7 @@
 
 ## ▶ START HERE (Session 31)
 1. Upload the project zip (with `tests\` and `tools\`). Read this whole file. First thing: `cp index.html index_backup_s31.html`.
-2. **Versions:** production = **v261031.378** (reserved-name gate). Staging = **v261101.382-tmp**, a stack of four builds from the Session 30 code audit, waiting for ONE real multiplayer game before they are promoted together:
-   - v379 escaping (player text never runs as code; robot verdict stored without HTML; apostrophes no longer break buttons);
-   - v380 names (`. # $ [ ] /` refused, capitals kept, daily uses the name field);
-   - v381 clocks (daily and multiplayer timers follow real time);
-   - v382 cleanup (dead code, duplicate CSS and translations, legacy index retired).
-   Ask Oscar whether that game has happened. If yes and all is well → promote (copy `index_tmp.html` → `index.html`, version without `-tmp`, checklist, kit, deliver with this file + the history file).
+2. **Versions:** production = **v261101.383** (1 Nov) = the four audit builds promoted together (v379 escaping, v380 names, v381 clocks, v382 cleanup) on top of v378 (reserved-name gate). Staging `index_tmp.html` = v261101.382-tmp, the same code. Oscar promoted without a real multiplayer game first; the automated kit (two-browser games included) was green. **Ask Oscar how the first real games went**, especially: 🤖 verdicts showing for guests, ✕ / 👎 / reactions on every row, names with capitals, the daily clock after switching apps.
 3. **Audit doc:** https://claude.ai/artifact/6mLawbbQxMnDKr75nvXfRH — every finding is fixed or decided except the security build (below).
 4. **Next big item: the security build** (see Backlog → Security). Plan with Oscar first.
 5. Watch the dailies for the robot (Ling 3.0 Flash): re-check over-generosity (Library, Edredón, Esterilla), FR English words (Robin), flips.

@@ -1826,3 +1826,8 @@ Read-only audit of v377-tmp: parser pass over the 372 top-level definitions + sc
 - The handoff had grown to ~250 KB / ~93k tokens with six START HERE sections and statements contradicted further down (robot models, recontest "3 models", Registration Gate scope, items flagged as future but already built). A session could read only about a quarter of it per pass.
 - Split agreed with Oscar: `JUGARENFAMILIA_HANDOFF.md` now holds only the current state (~31 KB, read in full every session; facts edited in place); this file holds everything above, untouched, and grows append-only. `deploy.bat` gains the lines to copy and commit this file (Oscar replaces the bat by hand).
 - Facts in the new handoff were checked against the code of v261101.382-tmp (constants, schema keys, AI settings, news, test files), not only copied from the log.
+
+### v261101.383: PRODUCTION (1 Nov) = staging v382-tmp (audit builds v379 + v380 + v381 + v382)
+- Oscar asked to promote the staging stack without the planned real multiplayer game first (his call; the kit's two-browser multiplayer scenarios cover the changed flows). Diff vs v382-tmp: version string only. Version grep before (prod v378, staging v382-tmp) and after (v383 twice). Checklist: 12 screens, init once, syntax OK, 3 `-tmp` = version-check regexes, 417 KB.
+- Delivered with the handoff split (new short `JUGARENFAMILIA_HANDOFF.md` + this file) and the updated `deploy.bat` (Oscar replaces it by hand).
+
