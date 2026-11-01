@@ -1044,7 +1044,7 @@ document.addEventListener('DOMContentLoaded', function() {
   <div class="card">
     <p class="lbl" id="qj-invited">¡Te han invitado a jugar!</p>
     <p class="lbl" id="qj-name-lbl" style="margin-top:12px;display:none">tu nombre</p>
-    <input type="text" id="qj-name" placeholder="Nombre..." maxlength="20" autocomplete="nickname" inputmode="text" style="width:100%;margin-bottom:14px" oninput="this.value=this.value.charAt(0).toUpperCase()+this.value.slice(1).toLowerCase()">
+    <input type="text" id="qj-name" placeholder="Nombre..." maxlength="20" autocomplete="nickname" inputmode="text" style="width:100%;margin-bottom:14px">
     <p class="lbl" id="qj-emoji-lbl">elige tu emoji <span class="emoji-display" id="qj-selected-emoji">🎲</span></p>
     <div class="emoji-grid" id="qj-emoji-grid"></div>
     <button class="pri" onclick="quickJoin()" style="width:100%;font-size:20px;padding:14px;margin-top:14px" id="qj-btn">¡Unirse a la sala! →</button>
@@ -1508,6 +1508,8 @@ const T = {
     toastNotFound: 'Sala no encontrada. Verifica el código.',
     toastCats: 'Selecciona al menos una categoría',
     toastFreeCats: 'Escribe al menos 2 categorías',
+    toastNameChars: 'El nombre no puede llevar . # $ [ ] /',
+    toastCatChars: 'Quita . # $ [ ] / de «{cat}»',
     toastFewGroups: 'Selecciona al menos 3 grupos',
     catRandomLabel: 'grupos de categorías',
     catClassicLabel: '8 categorías fijas del juego original',
@@ -1575,6 +1577,8 @@ const T = {
     toastNotFound: 'Room not found. Check the code.',
     toastCats: 'Select at least one category',
     toastFreeCats: 'Enter at least 2 categories',
+    toastNameChars: "Names can't contain . # $ [ ] /",
+    toastCatChars: 'Remove . # $ [ ] / from «{cat}»',
     toastFewGroups: 'Select at least 3 groups',
     catRandomLabel: 'category groups',
     catClassicLabel: '8 fixed categories from the original game',
@@ -1642,6 +1646,8 @@ const T = {
     toastNotFound: 'Salle introuvable. Vérifie le code.',
     toastCats: 'Sélectionne au moins une catégorie',
     toastFreeCats: 'Entre au moins 2 catégories',
+    toastNameChars: 'Le nom ne peut pas contenir . # $ [ ] /',
+    toastCatChars: 'Enlève . # $ [ ] / de «{cat}»',
     toastFewGroups: 'Sélectionne au moins 3 groupes',
     catRandomLabel: 'groupes de catégories',
     catClassicLabel: '8 catégories fixes du jeu original',
@@ -2844,12 +2850,13 @@ function resetGDaily(practiceMode) {
 window.startDailyChallenge = async function() {
   const _nameCheck = document.getElementById('inp-name')?.value?.trim();
   if (!_nameCheck) { toast(t('toastName')); return; }
+  if (!nameCharsOk(_nameCheck)) return;
   if (!(await nameGateOk(_nameCheck, 'inp-name', () => window.startDailyChallenge()))) return;
 
   reloadIfOutdated();
   resetGDaily(false);
   const key = getDailyKey();
-  const _playerNameRaw = G.playerName || document.getElementById('inp-name')?.value?.trim() || '';
+  const _playerNameRaw = _nameCheck; // v380: always the name field (G.playerName can be left over from a room)
   const _debugMode = _playerNameRaw.includes('__debug__');
   const stored = localStorage.getItem('alto_daily_' + key + '_' + LANG);
   if (stored && !_debugMode) {
@@ -3278,8 +3285,8 @@ window.dailySubmit = async function(fromTimer = false) {
   const totalScore = Math.round(baseScore * speedMultiplier);
 
   // Resolve player name
-  const dailyPlayerName = G.playerName
-    || document.getElementById('inp-name')?.value?.trim()
+  // v380: the name field, never G.playerName (it can be left over from a room or a failed invite join)
+  const dailyPlayerName = document.getElementById('inp-name')?.value?.trim()
     || localStorage.getItem('alto_name')
     || 'Anónimo';
   const dailyPlayerEmoji = G.playerEmoji
@@ -4724,6 +4731,7 @@ window.createRoom = async () => {
   reloadIfOutdated();
   let name = document.getElementById('inp-name').value.trim();
   if (!name) { toast(t('toastName')); return; }
+  if (!nameCharsOk(name)) return;
   if (!(await nameGateOk(name, 'inp-name', () => window.createRoom()))) return;
   // If this name is verified on this device, use the stored display name (preserves accents)
   const _snCR = claimSafeName(name);
@@ -4749,6 +4757,7 @@ window.joinRoom = async () => {
   const code = document.getElementById('inp-code').value.trim().toUpperCase();
   if (!name) { toast(t('toastName')); return; }
   if (code.length !== 4) { toast(t('toastCode')); return; }
+  if (!nameCharsOk(name)) return;
   if (!(await nameGateOk(name, 'inp-name', () => window.joinRoom()))) return;
   // If this name is verified on this device, use the stored display name (preserves accents)
   const _snJR = claimSafeName(name);
@@ -5111,6 +5120,8 @@ window.startGame = async () => {
     const raw = document.getElementById('free-cats').value;
     const freeCats = [...new Set(raw.split('\n').map(s=>s.trim()).filter(Boolean))];
     if (freeCats.length < 2) { toast(t('toastFreeCats')); return; }
+    const _badCat = freeCats.find(hasBadKeyChars); // v380: would be an invalid Firebase key (votes/robot/reactions)
+    if (_badCat) { toast(t('toastCatChars').replace('{cat}', _badCat)); return; }
     const freeRandom = document.getElementById('free-cat-random')?.checked && freeCats.length >= 9;
     if (freeRandom) {
       // Pick 8 random for first round; store full list in Firebase for subsequent rounds
@@ -5955,6 +5966,7 @@ window.quickJoin = async () => {
   const nameEl = document.getElementById('qj-name');
   const name = nameEl ? nameEl.value.trim() : '';
   if (!name) { toast(t('toastName')); return; }
+  if (!nameCharsOk(name)) return;
   if (!(await nameGateOk(name, 'qj-name', () => window.quickJoin()))) return;
   G.playerName = name;
   localStorage.setItem('alto_last_name', name);
@@ -7722,6 +7734,34 @@ window.claimClose = function() {
   _gatePending = null;
 };
 
+// ══ NAME CHARACTERS (v380) ═══════════════════════════════════════════════════
+// Names and free categories become Firebase keys (players/{name}, votes/{name__cat}); Firebase refuses keys
+// containing . # $ [ ] / and the write throws, so the button seemed dead. Names: those characters simply don't
+// appear while typing (both name fields); a name saved before v380 is refused with a toast on Crear sala /
+// Unirse / Reto diario. Free categories are refused with a toast on Empezar. Only the first letter is forced to
+// a capital: the rest stays as typed (Tío Juan, Mari Carmen).
+const KEY_BAD_RE = /[.#$\[\]\/]/;
+const KEY_BAD_RE_G = /[.#$\[\]\/]/g;
+function hasBadKeyChars(v) { return KEY_BAD_RE.test(String(v || '')); }
+function tidyNameInput(el) {
+  const pos = el.selectionStart ?? el.value.length;
+  const raw = el.value;
+  const dropped = (raw.slice(0, pos).match(KEY_BAD_RE_G) || []).length;
+  const clean = raw.replace(KEY_BAD_RE_G, '');
+  const capped = clean.charAt(0).toUpperCase() + clean.slice(1);
+  if (capped !== raw) {
+    el.value = capped;
+    const p2 = Math.max(0, pos - dropped);
+    try { el.setSelectionRange(p2, p2); } catch(e) {}
+  }
+  return capped;
+}
+function nameCharsOk(name) {
+  if (!hasBadKeyChars(name)) return true;
+  toast(t('toastNameChars'));
+  return false;
+}
+
 // ══ RESERVED-NAME GATE (v377) ══════════════════════════════════════════════
 // Crear sala / Unirse / invite-link join / Reto diario call nameGateOk() first. A name that is
 // reserved (names/{safe}/secret exists) and not verified on this device opens the claim panel as
@@ -7901,17 +7941,16 @@ document.body.classList.add('screen-home');
   const inp = document.getElementById('inp-name');
   if (!inp) return;
   inp.addEventListener('input', function() {
-    const pos = this.selectionStart;
-    const raw = this.value;
-    if (!raw) { localStorage.setItem('alto_name', ''); scheduleNameCheck(''); return; }
-    const capped = raw.charAt(0).toUpperCase() + raw.slice(1).toLowerCase();
-    if (capped !== raw) {
-      this.value = capped;
-      this.setSelectionRange(pos, pos);
-    }
+    if (!this.value) { localStorage.setItem('alto_name', ''); scheduleNameCheck(''); return; }
+    const capped = tidyNameInput(this); // v380: drops . # $ [ ] /, capitalises only the first letter
     localStorage.setItem('alto_name', capped.trim());
     scheduleNameCheck(capped.trim());
   });
+})();
+// Invite-link name field (v380): same tidying as the home field, through addEventListener (rule 8)
+(function() {
+  const qj = document.getElementById('qj-name');
+  if (qj) qj.addEventListener('input', function() { tidyNameInput(this); });
 })();
 // Debug: intercept createRoom AFTER it's been defined
 (function() {
@@ -7941,7 +7980,7 @@ setTimeout(() => updateDailyButtonDate(), 350);
 // Version freshness check — silently reload if a newer version is deployed
 // Runs once on load; does nothing if already on latest or if fetch fails
 (function() {
-  const RUNNING = 'v261031.379-tmp';
+  const RUNNING = 'v261031.380-tmp';
   if (sessionStorage.getItem('alto_ver_checked') === RUNNING) return; // already checked this session
   sessionStorage.setItem('alto_ver_checked', RUNNING);
   fetch(location.href, { cache: 'no-cache' })
@@ -7965,7 +8004,7 @@ syncMyGroups(); // registered + verified name: bring in groups from the name's o
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v261031.379-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v261031.380-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
