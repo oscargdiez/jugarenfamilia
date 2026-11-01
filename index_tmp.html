@@ -2998,17 +2998,7 @@ window.startDailyChallenge = async function() {
           const ft2 = document.getElementById('ft-timer');
           if (ft2) { ft2.textContent = remaining; ft2.classList.toggle('urgent', remaining <= 10); }
           setTimerBubble(remaining, true);
-          clearInterval(G_daily.timerInterval);
-          G_daily.timerInterval = setInterval(() => {
-            G_daily.secsRemaining--;
-            const pct2 = (G_daily.secsRemaining / G_daily.totalSecs) * 100;
-            const f2 = document.getElementById('daily-timer-fill');
-            if (f2) { f2.style.width = pct2 + '%'; f2.style.background = G_daily.secsRemaining <= 15 ? '#c0392b' : 'var(--red)'; }
-            const ft3 = document.getElementById('ft-timer');
-            if (ft3) { ft3.textContent = G_daily.secsRemaining; if (G_daily.secsRemaining <= 10) ft3.classList.add('urgent'); else ft3.classList.remove('urgent'); }
-            if (G_daily.secsRemaining <= 10) setUrgencyPulse(true);
-            if (G_daily.secsRemaining <= 0) { clearInterval(G_daily.timerInterval); dailySubmit(true); }
-          }, 1000);
+          dailyRunTimer(); // v381: same wall-clock tick as a normal start
           return;
         } else {
           // Time ran out while away — auto-submit with saved answers
@@ -3026,6 +3016,9 @@ window.startDailyChallenge = async function() {
 
   // If a game is already in progress (navigated away and came back), resume it
   if (G_daily.key === getDailyKey() && !G_daily.submitted && G_daily.secsRemaining > 0 && G_daily.secsRemaining < 90) {
+    // v381: the clock kept running while away (wall clock); if it ran out, submit what was typed
+    G_daily.secsRemaining = dailySecsLeft();
+    if (G_daily.secsRemaining <= 0) { show('daily-play'); dailySubmit(true); return; }
     // Restore inputs and resume timer
     show('daily-play');
     const dateEl = document.getElementById('daily-play-date');
@@ -3044,16 +3037,7 @@ window.startDailyChallenge = async function() {
     const ftTimer = document.getElementById('ft-timer');
     if (ftTimer) { ftTimer.textContent = G_daily.secsRemaining; ftTimer.classList.toggle('urgent', G_daily.secsRemaining <= 10); }
     setTimerBubble(G_daily.secsRemaining, true);
-    clearInterval(G_daily.timerInterval);
-    G_daily.timerInterval = setInterval(() => {
-      G_daily.secsRemaining--;
-      const pct = (G_daily.secsRemaining / G_daily.totalSecs) * 100;
-      if (fill) { fill.style.width = pct + '%'; fill.style.background = G_daily.secsRemaining <= 15 ? '#c0392b' : 'var(--red)'; }
-      const ft = document.getElementById('ft-timer');
-      if (ft) { ft.textContent = G_daily.secsRemaining; if (G_daily.secsRemaining <= 10) ft.classList.add('urgent'); else ft.classList.remove('urgent'); }
-      if (G_daily.secsRemaining <= 10) setUrgencyPulse(true);
-      if (G_daily.secsRemaining <= 0) { clearInterval(G_daily.timerInterval); dailySubmit(true); }
-    }, 1000);
+    dailyRunTimer(); // v381: same wall-clock tick as a normal start
     return;
   }
 
@@ -3146,24 +3130,36 @@ function startDailyTimer() {
   // Start floating timer numbers (same as multiplayer)
   setTimerBubble(G_daily.totalSecs, true);
 
-  G_daily.timerInterval = setInterval(() => {
-    G_daily.secsRemaining--;
-    const pct = (G_daily.secsRemaining / G_daily.totalSecs) * 100;
-    if (fill) {
-      fill.style.width = pct + '%';
-      fill.style.background = G_daily.secsRemaining <= 15 ? '#c0392b' : 'var(--red)';
-    }
-    // Update shell timer number
-    const ft = document.getElementById('ft-timer');
-    if (ft) {
-      ft.textContent = G_daily.secsRemaining;
-      if (G_daily.secsRemaining <= 10) ft.classList.add('urgent');
-      else ft.classList.remove('urgent');
-    }
-    if (G_daily.secsRemaining <= 10) setUrgencyPulse(true);
-    if (G_daily.secsRemaining <= 0) { clearInterval(G_daily.timerInterval); dailySubmit(true); }
-  }, 1000);
+  dailyRunTimer();
 }
+
+// Daily clock (v381): the time left always comes from the real time since the start (startTimestamp), so it keeps
+// running while the phone is in another app, the tab is in the background or the player is on another screen,
+// exactly like a reload already did. Before, each tick subtracted 1, and a suspended page froze the clock
+// (and raised the speed bonus). One tick function for the three places that run the clock.
+function dailySecsLeft() {
+  if (!G_daily.startTimestamp) return G_daily.secsRemaining;
+  return Math.max(0, G_daily.totalSecs - Math.round((Date.now() - G_daily.startTimestamp) / 1000));
+}
+function dailyTick() {
+  if (G_daily.submitted) { clearInterval(G_daily.timerInterval); return; }
+  const left = dailySecsLeft();
+  G_daily.secsRemaining = left;
+  const fill = document.getElementById('daily-timer-fill');
+  if (fill) { fill.style.width = (left / G_daily.totalSecs * 100) + '%'; fill.style.background = left <= 15 ? '#c0392b' : 'var(--red)'; }
+  const ft = document.getElementById('ft-timer');
+  if (ft) { ft.textContent = left; ft.classList.toggle('urgent', left <= 10); }
+  if (left <= 10) setUrgencyPulse(true);
+  if (left <= 0) { clearInterval(G_daily.timerInterval); dailySubmit(true); }
+}
+function dailyRunTimer() {
+  clearInterval(G_daily.timerInterval);
+  G_daily.timerInterval = setInterval(dailyTick, 1000);
+}
+// Back from another app / tab: update at once instead of waiting for the next tick (submits if time ran out)
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && G.screen === 'daily-play' && G_daily.startTimestamp && !G_daily.submitted) dailyTick();
+});
 
 function startDailyCountdown() {
   clearInterval(G_countdownInterval);
@@ -5317,6 +5313,9 @@ function setTimerBubble(t, visible) {
 function startTimer(secs) {
   clearInterval(G.timerInterval);
   setUrgencyPulse(false);
+  // v381: count down to a fixed end time, so the display stays right after the phone was in another app
+  // (each tick used to subtract 1, and a suspended page fell behind)
+  const endAt = Date.now() + secs * 1000;
   let t = secs;
   const el = document.getElementById('timer');
   if (el) { el.classList.remove('urgent'); el.textContent = t; }
@@ -5324,7 +5323,7 @@ function startTimer(secs) {
   if (ftEl) { ftEl.classList.remove('urgent'); ftEl.textContent = t; }
   setTimerBubble(t, true);
   G.timerInterval = setInterval(async () => {
-    t--;
+    t = Math.max(0, Math.round((endAt - Date.now()) / 1000));
     if (el) { el.textContent = t; if (t<=10) el.classList.add('urgent'); }
     if (ftEl) { ftEl.textContent = t; if (t<=10) ftEl.classList.add('urgent'); else ftEl.classList.remove('urgent'); }
     if (t<=10) setUrgencyPulse(true);
@@ -7980,7 +7979,7 @@ setTimeout(() => updateDailyButtonDate(), 350);
 // Version freshness check — silently reload if a newer version is deployed
 // Runs once on load; does nothing if already on latest or if fetch fails
 (function() {
-  const RUNNING = 'v261031.380-tmp';
+  const RUNNING = 'v261101.381-tmp';
   if (sessionStorage.getItem('alto_ver_checked') === RUNNING) return; // already checked this session
   sessionStorage.setItem('alto_ver_checked', RUNNING);
   fetch(location.href, { cache: 'no-cache' })
@@ -8004,7 +8003,7 @@ syncMyGroups(); // registered + verified name: bring in groups from the name's o
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v261031.380-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v261101.381-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
