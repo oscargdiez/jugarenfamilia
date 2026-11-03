@@ -1878,3 +1878,44 @@ Plan agreed by Oscar (A with the automatic second look; B "no changes").
 ### Process notes
 - The conversation got long (9 Firebase exports read in full); Oscar asked to build D in a fresh session.
 - Correction made in the conversation: with ½, Venirse primos 31 Oct FR is 780, not 790 as first stated.
+
+---
+
+## Session 32 (3 Nov) — Production v261103.385 → v261103.388
+
+### Start
+- Backup `index_backup_s32.html`. Staging v384-tmp = production v385 apart from the version string.
+- Oscar confirmed the first real multiplayer games on v383+ went fine: 🤖 verdicts for guests, ✕ / 👎 / reactions on every row, names with capitals.
+
+### ½ vs ⅓ (explained to Oscar, then Claude's view)
+- Oscar remembered ½ as "almost impossible for 1 miss to beat 0 misses". Corrected: with ½, one miss can still win if the perfect card used almost the whole clock. Figures (6 categories, no originality): best one-miss score = 1000 today / 833 with ⅓ / 750 with ½; a perfect card is safe from it with ≥ 45 s / 35 s / 22.5 s left; two misses: 800 / 533 / 400.
+- When skipping one category pays (seconds it must save): perfect card finishing at 0 s → 18 s today / 27 s ⅓ / 36 s ½; finishing with 30 s left → 24 s / 51 s / never.
+- Claude's view: keep ½ (skipping only pays when truly stuck); the one point for ⅓ is 🤔 (the robot's doubt costs ¼ of the bonus), softened by ¿Error? and the automatic second look. Review after a week of ½ (reminder in the handoff Backlog). Switching later needs a date gate like `DAILY_SPEED_V2_FROM`, because scores are recounted from scratch (changing `DAILY_MISS_CUT` alone would rewrite past days on screen).
+
+### v261103.386-tmp: daily speed bonus, option D with ½ (staging)
+- Helpers before `NEWS`: `DAILY_SPEED_V2_FROM = '2026-11-04'`, `DAILY_MISS_CUT = 0.5`, `dailySpeedV2(key, practice)`, `dailyMisses(cats, answers, aiResults)` (blank / ❌ = 1, 🤔 or unjudged = ½), `dailySpeedMult(speedRaw, misses, v2)`, `dailyRecount()` (scratch recount from `G_daily`), `dailySpeedNote(rc)`, `dailySpeedTextHTML(originality)`, `dailyAltoText(blanks, total)`, `dailyUpdateAltoBtn()`.
+- New field `speedRaw` (secsLeft / totalSecs, 4 decimals) in the Firebase entry and localStorage. Entries without it (before v386, or written by an old cached client) keep their stored `speedMultiplier`. `speedMultiplier` now stores the reduced value, so the leaderboard ⚡× tag, originality recount and share text need no change.
+- `dailyRecount` is used in submit, `showDailyResult` (new 7th parameter `speedRaw`; the 3 reopen paths pass it), ¿Error? and `dailyAutoRejudge` (which now also writes `speedMultiplier`). An overturn brings the bonus back.
+- ¡Alto! button: "¡Alto! (2 en blanco) →" / "(2 blank)" / "(2 vides)" while typing (via `dailyCheckInput`, also after resuming an in-progress daily and when re-enabled after the empty-card toast); plain "¡Alto! →" with none or all blank.
+- Result line: "base N pts ×M⚡ [+O originalidad✨] (bonus −50%: 1 fallo)" (EN "miss/misses", FR "erreur" with nbsp), same xs line, nowrap note. Help: new pts row "Cada fallo (en blanco o ❌) −½ bonus" (EN/FR).
+- News: `from` field added to news entries (`activeNews` filter). New `2026-11-04-speed` (from the start date, until 2026-11-07). All expired news removed (lobby, robot-fast, historial); only `2026-10-31-follow` (until 4 Nov) remains.
+- Staging start date kept at 4 Nov so a staging test can't change the real leaderboard of 3 Nov (same Firebase); Práctica uses the new rule at once.
+- Tests: NEW `suites/test_build6_speed_bonus.mjs` (36: reference values 800 / 780 / 670, ×2 / ×1.5 / ×1.75 / ×1, old day, Práctica, legacy entry, ¿Error? and second look restoring the bonus, notes ES/EN/FR, button, news filter); NEW `restore/speed_scenarios.py` (21: button counts blanks while typing, 1 ❌ + 1 blank = ×1.00 with note, `speedRaw` saved in both places, ¿Error? → ×1.49 back, reopening, a day before the start keeps the full bonus, Práctica cut). Full kit ALL GREEN. Delivered with `tests_kit.zip`.
+
+### 🤔 analysis (Oscar's idea: drop 🤔, keep only ✅/❌ once the robot is good enough)
+- Dailies 24 Oct–1 Nov (exports uploaded by Oscar): 610 answers judged, 23 🤔 (3.8%).
+  - Robot failures: 10, on two bad days only (26 Oct Cocoricó 5 + Giocoso 3; 29 Oct Cocoricó 2): ¿Error? overturned 9, upheld 1. The v384 automatic second look should now fix these without ¿Error?.
+  - Model DUDOSO: 13 (~1.4/day): overturned 7, upheld 6. Every 🤔 was contested (23/23): an upheld 🤔 keeps its 50 pts, so ¿Error? on a 🤔 has no downside.
+  - The DUDOSO cases are the genuinely borderline ones (Roberto, Jabato, Fiesta, Admira, Ben thorman, IG, Matelier, Jolie, Chi, Patatas a la importancia, Poto, Paulin, Radar), and ¿Error? didn't settle them well (Poto kept 🤔; Roberto and Radar overturned).
+- Conclusion (Claude): keep 🤔 for now; forcing yes/no turns a safe 50 into a coin flip on exactly the answers the robot gets wrong most, and a wrong ❌ now costs a full miss on the bonus. Revisit after further judge-prompt work if the scout gets Poto and Radar right. Whatever happens, keep a "couldn't check" state for robot failures.
+
+### v261103.387-tmp: daily category renamed (staging)
+- Oscar: "Superhéroe o villano" → "hero and villain". Claude pointed out that the robot only sees the category name, so plain "Héroe o villano" would also take real people (national heroes, dictators); Oscar chose to say "fiction" in the name (players see the rule; no prompt change, no scout).
+- Final names: ES **Héroe o villano de ficción**, EN **Fictional hero or villain**, FR **Héros ou vilain de fiction** (Claude suggested "méchant"; Oscar prefers "vilain").
+- Renamed in place in `DAILY_CAT_DATA` (same position and letters), so the daily picks don't change: 90 days × 3 languages compared old vs new, 270/270 identical; the category appears on 28 of them. Letters not widened (that would change future picks).
+- 3 Nov ES (letter A) already has the category: players before the deploy keep the old name on their saved rows; leaderboard and originality match answers by slot, so nothing mixes.
+- Screenshot at 320 px with real fonts: wraps to 2 lines on the play screen and 3 on the result card, no clipping.
+
+### v261103.388: PRODUCTION (3 Nov) = staging v387-tmp
+- Diff vs v387-tmp: version string only. Version grep before (v387-tmp ×2, v385 ×2) and after (v388 ×2). Checklist: 12 screens, init block once, no `-tmp` in the version (the 3 regex `-tmp` remain), `node --check` clean, full kit on the production file ALL GREEN. ~429 KB raw, ~118 KB gzipped.
+- The speed bonus starts 2026-11-04 (= the day after the production deploy); news 4–7 Nov.

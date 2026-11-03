@@ -2361,7 +2361,7 @@ const HELP = {
     es: [['s', '📅', 'Una letra y 6 categorías al día, iguales para todos. Una partida por nombre e idioma'],
          ['s', '✏️', 'Rellénalas y pulsa ¡Alto!: cuanto antes, más bonus'],
          ['s', '🤖', 'El Robot corrige. ¿No estás de acuerdo? Toca <b>¿Error?</b> y lo mira otra vez'],
-         ['pts', 'Puntos:', [['Respuesta válida', '100 pts'], ['Dudosa 🤔', '50 pts'], ['Inválida o en blanco', '0 pts'], ['Bonus de velocidad', '×1–×2'], ['Única (nadie más la puso)', '+50 pts']]],
+         ['pts', 'Puntos:', [['Respuesta válida', '100 pts'], ['Dudosa 🤔', '50 pts'], ['Inválida o en blanco', '0 pts'], ['Bonus de velocidad', '×1–×2'], ['Cada fallo (en blanco o ❌)', '−½ bonus'], ['Única (nadie más la puso)', '+50 pts']]],
          ['s', '🏅', 'Mismos puntos, misma medalla'],
          ['s', '📆', '◀ ▶ para ver otros días; las respuestas de hoy, cuando hayas jugado'],
          ['s', '👀', `${ST} seguir · ${SF} sigues · ${SM} os seguís — con <b>Siguiendo</b> ves solo a tu gente`],
@@ -2369,7 +2369,7 @@ const HELP = {
     en: [['s', '📅', 'One letter and 6 categories a day, the same for everyone. One go per name and language'],
          ['s', '✏️', 'Fill them in and tap ¡Alto!: the sooner, the bigger the bonus'],
          ['s', '🤖', 'The Robot marks your answers. Disagree? Tap <b>Error?</b> and it checks again'],
-         ['pts', 'Points:', [['Valid answer', '100 pts'], ['Unsure 🤔', '50 pts'], ['Invalid or blank', '0 pts'], ['Speed bonus', '×1–×2'], ['Unique (nobody else wrote it)', '+50 pts']]],
+         ['pts', 'Points:', [['Valid answer', '100 pts'], ['Unsure 🤔', '50 pts'], ['Invalid or blank', '0 pts'], ['Speed bonus', '×1–×2'], ['Each miss (blank or ❌)', '−½ bonus'], ['Unique (nobody else wrote it)', '+50 pts']]],
          ['s', '🏅', 'Same points, same medal'],
          ['s', '📆', "◀ ▶ for other days; today's answers once you've played"],
          ['s', '👀', `${ST} follow · ${SF} following · ${SM} mutual — <b>Following</b> shows just your people`],
@@ -2377,7 +2377,7 @@ const HELP = {
     fr: [['s', '📅', 'Une lettre et 6 catégories par jour, les mêmes pour tous. Une partie par nom et par langue'],
          ['s', '✏️', 'Remplis-les et appuie sur ¡Alto! : plus tôt, plus de bonus'],
          ['s', '🤖', "Le Robot corrige. Pas d'accord ? Touche <b>Erreur?</b> et il revérifie"],
-         ['pts', 'Points :', [['Réponse valide', '100 pts'], ['Douteuse 🤔', '50 pts'], ['Invalide ou vide', '0 pts'], ['Bonus de vitesse', '×1–×2'], ["Unique (personne d'autre)", '+50 pts']]],
+         ['pts', 'Points :', [['Réponse valide', '100 pts'], ['Douteuse 🤔', '50 pts'], ['Invalide ou vide', '0 pts'], ['Bonus de vitesse', '×1–×2'], ['Chaque erreur (vide ou ❌)', '−½ bonus'], ["Unique (personne d'autre)", '+50 pts']]],
          ['s', '🏅', 'Mêmes points, même médaille'],
          ['s', '📆', '◀ ▶ pour les autres jours ; les réponses du jour une fois que tu as joué'],
          ['s', '👀', `${ST} suivre · ${SF} suivi · ${SM} mutuel — <b>Suivis</b> montre seulement tes proches`],
@@ -2540,7 +2540,7 @@ const DAILY_CAT_DATA = {
   "Escritor": {group:"historia_cultura",es:"ABCDEFGHJLMNOPRSTV",en:"ABCDEFGHJKLMNOPRSTV",fr:"ABCDEFGHJLMNOPRSTV",name_en:"Writer",name_fr:"Écrivain"},
   "Científico": {group:"historia_cultura",es:"ABCDEFGHMNPT",en:"ABCDEFGHKMNPT",fr:"ABCDEFGHMNPT",name_en:"Scientist",name_fr:"Scientifique"},
   "Criatura mítica": {group:"historia_cultura",es:"ABCDEFGHLMOPSTV",en:"BCDFGHKLMOPSTV",fr:"BCDFGHLMOPSTV",name_en:"Mythical creature",name_fr:"Créature mythique"},
-  "Superhéroe o villano": {group:"historia_cultura",es:"ABCDFGHIJLMPRSTV",en:"ABCDFGHIJLMPRSTV",fr:"ABCDFGHIJLMPRSTV",name_en:"Superhero or villain",name_fr:"Super-héros ou vilain"},
+  "Héroe o villano de ficción": {group:"historia_cultura",es:"ABCDFGHIJLMPRSTV",en:"ABCDFGHIJLMPRSTV",fr:"ABCDFGHIJLMPRSTV",name_en:"Fictional hero or villain",name_fr:"Héros ou vilain de fiction"}, // v387: was Superhéroe o villano (same place = same daily picks)
   "Parte del cuerpo": {group:"ciencia",es:"BCDEFGHILMNOPRSTV",en:"ABCEFHKLMNPRST",fr:"BCDEFGHJLMNOPRSTV",name_en:"Body part",name_fr:"Partie du corps"},
   "Planeta o astro": {group:"ciencia",es:"JMNPSTV",en:"EJMNPSV",fr:"JMNPSTV",name_en:"Planet or star",name_fr:"Planète ou astre"},
   "Animal extinto": {group:"ciencia",es:"ABDEIMPRTUV",en:"ABDIMPSTVW",fr:"ABDIMPRSTV",name_en:"Extinct animal",name_fr:"Animal disparu"},
@@ -2588,23 +2588,84 @@ const DAILY_OVERRIDES = {
 // Short, non-technical, ONE line each (start with an emoji). All active messages show, in this order.
 // id: unique (✕ hides it on that device for good) · type: 'info' | 'warning' (red edge) · until: last day shown (YYYY-MM-DD)
 // es is required; en/fr fall back to es. Avoid "ayer"/"yesterday": a message stays up for days.
+// ── Daily speed bonus, option D with ½ (v386, agreed Session 31) ────────────────────────────────────
+// Each miss (blank or ❌; 🤔 counts ½) removes half of the speed bonus: mult = 1 + speedRaw × max(0, 1 − misses/2),
+// speedRaw = seconds left / 90. Originality stays outside. Days before DAILY_SPEED_V2_FROM keep 1 + speedRaw.
+// Práctica always uses the new rule. Recounted from scratch wherever a verdict changes (submit, result screen,
+// ¿Error?, automatic second look), so an overturn brings the bonus back.
+const DAILY_SPEED_V2_FROM = '2026-11-04';
+const DAILY_MISS_CUT = 0.5; // ½ of the bonus per miss (⅓ would be 1/3)
+function dailySpeedV2(key, practice) { return !!practice || (!!key && key >= DAILY_SPEED_V2_FROM); }
+function dailyMisses(cats, answers, aiResults) {
+  let m = 0;
+  (cats || []).forEach((_, i) => {
+    const w = String((answers || {})[i] ?? (answers || {})[String(i)] ?? '').trim();
+    if (!w) { m += 1; return; }
+    const r = (aiResults || {})[String(i)] || (aiResults || {})[i];
+    if (r === 'invalid') m += 1;
+    else if (r !== 'valid') m += 0.5; // unsure (or not judged, shown as 🤔)
+  });
+  return m;
+}
+function dailySpeedMult(speedRaw, misses, v2) {
+  const raw = Math.max(0, Math.min(1, Number(speedRaw) || 0));
+  return 1 + raw * (v2 ? Math.max(0, 1 - misses * DAILY_MISS_CUT) : 1);
+}
+// Scratch recount of the game in G_daily. Entries saved before v386 have no speedRaw: they keep their stored multiplier.
+function dailyRecount() {
+  const cats = G_daily.categories || [];
+  const ans = G_daily.answers || {}, res = G_daily.aiResults || {};
+  let v = 0, u = 0;
+  cats.forEach((_, i) => {
+    if (!String(ans[i] ?? ans[String(i)] ?? '').trim()) return;
+    const r = res[String(i)] || res[i];
+    if (r === 'valid') v++; else if (r === 'unsure') u++;
+  });
+  const base = v * 10 + u * 5;
+  const misses = dailyMisses(cats, ans, res);
+  const hasRaw = typeof G_daily.speedRaw === 'number';
+  const v2 = hasRaw && dailySpeedV2(G_daily.key, G_daily.practiceMode);
+  const mult = hasRaw ? dailySpeedMult(G_daily.speedRaw, misses, v2) : (G_daily.speedMultiplier || 1);
+  return { base, mult, total: Math.round(base * mult), misses, cut: v2 && misses > 0 && G_daily.speedRaw > 0 };
+}
+// "(bonus −50%: 1 fallo)" after the result line when the bonus was cut
+function dailySpeedNote(rc) {
+  if (!rc || !rc.cut) return '';
+  const m = rc.misses, pct = Math.round(Math.min(1, m * DAILY_MISS_CUT) * 100);
+  const n = LANG === 'en' ? String(m) : String(m).replace('.', ',');
+  const txt = { es: `(bonus −${pct}%: ${n} fallo${m === 1 ? '' : 's'})`,
+                en: `(bonus −${pct}%: ${n} miss${m === 1 ? '' : 'es'})`,
+                fr: `(bonus −${pct}%\u00a0: ${n} erreur${m < 2 ? '' : 's'})` }[LANG] || '';
+  return ` <span id="daily-speed-note" style="white-space:nowrap">${txt}</span>`;
+}
+// The line under the result rows. originality: undefined = not known yet (no originality part)
+function dailySpeedTextHTML(originality) {
+  const rc = dailyRecount(), l = dl();
+  return `${l.baseLabel} ${rc.base * 10} pts ×${rc.mult.toFixed(2)}⚡`
+    + (originality !== undefined ? ` +${originality * 10} ${l.origLabel}✨` : '') + dailySpeedNote(rc);
+}
+// ¡Alto! button counts blanks while typing: "¡Alto! (2 en blanco) →"
+function dailyAltoText(blanks, total) {
+  if (!blanks || blanks >= total) return '¡Alto! →';
+  return { es: `¡Alto! (${blanks} en blanco) →`, en: `¡Alto! (${blanks} blank) →`, fr: `¡Alto! (${blanks} vide${blanks > 1 ? 's' : ''}) →` }[LANG] || `¡Alto! (${blanks}) →`;
+}
+function dailyUpdateAltoBtn() {
+  const b = document.getElementById('btn-daily-submit');
+  if (!b || b.disabled || G_daily.submitted || G_daily._submitting) return;
+  const cats = G_daily.categories || [];
+  const blanks = cats.filter((_, i) => !String(document.getElementById('daily-inp-' + i)?.value || '').trim()).length;
+  b.textContent = dailyAltoText(blanks, cats.length);
+}
+
 const NEWS = [
+  { id: '2026-11-04-speed', type: 'info', from: DAILY_SPEED_V2_FROM, until: '2026-11-07',
+    es: '⚡ Desde hoy, cada fallo o respuesta en blanco quita la mitad del bonus de velocidad',
+    en: '⚡ From today, each blank or wrong answer halves your speed bonus',
+    fr: '⚡ Dès aujourd\'hui, chaque réponse vide ou fausse divise par deux le bonus de vitesse' },
   { id: '2026-10-31-follow', type: 'info', until: '2026-11-04',
     es: 'Toca ☆ en la clasificación para seguir a tu gente',
     en: 'Tap ☆ on the leaderboard to follow your people',
     fr: 'Touche ☆ dans le classement pour suivre tes proches' },
-  { id: '2026-10-10-lobby', type: 'info', until: '2026-10-14',
-    es: '🎛️ ¡Sala renovada! Más compacta y recuerda tus ajustes',
-    en: '🎛️ New room screen: more compact, remembers your settings',
-    fr: '🎛️ Nouvelle salle : plus compacte, elle garde tes réglages' },
-  { id: '2026-10-09-robot-fast', type: 'info', until: '2026-10-13',
-    es: '⚡ ¡El Robot ahora corrige más rápido!',
-    en: '⚡ The Robot now checks faster!',
-    fr: '⚡ Le Robot corrige plus vite !' },
-  { id: '2026-09-30-historial', type: 'info', until: '2026-10-14',
-    es: '📜 Nuevo: el historial de tu grupo',
-    en: "📜 New: your group's game history",
-    fr: "📜 Nouveau : l'historique du groupe" },
 ];
 
 function newsDismissed() {
@@ -2612,7 +2673,7 @@ function newsDismissed() {
 }
 
 function activeNews(today, dismissed) {
-  return NEWS.filter(n => n && n.id && n.es && (!n.until || today <= n.until) && !dismissed.includes(n.id));
+  return NEWS.filter(n => n && n.id && n.es && (!n.from || today >= n.from) && (!n.until || today <= n.until) && !dismissed.includes(n.id));
 }
 
 function renderNews() {
@@ -2766,6 +2827,8 @@ function resetGDaily(practiceMode) {
   G_daily.theme         = null;
   G_daily.myRank        = null;
   G_daily.submitTime    = null;
+  G_daily.speedRaw      = undefined;
+  G_daily.speedMultiplier = 1;
   // Reset submit button DOM — may be left disabled/Validating from previous run
   const _sb = document.getElementById("btn-daily-submit");
   if (_sb) { _sb.disabled = false; _sb.textContent = { es:"¡Alto! →", en:"¡Alto! →", fr:"¡Alto! →" }[LANG] || "¡Alto! →"; }
@@ -2825,9 +2888,9 @@ window.startDailyChallenge = async function() {
       } catch(e) { /* Firebase fetch failed — use localStorage below */ }
       G_daily.aiInfo = (firebaseEntry && firebaseEntry.aiInfo) || {};
       if (firebaseEntry) {
-        showDailyResult(firebaseEntry.answers || {}, firebaseEntry.baseScore || 0, firebaseEntry.totalScore || 0, firebaseEntry.aiResults || {}, 0, firebaseEntry.speedMultiplier || data.speedMultiplier || 1);
+        showDailyResult(firebaseEntry.answers || {}, firebaseEntry.baseScore || 0, firebaseEntry.totalScore || 0, firebaseEntry.aiResults || {}, 0, firebaseEntry.speedMultiplier || data.speedMultiplier || 1, firebaseEntry.speedRaw ?? data.speedRaw);
       } else {
-        showDailyResult(data.answers, data.baseScore || data.score || 0, data.totalScore || data.score || 0, data.aiResults || {}, data.secsLeft || 0, data.speedMultiplier || 1);
+        showDailyResult(data.answers, data.baseScore || data.score || 0, data.totalScore || data.score || 0, data.aiResults || {}, data.secsLeft || 0, data.speedMultiplier || 1, data.speedRaw);
       }
       return;
     } catch(e) {}
@@ -2865,7 +2928,8 @@ window.startDailyChallenge = async function() {
           entry.totalScore || entry.score || 0,
           entry.aiResults || {},
           0,
-          entry.speedMultiplier || (entry.totalScore && entry.baseScore ? entry.totalScore / entry.baseScore : 1) || 1
+          entry.speedMultiplier || (entry.totalScore && entry.baseScore ? entry.totalScore / entry.baseScore : 1) || 1,
+          entry.speedRaw
         );
         return;
       }
@@ -2909,6 +2973,7 @@ window.startDailyChallenge = async function() {
           ).join('');
           G_daily.saveProgress = () => localStorage.setItem(inProgressKey, JSON.stringify({ key: G_daily.key, letter: G_daily.letter, categories: G_daily.categories, answers: G_daily.answers, startTimestamp: G_daily.startTimestamp, totalSecs: G_daily.totalSecs, lang: LANG }));
           show('daily-play');
+          dailyUpdateAltoBtn();
           // Resume timer
           const fill2 = document.getElementById('daily-timer-fill');
           if (fill2) { fill2.style.transition = 'none'; fill2.style.width = (remaining / G_daily.totalSecs * 100) + '%'; setTimeout(() => { fill2.style.transition = 'width 1s linear, background 0.3s'; }, 50); }
@@ -3094,6 +3159,7 @@ function startDailyCountdown() {
 window.dailyCheckInput = function(i, val) {
   G_daily.answers[i] = val.trim();
   if (G_daily.saveProgress) G_daily.saveProgress();
+  dailyUpdateAltoBtn();
 };
 
 window.dailySubmit = async function(fromTimer = false) {
@@ -3110,7 +3176,7 @@ window.dailySubmit = async function(fromTimer = false) {
       toast(msg[LANG] || msg.es);
       // Re-enable submit button (was disabled by inline onclick)
       const submitBtn = document.getElementById('btn-daily-submit');
-      if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = { es:'¡Alto! →', en:'¡Alto! →', fr:'¡Alto! →' }[LANG] || '¡Alto! →'; }
+      if (submitBtn) { submitBtn.disabled = false; dailyUpdateAltoBtn(); }
       return;
     }
   }
@@ -3162,17 +3228,15 @@ window.dailySubmit = async function(fromTimer = false) {
   // ── Scoring: base × speed multiplier ─────────────────────────────────────
   // Base: 10 pts per valid answer
   // Speed multiplier: 1.0 (finish at 0s) to 2.0 (finish at 90s), linear
+  // v386: speed bonus cut by misses (dailyRecount); speedRaw saved so every later recount starts from scratch
   const secsLeft = Math.max(0, G_daily.secsRemaining);
-  const totalSecs = G_daily.totalSecs;
-  const speedMultiplier = 1.0 + (secsLeft / totalSecs); // 1.0–2.0
-  let validCount = 0;
-  let unsureCount = 0;
-  G_daily.categories.forEach((cat, i) => {
-    if (G_daily.answers[i] && aiResults[i] === 'valid') validCount++;
-    if (G_daily.answers[i] && aiResults[i] === 'unsure') unsureCount++;
-  });
-  const baseScore = (validCount * 10) + (unsureCount * 5);
-  const totalScore = Math.round(baseScore * speedMultiplier);
+  const totalSecs = G_daily.totalSecs || 90;
+  const speedRaw = Math.round(Math.max(0, Math.min(1, secsLeft / totalSecs)) * 10000) / 10000;
+  G_daily.speedRaw = speedRaw;
+  const _rc = dailyRecount();
+  const speedMultiplier = _rc.mult;
+  const baseScore = _rc.base;
+  const totalScore = _rc.total;
 
   // Resolve player name
   // v380: the name field, never G.playerName (it can be left over from a room or a failed invite join)
@@ -3188,7 +3252,7 @@ window.dailySubmit = async function(fromTimer = false) {
   const saveData = {
     answers: G_daily.answers, aiResults,
     baseScore, totalScore, originality: 0,
-    secsLeft, speedMultiplier,
+    secsLeft, speedMultiplier, speedRaw,
     key: G_daily.key, lang: LANG,
     playerName: dailyPlayerName, playerEmoji: dailyPlayerEmoji
   };
@@ -3234,7 +3298,7 @@ window.dailySubmit = async function(fromTimer = false) {
       name: displayName,
       safeName: safeNameIdx || '',
       ...(_regNow ? { reg: true } : {}),
-      baseScore, totalScore, originality: 0, speedMultiplier,
+      baseScore, totalScore, originality: 0, speedMultiplier, speedRaw,
       answers: answersObj,
       aiResults: aiResults,
       ...(Object.keys(aiResponses).length ? { aiResponses } : {}),
@@ -3253,7 +3317,7 @@ window.dailySubmit = async function(fromTimer = false) {
     G_daily.playerKey = playerKey;
   } catch(e) { console.warn('Daily Firebase write failed:', e); }
 
-  showDailyResult(G_daily.answers, baseScore, totalScore, aiResults, secsLeft, speedMultiplier);
+  showDailyResult(G_daily.answers, baseScore, totalScore, aiResults, secsLeft, speedMultiplier, speedRaw);
 };
 
 // Build system + user prompts for daily validation
@@ -3455,7 +3519,7 @@ async function dailyAIValidate(word, category, letter) {
   if (invalidCount >= 2) return 'invalid';
   return 'unsure';
 }
-async function showDailyResult(answers, baseScore, totalScore, aiResults, secsLeft, speedMultiplier) {
+async function showDailyResult(answers, baseScore, totalScore, aiResults, secsLeft, speedMultiplier, speedRaw) {
   const list = document.getElementById('daily-answers-list');
   // In practice mode use stored categories directly — getDailySetup() would return today's daily, not the practice setup
   // v384: the categories of the game being shown (G_daily.categories, set by every path that opens this screen).
@@ -3465,23 +3529,17 @@ async function showDailyResult(answers, baseScore, totalScore, aiResults, secsLe
 
   // Recompute baseScore and totalScore from aiResults — never trust stored values
   // (localStorage/Firebase can be stale if a recontest changed verdicts inconsistently)
-  let recomputedValid = 0, recomputedUnsure = 0;
-  Object.keys(aiResults).forEach(i => {
-    const res = aiResults[i];
-    const word = answers[i] || answers[Number(i)] || '';
-    if (!word) return;
-    if (res === 'valid') recomputedValid++;
-    else if (res === 'unsure') recomputedUnsure++;
-  });
-  const recomputedBase = (recomputedValid * 10) + (recomputedUnsure * 5);
-  const recomputedMult = speedMultiplier || 1;
-  const recomputedTotal = Math.round(recomputedBase * recomputedMult);
-  baseScore = recomputedBase;
-  totalScore = recomputedTotal;
-
-  // Store for originality recompute
+  // v386: dailyRecount (speed bonus cut by misses when the entry has speedRaw; older entries keep their multiplier)
   G_daily.answers = answers;
   G_daily.aiResults = aiResults;
+  G_daily.speedMultiplier = speedMultiplier || 1;
+  G_daily.speedRaw = (typeof speedRaw === 'number') ? speedRaw : undefined;
+  const _rc = dailyRecount();
+  const recomputedMult = _rc.mult;
+  baseScore = _rc.base;
+  totalScore = _rc.total;
+
+  // Store for originality recompute
   G_daily.baseScore = baseScore;
   G_daily.totalScore = totalScore;
   G_daily.speedMultiplier = recomputedMult;
@@ -3506,10 +3564,8 @@ async function showDailyResult(answers, baseScore, totalScore, aiResults, secsLe
   }).join('');
 
   // Speed summary + share button on same line
-  const mult = recomputedMult.toFixed(2);
-  const _dl = dl();
   list.innerHTML += `<div id="daily-speed-summary" style="text-align:right;font-family:'Special Elite',monospace;font-size:11px;color:var(--ink-muted);padding-top:6px">
-    <span id="daily-speed-text">${_dl.baseLabel} ${baseScore*10} pts ×${mult}⚡</span>
+    <span id="daily-speed-text">${dailySpeedTextHTML()}</span>
   </div>`;
 
   // Total score
@@ -3590,23 +3646,20 @@ async function dailyAutoRejudge() {
     }));
     if (!sameGame()) return;
     // Scratch recount, like ¿Error? (rule: never deltas)
-    let v = 0, u = 0;
-    cats.forEach((_, i) => { if (!G_daily.answers[i]) return; const x = getRes(i); if (x === 'valid') v++; else if (x === 'unsure') u++; });
-    const base = v * 10 + u * 5;
-    const mult = G_daily.speedMultiplier || 1;
-    const total = Math.round(base * mult);
-    if (changed) { upd.baseScore = base; upd.totalScore = total; }
+    const _rc = dailyRecount(); // v386: an overturn also brings the speed bonus back
+    const base = _rc.base, mult = _rc.mult, total = _rc.total;
+    if (changed) { upd.baseScore = base; upd.totalScore = total; upd.speedMultiplier = mult; }
     if (!game.practice && game.pk && Object.keys(upd).length) {
       await update(ref(db, 'daily/' + game.key + '/' + game.lang + '/scores/' + game.pk), upd).catch(e => console.warn('[rejudge] save failed', e));
       if (changed) {
         try {
           const lsKey = 'alto_daily_' + game.key + '_' + game.lang;
           const d = JSON.parse(localStorage.getItem(lsKey) || 'null');
-          if (d) { d.aiResults = { ...(d.aiResults || {}) }; todo.forEach(i => { d.aiResults[String(i)] = getRes(i); }); d.baseScore = base; d.totalScore = total; localStorage.setItem(lsKey, JSON.stringify(d)); }
+          if (d) { d.aiResults = { ...(d.aiResults || {}) }; todo.forEach(i => { d.aiResults[String(i)] = getRes(i); }); d.baseScore = base; d.totalScore = total; d.speedMultiplier = mult; localStorage.setItem(lsKey, JSON.stringify(d)); }
         } catch (e) {}
       }
     }
-    G_daily.baseScore = base; G_daily.totalScore = total;
+    G_daily.baseScore = base; G_daily.totalScore = total; G_daily.speedMultiplier = mult;
     // Update the rows that were re-checked
     const aiIcon = { valid:'✅', invalid:'❌', unsure:'🤔' };
     const safeName = claimSafeName(document.getElementById('inp-name')?.value?.trim() || '');
@@ -3623,7 +3676,7 @@ async function dailyAutoRejudge() {
     const totalEl = document.getElementById('daily-total-score');
     if (totalEl) totalEl.textContent = (total * 10) + ' pts';
     const speedEl = document.getElementById('daily-speed-text');
-    if (speedEl) speedEl.innerHTML = `${dl().baseLabel} ${base * 10} pts ×${mult.toFixed(2)}⚡`;
+    if (speedEl) speedEl.innerHTML = dailySpeedTextHTML();
     if (changed && !game.practice) loadDailyLeaderboard(game.key).then(() => reapplyOriginality());
   } finally { _rejudgeBusy = false; }
 }
@@ -3723,17 +3776,12 @@ window.recontest = async (idx, word, cat) => {
 
       // Scratch recount — update aiResults then count all answered slots
       G_daily.aiResults[String(idx)] = newRes;
-      let validCount = 0, unsureCount = 0;
-      for (let i = 0; i < (G_daily.categories.length || 6); i++) {
-        const v = G_daily.aiResults[String(i)] || G_daily.aiResults[i];
-        if (G_daily.answers[i]) {
-          if (v === 'valid') validCount++;
-          else if (v === 'unsure') unsureCount++;
-        }
-      }
-      const newBaseScore = validCount * 10 + unsureCount * 5;
-      const mult = G_daily.speedMultiplier || (G_daily.totalScore / G_daily.baseScore) || 1;
-      const newTotalScore = Math.round(newBaseScore * mult);
+      // v386: dailyRecount — the speed bonus comes back with the overturned answer
+      if (!G_daily.speedMultiplier) G_daily.speedMultiplier = (G_daily.totalScore / G_daily.baseScore) || 1;
+      const _rc = dailyRecount();
+      const newBaseScore = _rc.base;
+      const mult = _rc.mult;
+      const newTotalScore = _rc.total;
       const toastPts = (newBaseScore - oldBaseScore) * 10;
 
       // Write Firebase first — revert G_daily on failure
@@ -3773,6 +3821,7 @@ window.recontest = async (idx, word, cat) => {
       // Update G_daily state
       G_daily.baseScore = newBaseScore;
       G_daily.totalScore = newTotalScore;
+      G_daily.speedMultiplier = mult;
 
       // Update UI
       const aiEl = document.getElementById('daily-ai-' + idx);
@@ -3784,7 +3833,7 @@ window.recontest = async (idx, word, cat) => {
       if (totalEl) totalEl.textContent = (G_daily.totalScore * 10) + ' pts';
       const speedEl = document.getElementById('daily-speed-text');
       const _dl2 = dl();
-      if (speedEl) speedEl.innerHTML = `${_dl2.baseLabel} ${G_daily.baseScore*10} pts ×${mult.toFixed(2)}⚡`;
+      if (speedEl) speedEl.innerHTML = dailySpeedTextHTML();
 
       toast({ es:'¡Decisión revisada! +' + toastPts + ' pts', en:'Decision overturned! +' + toastPts + ' pts', fr:'Décision révisée ! +' + toastPts + ' pts' }[LANG]);
       loadDailyLeaderboard(key); // refresh leaderboard
@@ -4017,9 +4066,7 @@ function reapplyOriginality() {
   // Re-apply speed breakdown line
   const speedTextEl = document.getElementById('daily-speed-text');
   if (speedTextEl) {
-    const _dlr = dl();
-    const mult = G_daily.speedMultiplier ? G_daily.speedMultiplier.toFixed(2) : (G_daily.totalScore && G_daily.baseScore ? (G_daily.totalScore / G_daily.baseScore).toFixed(2) : '1.00');
-    speedTextEl.innerHTML = `${_dlr.baseLabel} ${G_daily.baseScore*10} pts ×${mult}⚡ +${originality*10} ${_dlr.origLabel}✨`;
+    speedTextEl.innerHTML = dailySpeedTextHTML(originality);
   }
 }
 
@@ -7912,7 +7959,7 @@ setTimeout(() => updateDailyButtonDate(), 350);
 // Version freshness check — silently reload if a newer version is deployed
 // Runs once on load; does nothing if already on latest or if fetch fails
 (function() {
-  const RUNNING = 'v261103.385';
+  const RUNNING = 'v261103.388';
   if (sessionStorage.getItem('alto_ver_checked') === RUNNING) return; // already checked this session
   sessionStorage.setItem('alto_ver_checked', RUNNING);
   fetch(location.href, { cache: 'no-cache' })
@@ -7936,7 +7983,7 @@ syncMyGroups(); // registered + verified name: bring in groups from the name's o
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v261103.385</div>
+  <div style="font-size: 11px;opacity:0.5">v261103.388</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
