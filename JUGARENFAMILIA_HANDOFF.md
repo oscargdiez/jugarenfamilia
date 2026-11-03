@@ -1,22 +1,22 @@
 # JugarEnFamilia.es — Handoff (current state)
-*Last updated: 1 November 2026 — end of Session 30*
+*Last updated: 3 November 2026 — end of Session 31*
 
 > **Two files, two jobs.**
 > - **This file = the CURRENT state only.** Read ALL of it at the start of every session. Each fact appears once and is kept up to date: when something changes, edit it here (replace the old statement) and log the change in the history file.
-> - **`JUGARENFAMILIA_HISTORY.md` = everything that ever happened.** Append-only: never remove or rewrite anything there. It holds the full handoff as it was up to Session 30 (session logs 1–30, every decision with its reasons, scout results, old START HERE sections). Search it when you need the *why* behind something.
+> - **`JUGARENFAMILIA_HISTORY.md` = everything that ever happened.** Append-only: never remove or rewrite anything there. It holds the full handoff as it was up to Session 30 and every session log since (session logs 1–31, every decision with its reasons, scout results, old START HERE sections). Search it when you need the *why* behind something.
 > - `MULTIPLAYER_SCORING_DESIGN.md` = the design of multiplayer scoring, groups and history (Builds 1–5, all built). Reference only.
 > - Nothing was deleted when this split was made (Session 30): the old handoff is in the history file word for word.
 
 ---
 
-## ▶ START HERE (Session 31)
-1. Upload the project zip (with `tests\` and `tools\`). Read this whole file. First thing: `cp index.html index_backup_s31.html`.
-2. **Versions:** production = **v261101.383** (1 Nov) = the four audit builds promoted together (v379 escaping, v380 names, v381 clocks, v382 cleanup) on top of v378 (reserved-name gate). Staging `index_tmp.html` = v261101.382-tmp, the same code. Oscar promoted without a real multiplayer game first; the automated kit (two-browser games included) was green. **Ask Oscar how the first real games went**, especially: 🤖 verdicts showing for guests, ✕ / 👎 / reactions on every row, names with capitals, the daily clock after switching apps.
-3. **Audit doc:** https://claude.ai/artifact/6mLawbbQxMnDKr75nvXfRH — every finding is fixed or decided except the security build (below).
-4. **Next big item: the security build** (see Backlog → Security). Plan with Oscar first.
-5. Watch the dailies for the robot (Ling 3.0 Flash): re-check over-generosity (Library, Edredón, Esterilla), FR English words (Robin), flips.
-6. News `2026-10-31-follow` expires 2026-11-04; the `2026-10-10-lobby` entry is expired and can be removed from `NEWS` next time it is edited.
-7. `deploy.bat` was updated in Session 30 to copy and commit `JUGARENFAMILIA_HISTORY.md`. Check that Oscar replaced it in `D:\09_ALTO\` (if not, the history file won't reach GitHub; the project zip still carries it).
+## ▶ START HERE (Session 32)
+1. Upload the project zip (with `tests\` and `tools\`). Read this whole file. First thing: `cp index.html index_backup_s32.html`.
+2. **Versions:** production = **v261103.385** (3 Nov) = Session 31's robot build (retry on connection errors, automatic second look at answers left 🤔 by a robot failure, ¿Error? fix after midnight, new judge rules, stricter ¿Error?). Staging `index_tmp.html` = v261103.384-tmp, the same code.
+3. **Next build, already agreed and planned: the daily speed bonus (option D, ½).** Full plan in Backlog → "NEXT BUILD". Oscar OK'd the plan; build it as staging, then deliver. Set the start date (`DAILY_SPEED_V2_FROM`) to the day after it reaches production.
+4. **Ask Oscar** how the first real multiplayer games on v383+ went (🤖 verdicts for guests, ✕ / 👎 / reactions on every row, names with capitals). Not reported yet.
+5. **Watch the dailies** (Oscar exports one day per file and uploads them): the new rules (first names, accents, near-foreign spellings), ¿Error? now stricter (it should overturn fewer wrong answers; watch real answers it now keeps ❌), and `aiInfo.msg` / `aiInfo.rejudged` on any robot failure (first time we can see the error text).
+6. News `2026-10-31-follow` expires 2026-11-04; the expired `2026-10-10-lobby` entry can go when `NEWS` is next edited (the speed-bonus build adds a news line).
+7. Then: the security build (Backlog → Security). Plan with Oscar first.
 8. At the end of the session: append the session's log to the history file, and edit this file so it describes the new current state.
 
 ---
@@ -63,7 +63,7 @@ Multiplayer browser version of the Spanish word game "Stop / Tutti Frutti / Alto
 - 12 screens: `grep -c 'id="s-'` = 12 ✅
 - JS syntax clean: extract the `<script type="module">` and `node --check` it ✅
 - Test kit `./run_all.sh ../index_tmp.html` → ALL GREEN, when the change needs it ✅
-- File size: no limit (Oscar). ~417 KB raw, ~115 KB gzipped as served.
+- File size: no limit (Oscar). ~426 KB raw, ~117 KB gzipped as served.
 
 ---
 
@@ -118,20 +118,19 @@ Casing: buttons Sentence case (`Crear sala`); hints/sublabels lowercase (`nombre
 ---
 
 ## 🔑 Firebase
-### Rules (published Session 25, permanent)
+### Rules (published Session 25; `global`/`groups`/`groupNames` lines removed 1 Nov, Session 31)
 ```json
 { "rules": {
     "rooms":{".read":true,".write":true}, "daily":{".read":true,".write":true}, "names":{".read":true,".write":true},
-    "global":{".read":true,".write":true}, "groups":{".read":true,".write":true}, "groupNames":{".read":true,".write":true},
     "groupsMeta":{".read":true,".write":true,".indexOn":["lastPlayed"]},
     "groupsLb":{".read":true,".write":true}, "history":{".read":true,".write":true}, "historyIndex":{".read":true,".write":true} } }
 ```
-Everything listed is open read/write (the security build fixes this). Any other root path is refused. `global/`, `groups/`, `groupNames/` are no longer written since v324: **ask Oscar whether he deleted them and removed their 3 rules lines** (agreed for 1–2 weeks after 29 Sep). `daily/*/*/players` is no longer written since v382 and can be deleted in the console.
+Everything listed is open read/write (the security build fixes this). Any other root path is refused. `global/`, `groups/`, `groupNames/` were deleted by Oscar on 1 Nov (backup exported first). `daily/*/*/players` is no longer written since v382; it is still in the database (harmless, optional cleanup).
 **Console tip:** big nodes open read-only. Open a small node by URL with `/` as `~2F`, e.g. `…/data/~2Fdaily~2F2026-09-30~2Fes~2Fscores`. Oscar should export a backup now and then (Realtime Database → ⋮ → Export JSON).
 
 ### Data (current)
 - **`rooms/{code}`** (4 letters): `host`, `players/{name}: emoji`, `langs/{name}`, `scores/{name}`, `left/{name}: true`, `phase` (lobby|countdown|playing|validate|scores|final), `categories[]`, `catMode` (fixed|random|free-random), `selectedGroups`, `allFreeCats[]`, `rounds`, `timePerRound`, `currentRound`, `currentLetter`, `usedLetters`, `roundStartTime`, `calledStop`, `stopCaller` (`'Tiempo'` on timeout = never a caller), `allAnswers/{name}: {cat: answer} | {skipped:true}`, `invalidAnswers/{name__cat}`, `votes/{name__cat}/{voter}`, `entryReactions/{name__cat}/{reactor_emoji}`, `reactions/{id}` (floating), `aiResults/{name__cat}: {cls, key}` (v379; older rooms had `html`), `preRoundScores`, `roundLog/{round}: {letter, categories, caller, players/{name}: {answers[], status[] u/d/x/e, got[] {f,c,l}, pts {answers, alto, reactions, round, total}}}`, `practice`, `reactionPoints`, `validationMode`, `gameLang`, `groupId`, `groupName`, `lobbyInfo {mode, themeIdx, rounds, time}`. Deleted 45 min after the game ends (`G._deleteRoomTimeout`, cancelled by Jugar de nuevo).
-- **`daily/{date}/{lang}/scores/{playerKey}`**: `name` ("Name emoji"), `safeName`, `reg` (registered + verified on that device), `baseScore`, `totalScore` (= base × speed, never includes originality), `originality`, `speedMultiplier`, `answers{}`, `aiResults[]`, `aiResponses{idx}` (reply text for invalid/unsure, ≤1000 chars), `aiInfo[] {model, s, cut?, retried?, timeout?, error?}`, `categories[]`, `timestamp`, `contestLog/{idx} {word, category, letter, original, result, overturned, method, aiResponse, model, cut?, retried?, s, timestamp}` (older overturned entries: `overturned: 'valid'`), `revalidated` (29 Sep only). `playerKey` = name cleaned + time + random.
+- **`daily/{date}/{lang}/scores/{playerKey}`**: `name` ("Name emoji"), `safeName`, `reg` (registered + verified on that device), `baseScore`, `totalScore` (= base × speed, never includes originality), `originality`, `speedMultiplier`, `answers{}`, `aiResults[]`, `aiResponses{idx}` (reply text for invalid/unsure, ≤1000 chars), `aiInfo[] {model, s, cut?, retried?, timeout?, error? ('timeout'|'http'), msg? (error text, v384), rejudged?, first?, firstMsg? (automatic second look, v384)}`, `categories[]`, `timestamp`, `contestLog/{idx} {word, category, letter, original, result, overturned, method, aiResponse, model, cut?, retried?, s, timestamp}` (older overturned entries: `overturned: 'valid'`), `revalidated` (29 Sep only). `playerKey` = name cleaned + time + random.
 - **`names/{safeName}`** (safe = lowercase, accents stripped, non-alnum → `_`): `secret` (SHA-256 of email or 4-digit PIN, unsalted, readable — see Security), `displayName` (with accents), `played/{date}/{lang}: playerKey` (or `true` before Session 27; taken with a transaction = one daily per name), `contests/{date}/{lang}/{idx}: true` (one ¿Error? per answer; `{lang}_log` entries are old, no longer written), `groups/{id}: {name, last, def?}`, `groupsRemoved/{id}: time`, `following/{other}: {n, t}`, `followers/{other}: t`.
 - **`groupsMeta/{groupId}`** `{name, createdAt, lastPlayed}` · **`groupsLb/{groupId}/{nameKey}`** `{name, lastEmoji, wins, games}` · **`history/{groupId}/{gameId}`** (full game: endedAt, lang, host, groupName, scores, players, roundLog, currentRound, rounds, reactionPoints) · **`historyIndex/{groupId}/{gameId}`** `{endedAt, winners[], lang}`. gameId = time-sortable base36; last 20 games kept per group; groups idle > 1 year deleted (3 per game end).
 - **localStorage:** `alto_name`, `alto_last_name` (invite-link name), `alto_emoji`, `alto_lang`, `alto_session` (+ per-tab copy in sessionStorage; `?room=CODE` in the URL), `alto_claim_{safe}` `{verified}`, `alto_daily_{date}_{lang}` (played result), `alto_daily_inprogress_{date}_{lang}`, `alto_lobby_config` + `alto_lobby_config:{safe}` (per-name settings), `alto_mygroups` `[{id,name,last,def}]` max 10 (`MYGROUPS_KEY`; old `alto_groups` / `alto_last_group` are removed on load), `alto_lb_mode`, `alto_news_dismissed`. sessionStorage `alto_ver_checked` stops the auto-reload looping.
@@ -140,12 +139,12 @@ Everything listed is open read/write (the security build fixes this). Any other 
 
 ## 🤖 Robot (AI judge)
 - **`AI_MODELS = ['inclusionai/ling-3.0-flash', 'cohere/north-mini-code:free']`** (v364), sent as OpenRouter's `models` fallback list (keep ≤ 3 entries). Ling 3.0 Flash is paid ($0.021 / $0.063 per M tokens, providers Novita + DeepInfra); Cohere free is the safety net if credit runs out (slow, 25–40 s). The OpenRouter key has a credit limit (Oscar). OpenRouter privacy settings: free endpoints that train = ON, publish prompts = OFF.
-- **One judge call** `aiJudgeCall(systemPrompt, prompt, models, timeoutMs)` for daily, practice, ¿Error? and the multiplayer 🤖: `AI_MAX_TOKENS = 2000`, `AI_TIMEOUT_MS = 20000`. Verdict = the LAST VALIDO/INVALIDO/DUDOSO word of the answer (yes/no only for ≤3-word replies; reasoning used only if it ENDS with a verdict). Empty/cut answer → asked once more (same list); timeout → retried once with `models.slice(1)`; still nothing → 🤔 dudoso. One-letter answers are rejected locally (`aiTooShort`, `AI_LOCAL_SHORT`). The daily judges 3 answers at a time (`AI_PARALLEL = 3`).
-- **One judge prompt** `dailyBuildPrompt(category, letter, opts)` / `dailyBuildPromptWithWord(…)`. Rules: letter; category fit (people categories need a person, a spice must be a spice, extinct animals must be extinct, only people's names may be written surname first); (3) language: proper nouns are international, everything else must be the game language's word (`FOREIGN_WORD_EXAMPLE`); (4) spelling, including sound-alike letters (`spellEx` inside the function); ignore accents and capitals. Multiplayer options: Estricta (default) / Relajada / allow spelling mistakes.
-- **¿Error? (contest)** = `CONTEST_METHOD = 'B'`: ONE model (first available), a neutral "fresh eyes" prompt with strict spelling and no letter-fitting; VALIDO overturns, INVALIDO/DUDOSO upholds; one per answer per day. `DAILY_CONSENSUS = false` (if ever enabled: it still references `MODELS[2]`, fix first).
-- **Any prompt change → update `tools/ai_scout.js`** (the kit's `test_judge_prompt.mjs` fails if they differ) and re-run the scout. Scout = paste into the Console on jugarenfamilia.es; **only on the phone hotspot** (Oscar's router restarted twice during scouting). Baseline v5.7 on v367: 34/36, re-checks 20/23, avg 2.9 s.
+- **One judge call** `aiJudgeCall(systemPrompt, prompt, models, timeoutMs)` for daily, practice, ¿Error? and the multiplayer 🤖: `AI_MAX_TOKENS = 2000`, `AI_TIMEOUT_MS = 20000`. Verdict = the LAST VALIDO/INVALIDO/DUDOSO word of the answer (yes/no only for ≤3-word replies; reasoning used only if it ENDS with a verdict). Empty/cut answer → asked once more (same list); timeout → retried once with `models.slice(1)`; connection/HTTP error → retried once after 1.5 s (v384); still nothing → 🤔 dudoso, with the error text in `aiInfo.msg`. One-letter answers are rejected locally (`aiTooShort`, `AI_LOCAL_SHORT`). The daily judges 3 answers at a time (`AI_PARALLEL = 3`). **Automatic second look (v384, `dailyAutoRejudge`):** when the result screen opens, an answer that is 🤔 because of a robot failure (`aiInfo.error`, no `rejudged`) is judged once more; the score is recounted from scratch; still failing → stays 🤔 with ¿Error? offered; never loops; doesn't use up ¿Error?.
+- **One judge prompt** `dailyBuildPrompt(category, letter, opts)` / `dailyBuildPromptWithWord(…)`. Rules: letter; category fit (people categories need a person, a spice must be a spice, extinct animals must be extinct, only people's names may be written surname first); (3) language: proper nouns are international, everything else must be the game language's word (`FOREIGN_WORD_EXAMPLE`); (4) spelling, including sound-alike letters (`spellEx` inside the function); ignore accents and capitals. v384 additions: (1) a word right apart from its accents IS the game-language word (`ACCENT_EXAMPLE`, e.g. violin = violín); (3) a common noun spelled the way another language spells it is INVALIDO even when close (`NEAR_FOREIGN_EXAMPLE`, e.g. FR Giraffe/Piton/Jazmin); (6) a first name alone is not a person unless famous under one name (Madonna, Shakira, Pelé), a famous surname alone is fine, first-name categories excepted. Multiplayer options: Estricta (default) / Relajada / allow spelling mistakes.
+- **¿Error? (contest)** = `CONTEST_METHOD = 'B'`: ONE model (first available), a neutral "fresh eyes" prompt with strict spelling and no letter-fitting; since v384 it overturns only answers that CLEARLY fit (vague/partial answers stay INVALIDO: first name alone, model instead of brand, region instead of city, brand of another kind; doubt → INVALIDO), ignores accents and keeps near-foreign spellings INVALIDO; VALIDO overturns, INVALIDO/DUDOSO upholds; one per answer per day; uses the date and categories of the game played (v384 midnight fix). `DAILY_CONSENSUS = false` (if ever enabled: it still references `MODELS[2]`, fix first).
+- **Any prompt change → update `tools/ai_scout.js`** (the kit's `test_judge_prompt.mjs` fails if they differ) and re-run the scout. Scout = paste into the Console on jugarenfamilia.es; **only on the phone hotspot** (Oscar's router restarted twice during scouting). Baseline **v5.8 on v384** (3 Nov): judge 42/50 (ES 16/22 · EN 11/11 · FR 15/17), re-checks 28/34, 4 flips, avg 1.9 s, 0 timeouts. Remaining misses: daily Tomate seco en polvo, Robin, "Vallas, salto de", Violin, Poto (🤔), Piton, Barca, MG; re-check Library, Esterilla, Deutsch, Orlando hat, Radar (overturned), Patatas a la importancia (upheld). (v5.7 on v367: 34/36, 20/23.)
 - **Dead-model check** (Console on the site): `fetch('https://api.oscar-g-diez.workers.dev/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'<id>',messages:[{role:'user',content:'Di solo: VALIDO'}],max_tokens:50,temperature:0})}).then(r=>r.text()).then(console.log)`. A model with no endpoints is skipped silently by OpenRouter (logs show only the fallback).
-- **Accepted on purpose (don't re-propose):** EN "Luxemburg" ❌ (Oscar: fine as is); tomato-as-fruit left to the host; Ling's verdicts can differ between providers.
+- **Accepted on purpose (don't re-propose):** EN "Luxemburg" ❌ (Oscar: fine as is); tomato-as-fruit left to the host; Ling's verdicts can differ between providers; the stricter ¿Error? now keeps the obscure real dish "Patatas a la importancia" ❌ (price of stopping ~12 wrong overturns in 9 days).
 
 ---
 
@@ -175,7 +174,7 @@ Name field (first letter capitalised, rest as typed; `. # $ [ ] /` can't be type
 - 10 s countdown, 90 s clock from `startTimestamp` (keeps running in another app; time up while away = submit on return). In-progress answers survive a reload.
 - Scoring: valid 100 · dudoso 50 · invalid/empty 0, × speed (1 + seconds left / 90), + originality 50 per valid answer nobody else gave (recomputed for everyone when the board loads). Stored as 10 / 5 / 0 (and originality 5) and shown ×10: `totalScore = round(base × speed)`.
 - One daily per name and language across devices (fresh check + transaction on `names/{safe}/played`). Reopening shows the saved result, read directly via the playerKey (`fetchMyDailyEntry`).
-- ¿Error? on ❌/🤔 answers (today only, once per answer, ⏳ while checking).
+- ¿Error? on ❌/🤔 answers (the game just played, once per answer, ⏳ while checking). A daily finished just after midnight keeps its own day: result rows, leaderboard and ¿Error? use `G_daily.key` / `G_daily.categories` (v384). Answers left 🤔 by a robot failure get one automatic second look (see Robot).
 - **Leaderboard:** dense medals (ties share, earlier time first), top 10 + you, ◀ ▶ past days, flags per language; today's answers hidden on tabs you haven't played. Follow system: ☆ follow / silver ★ following / gold ★ mutual on registered rows, [Todos] [★ Siguiendo] (followed players who played), search box, legend; unregistered players see "Registra tu nombre…". Share result text.
 - **Práctica:** same flow, random letter, 5 s countdown, unlimited, nothing saved.
 
@@ -187,15 +186,21 @@ Name field (first letter capitalised, rest as typed; `. # $ [ ] /` can't be type
 ---
 
 ## 🧪 Test kit (`D:\09_ALTO\tests\`, not in git)
-Run in the sandbox: `cd tests && ./run_all.sh ../index_tmp.html` → must end in `ALL GREEN`. Long browser suites can be run one by one (`cd restore && ALTO_HTML=… python3 x_scenarios.py`). Totals on v382-tmp:
-- **Unit (Node, extract real functions by name, mocks):** build1 scoring 38, build2 reactions 29, build3 score cards 26, build4 final/share 22, build5a groups 45, build5b group page 35, judge prompt 26, revisar 18 (= 239). New helpers some suites need are grabbed with `grabOpt` so the kit also runs on older versions.
-- **Browser (Playwright, real HTML, fake Firebase shared between contexts):** restore 19, countdown 12, groups 28, build5b 77, stuck 11, follow 47, gate 38, hostile 24, names 20, clock 12, cleanup 10.
+Run in the sandbox: `cd tests && ./run_all.sh ../index_tmp.html` → must end in `ALL GREEN`. Long browser suites can be run one by one (`cd restore && ALTO_HTML=… python3 x_scenarios.py`). Totals on v385:
+- **Unit (Node, extract real functions by name, mocks):** build1 scoring 38, build2 reactions 29, build3 score cards 26, build4 final/share 22, build5a groups 45, build5b group page 35, judge prompt 41, revisar 18 (= 254). New helpers some suites need are grabbed with `grabOpt` so the kit also runs on older versions.
+- **Browser (Playwright, real HTML, fake Firebase shared between contexts):** restore 19, countdown 12, groups 28, build5b 77, stuck 11, follow 47, gate 38, hostile 24, names 20, clock 12, cleanup 10, robot 24 (v384: retry, automatic second look, midnight).
 - **Harness notes:** the fake Firebase (`restore/restore_base.py`) refuses keys with `. # $ [ ]` like the real one and aborts transactions on `undefined`; `wait()` pumps Playwright events (never `time.sleep`, it blocks the fake DB); `page.clock.install()` + `fast_forward()` simulates a suspended phone; a fake robot reply can be routed on the worker URL. Let a view settle (~600 ms) before tagging elements (the old build5b flake).
 - Also useful: render screens with real fonts (`npm pack @fontsource/caveat @fontsource/special-elite`) at 414/390/375/360/320 px; compare computed styles of all debug screens between two versions (Session 30 method).
 
 ---
 
 ## 🗺 Backlog (open items only)
+### NEXT BUILD — daily speed bonus, option D with ½ (agreed and plan OK'd by Oscar, 3 Nov)
+- **Why:** ¡Alto! in the daily works with one answer, and the speed multiplier (1 + secsLeft/90) applies to the whole score, so skipping hard categories pays (29 Oct ES: 5 ✅ + 1 blank at ×1.52 beat two complete-but-slower cards). Blocking ¡Alto! was rejected (people type junk; in the daily ¡Alto! only affects yourself). Why D and ½: history, Session 31.
+- **Rule:** misses = blanks + ❌ + ½ × 🤔. Multiplier = 1 + (secsLeft/90) × max(0, 1 − misses/2). Originality unchanged (outside the multiplier). Same in Práctica. Perfect cards are unaffected. Reference values (with originality, from the 24 Oct–1 Nov replays): 31 Oct FR Giocoso 6 ✅ 0 s = 800, Venirse primos 5 ✅ + 1 miss 45 s = 780; 29 Oct ES Venirse primos 880, Oscar 770, Demarte 770. Example without originality: 5 ✅ + 1 blank, 60 s left = 500 × 1.33 = 670.
+- **Plan (1–8):** (1) one helper for the multiplier; (2) applies to daily keys from `DAILY_SPEED_V2_FROM` = the day after it reaches production, older days keep 1 + secsLeft/90; (3) save the raw speed (secsLeft/90) in the entry and localStorage, and recount the multiplier from scratch wherever verdicts change: submit, `showDailyResult`, ¿Error?, `dailyAutoRejudge` (an overturn brings the bonus back) — `speedMultiplier` is used at ~10 places (grep it); (4) ¡Alto! button shows blanks while typing: "¡Alto! (2 en blanco) →" / "(2 blank)" / "(2 vides)", back to "¡Alto! →" with none; still needs ≥ 1 answer; (5) result line keeps "base N pts ×M⚡" and adds, when the bonus was cut, a small note "(bonus −50%: 1 fallo)" (xs slot, ES/EN/FR); leaderboard ⚡× tags unchanged; (6) help (daily `pts` item) gets one line after the speed bonus: "Cada fallo (en blanco o ❌) quita la mitad del bonus" (EN/FR too); (7) news from the start date, 4 days: "⚡ Desde hoy, cada fallo o respuesta en blanco quita la mitad del bonus de velocidad" / "⚡ From today, each blank or wrong answer halves your speed bonus" / "⚡ Dès aujourd'hui, chaque réponse vide ou fausse divise par deux le bonus de vitesse"; remove the expired `2026-10-10-lobby` news; (8) tests: formula against the reference values, button count, ¿Error? restoring the bonus, a day before the start date keeping the old rule.
+- Oscar: "½ and let's see how that feels" — softening to ⅓ later is one number (⅓ vs ½ differed on only 3 of 27 boards).
+
 ### Security (the "security build", agreed with Oscar; do with AI step 1)
 - **Firebase is open:** anyone can read/change/delete. Fix: Anonymous Auth + real rules (own entries only, daily scores write-once, validation, no whole-node deletes) + App Check. Needs a migration plan (old data has no owners). Must also cover `following`/`followers` and group lists under `names/`.
 - **Name claims are weak:** unsalted SHA-256 of a 4-digit PIN, publicly readable (brute force in under a second), `secret` can be overwritten, the claim write is not a transaction. Fix with the rules: secret unreadable, per-name salt, longer PINs, ideally no emails. The name gate (v378) is client-side only until then.
@@ -209,13 +214,15 @@ Run in the sandbox: `cd tests && ./run_all.sh ../index_tmp.html` → must end in
 - Grammar categories (Verbo, Sustantivo, Adjetivo…) mixed into the pool — needs per-language letter validity design first.
 - Free-mode example sets (5 themed sets of 20) and category pool expansion (Personaje de ficción, Género musical, Divinidad mitológica, Novela famosa, Festividad).
 - Botanical/scientific answers (tomato as fruit): parked by Oscar, host decides.
-- ¡Alto! button and blank categories: rule is "every answer ≥ 2 characters" (strict option A); the speed-bonus fairness question from Sep 17 is still open (options in the history, Session 18).
+- Multiplayer ¡Alto!: rule is "every answer ≥ 2 characters" (strict option A). The daily's speed-bonus fairness question is decided (NEXT BUILD above).
 - Automatic AI multiplayer mode (no host review); language as a lobby setting; public rooms/tournaments; sound; letter reveal animation; per-language share previews (`/en/`, `/fr/` pages) only if Oscar shares with EN/FR groups.
 - iOS layout refactor (true fixed layout, keyboard resize bug).
 - Registration required for all modes (designed Session 15): only the optional reservation + gate exist. If ever enforced: update the meta descriptions ("sin registro").
 
 ### Small parked items
 - "Top 10" cut can split a tie; own row name squeezed at 320 px with "(+50✨)"; leaderboard search covers only the viewed day; Ling re-check over-generous (watch `contestLog`); FR English words (Robin); the Claude Doc copy of the scoring design has drifted from the `.md` (the `.md` wins); unexplained host-session loss once (Session 26); `og:title` is trilingual, description Spanish (decided).
+- Result header date after midnight shows today's date for a daily finished just after midnight (rows, leaderboard and ¿Error? are right since v384; cosmetic).
+- Robot misses still open after v384 (scout v5.8): Violin (accent rule loses to "looks English"), Poto, Piton as reptile, Barca as invention, MG as tech brand; ¿Error? still overturns Deutsch (EN), Orlando hat, Radar.
 - P2: Spark plan's 100-connection ceiling and the full-day leaderboard download — revisit at ~100 daily players.
 
 ### Known limitations (not bugs to fix)
@@ -228,6 +235,7 @@ Run in the sandbox: `cd tests && ./run_all.sh ../index_tmp.html` → must end in
 
 ## 🧾 Decisions that stand (don't re-propose)
 - Daily date = phone's local date (B4 dropped, 1 Nov).
+- Daily ¡Alto! stays available at any time (one answer minimum); fairness comes from the scoring (option D, ½ per miss), not from blocking the button (3 Nov).
 - Siguiendo shows only followed players who played (v374); ranks are dense; legend always shown.
 - One judge prompt for every mode; ¿Error? asks one model.
 - News in the HTML, not Firebase; ~4 days each.

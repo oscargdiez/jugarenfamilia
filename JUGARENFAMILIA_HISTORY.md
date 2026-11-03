@@ -1831,3 +1831,50 @@ Read-only audit of v377-tmp: parser pass over the 372 top-level definitions + sc
 - Oscar asked to promote the staging stack without the planned real multiplayer game first (his call; the kit's two-browser multiplayer scenarios cover the changed flows). Diff vs v382-tmp: version string only. Version grep before (prod v378, staging v382-tmp) and after (v383 twice). Checklist: 12 screens, init once, syntax OK, 3 `-tmp` = version-check regexes, 417 KB.
 - Delivered with the handoff split (new short `JUGARENFAMILIA_HANDOFF.md` + this file) and the updated `deploy.bat` (Oscar replaces it by hand).
 
+
+
+## Session 31 (1–3 Nov) — Production v261101.383 → v261103.385
+
+### Housekeeping (1 Nov)
+- `deploy.bat` from Session 30 confirmed in place in `D:\09_ALTO\` (the history file now reaches GitHub).
+- **Firebase cleanup done by Oscar:** JSON backup exported; `global/`, `groups/`, `groupNames/` deleted in the console; their three lines removed from the rules (checked first: no code in v383 reads or writes them; only `rooms`, `daily/*/*/scores`, `names`, `groupsMeta`, `groupsLb`, `history`, `historyIndex` are used). Site checked afterwards, works. `daily/*/*/players` left in place (harmless; optional cleanup).
+- Real multiplayer games on v383: not reported yet.
+
+### Daily robot review, 24 Oct – 1 Nov (114 dailies, ~640 robot calls)
+- Ling 3.0 Flash judged practically everything. Daily-by-day median 1.8–2.7 s, 95th percentile 3–10 s. Cohere free was only used twice (two ¿Error? checks, 11–38 s).
+- **Robot failures came in bursts that hit the whole first batch of 3 answers:** 26 Oct 11:27 Cocoricó (3 answers timed out twice, 40 s; the phone then slept mid-judging, 22–27 min; all 6 🤔, she spent 5 ¿Error? on Italia, Iglesia, Iguana, IBM…); 26 Oct 18:07 Giocoso (3 HTTP errors at once; ¿Error? on Menuisier, Mangue, Mercure); 29 Oct Cocoricó (2 HTTP errors). The error text was not saved, so the cause (worker / OpenRouter / provider) is unknown.
+- **¿Error? too generous:** 111 checks, 27 overturned: 7 were just connection failures, ~7 right (Barrenero, Patatas a la importancia, Piña, Mesa camilla, Omoda…), ~12 wrong (Roberto as writer, Paulin as scientist, Rúcula as spice, Jolie as film, Radar as tool, Volvo 390 as brand, Audi as tech brand, Deutsch in EN, Judea as city, Orlando hat, Géants as TV series, Admira; borderline Gulag ×2, IG). Not only on 🤔: several were ❌ before.
+- **First judge patterns:** bare first names accepted as people (Roberto, Alan, Nino, Roman); accent-only differences rejected in ES (Violin = violín, "Vals vienes" = vals vienés); near-foreign spellings accepted in FR (Giraffe, Piton, Jazmin) while clearly Spanish words were caught (Jirafe, Pirámide, Romero); other generous calls: Barca as invention, MG as tech brand, Gabard, Incubus, Guzmán. Too strict: Poto (pothos), Violin, Velocirraptor (Fundéu's preferred spelling; "Velociraptor" was ✅ the same day). Good calls: Visón marino ✅ / Vison ❌, Rinoceronte negro del oeste ✅ / Rinoceronte negro ❌, Pulpo not a fish, E.T. not animated, Vena aorta ❌, Oran not a capital.
+- **Midnight bug found (30 Oct, David, EN):** daily started just before midnight, submitted 00:01, ¿Error? at 00:02 → the 4 checks were judged against the NEXT day's categories (Litographie as "Animated film", Leggins as "Fruit"), and the contest log went under 31 Oct as a nameless entry (filtered out of the leaderboard, harmless). Cause: `showDailyResult` always drew today's categories from `getDailySetup()`, and `recontest` used `getDailyKey()`.
+
+### v261103.384-tmp (staging): Build A (robot reliability, midnight) + Build B (judge rules)
+Plan agreed by Oscar (A with the automatic second look; B "no changes").
+- **A1 midnight:** `showDailyResult` uses `G_daily.categories` (set by every path that opens it); ¿Error? is offered on the game shown (`isToday = !practiceMode`); the leaderboard opens on `G_daily.key` (yesterday's board for a daily finished after midnight); `recontest` uses `G_daily.key`. The result header date still shows today's date (cosmetic, left).
+- **A2:** `aiJudgeCall` retries once after 1.5 s on a connection/HTTP error (timeouts keep their own retry on `models.slice(1)`).
+- **A3:** the error text is saved: `aiInfo[i].msg` (≤200 chars); `dailyAICallModel` returns `errMsg`.
+- **A4 automatic second look:** new `dailyAutoRejudge()` (called at the end of `showDailyResult`): answers that are 🤔 AND have `aiInfo.error` AND no `aiInfo.rejudged` are judged once more (in parallel), ⏳ while checking, ¿Error? hidden on those rows meanwhile. Writes `aiInfo/{i}` = `{model, s, rejudged:true, first, firstMsg?, error?, msg?}`, and on a verdict `aiResults/{i}`, `aiResponses/{i}` (if ❌), recounted `baseScore`/`totalScore` (scratch recount), plus localStorage. Still failing → stays 🤔 with `rejudged:true` (no loop) and ¿Error? offered. Practice / `__` names: in memory only. Does not use up ¿Error?. `G_daily.aiInfo` is set on submit and by both "already played" paths (from the Firebase entry). New helper `dailyContestBtnHTML(i, word, cat)`.
+- **B, judge prompt (`dailyBuildPrompt`, all modes):** rule (1) "An answer that is right apart from its accents is the {lang} word, even if without them it looks like a word from another language" with `ACCENT_EXAMPLE` (es violin/vals vienes, en cafe/naive, fr eleve/foret); rule (3) "The same goes for a common noun spelled the way another language spells it, even when it is close…" with `NEAR_FOREIGN_EXAMPLE` (es Giraffe/Jasmine, en Girafe/Jasmin, fr Giraffe/Piton/Jazmin); rule (6) a first name on its own is INVALIDO in a category of people unless famous under one name (Madonna, Shakira, Pelé), a well-known surname alone is fine (Pasteur, Goya), not when the category asks for a first name. Multiplayer Estricta/Relajada/spelling swaps untouched.
+- **B, ¿Error? prompt (method B):** ignores accents (same examples); "rule VALIDO only if the answer clearly and genuinely belongs to the category… A vague or partial answer stays INVALIDO: a first name on its own…, a model instead of a brand, a region instead of a city, a brand of another kind (a car brand is not a tech brand). If in doubt, rule INVALIDO." (replaces "including uncommon but real answers"); people categories need "a specific person"; near-foreign spellings stay INVALIDO.
+- **Scout v5.8** (`tools/ai_scout.js`): same prompts; +14 daily and +11 re-check real cases from 24 Oct–1 Nov.
+- **Tests:** `test_judge_prompt.mjs` 26 → 41 (new rules in every language, kept with the multiplayer options, contest strictness, scout contest system prompt identical). NEW `restore/robot_scenarios.py` (24 checks): R1 robot failures (fail twice → automatic second look ✅ with `first`/`firstMsg`; fail once → fixed by the retry; always failing → 🤔, `rejudged`, ¿Error? offered, no loop after reopening; no ¿Error? used; localStorage updated); R2 midnight (clock installed at 23:59:30 UTC: result rows show the played categories, leaderboard on the game's day, ¿Error? logged under the game's day with its category, nothing under the new day). On v383, R2 reproduces David's case (13 failures). Full kit ALL GREEN.
+- Staging delivered 3 Nov with scout v5.8 and `tests_kit.zip`.
+
+### Scout v5.8 on v384-tmp (Oscar, phone hotspot, 3 Nov)
+- Ling 3.0 Flash: **judge 42/50** (ES 16/22 · EN 11/11 · FR 15/17), 1 unsure, 4 flips; **¿Error? 28/34**; avg 1.9 s, slowest 10% 2.8 s, 0 timeouts.
+- Old 36 daily questions: 33 (misses Tomate seco en polvo, Robin, "Vallas, salto de"; v5.7 baseline 34/36, within flip noise). New: fixed Roberto, Alan, Nino, Giraffe, Jazmin, Vals vienes; controls Visón marino, Pasteur, Victor kept; still wrong Violin (❌), Poto (🤔), Piton, Barca, MG.
+- Re-checks: old 23 → 21 (misses Library, Esterilla; baseline 20/23). New: fixed Roberto, Paulin, Rúcula, Audi (kept ❌), Poto, Violin (overturned); still wrong Deutsch, Orlando hat, Radar (overturned); one loss: Patatas a la importancia now upheld (obscure real dish).
+- Verdict: promote.
+
+### v261103.385: PRODUCTION (3 Nov) = staging v384-tmp
+- Diff vs v384-tmp: version string only. Version grep before (v384-tmp ×2) and after (v385 ×2). Checklist: 12 screens, init block once, no `-tmp` in the version (the 3 regex `-tmp` remain), `node --check` clean, full kit on the production file ALL GREEN. 426 KB raw, ~117 KB gzipped.
+
+### Daily speed bonus redesign — agreed 3 Nov, NOT built (next session)
+- **Problem (Oscar):** ¡Alto! in the daily works with one answer filled, and the speed multiplier (1 + secsLeft/90, up to ×2) applies to the whole score, so skipping hard categories to finish early pays. Real case 29 Oct ES: Venirse primos, 5 ✅ + 1 blank, ×1.52 → 1010 beat two 5 ✅ + 1 ❌ players (840). 6 of 114 dailies had blanks plus a bonus.
+- **Rejected:** blocking ¡Alto! until all filled (players just type junk, same effect; in the daily ¡Alto! only affects yourself, unlike multiplayer); B (bonus × share of valid answers, too mild); C (bonus only for a perfect card: one robot mistake wipes it; originality can tip it anyway).
+- **Chosen: option D with ½:** misses = blanks + ❌ + ½ × 🤔; multiplier = 1 + (secsLeft/90) × max(0, 1 − misses/2). Originality unchanged (outside). ⅓ was the other candidate; Oscar chose ½ "and let's see how that feels" (easy to soften later).
+- Replays of all 114 dailies (24 Oct–1 Nov) with D: 79 scores unchanged (perfect cards, players who used the whole clock); with ½, the winner changes on 26 Oct FR (Giocoso 6 ✅ 850 beats David 5 ✅ 19 s left) and 31 Oct FR (Giocoso 800 beats Venirse primos 5 ✅ 45 s left, 780); ⅓ vs ½ differs on only 3 of 27 boards. Best possible score unchanged: 1200 + 300 originality = 1500 (realistic top ~1300; best seen Cocoricó 25 Oct 1160).
+- Build plan approved (details in the handoff Backlog).
+
+### Process notes
+- The conversation got long (9 Firebase exports read in full); Oscar asked to build D in a fresh session.
+- Correction made in the conversation: with ½, Venirse primos 31 Oct FR is 780, not 790 as first stated.
