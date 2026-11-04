@@ -758,14 +758,15 @@ button.lb-star:hover { background: transparent; }
    (fill both). Home: sparse and continuous on #theme-bg-stage BEHIND the content; result: short burst on top. */
 .theme-bg-stage { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: -1; overflow: hidden; }
 body.iphone-mode .theme-bg-stage { position: absolute; }
-.theme-rain { position: absolute; top: -90px; line-height: 1; animation: themeDrift linear both; will-change: transform; }
-@keyframes themeDrift {
-  0%   { transform: translate(0, 0) rotate(-10deg); }
-  25%  { transform: translate(14px, calc(25vh + 25px)) rotate(8deg); }
-  50%  { transform: translate(-12px, calc(50vh + 50px)) rotate(-8deg); }
-  75%  { transform: translate(12px, calc(75vh + 75px)) rotate(8deg); }
-  100% { transform: translate(0, calc(100vh + 110px)) rotate(-6deg); }
-}
+.theme-rain { position: absolute; top: -90px; line-height: 1; animation: themeFall linear both; will-change: transform; }
+/* v392: three layers so the motions don't fight: fall (linear Y) > sway (sine-like X, ease-in-out alternate)
+   > tilt (same wave, a little behind the sway). Per-note duration, width and phase are set inline. */
+.theme-rain .tr-sway, .theme-rain .tr-tilt { display: inline-block; animation-timing-function: ease-in-out; animation-iteration-count: infinite; animation-direction: alternate; animation-fill-mode: both; }
+.theme-rain .tr-sway { animation-name: themeSway; }
+.theme-rain .tr-tilt { animation-name: themeTilt; }
+@keyframes themeFall { from { transform: translateY(0); } to { transform: translateY(calc(100vh + 110px)); } }
+@keyframes themeSway { from { transform: translateX(calc(var(--amp, 12px) * -1)); } to { transform: translateX(var(--amp, 12px)); } }
+@keyframes themeTilt { from { transform: rotate(-10deg); } to { transform: rotate(10deg); } }
 .confetti-piece { position: absolute; top: -20px; font-size: 16px; animation: confettiFall linear forwards; }
 @keyframes confettiFall {
   0%   { transform: translateY(0) rotate(0deg) scale(1); opacity: 1; }
@@ -5871,15 +5872,26 @@ function launchThemeRain(pieces, mode, ms) {
   stopThemeRain();
   G_themeRainMode = mode;
   const drop = () => {
+    // ~10% of the home notes pass in front of the cards (top layer); taps go through either way
+    const st = (amb && Math.random() < 0.1) ? document.getElementById('confetti-stage') : stage;
     const el = document.createElement('div');
     el.className = 'theme-rain';
-    el.textContent = pieces[Math.floor(Math.random() * pieces.length)];
+    const sway = document.createElement('span'); sway.className = 'tr-sway';
+    const tilt = document.createElement('span'); tilt.className = 'tr-tilt';
+    tilt.textContent = pieces[Math.floor(Math.random() * pieces.length)];
+    sway.appendChild(tilt); el.appendChild(sway);
     el.style.fontSize = (amb ? 16 + Math.random() * 8 : 16 + Math.random() * 14) + 'px';
     if (amb) el.style.opacity = '0.6';
-    el.style.left = (Math.random() * 94) + '%';
+    el.style.left = (4 + Math.random() * 88) + '%';
     const dur = amb ? 6 + Math.random() * 3 : 2.8 + Math.random() * 1.8;
     el.style.animationDuration = dur + 's';
-    stage.appendChild(el);
+    // sway: one swing every P s, width ±amp, random phase (negative delay = already moving); tilt lags 1/8 cycle
+    const P = amb ? 1.25 + Math.random() * 0.75 : 0.8 + Math.random() * 0.5;
+    const lag = P / 4, phase = -(Math.random() * 2 * P) - lag;
+    sway.style.setProperty('--amp', (amb ? 8 + Math.random() * 12 : 10 + Math.random() * 10) + 'px');
+    sway.style.animationDuration = P + 's'; sway.style.animationDelay = phase + 's';
+    tilt.style.animationDuration = P + 's'; tilt.style.animationDelay = (phase + lag) + 's';
+    st.appendChild(el);
     setTimeout(() => el.remove(), (dur + 0.3) * 1000);
   };
   if (amb) {
@@ -8070,7 +8082,7 @@ setTimeout(() => updateDailyButtonDate(), 350);
 // Version freshness check — silently reload if a newer version is deployed
 // Runs once on load; does nothing if already on latest or if fetch fails
 (function() {
-  const RUNNING = 'v261104.391-tmp';
+  const RUNNING = 'v261104.392-tmp';
   if (sessionStorage.getItem('alto_ver_checked') === RUNNING) return; // already checked this session
   sessionStorage.setItem('alto_ver_checked', RUNNING);
   fetch(location.href, { cache: 'no-cache' })
@@ -8094,7 +8106,7 @@ syncMyGroups(); // registered + verified name: bring in groups from the name's o
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v261104.391-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v261104.392-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
