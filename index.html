@@ -754,6 +754,19 @@ button.lb-star:hover { background: transparent; }
 }
 /* ── Confetti ── */
 .confetti-stage { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 998; overflow: hidden; }
+/* v391: themed-day rain. Own gentle drift (no spin), starts fully above the screen and stays hidden until it moves
+   (fill both). Home: sparse and continuous on #theme-bg-stage BEHIND the content; result: short burst on top. */
+.theme-bg-stage { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: -1; overflow: hidden; }
+body.iphone-mode .theme-bg-stage { position: absolute; }
+.theme-rain { position: absolute; top: -90px; line-height: 1; animation: themeFall linear both; will-change: transform; }
+/* v392: three layers so the motions don't fight: fall (linear Y) > sway (sine-like X, ease-in-out alternate)
+   > tilt (same wave, a little behind the sway). Per-note duration, width and phase are set inline. */
+.theme-rain .tr-sway, .theme-rain .tr-tilt { display: inline-block; animation-timing-function: ease-in-out; animation-iteration-count: infinite; animation-direction: alternate; animation-fill-mode: both; }
+.theme-rain .tr-sway { animation-name: themeSway; }
+.theme-rain .tr-tilt { animation-name: themeTilt; }
+@keyframes themeFall { from { transform: translateY(0); } to { transform: translateY(calc(100vh + 110px)); } }
+@keyframes themeSway { from { transform: translateX(calc(var(--amp, 12px) * -1)); } to { transform: translateX(var(--amp, 12px)); } }
+@keyframes themeTilt { from { transform: rotate(-10deg); } to { transform: rotate(10deg); } }
 .confetti-piece { position: absolute; top: -20px; font-size: 16px; animation: confettiFall linear forwards; }
 @keyframes confettiFall {
   0%   { transform: translateY(0) rotate(0deg) scale(1); opacity: 1; }
@@ -976,6 +989,7 @@ document.addEventListener('DOMContentLoaded', function() {
 <!-- legacy id kept for startTimer compat -->
 <div id="fixed-topbar" style="display:none"></div>
 <div class="confetti-stage" id="confetti-stage"></div>
+<div class="theme-bg-stage" id="theme-bg-stage"></div>
 <div id="urgency-overlay"></div>
 <div id="countdown-overlay">
   <div id="countdown-number">10</div>
@@ -2245,6 +2259,9 @@ window.show = function(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('on'));
   document.getElementById('s-'+id).classList.add('on');
   G.screen = id;
+  if (id !== 'home' && id !== 'daily-result') stopThemeRain(); // v389: rain only on home and the daily result
+  if (id === 'daily-result' && G_themeRainMode === 'ambient') stopThemeRain(); // v391
+  if (id === 'home') { try { maybeThemeRain('home', getDailyKey()); } catch (e) {} }
   // Show timer bubble only on playing/daily-play screens
   if (!['playing','daily-play'].includes(id)) setTimerBubble(0, false);
   // Set body class for CSS screen-specific rules
@@ -2569,9 +2586,22 @@ const DAILY_CAT_DATA = {
 };
 // ── Themed day overrides ──────────────────────────────
 // Add entries keyed by YYYY-MM-DD to override the normal seed-based picker.
-// Each entry: { letter, theme:{es,en,fr}, categories:{es:[...],en:[...],fr:[...]} }
-// Categories must be valid display names (not keys) for each language.
+// Each entry: { letter, theme:{es,en,fr}, categories:{es:[...],en:[...],fr:[...]}, rain?:[emojis] }
+// Categories must be valid display names (not keys) for each language. All three languages, or the day stays normal
+// for the missing one. `rain`: emojis that fall for ~4 s on the home screen (once per app open) and on the daily
+// result (v389). Preview a future themed day with ?dia=YYYY-MM-DD and a test name starting with __ (saves nothing).
 const DAILY_OVERRIDES = {
+  // v389: first themed day. Santa Cecilia, patron saint of music (Sunday). The Beatles = T (first letter as written).
+  '2026-11-22': {
+    letter: 'B',
+    theme: { es: '🎵 Santa Cecilia: día de la música', en: "🎵 St Cecilia's Day: music", fr: '🎵 Sainte-Cécile : la musique' },
+    categories: {
+      es: ['Instrumento', 'Cantante o banda famosa', 'Compositor', 'Baile o danza', 'Canción', 'Género musical'],
+      en: ['Instrument', 'Singer or famous band', 'Composer', 'Dance', 'Song', 'Music genre'],
+      fr: ['Instrument', 'Chanteur ou groupe célèbre', 'Compositeur', 'Danse', 'Chanson', 'Genre musical'],
+    },
+    rain: ['🎵', '🎶', '🎻', '🎺', '🥁', '🎷', '🎸', '🎹'],
+  },
   // '2026-10-31': {
   //   letter: 'B',
   //   theme: { es: '🎃 Halloween', en: '🎃 Halloween', fr: '🎃 Halloween' },
@@ -2658,6 +2688,14 @@ function dailyUpdateAltoBtn() {
 }
 
 const NEWS = [
+  { id: '2026-11-20-cecilia', type: 'info', from: '2026-11-20', until: '2026-11-21',
+    es: '🎵 El domingo es Santa Cecilia: ¡reto diario musical!',
+    en: "🎵 Sunday is St Cecilia's Day: a musical daily challenge!",
+    fr: '🎵 Dimanche, c\'est la Sainte-Cécile : défi du jour musical !' },
+  { id: '2026-11-22-cecilia', type: 'info', from: '2026-11-22', until: '2026-11-22',
+    es: '🎵 Hoy es Santa Cecilia: ¡reto diario musical!',
+    en: "🎵 Today is St Cecilia's Day: a musical daily challenge!",
+    fr: '🎵 Aujourd\'hui, c\'est la Sainte-Cécile : défi du jour musical !' },
   { id: '2026-11-04-speed', type: 'info', from: DAILY_SPEED_V2_FROM, until: '2026-11-07',
     es: '⚡ Desde hoy, cada fallo o respuesta en blanco quita la mitad del bonus de velocidad',
     en: '⚡ From today, each blank or wrong answer halves your speed bonus',
@@ -2693,7 +2731,18 @@ window.dismissNews = (id) => {
   renderNews();
 };
 
+// v389: ?dia=YYYY-MM-DD plays that day instead of today, only for test names (__…), which never save.
+const DAILY_PREVIEW_DAY = (() => {
+  try { const v = new URLSearchParams(location.search).get('dia'); return (v && /^\d{4}-\d{2}-\d{2}$/.test(v)) ? v : null; } catch (e) { return null; }
+})();
+function dailyPreviewKey() {
+  if (!DAILY_PREVIEW_DAY) return null;
+  const n = (document.getElementById('inp-name')?.value || localStorage.getItem('alto_name') || '').trim();
+  return n.startsWith('__') ? DAILY_PREVIEW_DAY : null;
+}
 function getDailyKey() {
+  const _pk = dailyPreviewKey();
+  if (_pk) return _pk;
   const d = new Date();
   return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
 }
@@ -3014,6 +3063,7 @@ function initDaily() {
 
   const setup = G_daily.practiceMode && window._practiceSetup ? window._practiceSetup : getDailySetup();
   window._practiceSetup = null;
+  stopThemeRain();
   G_daily.letter = setup.letter;
   G_daily.key = setup.key;
   G_daily.answers = {};
@@ -3529,6 +3579,7 @@ async function showDailyResult(answers, baseScore, totalScore, aiResults, secsLe
 
   // Recompute baseScore and totalScore from aiResults — never trust stored values
   // (localStorage/Firebase can be stale if a recontest changed verdicts inconsistently)
+  if (!G_daily.practiceMode && G_daily.key) { try { maybeThemeRain('result', G_daily.key); } catch (e) {} } // v389
   // v386: dailyRecount (speed bonus cut by misses when the entry has speedRaw; older entries keep their multiplier)
   G_daily.answers = answers;
   G_daily.aiResults = aiResults;
@@ -3576,6 +3627,8 @@ async function showDailyResult(answers, baseScore, totalScore, aiResults, secsLe
   const lbCard = document.getElementById('daily-lb-card');
   const resultTitle = document.getElementById('daily-result-title');
   const dateEl = document.getElementById('daily-result-date');
+  // v390: a themed day's long title uses the primary slot (26px) instead of hero 32px (Oscar's choice, option A)
+  if (resultTitle) resultTitle.style.fontSize = (!G_daily.practiceMode && G_daily.theme) ? '26px' : '32px';
   if (G_daily.practiceMode) {
     if (lbCard) lbCard.style.display = 'none';
     const _dl2 = dl();
@@ -4487,7 +4540,8 @@ function renderGuestInfo(room) {
 
 // ── Daily challenge helpers ────────────────────────────
 function getDailyDateString(short) {
-  const now = new Date();
+  const _pk = dailyPreviewKey();
+  const now = _pk ? new Date(_pk + 'T12:00:00') : new Date();
   const localeMap = { es:'es-ES', en:'en-GB', fr:'fr-FR' };
   const locale = localeMap[LANG] || 'es-ES';
   const day = now.getDate();
@@ -5801,6 +5855,75 @@ function launchConfetti(winnerEmoji) {
   for (let i = 0; i < 5; i++) setTimeout(() => spawnConfettiBatch(stage, pieces, colors), i * 200);
   // Keep going
   G_confettiInterval = setInterval(() => spawnConfettiBatch(stage, pieces, colors), 600);
+}
+
+// ── Themed-day rain (v389) ─────────────────────────────
+// A short shower of the day's emojis (DAILY_OVERRIDES[key].rain) on the confetti stage. Emojis only, lighter than
+// the final-score confetti, stops by itself, never while playing, none with "reduce motion".
+let G_themeRainTimer = null, G_themeRainMode = null;
+const _themeRainShown = {};
+// mode 'ambient': home, behind the content, ~1 note/s, slow (6–9 s), soft, until stopThemeRain().
+// mode 'burst': daily result, on top, 6 notes every 0.5 s for `ms`, then stops by itself.
+function launchThemeRain(pieces, mode, ms) {
+  const amb = mode === 'ambient';
+  const stage = document.getElementById(amb ? 'theme-bg-stage' : 'confetti-stage');
+  if (!stage || !pieces || !pieces.length) return;
+  try { if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return; } catch (e) {}
+  stopThemeRain();
+  G_themeRainMode = mode;
+  const drop = () => {
+    // ~20% of the home notes pass in front of the cards (top layer, fully solid); taps go through either way
+    const inFront = amb && Math.random() < 0.2;
+    const st = inFront ? document.getElementById('confetti-stage') : stage;
+    const el = document.createElement('div');
+    el.className = 'theme-rain';
+    const sway = document.createElement('span'); sway.className = 'tr-sway';
+    const tilt = document.createElement('span'); tilt.className = 'tr-tilt';
+    tilt.textContent = pieces[Math.floor(Math.random() * pieces.length)];
+    sway.appendChild(tilt); el.appendChild(sway);
+    // v394 depth: in front = big (21–24px) and solid; behind = small (14–20px) and faint. Same max as before.
+    el.style.fontSize = (amb ? (inFront ? 21 + Math.random() * 3 : 14 + Math.random() * 6) : 16 + Math.random() * 14) + 'px';
+    if (amb && !inFront) el.style.opacity = '0.6'; // behind: faint; in front: solid (v393)
+    el.style.left = (4 + Math.random() * 88) + '%';
+    const dur = amb ? 6 + Math.random() * 3 : 2.8 + Math.random() * 1.8;
+    el.style.animationDuration = dur + 's';
+    // sway: one swing every P s, width ±amp, random phase (negative delay = already moving); tilt lags 2/8 of a cycle (v394)
+    const P = amb ? 1.25 + Math.random() * 0.75 : 0.8 + Math.random() * 0.5;
+    const lag = P / 2, phase = -(Math.random() * 2 * P) - lag;
+    sway.style.setProperty('--amp', (amb ? 8 + Math.random() * 12 : 10 + Math.random() * 10) + 'px');
+    sway.style.animationDuration = P + 's'; sway.style.animationDelay = phase + 's';
+    tilt.style.animationDuration = P + 's'; tilt.style.animationDelay = (phase + lag) + 's';
+    st.appendChild(el);
+    setTimeout(() => el.remove(), (dur + 0.3) * 1000);
+  };
+  if (amb) {
+    drop();
+    G_themeRainTimer = setInterval(drop, 1100);
+  } else {
+    const batch = () => { for (let i = 0; i < 6; i++) setTimeout(drop, Math.random() * 450); };
+    batch();
+    const started = Date.now();
+    G_themeRainTimer = setInterval(() => {
+      if (Date.now() - started >= (ms || 4000)) { clearInterval(G_themeRainTimer); G_themeRainTimer = null; G_themeRainMode = null; return; }
+      batch();
+    }, 500);
+  }
+}
+function stopThemeRain() {
+  if (G_themeRainTimer) { clearInterval(G_themeRainTimer); G_themeRainTimer = null; }
+  G_themeRainMode = null;
+  document.querySelectorAll('.theme-rain').forEach(el => el.remove());
+}
+// 'home': continuous while the home screen shows (not restarted if already falling).
+// 'result': one burst per day per app open. Practice never rains.
+function maybeThemeRain(where, key) {
+  const ov = DAILY_OVERRIDES[key];
+  if (!ov || !ov.rain || !ov.categories || !ov.categories[LANG]) return;
+  if (where === 'home') { if (G_themeRainMode !== 'ambient') launchThemeRain(ov.rain, 'ambient'); return; }
+  const tag = where + ':' + key;
+  if (_themeRainShown[tag]) return;
+  _themeRainShown[tag] = true;
+  launchThemeRain(ov.rain, 'burst', 4000);
 }
 
 function stopConfetti() {
@@ -7953,13 +8076,15 @@ applyLang();
 document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.getAttribute('onclick').includes("'"+LANG+"'")));
 try { const s=readSession(sessionStorage) || readSession(localStorage) || {}; const _n=document.getElementById('inp-name'); if(_n && !_n.value) { if(s.name) _n.value=s.name; else { const _saved=localStorage.getItem('alto_name'); if(_saved) _n.value=_saved; } } if(_n && _n.value) scheduleNameCheck(_n.value); } catch(e){}
 tryRestore();
+// v389: themed-day rain when the app opens on the home screen (a restored room switches screen and stops it)
+try { if (document.getElementById('s-home')?.classList.contains('on')) maybeThemeRain('home', getDailyKey()); } catch(e){}
 // Ensure daily button played state wins any init timing race (especially iOS)
 setTimeout(() => updateDailyButtonDate(), 350);
 
 // Version freshness check — silently reload if a newer version is deployed
 // Runs once on load; does nothing if already on latest or if fetch fails
 (function() {
-  const RUNNING = 'v261103.388';
+  const RUNNING = 'v261104.395';
   if (sessionStorage.getItem('alto_ver_checked') === RUNNING) return; // already checked this session
   sessionStorage.setItem('alto_ver_checked', RUNNING);
   fetch(location.href, { cache: 'no-cache' })
@@ -7983,7 +8108,7 @@ syncMyGroups(); // registered + verified name: bring in groups from the name's o
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v261103.388</div>
+  <div style="font-size: 11px;opacity:0.5">v261104.395</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>

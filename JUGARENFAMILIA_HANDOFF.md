@@ -1,5 +1,5 @@
 # JugarEnFamilia.es — Handoff (current state)
-*Last updated: 3 November 2026 — end of Session 32*
+*Last updated: 4 November 2026 — end of Session 32 (continued)*
 
 > **Two files, two jobs.**
 > - **This file = the CURRENT state only.** Read ALL of it at the start of every session. Each fact appears once and is kept up to date: when something changes, edit it here (replace the old statement) and log the change in the history file.
@@ -10,13 +10,14 @@
 ---
 
 ## ▶ START HERE (Session 33)
-1. Upload the project zip (with `tests\` and `tools\`). Read this whole file. First thing: `cp index.html index_backup_s33.html`.
-2. **Versions:** production = **v261103.388** (3 Nov) = Session 32: daily speed bonus option D with ½ (each miss halves the bonus, from **4 Nov**) + daily category renamed "Héroe o villano de ficción". Staging `index_tmp.html` = v261103.387-tmp, the same code.
-3. **Ask Oscar** how the speed bonus feels after its first days (players still pressing ¡Alto! early? complaints about 🤔 eating the bonus?). Review ½ → ⅓ after about a week (Backlog → Product ideas).
-4. **Watch the dailies** (Oscar exports one day per file): from 4 Nov every entry has `speedRaw`; check `speedMultiplier` = 1 + speedRaw × max(0, 1 − misses/2) and that ¿Error? overturns raise it. Also: answers in "Héroe o villano de ficción" (real people should be ❌; if the robot accepts them, add a prompt line + scout), the v384 rules and stricter ¿Error?, and `aiInfo.rejudged` on robot failures (should replace most failure 🤔).
-5. News: `2026-10-31-follow` expires 4 Nov, `2026-11-04-speed` runs 4–7 Nov; remove both when `NEWS` is next edited after that.
-6. Next build: the security build (Backlog → Security). Plan with Oscar first.
-7. At the end of the session: append the session's log to the history file, and edit this file so it describes the new current state.
+1. Upload the project zip (with `tests\` and `tools\`), or clone the repo if GitHub is connected. Read this whole file. First thing: `cp index.html index_backup_s33.html`.
+2. **Versions:** production = **v261104.395** (4 Nov) = staging `index_tmp.html` v261104.394-tmp (same code). Live since then: the speed bonus option D ½ (from 4 Nov), the category "Héroe o villano de ficción", and the **first themed day: Santa Cecilia on Sunday 22 Nov** (letter B, music, emoji rain on home and result; news 20–22 Nov).
+3. **Before 22 Nov:** has Oscar run scout v5.9 (13 cases for Canción / Género musical)? If the robot fails "La Bamba" / "The Boxer" / "La Bohème" (must be ❌) or the genres, adjust before the day. Preview: `https://jugarenfamilia.es/?dia=2026-11-22` with a `__` name.
+4. **After 22 Nov:** ask Oscar how the themed day went, and look at its exports (answers in the two new categories). Then plan the next themed days: Monet centenary on Sat 5 Dec (art), Christmas. Ideas list in Backlog → Product ideas.
+5. **Ask Oscar** how the speed bonus feels (review ½ → ⅓ after a week); watch `speedRaw` in the exports, the fiction category, and `aiInfo.rejudged`.
+6. News: `2026-10-31-follow` and `2026-11-04-speed` (until 7 Nov) can be removed when `NEWS` is next edited after 7 Nov; the Cecilia entries after 22 Nov.
+7. Economy (Oscar, 4 Nov): small changes get only the targeted checks; the full kit runs once, before a production promotion. Don't re-run long suites that aren't affected.
+8. At the end of the session: append the session's log to the history file, and edit this file so it describes the new current state.
 
 ---
 
@@ -62,7 +63,7 @@ Multiplayer browser version of the Spanish word game "Stop / Tutti Frutti / Alto
 - 12 screens: `grep -c 'id="s-'` = 12 ✅
 - JS syntax clean: extract the `<script type="module">` and `node --check` it ✅
 - Test kit `./run_all.sh ../index_tmp.html` → ALL GREEN, when the change needs it ✅
-- File size: no limit (Oscar). ~429 KB raw, ~118 KB gzipped as served.
+- File size: no limit (Oscar). ~437 KB raw, ~121 KB gzipped as served.
 
 ---
 
@@ -107,7 +108,7 @@ Casing: buttons Sentence case (`Crear sala`); hints/sublabels lowercase (`nombre
 
 ---
 
-## 🧭 Architecture map (index.html, ~7,950 lines)
+## 🧭 Architecture map (index.html, ~8,100 lines)
 - `<head>`: meta (title/description "¡Alto! — Stop · Tutti Frutti · Petit Bac", Spanish description), GA, `<style>` (~900 lines), non-module script with `window.FLAGS` (SVG flags).
 - Markup: 12 screens `#s-…` (home, quickjoin, welcome, lobby, playing, validate, waiting, scores, final, leaderboard (= group page), daily-play, daily-result) + overlays (claim, help, countdown) + shell header (logo · letter/round/timer · room pill/?).
 - Module script, roughly in order: `T` translations (+`t(key)`) · categories (`CAT_GROUPS`, `DAILY_CAT_DATA` 58 categories / 13 groups with per-language letter strings, `THEMES_ALL`) · `applyLang` · groups (`alto_mygroups`, sync by verified name) · follow system · help (`HELP` drawn by `helpSectionsHTML()`) · `show()` screen switch · daily (setup/seed, play, timer, submit, AI judging, result, ¿Error?, leaderboard) · news · rooms (create, quickJoin, lobby, countdown, playing, ¡Alto!, validation, reactions/votes, scoring, scores, final, group page) · claim name + name gate + name characters · version check · debug mode · init.
@@ -180,15 +181,16 @@ Name field (first letter capitalised, rest as typed; `. # $ [ ] /` can't be type
 
 ### Other
 - **Help (❓):** `HELP = {home, daily, multi}[lang]` items (`h`, `i`, `s`, `pts`, `note`, `hr`) drawn by `helpSectionsHTML()`, rules-card look, chosen by screen.
+- **Themed days (v389):** `DAILY_OVERRIDES[date] = {letter, theme:{es,en,fr}, categories:{es:[6],en:[6],fr:[6]}, rain:[emojis]}`; categories are display names (any wording; the robot reads them). The theme replaces "Reto diario" on the play label (body slot) and the result title (primary slot 26px on themed days, hero 32px otherwise). Leaderboard, originality, speed bonus and ¿Error? work as on any day. Overrides don't shift other days' picks. Rain: home = sparse continuous notes on `#theme-bg-stage` (behind the content, z-index −1), 20% in front on `#confetti-stage` (big 21–24px, solid) and the rest behind (14–20px, opacity 0.6); daily result = a 4 s burst on top once per day per app open. Each note: linear fall > sine-like sway (ease-in-out alternate, random phase) > tilt on the same wave lagging ¼ cycle. Never while playing, never in Práctica, none with reduce motion; `show()` stops it on any other screen. Preview any date with `?dia=YYYY-MM-DD` and a `__` test name (saves nothing). Current themed days: 2026-11-22 Santa Cecilia (B, music).
 - **News:** `NEWS` array in the HTML (`{id, type info|warning, from?, until, es, en, fr}`; `from` since v386), all active ones stacked on the home page, ✕ hides one per device. **Rules (Oscar):** very short, one line, start with an emoji, no jargon, keep up only ~4 days, no "ayer".
 - **Debug mode** (see Architecture).
 
 ---
 
 ## 🧪 Test kit (`D:\09_ALTO\tests\`, not in git)
-Run in the sandbox: `cd tests && ./run_all.sh ../index_tmp.html` → must end in `ALL GREEN`. Long browser suites can be run one by one (`cd restore && ALTO_HTML=… python3 x_scenarios.py`). Totals on v388:
-- **Unit (Node, extract real functions by name, mocks):** build1 scoring 38, build2 reactions 29, build3 score cards 26, build4 final/share 22, build5a groups 45, build5b group page 35, build6 speed bonus 36, judge prompt 41, revisar 18 (= 290). New helpers some suites need are grabbed with `grabOpt` so the kit also runs on older versions.
-- **Browser (Playwright, real HTML, fake Firebase shared between contexts):** restore 19, countdown 12, groups 28, build5b 77, stuck 11, follow 47, gate 38, hostile 24, names 20, clock 12, cleanup 10, robot 24 (v384: retry, automatic second look, midnight), speed 21 (v386: blanks on the button, cut, ¿Error? restoring, old day, Práctica).
+Run in the sandbox: `cd tests && ./run_all.sh ../index_tmp.html` → must end in `ALL GREEN`. Long browser suites can be run one by one (`cd restore && ALTO_HTML=… python3 x_scenarios.py`). Totals on v395:
+- **Unit (Node, extract real functions by name, mocks):** build1 scoring 38, build2 reactions 29, build3 score cards 26, build4 final/share 22, build5a groups 45, build5b group page 35, build6 speed bonus 36, build7 themed day 21, judge prompt 41, revisar 18 (= 311). New helpers some suites need are grabbed with `grabOpt` so the kit also runs on older versions.
+- **Browser (Playwright, real HTML, fake Firebase shared between contexts):** restore 19, countdown 12, groups 28, build5b 77, stuck 11, follow 47, gate 38, hostile 24, names 20, clock 12, cleanup 10, robot 24 (v384: retry, automatic second look, midnight), speed 21 (v386: blanks on the button, cut, ¿Error? restoring, old day, Práctica), themed 35 (v389–v394: Santa Cecilia, rain layers, reduce motion, ?dia= preview). clock C3 checks `speedRaw` since v389 (it was date-dependent).
 - **Harness notes:** the fake Firebase (`restore/restore_base.py`) refuses keys with `. # $ [ ]` like the real one and aborts transactions on `undefined`; `wait()` pumps Playwright events (never `time.sleep`, it blocks the fake DB); `page.clock.install()` + `fast_forward()` simulates a suspended phone; a fake robot reply can be routed on the worker URL. Let a view settle (~600 ms) before tagging elements (the old build5b flake).
 - Also useful: render screens with real fonts (`npm pack @fontsource/caveat @fontsource/special-elite`) at 414/390/375/360/320 px; compare computed styles of all debug screens between two versions (Session 30 method).
 
@@ -205,6 +207,8 @@ Run in the sandbox: `cd tests && ./run_all.sh ../index_tmp.html` → must end in
 
 ### Product ideas (not decided unless noted)
 - **Speed bonus ½ → ⅓ review (reminder, Session 32):** after about a week of ½ in production, ask Oscar how it feels. Switch to ⅓ if (a) nobody presses ¡Alto! early any more (everyone runs the clock down) or (b) players complain about 🤔 eating the bonus. Claude's view: keep ½ (skipping only pays when truly stuck: it must save 36 s+ on a card that would finish at 0 s; never with 30 s+ to spare; ⅓ = 27 s / 51 s). The switch needs a date gate like `DAILY_SPEED_V2_FROM` (scores are recounted from scratch, so changing `DAILY_MISS_CUT` alone would rewrite past days on screen), plus the help row "−½ bonus", a news line and the tests.
+- **Themed days, next candidates (4 Nov):** Sat 5 Dec Monet centenary (+ Disney 125, Mozart): art (painter, colour, flower, animated film, composer, instrument), rain 🎨🖌️🌸; 24–25 Dec Christmas (🎄❄️⭐); also Children's Day 20 Nov (🧸), Agatha Christie 3 Dec (🕵️), Nobel 10 Dec (💡), Inocentes 28 Dec (twist day). Frame deaths as homages; skip sad or political dates. Other fun ideas: 🔥 streaks, weekly league among followed players, answer of the day vote, monthly summary card, kids mode (bigger bet), teams, surprise category.
+- **GitHub workflow (not set up):** Claude would clone the repo, push staging itself, production after Oscar's "promote" (or PRs Oscar merges); rollback = `git revert`. Needs `tests/` and `tools/` committed; never `firebase_backups/`.
 - **Drop 🤔 (only ✅/❌)?** Idea from Oscar (Session 32). Measured on 24 Oct–1 Nov: 610 answers, 23 🤔 (3.8%): 10 robot failures (two bad days; the v384 second look should now fix these), 13 model DUDOSO (~1.4/day, the genuinely borderline answers; ¿Error? overturned 7, upheld 6, not reliably right). Every 🤔 gets contested (no downside). Decision for now: keep 🤔. Revisit after more judge-prompt work if the scout gets Poto and Radar right. Keep a "couldn't check" state for robot failures whatever happens.
 - Daily originality overhaul: unique → `round(50 × log10(players))`, rare (< 5%) +25, common 0.
 - Grammar categories (Verbo, Sustantivo, Adjetivo…) mixed into the pool — needs per-language letter validity design first.
@@ -234,6 +238,8 @@ Run in the sandbox: `cd tests && ./run_all.sh ../index_tmp.html` → must end in
 - Daily ¡Alto! stays available at any time (one answer minimum); fairness comes from the scoring (option D, ½ per miss, built v386), not from blocking the button (3 Nov).
 - Daily category "Superhéroe o villano" is now ES "Héroe o villano de ficción" / EN "Fictional hero or villain" / FR "Héros ou vilain de fiction" (Oscar prefers "vilain" to "méchant"). Renamed in place in `DAILY_CAT_DATA`: keep its position and letters (daily picks depend on the order). Fiction is said in the name, not in the judge prompt (v387).
 - Keep 🤔 for now (data in Product ideas, 3 Nov).
+- Themed days: a title or name goes by its first letter as written (The Beatles = T, La Bamba = L). Themed-day result title = primary 26px (option A, 4 Nov). Rain design as in the Architecture map (agreed step by step with Oscar, v389–v394).
+- Testing economy (4 Nov): targeted checks for small changes; the full kit before production.
 - Siguiendo shows only followed players who played (v374); ranks are dense; legend always shown.
 - One judge prompt for every mode; ¿Error? asks one model.
 - News in the HTML, not Firebase; ~4 days each.

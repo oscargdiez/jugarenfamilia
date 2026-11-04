@@ -1919,3 +1919,32 @@ Plan agreed by Oscar (A with the automatic second look; B "no changes").
 ### v261103.388: PRODUCTION (3 Nov) = staging v387-tmp
 - Diff vs v387-tmp: version string only. Version grep before (v387-tmp ×2, v385 ×2) and after (v388 ×2). Checklist: 12 screens, init block once, no `-tmp` in the version (the 3 regex `-tmp` remain), `node --check` clean, full kit on the production file ALL GREEN. ~429 KB raw, ~118 KB gzipped.
 - The speed bonus starts 2026-11-04 (= the day after the production deploy); news 4–7 Nov.
+
+---
+
+## Session 32, continued (4 Nov) — Production v261103.388 → v261104.395
+
+### Talks (no build)
+- Workflow: Projects and GitHub. Claude's advice: GitHub is the bigger win (no zip upload, Claude pushes staging; rollback = `git revert` + push, or the Revert button on a merged PR). A Project only saves pasting the rules; keep the handoff in the repo, not as a project file. If GitHub is connected: commit `tests/` and `tools/` (no secrets), never `firebase_backups/`. Not set up yet.
+- Long chats: wrap after each production deploy, before big builds and after heavy data analysis; the handoff is the only reliable carry-over between chats.
+- Ideas to make the game more fun (Claude's top 3: 🔥 streaks, weekly league among followed players, themed days; kids mode as the bigger bet). Oscar picked themed days, tied to dates.
+- Dates checked (web): Monet died 5 Dec 1926 (centenary, the strongest hook; Disney born 5 Dec 1901, Mozart died 5 Dec 1791), Agatha Christie disappeared 3 Dec 1926, Thanksgiving 26 Nov 2026, Children's Day 20 Nov, Santa Cecilia 22 Nov. Avoid sad or political anniversaries (Franco 20 Nov, JFK 22 Nov, Lennon 8 Dec); frame deaths as homages.
+
+### v389–v394 (staging): first themed day, Santa Cecilia (Sunday 22 Nov)
+- `DAILY_OVERRIDES['2026-11-22']`: letter B; ES Instrumento, Cantante o banda famosa, Compositor, Baile o danza, Canción, Género musical; EN Instrument, Singer or famous band, Composer, Dance, Song, Music genre; FR Instrument, Chanteur ou groupe célèbre, Compositeur, Danse, Chanson, Genre musical. Titles "🎵 Santa Cecilia: día de la música" / "🎵 St Cecilia's Day: music" / "🎵 Sainte-Cécile : la musique". Oscar: a title goes by its first letter as written (The Beatles = T, La Bamba = L).
+- The override mechanism existed but was never used before. 90 days × 3 languages compared with production: only the 3 language-days of 22 Nov change.
+- News: `2026-11-20-cecilia` (20–21 Nov, "El domingo es Santa Cecilia…") and `2026-11-22-cecilia` (22 Nov, "Hoy es Santa Cecilia…").
+- Preview: `?dia=YYYY-MM-DD` (`DAILY_PREVIEW_DAY`, `dailyPreviewKey()`) plays that day, only for test names starting with `__` (which never save); the date header follows it. Ignored for normal names and malformed dates.
+- Rain (`rain: [emojis]` in the override entry): iterated with Oscar over v389–v394.
+  - v389: a 4 s shower on top on home (once per app open) and on the result. Oscar saw the notes sitting static at the top edge before falling (they started at top −20px with a random delay).
+  - v391: home = sparse and continuous, on a new `#theme-bg-stage` (fixed, z-index −1) behind the content, while the home screen shows; result = short burst on top. Rain only lives on home and the daily result (`show()` stops it elsewhere); started at app open when home is showing (init line after `tryRestore()`).
+  - v392: three layers per note: `.theme-rain` falls linearly (`themeFall`) > `.tr-sway` sways ±amp with ease-in-out alternate (sine-like, `themeSway`) > `.tr-tilt` tilts ±10° on the same wave (`themeTilt`). Random phase per note (negative delay, already moving), swing 1.25–2 s, width 8–20px.
+  - v393: 20% of home notes in front (on `#confetti-stage`), fully solid; the rest behind at opacity 0.6.
+  - v394: depth: front notes 21–24px solid, behind 14–20px faint (max 24px as before); tilt lags 2/8 of a cycle behind the sway.
+  - Never while playing; none with "reduce motion"; Práctica never rains.
+- v390: the themed-day result title uses the primary slot (26px) instead of hero 32px (Oscar chose A over "Reto diario" + subtitle B).
+- Tests: NEW `suites/test_build7_themed_day.mjs` (21) and `restore/themed_scenarios.py` (35). `clock_scenarios.py` C3 fixed: it expected the old speed bonus and failed from 4 Nov on production too (date bomb). It now checks `speedRaw` (secsLeft/90). Scout v5.9: +13 cases for Canción/Song/Chanson and Género musical (La Bamba / The Boxer / La Bohème = ❌); Oscar to run it once on the hotspot.
+- Oscar asked for economy with tool use: for small changes run only the targeted checks; the full kit runs once, before a production promotion.
+
+### v261104.395: PRODUCTION (4 Nov) = staging v394-tmp
+- Diff vs v394-tmp: version string only. Checklist: 12 screens, init block once, no `-tmp` in the version, `node --check` clean, full kit on the production file. ~437 KB raw, ~121 KB gzipped.
