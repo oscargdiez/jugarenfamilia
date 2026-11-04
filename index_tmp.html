@@ -2245,6 +2245,8 @@ window.show = function(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('on'));
   document.getElementById('s-'+id).classList.add('on');
   G.screen = id;
+  if (id !== 'home' && id !== 'daily-result') stopThemeRain(); // v389: rain only on home and the daily result
+  if (id === 'home') { try { maybeThemeRain('home', getDailyKey()); } catch (e) {} }
   // Show timer bubble only on playing/daily-play screens
   if (!['playing','daily-play'].includes(id)) setTimerBubble(0, false);
   // Set body class for CSS screen-specific rules
@@ -2569,9 +2571,22 @@ const DAILY_CAT_DATA = {
 };
 // ── Themed day overrides ──────────────────────────────
 // Add entries keyed by YYYY-MM-DD to override the normal seed-based picker.
-// Each entry: { letter, theme:{es,en,fr}, categories:{es:[...],en:[...],fr:[...]} }
-// Categories must be valid display names (not keys) for each language.
+// Each entry: { letter, theme:{es,en,fr}, categories:{es:[...],en:[...],fr:[...]}, rain?:[emojis] }
+// Categories must be valid display names (not keys) for each language. All three languages, or the day stays normal
+// for the missing one. `rain`: emojis that fall for ~4 s on the home screen (once per app open) and on the daily
+// result (v389). Preview a future themed day with ?dia=YYYY-MM-DD and a test name starting with __ (saves nothing).
 const DAILY_OVERRIDES = {
+  // v389: first themed day. Santa Cecilia, patron saint of music (Sunday). The Beatles = T (first letter as written).
+  '2026-11-22': {
+    letter: 'B',
+    theme: { es: '🎵 Santa Cecilia: día de la música', en: "🎵 St Cecilia's Day: music", fr: '🎵 Sainte-Cécile : la musique' },
+    categories: {
+      es: ['Instrumento', 'Cantante o banda famosa', 'Compositor', 'Baile o danza', 'Canción', 'Género musical'],
+      en: ['Instrument', 'Singer or famous band', 'Composer', 'Dance', 'Song', 'Music genre'],
+      fr: ['Instrument', 'Chanteur ou groupe célèbre', 'Compositeur', 'Danse', 'Chanson', 'Genre musical'],
+    },
+    rain: ['🎵', '🎶', '🎻', '🎺', '🥁', '🎷', '🎸', '🎹'],
+  },
   // '2026-10-31': {
   //   letter: 'B',
   //   theme: { es: '🎃 Halloween', en: '🎃 Halloween', fr: '🎃 Halloween' },
@@ -2658,6 +2673,14 @@ function dailyUpdateAltoBtn() {
 }
 
 const NEWS = [
+  { id: '2026-11-20-cecilia', type: 'info', from: '2026-11-20', until: '2026-11-21',
+    es: '🎵 El domingo es Santa Cecilia: ¡reto diario musical!',
+    en: "🎵 Sunday is St Cecilia's Day: a musical daily challenge!",
+    fr: '🎵 Dimanche, c\'est la Sainte-Cécile : défi du jour musical !' },
+  { id: '2026-11-22-cecilia', type: 'info', from: '2026-11-22', until: '2026-11-22',
+    es: '🎵 Hoy es Santa Cecilia: ¡reto diario musical!',
+    en: "🎵 Today is St Cecilia's Day: a musical daily challenge!",
+    fr: '🎵 Aujourd\'hui, c\'est la Sainte-Cécile : défi du jour musical !' },
   { id: '2026-11-04-speed', type: 'info', from: DAILY_SPEED_V2_FROM, until: '2026-11-07',
     es: '⚡ Desde hoy, cada fallo o respuesta en blanco quita la mitad del bonus de velocidad',
     en: '⚡ From today, each blank or wrong answer halves your speed bonus',
@@ -2693,7 +2716,18 @@ window.dismissNews = (id) => {
   renderNews();
 };
 
+// v389: ?dia=YYYY-MM-DD plays that day instead of today, only for test names (__…), which never save.
+const DAILY_PREVIEW_DAY = (() => {
+  try { const v = new URLSearchParams(location.search).get('dia'); return (v && /^\d{4}-\d{2}-\d{2}$/.test(v)) ? v : null; } catch (e) { return null; }
+})();
+function dailyPreviewKey() {
+  if (!DAILY_PREVIEW_DAY) return null;
+  const n = (document.getElementById('inp-name')?.value || localStorage.getItem('alto_name') || '').trim();
+  return n.startsWith('__') ? DAILY_PREVIEW_DAY : null;
+}
 function getDailyKey() {
+  const _pk = dailyPreviewKey();
+  if (_pk) return _pk;
   const d = new Date();
   return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
 }
@@ -3014,6 +3048,7 @@ function initDaily() {
 
   const setup = G_daily.practiceMode && window._practiceSetup ? window._practiceSetup : getDailySetup();
   window._practiceSetup = null;
+  stopThemeRain();
   G_daily.letter = setup.letter;
   G_daily.key = setup.key;
   G_daily.answers = {};
@@ -3529,6 +3564,7 @@ async function showDailyResult(answers, baseScore, totalScore, aiResults, secsLe
 
   // Recompute baseScore and totalScore from aiResults — never trust stored values
   // (localStorage/Firebase can be stale if a recontest changed verdicts inconsistently)
+  if (!G_daily.practiceMode && G_daily.key) { try { maybeThemeRain('result', G_daily.key); } catch (e) {} } // v389
   // v386: dailyRecount (speed bonus cut by misses when the entry has speedRaw; older entries keep their multiplier)
   G_daily.answers = answers;
   G_daily.aiResults = aiResults;
@@ -4487,7 +4523,8 @@ function renderGuestInfo(room) {
 
 // ── Daily challenge helpers ────────────────────────────
 function getDailyDateString(short) {
-  const now = new Date();
+  const _pk = dailyPreviewKey();
+  const now = _pk ? new Date(_pk + 'T12:00:00') : new Date();
   const localeMap = { es:'es-ES', en:'en-GB', fr:'fr-FR' };
   const locale = localeMap[LANG] || 'es-ES';
   const day = now.getDate();
@@ -5801,6 +5838,51 @@ function launchConfetti(winnerEmoji) {
   for (let i = 0; i < 5; i++) setTimeout(() => spawnConfettiBatch(stage, pieces, colors), i * 200);
   // Keep going
   G_confettiInterval = setInterval(() => spawnConfettiBatch(stage, pieces, colors), 600);
+}
+
+// ── Themed-day rain (v389) ─────────────────────────────
+// A short shower of the day's emojis (DAILY_OVERRIDES[key].rain) on the confetti stage. Emojis only, lighter than
+// the final-score confetti, stops by itself, never while playing, none with "reduce motion".
+let G_themeRainTimer = null;
+const _themeRainShown = {};
+function launchThemeRain(pieces, ms) {
+  const stage = document.getElementById('confetti-stage');
+  if (!stage || !pieces || !pieces.length) return;
+  try { if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return; } catch (e) {}
+  stopThemeRain();
+  const batch = () => {
+    for (let i = 0; i < 6; i++) {
+      const el = document.createElement('div');
+      el.className = 'confetti-piece theme-rain';
+      el.textContent = pieces[Math.floor(Math.random() * pieces.length)];
+      el.style.fontSize = (16 + Math.random() * 14) + 'px';
+      el.style.left = Math.random() * 100 + '%';
+      const dur = 2.5 + Math.random() * 2;
+      el.style.animationDuration = dur + 's';
+      el.style.animationDelay = (Math.random() * 0.4) + 's';
+      stage.appendChild(el);
+      setTimeout(() => el.remove(), (dur + 0.5) * 1000);
+    }
+  };
+  batch();
+  const started = Date.now();
+  G_themeRainTimer = setInterval(() => {
+    if (Date.now() - started >= (ms || 4000)) { clearInterval(G_themeRainTimer); G_themeRainTimer = null; return; }
+    batch();
+  }, 500);
+}
+function stopThemeRain() {
+  if (G_themeRainTimer) { clearInterval(G_themeRainTimer); G_themeRainTimer = null; }
+  document.querySelectorAll('#confetti-stage .theme-rain').forEach(el => el.remove());
+}
+// where: 'home' (once per app open) or 'result' (once per day per app open). Practice never rains.
+function maybeThemeRain(where, key) {
+  const ov = DAILY_OVERRIDES[key];
+  if (!ov || !ov.rain || !ov.categories || !ov.categories[LANG]) return;
+  const tag = where + ':' + key;
+  if (_themeRainShown[tag]) return;
+  _themeRainShown[tag] = true;
+  launchThemeRain(ov.rain, 4000);
 }
 
 function stopConfetti() {
@@ -7953,13 +8035,15 @@ applyLang();
 document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.getAttribute('onclick').includes("'"+LANG+"'")));
 try { const s=readSession(sessionStorage) || readSession(localStorage) || {}; const _n=document.getElementById('inp-name'); if(_n && !_n.value) { if(s.name) _n.value=s.name; else { const _saved=localStorage.getItem('alto_name'); if(_saved) _n.value=_saved; } } if(_n && _n.value) scheduleNameCheck(_n.value); } catch(e){}
 tryRestore();
+// v389: themed-day rain when the app opens on the home screen (a restored room switches screen and stops it)
+try { if (document.getElementById('s-home')?.classList.contains('on')) maybeThemeRain('home', getDailyKey()); } catch(e){}
 // Ensure daily button played state wins any init timing race (especially iOS)
 setTimeout(() => updateDailyButtonDate(), 350);
 
 // Version freshness check — silently reload if a newer version is deployed
 // Runs once on load; does nothing if already on latest or if fetch fails
 (function() {
-  const RUNNING = 'v261103.387-tmp';
+  const RUNNING = 'v261104.389-tmp';
   if (sessionStorage.getItem('alto_ver_checked') === RUNNING) return; // already checked this session
   sessionStorage.setItem('alto_ver_checked', RUNNING);
   fetch(location.href, { cache: 'no-cache' })
@@ -7983,7 +8067,7 @@ syncMyGroups(); // registered + verified name: bring in groups from the name's o
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v261103.387-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v261104.389-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
