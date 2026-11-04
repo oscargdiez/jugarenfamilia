@@ -2540,7 +2540,7 @@ const DAILY_CAT_DATA = {
   "Escritor": {group:"historia_cultura",es:"ABCDEFGHJLMNOPRSTV",en:"ABCDEFGHJKLMNOPRSTV",fr:"ABCDEFGHJLMNOPRSTV",name_en:"Writer",name_fr:"Écrivain"},
   "Científico": {group:"historia_cultura",es:"ABCDEFGHMNPT",en:"ABCDEFGHKMNPT",fr:"ABCDEFGHMNPT",name_en:"Scientist",name_fr:"Scientifique"},
   "Criatura mítica": {group:"historia_cultura",es:"ABCDEFGHLMOPSTV",en:"BCDFGHKLMOPSTV",fr:"BCDFGHLMOPSTV",name_en:"Mythical creature",name_fr:"Créature mythique"},
-  "Superhéroe o villano": {group:"historia_cultura",es:"ABCDFGHIJLMPRSTV",en:"ABCDFGHIJLMPRSTV",fr:"ABCDFGHIJLMPRSTV",name_en:"Superhero or villain",name_fr:"Super-héros ou vilain"},
+  "Héroe o villano de ficción": {group:"historia_cultura",es:"ABCDFGHIJLMPRSTV",en:"ABCDFGHIJLMPRSTV",fr:"ABCDFGHIJLMPRSTV",name_en:"Fictional hero or villain",name_fr:"Héros ou vilain de fiction"}, // v387: was Superhéroe o villano (same place = same daily picks)
   "Parte del cuerpo": {group:"ciencia",es:"BCDEFGHILMNOPRSTV",en:"ABCEFHKLMNPRST",fr:"BCDEFGHJLMNOPRSTV",name_en:"Body part",name_fr:"Partie du corps"},
   "Planeta o astro": {group:"ciencia",es:"JMNPSTV",en:"EJMNPSV",fr:"JMNPSTV",name_en:"Planet or star",name_fr:"Planète ou astre"},
   "Animal extinto": {group:"ciencia",es:"ABDEIMPRTUV",en:"ABDIMPSTVW",fr:"ABDIMPRSTV",name_en:"Extinct animal",name_fr:"Animal disparu"},
@@ -7959,7 +7959,7 @@ setTimeout(() => updateDailyButtonDate(), 350);
 // Version freshness check — silently reload if a newer version is deployed
 // Runs once on load; does nothing if already on latest or if fetch fails
 (function() {
-  const RUNNING = 'v261103.386-tmp';
+  const RUNNING = 'v261103.387-tmp';
   if (sessionStorage.getItem('alto_ver_checked') === RUNNING) return; // already checked this session
   sessionStorage.setItem('alto_ver_checked', RUNNING);
   fetch(location.href, { cache: 'no-cache' })
@@ -7983,7 +7983,7 @@ syncMyGroups(); // registered + verified name: bring in groups from the name's o
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v261103.386-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v261103.387-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
