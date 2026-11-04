@@ -5881,14 +5881,15 @@ function launchThemeRain(pieces, mode, ms) {
     const tilt = document.createElement('span'); tilt.className = 'tr-tilt';
     tilt.textContent = pieces[Math.floor(Math.random() * pieces.length)];
     sway.appendChild(tilt); el.appendChild(sway);
-    el.style.fontSize = (amb ? 16 + Math.random() * 8 : 16 + Math.random() * 14) + 'px';
+    // v394 depth: in front = big (21–24px) and solid; behind = small (14–20px) and faint. Same max as before.
+    el.style.fontSize = (amb ? (inFront ? 21 + Math.random() * 3 : 14 + Math.random() * 6) : 16 + Math.random() * 14) + 'px';
     if (amb && !inFront) el.style.opacity = '0.6'; // behind: faint; in front: solid (v393)
     el.style.left = (4 + Math.random() * 88) + '%';
     const dur = amb ? 6 + Math.random() * 3 : 2.8 + Math.random() * 1.8;
     el.style.animationDuration = dur + 's';
-    // sway: one swing every P s, width ±amp, random phase (negative delay = already moving); tilt lags 1/8 cycle
+    // sway: one swing every P s, width ±amp, random phase (negative delay = already moving); tilt lags 2/8 of a cycle (v394)
     const P = amb ? 1.25 + Math.random() * 0.75 : 0.8 + Math.random() * 0.5;
-    const lag = P / 4, phase = -(Math.random() * 2 * P) - lag;
+    const lag = P / 2, phase = -(Math.random() * 2 * P) - lag;
     sway.style.setProperty('--amp', (amb ? 8 + Math.random() * 12 : 10 + Math.random() * 10) + 'px');
     sway.style.animationDuration = P + 's'; sway.style.animationDelay = phase + 's';
     tilt.style.animationDuration = P + 's'; tilt.style.animationDelay = (phase + lag) + 's';
@@ -8083,7 +8084,7 @@ setTimeout(() => updateDailyButtonDate(), 350);
 // Version freshness check — silently reload if a newer version is deployed
 // Runs once on load; does nothing if already on latest or if fetch fails
 (function() {
-  const RUNNING = 'v261104.393-tmp';
+  const RUNNING = 'v261104.394-tmp';
   if (sessionStorage.getItem('alto_ver_checked') === RUNNING) return; // already checked this session
   sessionStorage.setItem('alto_ver_checked', RUNNING);
   fetch(location.href, { cache: 'no-cache' })
@@ -8107,7 +8108,7 @@ syncMyGroups(); // registered + verified name: bring in groups from the name's o
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v261104.393-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v261104.394-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
