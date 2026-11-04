@@ -3612,6 +3612,8 @@ async function showDailyResult(answers, baseScore, totalScore, aiResults, secsLe
   const lbCard = document.getElementById('daily-lb-card');
   const resultTitle = document.getElementById('daily-result-title');
   const dateEl = document.getElementById('daily-result-date');
+  // v390: a themed day's long title uses the primary slot (26px) instead of hero 32px (Oscar's choice, option A)
+  if (resultTitle) resultTitle.style.fontSize = (!G_daily.practiceMode && G_daily.theme) ? '26px' : '32px';
   if (G_daily.practiceMode) {
     if (lbCard) lbCard.style.display = 'none';
     const _dl2 = dl();
@@ -8043,7 +8045,7 @@ setTimeout(() => updateDailyButtonDate(), 350);
 // Version freshness check — silently reload if a newer version is deployed
 // Runs once on load; does nothing if already on latest or if fetch fails
 (function() {
-  const RUNNING = 'v261104.389-tmp';
+  const RUNNING = 'v261104.390-tmp';
   if (sessionStorage.getItem('alto_ver_checked') === RUNNING) return; // already checked this session
   sessionStorage.setItem('alto_ver_checked', RUNNING);
   fetch(location.href, { cache: 'no-cache' })
@@ -8067,7 +8069,7 @@ syncMyGroups(); // registered + verified name: bring in groups from the name's o
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v261104.389-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v261104.390-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
