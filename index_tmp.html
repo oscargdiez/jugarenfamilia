@@ -754,6 +754,18 @@ button.lb-star:hover { background: transparent; }
 }
 /* ── Confetti ── */
 .confetti-stage { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 998; overflow: hidden; }
+/* v391: themed-day rain. Own gentle drift (no spin), starts fully above the screen and stays hidden until it moves
+   (fill both). Home: sparse and continuous on #theme-bg-stage BEHIND the content; result: short burst on top. */
+.theme-bg-stage { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: -1; overflow: hidden; }
+body.iphone-mode .theme-bg-stage { position: absolute; }
+.theme-rain { position: absolute; top: -90px; line-height: 1; animation: themeDrift linear both; will-change: transform; }
+@keyframes themeDrift {
+  0%   { transform: translate(0, 0) rotate(-10deg); }
+  25%  { transform: translate(14px, calc(25vh + 25px)) rotate(8deg); }
+  50%  { transform: translate(-12px, calc(50vh + 50px)) rotate(-8deg); }
+  75%  { transform: translate(12px, calc(75vh + 75px)) rotate(8deg); }
+  100% { transform: translate(0, calc(100vh + 110px)) rotate(-6deg); }
+}
 .confetti-piece { position: absolute; top: -20px; font-size: 16px; animation: confettiFall linear forwards; }
 @keyframes confettiFall {
   0%   { transform: translateY(0) rotate(0deg) scale(1); opacity: 1; }
@@ -976,6 +988,7 @@ document.addEventListener('DOMContentLoaded', function() {
 <!-- legacy id kept for startTimer compat -->
 <div id="fixed-topbar" style="display:none"></div>
 <div class="confetti-stage" id="confetti-stage"></div>
+<div class="theme-bg-stage" id="theme-bg-stage"></div>
 <div id="urgency-overlay"></div>
 <div id="countdown-overlay">
   <div id="countdown-number">10</div>
@@ -2246,6 +2259,7 @@ window.show = function(id) {
   document.getElementById('s-'+id).classList.add('on');
   G.screen = id;
   if (id !== 'home' && id !== 'daily-result') stopThemeRain(); // v389: rain only on home and the daily result
+  if (id === 'daily-result' && G_themeRainMode === 'ambient') stopThemeRain(); // v391
   if (id === 'home') { try { maybeThemeRain('home', getDailyKey()); } catch (e) {} }
   // Show timer bubble only on playing/daily-play screens
   if (!['playing','daily-play'].includes(id)) setTimerBubble(0, false);
@@ -5845,46 +5859,57 @@ function launchConfetti(winnerEmoji) {
 // ── Themed-day rain (v389) ─────────────────────────────
 // A short shower of the day's emojis (DAILY_OVERRIDES[key].rain) on the confetti stage. Emojis only, lighter than
 // the final-score confetti, stops by itself, never while playing, none with "reduce motion".
-let G_themeRainTimer = null;
+let G_themeRainTimer = null, G_themeRainMode = null;
 const _themeRainShown = {};
-function launchThemeRain(pieces, ms) {
-  const stage = document.getElementById('confetti-stage');
+// mode 'ambient': home, behind the content, ~1 note/s, slow (6–9 s), soft, until stopThemeRain().
+// mode 'burst': daily result, on top, 6 notes every 0.5 s for `ms`, then stops by itself.
+function launchThemeRain(pieces, mode, ms) {
+  const amb = mode === 'ambient';
+  const stage = document.getElementById(amb ? 'theme-bg-stage' : 'confetti-stage');
   if (!stage || !pieces || !pieces.length) return;
   try { if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return; } catch (e) {}
   stopThemeRain();
-  const batch = () => {
-    for (let i = 0; i < 6; i++) {
-      const el = document.createElement('div');
-      el.className = 'confetti-piece theme-rain';
-      el.textContent = pieces[Math.floor(Math.random() * pieces.length)];
-      el.style.fontSize = (16 + Math.random() * 14) + 'px';
-      el.style.left = Math.random() * 100 + '%';
-      const dur = 2.5 + Math.random() * 2;
-      el.style.animationDuration = dur + 's';
-      el.style.animationDelay = (Math.random() * 0.4) + 's';
-      stage.appendChild(el);
-      setTimeout(() => el.remove(), (dur + 0.5) * 1000);
-    }
+  G_themeRainMode = mode;
+  const drop = () => {
+    const el = document.createElement('div');
+    el.className = 'theme-rain';
+    el.textContent = pieces[Math.floor(Math.random() * pieces.length)];
+    el.style.fontSize = (amb ? 16 + Math.random() * 8 : 16 + Math.random() * 14) + 'px';
+    if (amb) el.style.opacity = '0.6';
+    el.style.left = (Math.random() * 94) + '%';
+    const dur = amb ? 6 + Math.random() * 3 : 2.8 + Math.random() * 1.8;
+    el.style.animationDuration = dur + 's';
+    stage.appendChild(el);
+    setTimeout(() => el.remove(), (dur + 0.3) * 1000);
   };
-  batch();
-  const started = Date.now();
-  G_themeRainTimer = setInterval(() => {
-    if (Date.now() - started >= (ms || 4000)) { clearInterval(G_themeRainTimer); G_themeRainTimer = null; return; }
+  if (amb) {
+    drop();
+    G_themeRainTimer = setInterval(drop, 1100);
+  } else {
+    const batch = () => { for (let i = 0; i < 6; i++) setTimeout(drop, Math.random() * 450); };
     batch();
-  }, 500);
+    const started = Date.now();
+    G_themeRainTimer = setInterval(() => {
+      if (Date.now() - started >= (ms || 4000)) { clearInterval(G_themeRainTimer); G_themeRainTimer = null; G_themeRainMode = null; return; }
+      batch();
+    }, 500);
+  }
 }
 function stopThemeRain() {
   if (G_themeRainTimer) { clearInterval(G_themeRainTimer); G_themeRainTimer = null; }
-  document.querySelectorAll('#confetti-stage .theme-rain').forEach(el => el.remove());
+  G_themeRainMode = null;
+  document.querySelectorAll('.theme-rain').forEach(el => el.remove());
 }
-// where: 'home' (once per app open) or 'result' (once per day per app open). Practice never rains.
+// 'home': continuous while the home screen shows (not restarted if already falling).
+// 'result': one burst per day per app open. Practice never rains.
 function maybeThemeRain(where, key) {
   const ov = DAILY_OVERRIDES[key];
   if (!ov || !ov.rain || !ov.categories || !ov.categories[LANG]) return;
+  if (where === 'home') { if (G_themeRainMode !== 'ambient') launchThemeRain(ov.rain, 'ambient'); return; }
   const tag = where + ':' + key;
   if (_themeRainShown[tag]) return;
   _themeRainShown[tag] = true;
-  launchThemeRain(ov.rain, 4000);
+  launchThemeRain(ov.rain, 'burst', 4000);
 }
 
 function stopConfetti() {
@@ -8045,7 +8070,7 @@ setTimeout(() => updateDailyButtonDate(), 350);
 // Version freshness check — silently reload if a newer version is deployed
 // Runs once on load; does nothing if already on latest or if fetch fails
 (function() {
-  const RUNNING = 'v261104.390-tmp';
+  const RUNNING = 'v261104.391-tmp';
   if (sessionStorage.getItem('alto_ver_checked') === RUNNING) return; // already checked this session
   sessionStorage.setItem('alto_ver_checked', RUNNING);
   fetch(location.href, { cache: 'no-cache' })
@@ -8069,7 +8094,7 @@ syncMyGroups(); // registered + verified name: bring in groups from the name's o
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v261104.390-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v261104.391-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
