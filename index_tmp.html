@@ -2518,6 +2518,10 @@ const AI_MODELS = [
   'inclusionai/ling-3.0-flash',
   'cohere/north-mini-code:free'
 ];
+// v396: Ling has two providers (Novita, DeepInfra) that don't always agree at temperature 0 (4-12 Nov: "Electricite" and
+// "Escurridor" overturned for one player and upheld for another on the same day). Ask Novita first; DeepInfra only when
+// Novita is down. Models without Novita (Cohere free) are routed as before. The answering provider is saved as aiInfo.p.
+const AI_PROVIDER = { order: ['novita'], allow_fallbacks: true };
 // DAILY_CONSENSUS: set true to use 2-model consensus + tiebreaker, false for single model
 const DAILY_CONSENSUS = false;
 // CONTEST_METHOD: 'A' = strict scope + strict spelling | 'B' = generous scope only, strict spelling. Either way ¿Error? asks ONE model
@@ -3261,10 +3265,10 @@ window.dailySubmit = async function(fromTimer = false) {
     if (DAILY_CONSENSUS) {
       aiResults[i] = await dailyAIValidate(word, G_daily.categories[i], G_daily.letter);
     } else {
-      const { verdict, rawText, model, cut, retried, timedOut, ms, error, errMsg } = await dailyAICallModel(word, G_daily.categories[i], G_daily.letter, AI_MODELS, ...dailyBuildPromptWithWord(word, G_daily.categories[i], G_daily.letter));
+      const { verdict, rawText, model, provider, cut, retried, timedOut, ms, error, errMsg } = await dailyAICallModel(word, G_daily.categories[i], G_daily.letter, AI_MODELS, ...dailyBuildPromptWithWord(word, G_daily.categories[i], G_daily.letter));
       aiResults[i] = verdict;
       if ((verdict === 'invalid' || verdict === 'unsure') && rawText) aiResponses[i] = rawText;
-      aiInfo[i] = { model: model || '', s: Math.round((ms || 0) / 100) / 10, ...(cut ? { cut: true } : {}), ...(retried ? { retried: true } : {}), ...(timedOut ? { timeout: true } : {}), ...(error ? { error } : {}), ...(errMsg ? { msg: errMsg } : {}) };
+      aiInfo[i] = { model: model || '', s: Math.round((ms || 0) / 100) / 10, ...(provider ? { p: provider } : {}), ...(cut ? { cut: true } : {}), ...(retried ? { retried: true } : {}), ...(timedOut ? { timeout: true } : {}), ...(error ? { error } : {}), ...(errMsg ? { msg: errMsg } : {}) };
     }
   };
   const AI_PARALLEL = 3;
@@ -3469,7 +3473,8 @@ async function aiJudgeCall(systemPrompt, prompt, models, timeoutMs) {
         ...(Array.isArray(useModels) ? { models: useModels } : { model: useModels }),
         messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: prompt }],
         max_tokens: AI_MAX_TOKENS,
-        temperature: 0
+        temperature: 0,
+        provider: AI_PROVIDER
       })
     });
     if (!response.ok) {
@@ -3487,7 +3492,7 @@ async function aiJudgeCall(systemPrompt, prompt, models, timeoutMs) {
     else if (reasoning) { const w = aiWords(reasoning); verdict = AI_VERDICT_WORDS[w[w.length - 1]] || null; }
     // Keep the END of the text: that is where a verdict (or the point where it got stuck) is
     const raw = content || (reasoning ? '[reasoning only' + (cut ? ', cut' : '') + '] ' + reasoning.slice(-950) : '');
-    return { verdict, rawText: raw.slice(-1000) || null, model: data.model || '', cut, empty: !content };
+    return { verdict, rawText: raw.slice(-1000) || null, model: data.model || '', provider: String(data.provider || '').slice(0, 40), cut, empty: !content };
   };
   const t0 = Date.now();
   const isTimeoutErr = e => e?.name === 'TimeoutError' || e?.name === 'AbortError';
@@ -3515,7 +3520,7 @@ async function aiJudgeCall(systemPrompt, prompt, models, timeoutMs) {
     retried = true;
     try { const r2 = await once(); if (r2.verdict || !r.rawText) r = r2; } catch (e) { console.warn('[AI] retry failed:', e.message); }
   }
-  return { verdict: r.verdict || 'unsure', rawText: r.rawText, model: r.model, cut: r.cut, retried, timedOut, ms: Date.now() - t0 };
+  return { verdict: r.verdict || 'unsure', rawText: r.rawText, model: r.model, provider: r.provider || '', cut: r.cut, retried, timedOut, ms: Date.now() - t0 };
 }
 
 // A bare letter ("B", "H.") is never an answer: rejected here without asking the robot (v364).
@@ -3685,7 +3690,7 @@ async function dailyAutoRejudge() {
       const cat = cats[i];
       const old = info[i] || info[String(i)] || {};
       const r = await dailyAICallModel(word, cat, game.letter, AI_MODELS, ...dailyBuildPromptWithWord(word, cat, game.letter));
-      const newInfo = { model: r.model || '', s: Math.round((r.ms || 0) / 100) / 10, rejudged: true, first: old.error, ...(old.msg ? { firstMsg: old.msg } : {}),
+      const newInfo = { model: r.model || '', s: Math.round((r.ms || 0) / 100) / 10, ...(r.provider ? { p: r.provider } : {}), rejudged: true, first: old.error, ...(old.msg ? { firstMsg: old.msg } : {}),
         ...(r.retried ? { retried: true } : {}), ...(r.error ? { error: r.error } : {}), ...(r.errMsg ? { msg: r.errMsg } : {}) };
       if (!sameGame()) return;
       if (Array.isArray(G_daily.aiInfo)) G_daily.aiInfo[i] = newInfo; else G_daily.aiInfo[String(i)] = newInfo;
@@ -3771,11 +3776,13 @@ window.recontest = async (idx, word, cat) => {
     // v384: accents and near-foreign spellings, same examples as the daily prompt
     const accentEx = {es: '"violin" = "violín", "vals vienes" = "vals vienés"', en: '"cafe" = "café", "naive" = "naïve"', fr: '"eleve" = "élève", "foret" = "forêt"'}[LANG] || '"violin" = "violín"';
     const nearEx = {es: '"Giraffe" for "jirafa", "Jasmine" for "jazmín"', en: '"Girafe" for "giraffe", "Jasmin" for "jasmine"', fr: '"Giraffe" for "girafe", "Piton" for "python", "Jazmin" for "jasmin"'}[LANG] || '"Giraffe" for "jirafa"';
+    // v396: a made-up description is not an answer (4-12 Nov: "Ballena jurásica", "Birloche" overturned)
+    const madeEx = {es: '"ballena jurásica"', en: '"jurassic whale"', fr: '"baleine jurassique"'}[LANG] || '"ballena jurásica"';
 
     // Method A: strict scope, 2-of-3 threshold, DUDOSO upholds
     // Method B: generous scope only, 1-of-3 threshold, DUDOSO upholds, spelling always strict
     const systemPrompt = CONTEST_METHOD === 'B'
-      ? `You are a judge of a ${gameLang}-language word game. A previous judge ruled an answer INVALID; check it again with fresh eyes. Ignore capital letters and accents: an answer that is right apart from its accents is the ${gameLang} word (e.g. ${accentEx}). STRICT RULE on spelling: any spelling mistake beyond accents or tildes is INVALIDO — wrong letters, missing letters, or added letters are never acceptable (applies to common words; proper nouns like names and places must also be spelled correctly), e.g. ${spellEx}. Proper nouns are international — person names, surnames, singers, actors, writers, fictional characters, song/film/TV titles, brands, cities, and countries are accepted in any language; only common nouns must be in ${gameLang}. Letters that sound the same are still spelling mistakes (b/v, g/j, ll/y, c/s/z, a missing or extra h). Never accept a name or word changed to fit the letter: an added, dropped or swapped first letter makes it INVALIDO. Only people's names may be written surname first; any other answer reordered to fit the letter is INVALIDO. If spelling is correct, rule VALIDO only if the answer clearly and genuinely belongs to the category (uncommon but real answers are fine). A vague or partial answer stays INVALIDO: a first name on its own for a person (unless famous under that one name), a model instead of a brand, a region instead of a city, a brand of another kind (a car brand is not a tech brand). If in doubt, rule INVALIDO. It must still be the kind of thing the category names: a category of people (athlete or sportsperson, writer, singer…) needs a specific person, not a sport, brand or object, a spice must be a spice or herb, not a dish or prepared food, and an extinct animal must no longer exist. A common noun from another language, or spelled the way another language spells it (e.g. ${nearEx}), stays INVALIDO. If in doubt about spelling, rule INVALIDO. Reply with exactly one word: VALIDO, INVALIDO, or DUDOSO.`
+      ? `You are a judge of a ${gameLang}-language word game. A previous judge ruled an answer INVALID; check it again with fresh eyes. Ignore capital letters and accents: an answer that is right apart from its accents is the ${gameLang} word (e.g. ${accentEx}). STRICT RULE on spelling: any spelling mistake beyond accents or tildes is INVALIDO — wrong letters, missing letters, or added letters are never acceptable (applies to common words; proper nouns like names and places must also be spelled correctly), e.g. ${spellEx}. Proper nouns are international — person names, surnames, singers, actors, writers, fictional characters, song/film/TV titles, brands, cities, and countries are accepted in any language; only common nouns must be in ${gameLang}. Letters that sound the same are still spelling mistakes (b/v, g/j, ll/y, c/s/z, a missing or extra h). Never accept a name or word changed to fit the letter: an added, dropped or swapped first letter makes it INVALIDO. Only people's names may be written surname first; any other answer reordered to fit the letter is INVALIDO. If spelling is correct, rule VALIDO only if the answer clearly and genuinely belongs to the category (uncommon but real answers are fine). A vague or partial answer stays INVALIDO: a first name on its own for a person (unless famous under that one name), a model instead of a brand, a region instead of a city, a brand of another kind (a car brand is not a tech brand). If in doubt, rule INVALIDO. It must still be the kind of thing the category names: a category of people (athlete or sportsperson, writer, singer…) needs a specific person, not a sport, brand or object, a spice must be a spice or herb, not a dish or prepared food, and an extinct animal must no longer exist. It must really exist under that name: a description made up to fit (a common word plus an adjective, e.g. ${madeEx}) is INVALIDO; an obscure but real name is fine. It must be exactly the kind the category names, not a close neighbour: a TV series is not a film, a style is not a type of building, a boat is not sports equipment, a library is not a shop. A common noun from another language, or spelled the way another language spells it (e.g. ${nearEx}), stays INVALIDO. If in doubt about spelling, rule INVALIDO. Reply with exactly one word: VALIDO, INVALIDO, or DUDOSO.`
       : `You are a fair judge of a ${gameLang}-language word game. A previous judge ruled an answer INVALID. Overturn only if: (1) the answer clearly and unambiguously belongs to the category — do not stretch the category definition; and (2) any error is limited to accents or tildes only — spelling mistakes, wrong letters, or missing letters are NOT grounds to overturn. If in doubt, uphold the original INVALIDO verdict. Reply with exactly one word: VALIDO, INVALIDO, or DUDOSO.`;
     const prompt = CONTEST_METHOD === 'B'
       ? `${gameLang}-language game. Letter: "${letter}". Category: "${cat.trim()}". Answer: "${word}". Does the answer start with "${letter}" and genuinely belong to the category? Note: proper nouns (person names, surnames, singers, actors, writers, cities, countries) are valid in any language — do not reject for being non-${gameLang}. Common nouns (animals, plants, fruits, food, drinks, objects, body parts, etc.) must be the ${gameLang} word — a word from another language is INVALIDO even if it means the right thing; loanwords normally used in ${gameLang} are fine. Spelling must be correct beyond accents/tildes. Reply with ONE word only: VALIDO, INVALIDO, or DUDOSO.`
@@ -3805,6 +3812,7 @@ window.recontest = async (idx, word, cat) => {
       method: CONTEST_METHOD,
       aiResponse: res1.rawText || null,
       model: res1.model || '',
+      ...(res1.provider ? { p: res1.provider } : {}),
       ...(res1.cut ? { cut: true } : {}),
       ...(res1.retried ? { retried: true } : {}),
       ...(typeof res1.ms === 'number' ? { s: Math.round(res1.ms / 100) / 10 } : {}),
@@ -8084,7 +8092,7 @@ setTimeout(() => updateDailyButtonDate(), 350);
 // Version freshness check — silently reload if a newer version is deployed
 // Runs once on load; does nothing if already on latest or if fetch fails
 (function() {
-  const RUNNING = 'v261104.394-tmp';
+  const RUNNING = 'v261112.396-tmp';
   if (sessionStorage.getItem('alto_ver_checked') === RUNNING) return; // already checked this session
   sessionStorage.setItem('alto_ver_checked', RUNNING);
   fetch(location.href, { cache: 'no-cache' })
@@ -8108,7 +8116,7 @@ syncMyGroups(); // registered + verified name: bring in groups from the name's o
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v261104.394-tmp</div>
+  <div style="font-size: 11px;opacity:0.5">v261112.396-tmp</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
