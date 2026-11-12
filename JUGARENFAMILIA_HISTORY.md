@@ -1948,3 +1948,8 @@ Plan agreed by Oscar (A with the automatic second look; B "no changes").
 
 ### v261104.395: PRODUCTION (4 Nov) = staging v394-tmp
 - Diff vs v394-tmp: version string only. Checklist: 12 screens, init block once, no `-tmp` in the version, `node --check` clean, full kit on the production file. ~437 KB raw, ~121 KB gzipped.
+
+### Scout v5.9 result (Oscar, 4 Nov, after the v395 deploy; no code change)
+- ling-3.0-flash: 58/63 (ES 24/27 · EN 13/15 · FR 21/21), 1 unsure, 7 flips, ¿Error? 28/34, avg 1.9 s, 0 timeouts.
+- Santa Cecilia cases: 11/13. Misses: EN Song "The Boxer" → 🤔 (expected ❌, starts with T) and EN Music genre "Banjo" → ✅ (expected ❌, an instrument). Both favour the player, English only. Decision (Claude, not contested): no prompt change before 22 Nov (it would affect every day and need a new scout); look at the day's exports afterwards.
+- Other misses are the known ones (Vallas salto de, Barca, MG; ¿Error? Tomate seco en polvo, Library, Esterilla, Deutsch, Orlando hat, Radar).

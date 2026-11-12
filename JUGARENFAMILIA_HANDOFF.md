@@ -1,5 +1,5 @@
 # JugarEnFamilia.es — Handoff (current state)
-*Last updated: 4 November 2026 — end of Session 32 (continued)*
+*Last updated: 12 November 2026 — end of Session 32*
 
 > **Two files, two jobs.**
 > - **This file = the CURRENT state only.** Read ALL of it at the start of every session. Each fact appears once and is kept up to date: when something changes, edit it here (replace the old statement) and log the change in the history file.
@@ -12,7 +12,7 @@
 ## ▶ START HERE (Session 33)
 1. Upload the project zip (with `tests\` and `tools\`), or clone the repo if GitHub is connected. Read this whole file. First thing: `cp index.html index_backup_s33.html`.
 2. **Versions:** production = **v261104.395** (4 Nov) = staging `index_tmp.html` v261104.394-tmp (same code). Live since then: the speed bonus option D ½ (from 4 Nov), the category "Héroe o villano de ficción", and the **first themed day: Santa Cecilia on Sunday 22 Nov** (letter B, music, emoji rain on home and result; news 20–22 Nov).
-3. **Before 22 Nov:** has Oscar run scout v5.9 (13 cases for Canción / Género musical)? If the robot fails "La Bamba" / "The Boxer" / "La Bohème" (must be ❌) or the genres, adjust before the day. Preview: `https://jugarenfamilia.es/?dia=2026-11-22` with a `__` name.
+3. **Scout v5.9 done (4 Nov):** 11/13 on the Santa Cecilia cases; misses EN "The Boxer" → 🤔 and EN genre "Banjo" → ✅ (both favour the player). Decided: no prompt change before the day. Preview: `https://jugarenfamilia.es/?dia=2026-11-22` with a `__` name.
 4. **After 22 Nov:** ask Oscar how the themed day went, and look at its exports (answers in the two new categories). Then plan the next themed days: Monet centenary on Sat 5 Dec (art), Christmas. Ideas list in Backlog → Product ideas.
 5. **Ask Oscar** how the speed bonus feels (review ½ → ⅓ after a week); watch `speedRaw` in the exports, the fiction category, and `aiInfo.rejudged`.
 6. News: `2026-10-31-follow` and `2026-11-04-speed` (until 7 Nov) can be removed when `NEWS` is next edited after 7 Nov; the Cecilia entries after 22 Nov.
