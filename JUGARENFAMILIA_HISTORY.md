@@ -1953,3 +1953,59 @@ Plan agreed by Oscar (A with the automatic second look; B "no changes").
 - ling-3.0-flash: 58/63 (ES 24/27 · EN 13/15 · FR 21/21), 1 unsure, 7 flips, ¿Error? 28/34, avg 1.9 s, 0 timeouts.
 - Santa Cecilia cases: 11/13. Misses: EN Song "The Boxer" → 🤔 (expected ❌, starts with T) and EN Music genre "Banjo" → ✅ (expected ❌, an instrument). Both favour the player, English only. Decision (Claude, not contested): no prompt change before 22 Nov (it would affect every day and need a new scout); look at the day's exports afterwards.
 - Other misses are the known ones (Vallas salto de, Barca, MG; ¿Error? Tomate seco en polvo, Library, Esterilla, Deutsch, Orlando hat, Radar).
+
+## Session 33 (12–13 Nov) — Production v261104.395 → v261113.397
+
+### Start
+- Handoff read in full; backup `index_backup_s33.html`. Production v395 = staging v394-tmp (same code), 12 screens, Santa Cecilia (22 Nov) in place.
+
+### Talk: new daily categories (PARKED by Oscar, "flag and hold")
+- Simulation of the next 365 Spanish dailies with the current pool (58 categories, 13 groups, max 1 per group, 6 per day): each group appears on ~45% of days, so categories in small groups repeat most: Parte del cuerpo 85×/year, Marca de coche 83× (marcas has only 3), Película 65, Mamífero 58, Tipo de edificio 57; least: Monumento 14, Mueble 16.
+- Conclusion: to make the daily more surprising, add categories to the SMALL groups (marcas, ciencia, ciudad_urbanismo, deporte, entretenimiento).
+- Proposed 18 (ES / EN / FR): Marca de comida o bebida, Cadena de tiendas o restaurantes; Elemento químico, Fenómeno meteorológico, Piedra preciosa o mineral; Parte de una casa; Equipo de fútbol; Juego de mesa o videojuego; Río, Isla; Raza de perro; Queso, Salsa; Canción, Género musical (already made for Santa Cecilia); Dios o diosa mitológica; Juguete; Nacionalidad. Others listed: Juego infantil, Montaña o volcán, Libro famoso, Fiesta o festividad, Electrodoméstico, Joya o complemento, Emoción o sentimiento. Optional wildcard group "sorpresa" ("Algo que llevas a la playa", "Algo redondo"…), more 🤔 expected.
+- Build design (not built): a `from:'YYYY-MM-DD'` field per new category so the daily only uses it from that date (otherwise a mid-day deploy changes today's categories; past days are safe because scores store their categories); Práctica and multiplayer "Categorías" get them at once (they join the existing group pills); hand-picked letter strings per language; scout cases; news line; tests that every day before the date is unchanged.
+- From the week's data: Invento / Invention caused the most disputes (Electricidad, Escoba, Escurridor, Électricité, Élections) — rename or clarify it when categories are picked up again.
+
+### Dailies 4–12 Nov (9 exports, analysed in the sandbox)
+- 107 dailies (ES 52, EN 25, FR 30), ~12/day, 12 names; new: Ally Burnett (EN, 9 Nov), Flo (FR, 12 Nov); Giocoso plays unregistered.
+- 642 answers: 463 ✅, 98 ❌, 76 blank, 5 🤔 (0.8%, was 3.8% 24 Oct–1 Nov). No robot errors, so the automatic second look never ran (`rejudged` 0); 3 retries, 1 cut (FR "Eloïse", 34 s → 🤔). Median reply 1.9 s, 90% within 3.8 s; 12 Nov slower (9–11 s replies).
+- Speed bonus ½: 54 of 107 finished early; of those 18 full bonus, 24 partial, 12 cut to zero. Neither trigger for ⅓ seen. **Oscar (12 Nov): nobody complains, keep ½.** Review closed.
+- ¿Error?: 93 contests, 19 overturns. Right: Tarantino, Volante, Topacio, Barón Rojo, Rúcula, Encornets, Tauro, Escurridor (borderline). Wrong: Verano Azul (a TV series as Película), Brutalista (a style as Tipo de edificio), Barco velero (Equipamiento deportivo), Bibliotech (Type of shop), Ballena jurásica and Birloche (made up), Odisea (EN Film), Rats. Debatable: Escoba and Électricité as inventions.
+- Same word, same day, opposite ¿Error? verdicts: Électricité (FR 11 Nov: Giocoso overturned, Mathieu upheld) and Escurridor (ES 12 Nov). Temperature is already 0 → the two Ling providers.
+- First-pass misses: ¡Viven! (Película) and Bruja Avería (Héroe o villano) rejected; Bentley and BMW accepted as Marca tecnológica. Fiction category otherwise fine (Batman ✅ ×3, Blackman ❌).
+- Correction made in the conversation: Claude first called England (ES País) and Nederland (FR Pays européen) rule breaks; both prompts accept country and city names in any language on purpose. **Oscar (12 Nov): keep accepting them.**
+- 10 Nov ES Oscar "Bruce Springsteen" ✅ with a contestLog word "Bruce Springteen" upheld: Oscar fixed it by hand in Firebase.
+
+### v261112.396-tmp (staging): stricter ¿Error? + one provider
+- ¿Error? (contest method B system prompt) +2 rules after "an extinct animal must no longer exist": "It must really exist under that name: a description made up to fit (a common word plus an adjective, e.g. ${madeEx}) is INVALIDO; an obscure but real name is fine. It must be exactly the kind the category names, not a close neighbour: a TV series is not a film, a style is not a type of building, a boat is not sports equipment, a library is not a shop." `madeEx` per language ("ballena jurásica" / "jurassic whale" / "baleine jurassique"). First-pass daily prompt unchanged.
+- `AI_PROVIDER` sent as OpenRouter's `provider` in every `aiJudgeCall` (first: `{ order: ['novita'], allow_fallbacks: true }`); `aiJudgeCall` returns `provider` (= `data.provider`, ≤ 40 chars); saved as `p` in `aiInfo` (daily and automatic second look) and in `contestLog`.
+- Console check (Oscar, 13 Nov): the worker passes `provider` through (`deepinfra → DeepInfra`, `novita → Novita`; replies null only because the test used 50 tokens).
+- Scout v6.0: same prompt, `PROVIDER` setting, provider count in the log and table, +22 real cases (19 overturns incl. England / Nederland ✅ and Trucha plateada ✅, plus Viven ✅, Bruja Avería ✅, Bentley as Marca tecnológica ❌).
+- Tests: `test_judge_prompt.mjs` 41 → 45; `robot_scenarios.py` 24 → 27 (provider in every request, `aiInfo.p`, `contestLog.p`; fake robot replies with `provider`).
+
+### Scout v6.0 provider runs (Oscar, hotspot)
+| | Novita (12 Nov) | DeepInfra (13 Nov) |
+|---|---|---|
+| Judge | 52/66 (same 63 as v5.9: 50) | 55/66 (55/63) |
+| New daily cases (Viven, Bruja Avería, Bentley) | 2/3 | 0/3 |
+| ¿Error? | 42/53 (old 34: 27, new 19: 15) | 40/53 (old 34: 25, new 19: 15) |
+| Avg / slowest 10% | 3.1 s / 5.4 s | 1.8 s / 3.2 s |
+| Unsure / flips | 3 / 8 | 2 / 7 |
+- New rules work on both: Verano Azul, Bibliotech, Ballena jurásica, Birloche, Électricité ❌ on both; real answers (Tarantino, Volante, Topacio, Encornets, England, Nederland) still overturned. Novita still overturned Barco velero, Rats, Escoba and upheld Barón Rojo; DeepInfra still overturned Brutalista, Odisea, Rats and upheld Trucha plateada.
+- Accuracy about a tie; DeepInfra half the latency. The unpinned v5.9 run (4 Nov, 1.9 s, 58/63) matches DeepInfra, so production had mostly been on DeepInfra already. **Chosen: DeepInfra first, Novita as backup.**
+- Santa Cecilia cases on DeepInfra: La Bamba, La Bohème, The Boxer ✅ (all favour the player): left as decided on 4 Nov, look at the 22 Nov exports.
+
+### v261113.397: PRODUCTION (13 Nov)
+- = v396-tmp with `AI_PROVIDER = { order: ['deepinfra'], allow_fallbacks: true }` (comment with both scout runs). Scout `PROVIDER` the same; `robot_scenarios.py` checks `deepinfra`. Oscar asked to go straight to production (the DeepInfra scout run measured exactly this setup).
+- Checked: version grep before (v396-tmp ×2) and after (v397 ×2), 12 screens, init block unchanged, 3 regex `-tmp` only, `node --check` clean, full kit on the production file.
+
+
+## START HERE (Session 33). Supersedes earlier START HERE sections
+1. Upload the project zip (with `tests\` and `tools\`), or clone the repo if GitHub is connected. Read this whole file. First thing: `cp index.html index_backup_s33.html`.
+2. **Versions:** production = **v261104.395** (4 Nov) = staging `index_tmp.html` v261104.394-tmp (same code). Live since then: the speed bonus option D ½ (from 4 Nov), the category "Héroe o villano de ficción", and the **first themed day: Santa Cecilia on Sunday 22 Nov** (letter B, music, emoji rain on home and result; news 20–22 Nov).
+3. **Scout v5.9 done (4 Nov):** 11/13 on the Santa Cecilia cases; misses EN "The Boxer" → 🤔 and EN genre "Banjo" → ✅ (both favour the player). Decided: no prompt change before the day. Preview: `https://jugarenfamilia.es/?dia=2026-11-22` with a `__` name.
+4. **After 22 Nov:** ask Oscar how the themed day went, and look at its exports (answers in the two new categories). Then plan the next themed days: Monet centenary on Sat 5 Dec (art), Christmas. Ideas list in Backlog → Product ideas.
+5. **Ask Oscar** how the speed bonus feels (review ½ → ⅓ after a week); watch `speedRaw` in the exports, the fiction category, and `aiInfo.rejudged`.
+6. News: `2026-10-31-follow` and `2026-11-04-speed` (until 7 Nov) can be removed when `NEWS` is next edited after 7 Nov; the Cecilia entries after 22 Nov.
+7. Economy (Oscar, 4 Nov): small changes get only the targeted checks; the full kit runs once, before a production promotion. Don't re-run long suites that aren't affected.
+8. At the end of the session: append the session's log to the history file, and edit this file so it describes the new current state.
