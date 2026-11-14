@@ -2009,3 +2009,11 @@ Plan agreed by Oscar (A with the automatic second look; B "no changes").
 6. News: `2026-10-31-follow` and `2026-11-04-speed` (until 7 Nov) can be removed when `NEWS` is next edited after 7 Nov; the Cecilia entries after 22 Nov.
 7. Economy (Oscar, 4 Nov): small changes get only the targeted checks; the full kit runs once, before a production promotion. Don't re-run long suites that aren't affected.
 8. At the end of the session: append the session's log to the history file, and edit this file so it describes the new current state.
+
+### Session 33, continued (14 Nov): models, security design report (no code change)
+- Talk about models: Opus 5.5 for planning, analysis and robot/scoring/Firebase builds; Sonnet 5.5 for small mechanical edits; Fable 5.2 (one free session) best spent on designing the security build.
+- Prompt written for a separate Fable session: design only, one report as a doc, token-saving reading rules (handoff in full, no history file, grep index.html for Firebase calls instead of reading it whole, no tests/tools, one-shot report, open questions at the end). Cookie banner and AI step 1 left out. Oscar attached the zip, the Firebase rules, the Worker code and a `/names` export.
+- Report: https://claude.ai/artifact/LiEbfZ3G6LQ8dXfvtx9EBS ("JugarEnFamilia - Security Build Design"). Summary and Claude's review are in the handoff (Backlog → Security).
+- Found by the report: the OpenRouter key is a constant in the Worker code, not a Worker secret; the code was shared in that session. Claude advised rotating the key and moving it to a secret. The handoff line "the key lives only in the worker" was corrected.
+- Claude's review: sound design, but big for the game's size (~5 sessions, ~4 weeks), rules complex and untested, 14-day enrolment window is an open door; disagreed with releasing dormant claims after 90 days; suggested a cheaper first step (regular exports + rules that block whole-node deletes/overwrites).
+- **Oscar chose C (14 Nov): record the report, decide later.**

@@ -1,5 +1,5 @@
 # JugarEnFamilia.es — Handoff (current state)
-*Last updated: 13 November 2026 — end of Session 33*
+*Last updated: 14 November 2026 — end of Session 33*
 
 > **Two files, two jobs.**
 > - **This file = the CURRENT state only.** Read ALL of it at the start of every session. Each fact appears once and is kept up to date: when something changes, edit it here (replace the old statement) and log the change in the history file.
@@ -15,9 +15,11 @@
 3. **First exports after v397:** check `aiInfo.p` (should be DeepInfra; Novita only on outages), whether the same word now gets the same ¿Error? verdict, and the overturns (made-up answers and wrong-kind answers should stay ❌; real ones still rescued).
 4. **After 22 Nov:** ask Oscar how the themed day went and look at its exports (Canción / Género musical: the scout on DeepInfra accepted La Bamba, La Bohème and The Boxer, all in the player's favour). Then plan the next themed days: Monet centenary on Sat 5 Dec (art), Christmas. Ideas in Backlog → Product ideas.
 5. **Parked by Oscar (12 Nov): new daily categories.** Full plan and the 365-day simulation are in the history (Session 33). Pick it up only when Oscar asks. Also rename or clarify Invento / Invention then.
-6. News: `2026-10-31-follow` and `2026-11-04-speed` can be removed when `NEWS` is next edited; the Cecilia entries after 22 Nov.
-7. Economy (Oscar, 4 Nov): small changes get only the targeted checks; the full kit runs once, before a production promotion. The full kit now takes over 10 minutes: run it in the background, logging to a file.
-8. At the end of the session: append the session's log to the history file, and edit this file so it describes the new current state.
+6. **OpenRouter key (14 Nov):** the key is a constant in the Worker code (not a Worker secret), and that code was shared in a chat on 14 Nov. Ask Oscar whether he has rotated it and moved it to a Worker secret; if not, help him do it first.
+7. **Security design report done (Fable 5.2, 14 Nov), decision deferred by Oscar (option C).** Link and summary in Backlog → Security. Don't start it unless Oscar asks.
+8. News: `2026-10-31-follow` and `2026-11-04-speed` can be removed when `NEWS` is next edited; the Cecilia entries after 22 Nov.
+9. Economy (Oscar, 4 Nov): small changes get only the targeted checks; the full kit runs once, before a production promotion. The full kit now takes over 10 minutes: run it in the background, logging to a file.
+10. At the end of the session: append the session's log to the history file, and edit this file so it describes the new current state.
 
 ---
 
@@ -31,7 +33,7 @@ Multiplayer browser version of the Spanish word game "Stop / Tutti Frutti / Alto
 | GitHub Pages | https://oscargdiez.github.io/jugarenfamilia/ — repo github.com/oscargdiez/jugarenfamilia (public), main branch, / root |
 | Domain | jugarenfamilia.es (Namecheap): A records @ → 185.199.108–111.153, CNAME www → oscargdiez.github.io |
 | Realtime | Firebase Realtime Database `stop-9f0ea`, europe-west1, `https://stop-9f0ea-default-rtdb.europe-west1.firebasedatabase.app`. Config is in the HTML (public). Free Spark plan: no automatic backups, 100 simultaneous connections. |
-| Robot | Cloudflare Worker `https://api.oscar-g-diez.workers.dev/` → OpenRouter. The key lives only in the worker. |
+| Robot | Cloudflare Worker `https://api.oscar-g-diez.workers.dev/` → OpenRouter. The key is in the Worker code as a constant (Fable report, 14 Nov): move it to a Worker secret and rotate it. The Worker also forwards any request body (AI step 1). |
 | Analytics | Google Analytics `G-V2VJ4X7M5Z` (no consent banner yet, see Security) |
 
 ---
@@ -198,6 +200,13 @@ Run in the sandbox: `cd tests && ./run_all.sh ../index_tmp.html` → must end in
 
 ## 🗺 Backlog (open items only)
 ### Security — NEXT BUILD (the "security build", agreed with Oscar; do with AI step 1)
+- **Design report (Fable 5.2, 14 Nov):** https://claude.ai/artifact/LiEbfZ3G6LQ8dXfvtx9EBS ("JugarEnFamilia - Security Build Design", a Claude doc). Read it with the docs tools before any security work. **Oscar chose to decide later (14 Nov).** Summary:
+  - Every browser signs in with Firebase Anonymous Auth (uid = device); a claim links devices to a name: `nameSecrets/{safe}` = `{hash, gen}` (nobody reads), `nameOwners/{safe}/{uid}` = gen, `nameTries/{safe}` = guess counter (10 per name per UTC day) + guess tickets. The PIN is checked by the rules (ticket must equal the secret, < 2 min old), no server code. New PINs 6–12 digits, PBKDF2-SHA-256 600,000 rounds with a public per-name `salt`; emails dropped; changing the PIN raises `gen` (signs out other devices). `names/{safe}/claimed = true` replaces reading `secret`.
+  - Full rule set written (section 2), not yet run anywhere. Daily entries carry `uid`, created once in the `played` slot, answers fixed; rooms get `members/{uid}` and `hostUid`, members-only writes; group results need "room proof" (host of a room of that group in scores/final), games +1 at a time; no whole-node deletes; groups deletable only after a year idle. Interim "auth only" rule set before the full one.
+  - Migration M0–M10: backup → rehearsal project (second free Firebase project) → console setup + `meta/enrol` → Build 1 (sign-in plumbing) → copy the 32 secrets to `nameSecrets/{safe}/legacy` → Build 2 (claims v2, 14-day enrolment of devices already verified in localStorage, old 4-digit/email claims upgraded to a 6-digit PIN) → interim rules → full rules → App Check enforced → Build 3 cleanup + delete old secrets. About 4 weeks, ~5 sessions; old data becomes read-only, nothing rewritten.
+  - Behaviour changes: originality no longer written into other players' entries (still recomputed on screen); history trim beyond 20 games removed; forgotten PIN = Oscar resets by hand; emoji-only names refused.
+  - Claude's review (Session 33): sound and careful, but big for ~12 daily players; the rules are very complex and must pass in the rehearsal project first; `meta/enrol` is an open door for 14 days, so the M6 review of `nameOwners` matters. Disagree with open question 7 (release dormant old claims after 90 days): message those family players instead. Cheaper alternative suggested (not in the report): regular manual exports + rules that only block deleting or overwriting whole nodes (no auth), checked against every delete the game does (room delete, group cleanup, history trim).
+  - From the `/names` export of 14 Nov: 34 names, 32 claimed; 11 names share one identical secret and 2 share another (unsalted hashes make reuse visible). Treat current PINs as exposed.
 - **Firebase is open:** anyone can read/change/delete. Fix: Anonymous Auth + real rules (own entries only, daily scores write-once, validation, no whole-node deletes) + App Check. Needs a migration plan (old data has no owners). Must also cover `following`/`followers` and group lists under `names/`.
 - **Name claims are weak:** unsalted SHA-256 of a 4-digit PIN, publicly readable (brute force in under a second), `secret` can be overwritten, the claim write is not a transaction. Fix with the rules: secret unreadable, per-name salt, longer PINs, ideally no emails. The name gate (v378) is client-side only until then.
 - **Cookie consent:** small banner (ES/EN/FR), analytics only after "accept" (Oscar agreed).
