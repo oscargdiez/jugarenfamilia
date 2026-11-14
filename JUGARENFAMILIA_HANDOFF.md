@@ -15,11 +15,10 @@
 3. **First exports after v397:** check `aiInfo.p` (should be DeepInfra; Novita only on outages), whether the same word now gets the same ¿Error? verdict, and the overturns (made-up answers and wrong-kind answers should stay ❌; real ones still rescued).
 4. **After 22 Nov:** ask Oscar how the themed day went and look at its exports (Canción / Género musical: the scout on DeepInfra accepted La Bamba, La Bohème and The Boxer, all in the player's favour). Then plan the next themed days: Monet centenary on Sat 5 Dec (art), Christmas. Ideas in Backlog → Product ideas.
 5. **Parked by Oscar (12 Nov): new daily categories.** Full plan and the 365-day simulation are in the history (Session 33). Pick it up only when Oscar asks. Also rename or clarify Invento / Invention then.
-6. **OpenRouter key (14 Nov):** the key is a constant in the Worker code (not a Worker secret), and that code was shared in a chat on 14 Nov. Ask Oscar whether he has rotated it and moved it to a Worker secret; if not, help him do it first.
-7. **Security design report done (Fable 5.2, 14 Nov), decision deferred by Oscar (option C).** Link and summary in Backlog → Security. Don't start it unless Oscar asks.
-8. News: `2026-10-31-follow` and `2026-11-04-speed` can be removed when `NEWS` is next edited; the Cecilia entries after 22 Nov.
-9. Economy (Oscar, 4 Nov): small changes get only the targeted checks; the full kit runs once, before a production promotion. The full kit now takes over 10 minutes: run it in the background, logging to a file.
-10. At the end of the session: append the session's log to the history file, and edit this file so it describes the new current state.
+6. **Security design report done (Fable 5.2, 14 Nov), decision deferred by Oscar (option C).** Link and summary in Backlog → Security. Don't start it unless Oscar asks.
+7. News: `2026-10-31-follow` and `2026-11-04-speed` can be removed when `NEWS` is next edited; the Cecilia entries after 22 Nov.
+8. Economy (Oscar, 4 Nov): small changes get only the targeted checks; the full kit runs once, before a production promotion. The full kit now takes over 10 minutes: run it in the background, logging to a file.
+9. At the end of the session: append the session's log to the history file, and edit this file so it describes the new current state.
 
 ---
 
@@ -33,7 +32,7 @@ Multiplayer browser version of the Spanish word game "Stop / Tutti Frutti / Alto
 | GitHub Pages | https://oscargdiez.github.io/jugarenfamilia/ — repo github.com/oscargdiez/jugarenfamilia (public), main branch, / root |
 | Domain | jugarenfamilia.es (Namecheap): A records @ → 185.199.108–111.153, CNAME www → oscargdiez.github.io |
 | Realtime | Firebase Realtime Database `stop-9f0ea`, europe-west1, `https://stop-9f0ea-default-rtdb.europe-west1.firebasedatabase.app`. Config is in the HTML (public). Free Spark plan: no automatic backups, 100 simultaneous connections. |
-| Robot | Cloudflare Worker `https://api.oscar-g-diez.workers.dev/` → OpenRouter. The key is in the Worker code as a constant (Fable report, 14 Nov): move it to a Worker secret and rotate it. The Worker also forwards any request body (AI step 1). |
+| Robot | Cloudflare Worker `https://api.oscar-g-diez.workers.dev/` → OpenRouter. The key is a Worker secret `OPENROUTER_KEY` (Production), read as `env.OPENROUTER_KEY`; rotated 14 Nov (the old key, which was a constant in the code and was shared in a chat, is deleted). The Worker only checks the Origin (jugarenfamilia.es and www) and forwards any request body (AI step 1). |
 | Analytics | Google Analytics `G-V2VJ4X7M5Z` (no consent banner yet, see Security) |
 
 ---
