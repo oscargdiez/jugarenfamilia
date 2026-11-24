@@ -2514,9 +2514,12 @@ function mulberry32(seed) {
 // 14 Oct (v364): Sante now answers "No endpoints found" (gone since 13 Oct ~15:00 UTC) and Ling Fin has no endpoints
 // either, so everything fell to Cohere free (slow: 25-40 s, timeouts). Replaced by the general Ling 3.0 Flash, which
 // Sante was built on: two providers (Novita, DeepInfra), $0.021/$0.063 per M. Not yet measured with the scout.
+// 24 Nov (v398): Cohere free is gone from OpenRouter ("no longer available ... no provider serves this model anymore").
+// Every timeout retry went only to Cohere, so each slow answer became DUDOSO (Cocorico, 24 Nov, 06:25 UTC: 4 answers).
+// Removed; Ling alone until a scout finds a new free safety net. A timeout now retries Ling on another provider
+// (AI_PROVIDER_RETRY). If the OpenRouter credit runs out, answers become DUDOSO and ¿Error? is offered.
 const AI_MODELS = [
-  'inclusionai/ling-3.0-flash',
-  'cohere/north-mini-code:free'
+  'inclusionai/ling-3.0-flash'
 ];
 // v397: Ling has two providers (Novita, DeepInfra) that don't always agree at temperature 0 (4-12 Nov: "Electricite" and
 // "Escurridor" overturned for one player and upheld for another on the same day). Ask DeepInfra first; Novita only when
@@ -2524,6 +2527,9 @@ const AI_MODELS = [
 // (the unpinned 4 Nov run, 1.9 s, looked like DeepInfra already). Models without DeepInfra (Cohere free) are routed as
 // before. The answering provider is saved as aiInfo.p / contestLog.p.
 const AI_PROVIDER = { order: ['deepinfra'], allow_fallbacks: true };
+// v398: after a timeout, the one retry skips DeepInfra (the provider that was slow), so OpenRouter sends it to Novita or
+// Ant Digital (a third Ling provider, seen 24 Nov). A timeout cancels the request, so OpenRouter never falls back by itself.
+const AI_PROVIDER_RETRY = { ignore: ['deepinfra'], allow_fallbacks: true };
 // DAILY_CONSENSUS: set true to use 2-model consensus + tiebreaker, false for single model
 const DAILY_CONSENSUS = false;
 // CONTEST_METHOD: 'A' = strict scope + strict spelling | 'B' = generous scope only, strict spelling. Either way ¿Error? asks ONE model
@@ -2693,23 +2699,8 @@ function dailyUpdateAltoBtn() {
   b.textContent = dailyAltoText(blanks, cats.length);
 }
 
+// v398: empty (the Cecilia, speed and follow news had expired and were removed). The news list hides itself when empty.
 const NEWS = [
-  { id: '2026-11-20-cecilia', type: 'info', from: '2026-11-20', until: '2026-11-21',
-    es: '🎵 El domingo es Santa Cecilia: ¡reto diario musical!',
-    en: "🎵 Sunday is St Cecilia's Day: a musical daily challenge!",
-    fr: '🎵 Dimanche, c\'est la Sainte-Cécile : défi du jour musical !' },
-  { id: '2026-11-22-cecilia', type: 'info', from: '2026-11-22', until: '2026-11-22',
-    es: '🎵 Hoy es Santa Cecilia: ¡reto diario musical!',
-    en: "🎵 Today is St Cecilia's Day: a musical daily challenge!",
-    fr: '🎵 Aujourd\'hui, c\'est la Sainte-Cécile : défi du jour musical !' },
-  { id: '2026-11-04-speed', type: 'info', from: DAILY_SPEED_V2_FROM, until: '2026-11-07',
-    es: '⚡ Desde hoy, cada fallo o respuesta en blanco quita la mitad del bonus de velocidad',
-    en: '⚡ From today, each blank or wrong answer halves your speed bonus',
-    fr: '⚡ Dès aujourd\'hui, chaque réponse vide ou fausse divise par deux le bonus de vitesse' },
-  { id: '2026-10-31-follow', type: 'info', until: '2026-11-04',
-    es: 'Toca ☆ en la clasificación para seguir a tu gente',
-    en: 'Tap ☆ on the leaderboard to follow your people',
-    fr: 'Touche ☆ dans le classement pour suivre tes proches' },
 ];
 
 function newsDismissed() {
@@ -3465,7 +3456,7 @@ function aiParseVerdict(text) {
   return null;
 }
 async function aiJudgeCall(systemPrompt, prompt, models, timeoutMs) {
-  const once = async (useModels = models) => {
+  const once = async (useModels = models, provider = AI_PROVIDER) => {
     const response = await fetch('https://api.oscar-g-diez.workers.dev/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -3476,7 +3467,7 @@ async function aiJudgeCall(systemPrompt, prompt, models, timeoutMs) {
         messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: prompt }],
         max_tokens: AI_MAX_TOKENS,
         temperature: 0,
-        provider: AI_PROVIDER
+        provider
       })
     });
     if (!response.ok) {
@@ -3501,9 +3492,9 @@ async function aiJudgeCall(systemPrompt, prompt, models, timeoutMs) {
   let r, retried = false, timedOut = false;
   try { r = await once(); }
   catch (e) {
-    // Timeout (7 Oct ~12%, 8 Oct ~18% of daily answers, almost all Cohere's free queue): one fresh try before giving up.
-    // The retry SKIPS the first model, so it doesn't wait in the same busy queue again (8 Oct: retries on Cohere
-    // took up to 20 s more). A timeout cancels the request, so OpenRouter never got to the fallbacks on its own.
+    // Timeout: one fresh try before giving up. v398: the retry keeps the same model list but skips the provider that
+    // was slow (AI_PROVIDER_RETRY); until v397 it skipped the first model and went only to Cohere free (gone 24 Nov).
+    // A timeout cancels the request, so OpenRouter never got to the fallbacks on its own.
     // v384: a connection/HTTP error gets one more try after a short pause (26 + 29 Oct: a whole batch of 3 answers
     // failed at once and became DUDOSO). Still failing → throws as before.
     if (!isTimeoutErr(e)) {
@@ -3513,8 +3504,7 @@ async function aiJudgeCall(systemPrompt, prompt, models, timeoutMs) {
       catch (e2) { e2.ms = Date.now() - t0; e2.retried = true; if (isTimeoutErr(e2)) e2.timedOut = true; throw e2; }
     } else {
       timedOut = true; retried = true;
-      const rest = Array.isArray(models) && models.length > 1 ? models.slice(1) : models;
-      try { r = await once(rest); }
+      try { r = await once(models, AI_PROVIDER_RETRY); }
       catch (e2) { e2.ms = Date.now() - t0; e2.timedOut = true; throw e2; }
     }
   }
@@ -8094,7 +8084,7 @@ setTimeout(() => updateDailyButtonDate(), 350);
 // Version freshness check — silently reload if a newer version is deployed
 // Runs once on load; does nothing if already on latest or if fetch fails
 (function() {
-  const RUNNING = 'v261113.397';
+  const RUNNING = 'v261124.398';
   if (sessionStorage.getItem('alto_ver_checked') === RUNNING) return; // already checked this session
   sessionStorage.setItem('alto_ver_checked', RUNNING);
   fetch(location.href, { cache: 'no-cache' })
@@ -8118,7 +8108,7 @@ syncMyGroups(); // registered + verified name: bring in groups from the name's o
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v261113.397</div>
+  <div style="font-size: 11px;opacity:0.5">v261124.398</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
