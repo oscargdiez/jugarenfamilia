@@ -794,6 +794,7 @@ body.iphone-mode .theme-bg-stage { position: absolute; }
 .democratic-result { font-size: 16px; font-weight: 700; padding: 2px 4px; border-radius: var(--radius); }
 .democratic-result.valid { background: var(--success-bg); color: var(--success); }
 .democratic-result.invalid { background: var(--danger-bg); color: var(--danger); }
+.democratic-result:empty { display: none; } /* v399: kept in the row (empty) so the 👎 button beside it is never rebuilt */
 .democratic-result.tie { background: var(--paper-dark); color: var(--ink-sec); }
 
 /* ── AI validation ── */
@@ -805,6 +806,10 @@ body.iphone-mode .theme-bg-stage { position: absolute; }
 .ai-result.valid { background: var(--success-bg); border-left: 3px solid var(--success); color: var(--success); }
 .ai-result.invalid { background: var(--danger-bg); border-left: 3px solid var(--danger); color: var(--danger); }
 .ai-result.unsure { background: #fef9e7; border-left: 3px solid #f39c12; color: #9a6a00; }
+/* v399: on the review screens the 🤖 and 📖 boxes hug their own answer and leave a gap before the next one
+   (before: 8px above, 0px below, so they read as part of the answer underneath; reported from Android, 24 Nov) */
+#val-content .ai-result, #val-content .dict-result,
+#guest-val-content .ai-result, #guest-val-content .dict-result { margin: -4px 0 14px; }
 
 /* ── Reactions ── */
 .reactions-stage { position: fixed; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; z-index: 9999; overflow: visible; }
@@ -1010,6 +1015,9 @@ document.addEventListener('DOMContentLoaded', function() {
     <p class="lbl" id="qj-emoji-lbl">elige tu emoji <span class="emoji-display" id="qj-selected-emoji">🎲</span></p>
     <div class="emoji-grid" id="qj-emoji-grid"></div>
     <button class="pri" onclick="quickJoin()" style="width:100%;font-size:20px;padding:14px;margin-top:14px" id="qj-btn">¡Unirse a la sala! →</button>
+    <!-- v399: shown instead of the join button when a game is already running (new names wait for the next game) -->
+    <div id="qj-wait" style="display:none;margin-top:14px;padding:8px 10px;font-family:'Caveat',cursive;font-size:20px;line-height:1.3;text-align:center;color:var(--ink);background:var(--paper-dark);border-radius:var(--radius);border:1px dashed var(--border)"></div>
+    <button id="qj-wait-cancel" onclick="qjWaitCancel()" style="display:none;width:100%;margin-top:10px">Cancelar</button>
     <p style="text-align:center;margin-top:12px;font-size:11px;font-family:'Special Elite',monospace;color:var(--ink-muted)" id="qj-code-label">sala: <span id="qj-room-code"></span></p>
   </div>
 </div>
@@ -1472,7 +1480,7 @@ const T = {
     toastHostOnly: 'Solo el anfitrión puede reiniciar', waitHost: 'Esperando al anfitrión…',
     toastStopFill: 'Rellena todas las respuestas antes de llamar al ¡Alto!',
     hostRevisingScores: 'el anfitrión está revisando de nuevo ✏️',
-    toastDemoMin: 'El modo democrático requiere mínimo 3 jugadores', continueBtn: 'Continuar →', notMe: 'No soy yo — cambiar', easyHint: '(sin K, Ñ, Q, U, W, X, Y, Z)', validate: 'Revisar', validateSub1: '📖 Wikipedia · 🤖 Asistente Robot · <span style="color:var(--red)">✕</span> anular', validateSub2: 'única = 100 · repetida = 50 · anulada = 0 · ¡Alto! −100 por anulada', submitted2: 'Respuestas enviadas', waitingTitle: 'Esperando...', hostReviewing2: 'el anfitrión está revisando', leaderboardBack: '← Volver', loading: 'Cargando…', final2: '¡Fin del juego!', searching: 'Buscando...', hostSearching: 'El anfitrión está buscando...', rndLabel: 'ronda', usarEjemplos: 'Usar ejemplos', freeCatRandom: 'Elegir 8 al azar cada ronda', of: 'de', freeCatLabel: 'escribe tus categorías (una por línea)', freeCatPlaceholder: 'Jugadores del Barça\nPelículas de terror\nCosas en la cocina', letterLabel: 'letra', calculate: 'Calcular puntuación →', stopCallerMsg: '{name} llamó al ¡Alto!', timerRanOut: 'se acabó el tiempo', scoresTitle: 'Puntuación',
+    toastDemoMin: 'El modo democrático requiere mínimo 3 jugadores', continueBtn: 'Continuar →', notMe: 'No soy yo — cambiar', easyHint: '(sin K, Ñ, Q, U, W, X, Y, Z)', validate: 'Revisar', validateSub1: '📖 Wikipedia · 🤖 Asistente Robot · <span style="color:var(--red)">✕</span> anular', validateSub2: 'única = 100 · repetida = 50 · anulada = 0 · ¡Alto! −100 por anulada', submitted2: 'Respuestas enviadas', waitingTitle: 'Esperando...', hostReviewing2: 'el anfitrión está revisando', leaderboardBack: '← Volver', loading: 'Cargando…', final2: '¡Fin del juego!', searching: 'Buscando...', hostSearching: 'El anfitrión está buscando...', rndLabel: 'ronda', usarEjemplos: 'Usar ejemplos', freeCatRandom: 'Elegir 8 al azar cada ronda', of: 'de', freeCatLabel: 'escribe tus categorías (una por línea)', freeCatPlaceholder: 'Jugadores del Barça\nPelículas de terror\nCosas en la cocina', letterLabel: 'letra', calculate: 'Calcular puntuación →', stopCallerMsg: '{name} llamó al ¡Alto!', timerRanOut: 'Se acabó el tiempo', scoresTitle: 'Puntuación',
     aiValidation: '🤖 Asistente Robot', aiRelajado: '🟢 Relajada', aiEstricto: '🔴 Estricta', aiSpelling: '✏️ Permitir faltas de ortografía', aiYes: 'Sí', aiNo: 'No', modeHost: '👑 Normal', modeDemocratic: '🗳️ Democrático', invalidated: 'anulada', winnerLine: '{name} {emoji} gana con {pts} puntos!', qjCodeLabel: 'sala:', gcInside: '✅ ESTÁS DENTRO', inviteMore: '+ ¿Quieres invitar a alguien más?', getReady: '¡VAMOS!',
     toastBack: 'Volviendo como', notFoundWord: '📭 No se encontró', didYouMean: '¿Quisiste decir', noDefinition: '📭 Sin definición para',
     waMsg: '¡Juega conmigo al ¡Alto! 🎮 Únete aquí:',
@@ -1536,7 +1544,7 @@ const T = {
     toastHostOnly: 'Only the host can restart', waitHost: 'Waiting for the host…',
     toastStopFill: 'Fill in all answers before calling ¡Alto!',
     hostRevisingScores: 'host is revising answers ✏️',
-    toastDemoMin: 'Democratic mode requires at least 3 players', continueBtn: 'Continue →', notMe: "That's not me — change", easyHint: '(no Q, U, W, X, Y, Z)', validate: 'Review', validateSub1: '📖 Wikipedia · 🤖 Robot Assistant · <span style="color:var(--red)">✕</span> invalidate', validateSub2: 'unique = 100 · duplicate = 50 · invalid = 0 · ¡Alto! −100 per invalid', submitted2: 'Answers submitted', waitingTitle: 'Waiting...', hostReviewing2: 'host is reviewing', leaderboardBack: '← Back', loading: 'Loading…', final2: 'Game over!', searching: 'Searching...', hostSearching: 'Host is searching...', rndLabel: 'round', of: 'of', freeCatLabel: 'write your categories (one per line)', freeCatPlaceholder: 'Football players\nHorror films\nThings in the kitchen', usarEjemplos: 'Use examples', freeCatRandom: 'Pick 8 at random each round', letterLabel: 'letter', calculate: 'Calculate scores →', stopCallerMsg: '{name} called ¡Alto!', timerRanOut: 'time ran out', scoresTitle: 'Scores',
+    toastDemoMin: 'Democratic mode requires at least 3 players', continueBtn: 'Continue →', notMe: "That's not me — change", easyHint: '(no Q, U, W, X, Y, Z)', validate: 'Review', validateSub1: '📖 Wikipedia · 🤖 Robot Assistant · <span style="color:var(--red)">✕</span> invalidate', validateSub2: 'unique = 100 · duplicate = 50 · invalid = 0 · ¡Alto! −100 per invalid', submitted2: 'Answers submitted', waitingTitle: 'Waiting...', hostReviewing2: 'host is reviewing', leaderboardBack: '← Back', loading: 'Loading…', final2: 'Game over!', searching: 'Searching...', hostSearching: 'Host is searching...', rndLabel: 'round', of: 'of', freeCatLabel: 'write your categories (one per line)', freeCatPlaceholder: 'Football players\nHorror films\nThings in the kitchen', usarEjemplos: 'Use examples', freeCatRandom: 'Pick 8 at random each round', letterLabel: 'letter', calculate: 'Calculate scores →', stopCallerMsg: '{name} called ¡Alto!', timerRanOut: 'Time ran out', scoresTitle: 'Scores',
     aiValidation: '🤖 Robot Assistant', aiRelajado: '🟢 Relaxed', aiEstricto: '🔴 Strict', aiSpelling: '✏️ Allow spelling mistakes', aiYes: 'Yes', aiNo: 'No', modeHost: '👑 Normal', modeDemocratic: '🗳️ Democratic', invalidated: 'invalid', winnerLine: '{name} {emoji} wins with {pts} points!', qjCodeLabel: 'room:', gcInside: "✅ YOU'RE IN", inviteMore: '+ Want to invite someone?', getReady: "LET'S GO!",
     toastBack: 'Rejoining as', notFoundWord: '📭 Not found', didYouMean: 'Did you mean', noDefinition: '📭 No definition for',
     waMsg: 'Play ¡Alto! with me 🎮 Join here:',
@@ -1600,7 +1608,7 @@ const T = {
     toastHostOnly: "Seul l'hôte peut recommencer", waitHost: "En attente de l'hôte…",
     toastStopFill: 'Remplis toutes les réponses avant de crier ¡Alto !',
     hostRevisingScores: "l'hôte révise les réponses ✏️",
-    toastDemoMin: 'Le mode démocratique nécessite au moins 3 joueurs', continueBtn: 'Continuer →', notMe: "Ce n'est pas moi — changer", easyHint: '(sans K, Q, U, W, X, Y, Z)', validate: 'Vérifier', validateSub1: '📖 Wikipedia · 🤖 Assistant Robot · <span style="color:var(--red)">✕</span> annuler', validateSub2: 'unique = 100 · doublon = 50 · annulé = 0 · ¡Alto! −100 par annulé', submitted2: 'Réponses envoyées', waitingTitle: 'En attente...', hostReviewing2: "l'hôte vérifie", leaderboardBack: '← Retour', loading: 'Chargement…', final2: 'Fin de partie!', searching: 'Recherche...', hostSearching: "L'hôte cherche...", rndLabel: 'manche', of: 'sur', freeCatLabel: 'écris tes catégories (une par ligne)', freeCatPlaceholder: 'Joueurs du Barça\nFilms d\'horreur\nChoses dans la cuisine', usarEjemplos: 'Utiliser des exemples', freeCatRandom: 'Choisir 8 au hasard chaque manche', letterLabel: 'lettre', calculate: 'Calculer les scores →', stopCallerMsg: '{name} a crié ¡Alto !', timerRanOut: 'temps écoulé', scoresTitle: 'Scores',
+    toastDemoMin: 'Le mode démocratique nécessite au moins 3 joueurs', continueBtn: 'Continuer →', notMe: "Ce n'est pas moi — changer", easyHint: '(sans K, Q, U, W, X, Y, Z)', validate: 'Vérifier', validateSub1: '📖 Wikipedia · 🤖 Assistant Robot · <span style="color:var(--red)">✕</span> annuler', validateSub2: 'unique = 100 · doublon = 50 · annulé = 0 · ¡Alto! −100 par annulé', submitted2: 'Réponses envoyées', waitingTitle: 'En attente...', hostReviewing2: "l'hôte vérifie", leaderboardBack: '← Retour', loading: 'Chargement…', final2: 'Fin de partie!', searching: 'Recherche...', hostSearching: "L'hôte cherche...", rndLabel: 'manche', of: 'sur', freeCatLabel: 'écris tes catégories (une par ligne)', freeCatPlaceholder: 'Joueurs du Barça\nFilms d\'horreur\nChoses dans la cuisine', usarEjemplos: 'Utiliser des exemples', freeCatRandom: 'Choisir 8 au hasard chaque manche', letterLabel: 'lettre', calculate: 'Calculer les scores →', stopCallerMsg: '{name} a crié ¡Alto !', timerRanOut: 'Temps écoulé', scoresTitle: 'Scores',
     aiValidation: '🤖 Assistant Robot', aiRelajado: '🟢 Détendue', aiEstricto: '🔴 Stricte', aiSpelling: '✏️ Autoriser les fautes d\'orthographe', aiYes: 'Oui', aiNo: 'Non', modeHost: '👑 Normal', modeDemocratic: '🗳️ Démocratique', invalidated: 'annulée', winnerLine: '{name} {emoji} gagne avec {pts} points!', qjCodeLabel: 'salle:', gcInside: '✅ VOUS ÊTES DEDANS', inviteMore: "+ Inviter quelqu'un d'autre?", getReady: "C'EST PARTI!",
     toastBack: 'Reconnexion en tant que', notFoundWord: '📭 Introuvable', didYouMean: 'Vouliez-vous dire', noDefinition: '📭 Aucune définition pour',
     waMsg: 'Joue au ¡Alto! avec moi 🎮 Rejoins ici:',
@@ -4743,6 +4751,24 @@ function subscribe(code) {
 }
 
 function handleRoom(room) {
+  // v399: the host pressed "Seguir sin" while this phone was asleep (left/{me} = true). It's back and listening, so it
+  // is in the game again: later rounds wait for it. (A player who left with Salir is not in players any more.)
+  if (G.playerName && (room.left || {})[G.playerName] === true && (room.players || {})[G.playerName] && !G._leftClearing) {
+    G._leftClearing = true;
+    update(roomRef(G.roomCode), { [`left/${G.playerName}`]: null }).catch(() => {}).finally(() => { G._leftClearing = false; });
+  }
+  // v399: the round label was only set when a round started, so someone joining during review/scores saw a wrong round
+  if (room.currentRound > 0 && room.rounds) updateShellRound(room.currentRound, room.rounds);
+  // v399: the host left (Salir) and passed the role on: the new host's screen switches to the host's version
+  if (room.host && G.playerName && (room.host === G.playerName) !== !!G.isHost) {
+    G.isHost = room.host === G.playerName;
+    saveSession();
+    if (G.isHost) {
+      toast(t('host'));
+      G.invalidAnswers = {...(room.invalidAnswers || {})};
+      if (!['playing', 'countdown'].includes(G.screen)) { routeToPhase(room); return; }
+    }
+  }
   if (G.screen === 'lobby') {
     renderPlayers(room.players || {}, room.langs || {}, room.host || '');
     renderGuestGroup(room);
@@ -4751,6 +4777,11 @@ function handleRoom(room) {
     if (room.phase === 'playing') enterPlaying(room);
   }
   else if (G.screen === 'playing') {
+    // v399: this phone missed the end of its round (screen off / another app / updates merged) and the room is already in
+    // a later round: it stayed on the old round with "already submitted", never entered the new one, and its answers
+    // were never sent when ¡Alto! came (the host had to press "Seguir sin" every round). Go where the room is now.
+    if (G.playingRound != null && room.currentRound !== G.playingRound) { routeToPhase(room); return; }
+    if (room.phase === 'final') { showFinal(room); return; }
     if (room.calledStop && !G.stopHandled) {
       G.stopHandled = true;
       clearInterval(G.timerInterval);
@@ -4789,6 +4820,11 @@ function handleRoom(room) {
     applyVotesAndReactions(room, false);
     processReactions(room);
     if (room.phase === 'scores') showScores(room);
+    // v399: a guest whose phone missed the short Scores moment (screen off, another app, snapshots merged) got the
+    // next round's countdown / playing while still on review and stayed stuck there; follow the room like Scores does
+    else if (room.phase === 'countdown') startCountdown(room);
+    else if (room.phase === 'playing') enterPlaying(room);
+    else if (room.phase === 'final') showFinal(room);
   }
   else if (G.screen === 'countdown') {
     if (room.phase === 'playing') { closeCountdown(); enterPlaying(room); }
@@ -5306,6 +5342,7 @@ function closeCountdown() {
 
 function enterPlaying(room) {
   G.submitted = false; G.stopHandled = false;
+  G.playingRound = room.currentRound; // v399: lets the playing screen notice that the room moved on to another round
   G_myVotes = {}; G_myEntryEmojis = {}; G_cachedReactions = {}; // new round: forget last round's votes/reactions
   stopReactions();
   // Clear stale vote/emoji DOM from previous round
@@ -5507,7 +5544,8 @@ window.skipMissingPlayers = async () => {
   const room = s.val();
   if (room.phase !== 'playing') return;
   const upd = {};
-  missingAnswers(room).forEach(p => { upd['allAnswers/' + p] = { skipped: true }; });
+  // v399: also marked as gone, so later rounds don't wait for them again (opening the invite link again clears it)
+  missingAnswers(room).forEach(p => { upd['allAnswers/' + p] = { skipped: true }; upd['left/' + p] = true; });
   if (Object.keys(upd).length) await update(roomRef(G.roomCode), upd);
 };
 
@@ -5555,12 +5593,15 @@ function buildValidationHTML(room, invalidMap) {
 }
 
 function showValidation(room) {
+  cacheValidationRoom(room);
   show('validate');
   // Stop caller banner
   const _scBanner = document.getElementById('stop-caller-banner');
   if (_scBanner) {
     const _caller = room.stopCaller || '';
-    const _timeUp = room.timerRanOut;
+    // v399: time-out writes stopCaller:'Tiempo' and nothing writes timerRanOut, so the banner said "Tiempo called ¡Alto!".
+    // Same rule as the scoring: only a real player in the room is a caller.
+    const _timeUp = room.timerRanOut || (!!_caller && !Object.keys(room.players || {}).includes(_caller) && !(room.left || {})[_caller]);
     if (_caller || _timeUp) {
       const _msg = _timeUp
         ? t('timerRanOut')
@@ -5621,12 +5662,15 @@ function showValidation(room) {
 }
 
 function showGuestValidation(room) {
+  cacheValidationRoom(room);
   show('waiting');
   // Stop caller banner
   const _scBanner = document.getElementById('stop-caller-banner-guest');
   if (_scBanner) {
     const _caller = room.stopCaller || '';
-    const _timeUp = room.timerRanOut;
+    // v399: time-out writes stopCaller:'Tiempo' and nothing writes timerRanOut, so the banner said "Tiempo called ¡Alto!".
+    // Same rule as the scoring: only a real player in the room is a caller.
+    const _timeUp = room.timerRanOut || (!!_caller && !Object.keys(room.players || {}).includes(_caller) && !(room.left || {})[_caller]);
     if (_caller || _timeUp) {
       const _msg = _timeUp
         ? t('timerRanOut')
@@ -6098,6 +6142,10 @@ window.quickJoin = async () => {
     return;
   }
   const room = snap.val();
+  // v399: a game is running and this name isn't part of it → wait on this screen, join when the room is back in the lobby
+  const knownName = name in (room.players || {}) || name in (room.scores || {}) || room.host === name;
+  if ((room.phase || 'lobby') !== 'lobby' && !knownName) { qjWaitForNextGame(code, room); return; }
+  qjWaitStop();
   // Joining with the host's exact name makes you the host again (a host who lost their saved session
   // would otherwise leave the room with nobody able to validate, score or start the next round)
   G.isHost = !!room.host && room.host === name;
@@ -6109,8 +6157,13 @@ window.quickJoin = async () => {
   });
   saveSession();
   subscribe(code);
-  // Route to correct screen based on current phase
+  routeToPhase(room);
+};
+
+// Show the screen for the room's current phase (joining, and v399: becoming host mid-game)
+function routeToPhase(room) {
   const phase = room.phase;
+  if (room.currentRound > 0 && room.rounds) updateShellRound(room.currentRound, room.rounds);
   if (phase === 'lobby') enterLobby(room);
   else if (phase === 'countdown') startCountdown(room);
   else if (phase === 'playing') enterPlaying(room);
@@ -6122,7 +6175,43 @@ window.quickJoin = async () => {
   else if (phase === 'scores') showScores(room);
   else if (phase === 'final') showFinal(room);
   else enterLobby(room);
+}
+
+// v399: invite link opened with a new name while a game is running: no seat in it, wait here for the next one
+let _qjWaitUnsub = null;
+const QJ_WAIT = {
+  es: { busy: '⏳ Hay una partida en curso ({round}).', next: 'Entrarás en cuanto el anfitrión abra la siguiente partida. Deja esta pantalla abierta.', end: '⏳ La partida acaba de terminar.', cancel: 'Cancelar' },
+  en: { busy: '⏳ A game is in progress ({round}).', next: "You'll join as soon as the host opens the next game. Keep this screen open.", end: '⏳ The game has just ended.', cancel: 'Cancel' },
+  fr: { busy: '⏳ Une partie est en cours ({round}).', next: "Tu entreras dès que l'hôte ouvrira la prochaine partie. Garde cet écran ouvert.", end: '⏳ La partie vient de se terminer.', cancel: 'Annuler' },
 };
+function qjWaitText(room) {
+  const w = QJ_WAIT[LANG] || QJ_WAIT.es;
+  const top = room.phase === 'final' ? w.end
+    : w.busy.replace('{round}', t('rndLabel') + ' ' + (room.currentRound || 1) + ' ' + t('of') + ' ' + (room.rounds || '?'));
+  return `<p style="margin:0 0 6px">${escHtml(top)}</p><p style="margin:0">${escHtml(w.next)}</p>`;
+}
+function qjWaitForNextGame(code, room) {
+  const box = document.getElementById('qj-wait');
+  const btn = document.getElementById('qj-btn');
+  if (box) { box.innerHTML = qjWaitText(room); box.style.display = 'block'; }
+  if (btn) btn.style.display = 'none';
+  const cancel = document.getElementById('qj-wait-cancel');
+  if (cancel) { cancel.textContent = (QJ_WAIT[LANG] || QJ_WAIT.es).cancel; cancel.style.display = 'block'; }
+  if (_qjWaitUnsub) _qjWaitUnsub();
+  _qjWaitUnsub = onValue(roomRef(code), snap => {
+    if (!snap.exists()) { qjWaitStop(); toast(t('toastNotFound')); G.roomCode = ''; window.show('home'); return; }
+    const r = snap.val();
+    if ((r.phase || 'lobby') === 'lobby') { qjWaitStop(); window.quickJoin(); return; }
+    if (box) box.innerHTML = qjWaitText(r);
+  });
+}
+function qjWaitStop() {
+  if (_qjWaitUnsub) { _qjWaitUnsub(); _qjWaitUnsub = null; }
+  const box = document.getElementById('qj-wait'); if (box) box.style.display = 'none';
+  const cancel = document.getElementById('qj-wait-cancel'); if (cancel) cancel.style.display = 'none';
+  const btn = document.getElementById('qj-btn'); if (btn) btn.style.display = '';
+}
+window.qjWaitCancel = () => qjWaitStop();
 
 // ── Translate quick join screen ───────────────────────
 function applyQuickJoinLang() {
@@ -6146,6 +6235,14 @@ let G_validationMode = 'host'; // 'host' or 'democratic'
 let G_myVotes = {}; // key -> 'up' or 'down'
 let G_myEntryEmojis = {}; // key+emoji -> true
 let G_cachedReactions = {}; // last entryReactions seen, for instant redraw on tap
+// v399: filled when a review screen is drawn, so a tap before the first room update draws with the right mode and players
+// (in a democratic round 1 the cached mode was still 'host' and an early 👎 tap blanked its own button)
+function cacheValidationRoom(room) {
+  G_cachedVotes = room.votes || {};
+  G_cachedPlayers = Object.keys(room.players || {});
+  G_cachedVoteMode = room.validationMode || 'host';
+  G_cachedReactions = { ...(room.entryReactions || {}) };
+}
 let G_cachedVotes = {};   // last known votes from Firebase, for optimistic UI
 let G_cachedPlayers = []; // last known player list, for optimistic UI
 let G_cachedVoteMode = 'host'; // last known validation mode, for optimistic UI
@@ -6181,7 +6278,7 @@ window.voteEntry = async (key, dir) => {
   const optimisticVotes = Object.assign({}, G_cachedVotes[key] || {});
   if (newDir) optimisticVotes[G.playerName] = newDir;
   else delete optimisticVotes[G.playerName];
-  setHTML(document.getElementById('votes_' + key), renderVotes(key, optimisticVotes, G_cachedVoteMode, G_cachedPlayers, G.isHost));
+  patchButtons(document.getElementById('votes_' + key), renderVotes(key, optimisticVotes, G_cachedVoteMode, G_cachedPlayers, G.isHost));
   // Write to Firebase (Firebase echo will confirm/correct)
   await update(roomRef(G.roomCode), { [`votes/${key}/${G.playerName}`]: newDir || null });
 };
@@ -6214,7 +6311,7 @@ window.reactToEntry = async (key, emoji) => {
   }
   // Redraw straight away (also fixes stale count when the last reaction on an answer is removed)
   G_cachedReactions[key] = cur;
-  setHTML(document.getElementById('emojis_' + key), renderEntryEmojis(key, cur, G.isHost));
+  patchButtons(document.getElementById('emojis_' + key), renderEntryEmojis(key, cur, G.isHost));
   await update(roomRef(G.roomCode), upd);
 };
 
@@ -6225,13 +6322,47 @@ function setHTML(el, html) {
   el.__h = html;
 }
 
+// v399: reaction / vote buttons are updated IN PLACE (class and count), never replaced. setHTML still rebuilt a whole
+// row whenever its count changed, so when several people reacted to the same answer at once the button under a finger
+// was swapped and the tap was lost (the "tap twice" ghosts left after Session 26; 15-18 row rebuilds per player per round
+// in a 3-player test). Also the first update after the review screen opened rebuilt every row once.
+function patchButtons(el, html) {
+  if (!el || el.__h === html) return;
+  const tpl = document.createElement('template'); tpl.innerHTML = html;
+  const want = [...tpl.content.querySelectorAll('button')], have = [...el.querySelectorAll('button')];
+  const sig = list => list.map(b => b.getAttribute('onclick')).join('|');
+  const wantTop = [...tpl.content.children], haveTop = [...el.children];
+  const sameShape = have.length && want.length === have.length && sig(want) === sig(have)
+    && wantTop.length === haveTop.length && wantTop.every((w, i) => w.tagName === haveTop[i].tagName);
+  if (!sameShape) { el.innerHTML = html; el.__h = html; return; }
+  // pieces without buttons (the democratic ❌ mark): copy class and content
+  wantTop.forEach((w, i) => {
+    const h = haveTop[i];
+    if (w.tagName === 'BUTTON' || w.querySelector('button')) return;
+    if (h.className !== w.className) h.className = w.className;
+    if (h.innerHTML !== w.innerHTML) h.innerHTML = w.innerHTML;
+  });
+  want.forEach((w, i) => {
+    const b = have[i];
+    if (b.className !== w.className) b.className = w.className;
+    if (b.innerHTML === w.innerHTML) return;
+    const ws = w.querySelector('sup, .vote-count'), bs = b.querySelector('sup, .vote-count');
+    if (ws && bs) bs.textContent = ws.textContent;
+    else if (bs) bs.remove();
+    else if (ws) b.appendChild(ws.cloneNode(true));
+    if (b.innerHTML !== w.innerHTML) b.innerHTML = w.innerHTML; // anything else: the button itself still stays
+  });
+  el.__h = html;
+}
+
 function renderVotes(key, votes, mode, players, isHost) {
   const voteData = votes || {};
   const downs = Object.values(voteData).filter(v => v === 'down').length;
   const myVote = G_myVotes[key];
   const totalPlayers = players.length;
 
-  let democraticResult = '';
+  // v399: the ❌ mark's span is always there (empty when not invalid), so the button next to it is never rebuilt
+  let democraticResult = '<span class="democratic-result invalid"></span>';
   if (mode === 'democratic' && downs > 0) {
     const majority = Math.floor(totalPlayers / 2) + 1;
     if (downs >= majority) democraticResult = '<span class="democratic-result invalid">❌</span>';
@@ -6281,13 +6412,13 @@ function applyVotesAndReactions(room, isHost) {
   document.querySelectorAll('[id^="votes_"]').forEach(el => {
     const key = el.id.slice(6);
     G_myVotes[key] = (votes[key] || {})[G.playerName] || null;
-    setHTML(el, renderVotes(key, votes[key] || {}, mode, players, isHost));
+    patchButtons(el, renderVotes(key, votes[key] || {}, mode, players, isHost));
   });
   document.querySelectorAll('[id^="emojis_"]').forEach(el => {
     const key = el.id.slice(7);
     const rs = entryReactions[key] || {};
     ENTRY_EMOJIS.forEach(e => { G_myEntryEmojis[key + '_' + e] = !!rs[G.playerName + '_' + e]; });
-    setHTML(el, renderEntryEmojis(key, rs, isHost));
+    patchButtons(el, renderEntryEmojis(key, rs, isHost));
   });
   // In democratic mode, auto-invalidate/restore based on current vote majority
   if (isHost && mode === 'democratic') {
@@ -6528,11 +6659,11 @@ function breakdownHTML(pts, isCaller, room) {
 
 // Collapsed row, daily leaderboard style: rank (medal or number) · name emoji [A] · total · (extra) · ▶
 // Your own row is highlighted like the daily "me" row.
-function mpRowHTML({ id, rank, name, emoji, total, extra, isCaller, isHost, onclick, open }) {
+function mpRowHTML({ id, rank, name, emoji, total, extra, isCaller, isHost, onclick, open, gone }) {
   const me = name === G.playerName;
   return `<div class="daily-lb-row mp-row${me ? ' daily-lb-me' : ''}${open ? ' expanded' : ''}" id="${id}"${onclick ? ` onclick="${onclick}"` : ' style="cursor:default"'}>
       <span class="daily-lb-rank">${rank}</span>
-      <span class="mp-namewrap"><span class="daily-lb-name">${escHtml(name)} ${escHtml(emoji)}</span>${isCaller ? '<span class="sc-alto">A</span>' : ''}${isHost ? `<span class="mp-host">${escHtml(t('hostBadge'))}</span>` : ''}</span>
+      <span class="mp-namewrap"><span class="daily-lb-name">${escHtml(name)} ${escHtml(emoji)}</span>${isCaller ? '<span class="sc-alto">A</span>' : ''}${isHost ? `<span class="mp-host">${escHtml(t('hostBadge'))}</span>` : ''}${gone ? `<span class="mp-host mp-gone">${({es:'salió',en:'left',fr:'parti'})[LANG] || 'salió'}</span>` : ''}</span>
       <span class="daily-lb-score">${total}<span class="sc-unit"> pts</span></span>
       ${extra ? `<span class="daily-lb-speed">(${extra})</span>` : ''}
       ${onclick ? '<span class="daily-lb-chevron">▶</span>' : ''}
@@ -6543,11 +6674,12 @@ function mpRowHTML({ id, rank, name, emoji, total, extra, isCaller, isHost, oncl
 let G_scOpen = new Set(), G_scRound = null, G_scNames = [], G_scAutoOpened = false;
 function scoreCardHTML(i, name, total, rank, emoji, rl, room) {
   const d = rl.players[name];
-  if (!d) return mpRowHTML({ id: 'sc-row-' + i, rank, name, emoji, total });
+  const gone = isGone(room, name);
+  if (!d) return mpRowHTML({ id: 'sc-row-' + i, rank, name, emoji, total, gone });
   const pts = d.pts || {};
   const isCaller = !!rl.caller && rl.caller === name;
   const open = G_scOpen.has(name);
-  return mpRowHTML({ id: 'sc-row-' + i, rank, name, emoji, total, extra: signed(pts.round), isCaller, onclick: `toggleScoreCard(${i})`, open })
+  return mpRowHTML({ id: 'sc-row-' + i, rank, name, emoji, total, extra: signed(pts.round), isCaller, onclick: `toggleScoreCard(${i})`, open, gone })
     + `<div class="daily-lb-answers${open ? ' open' : ''}" id="sc-panel-${i}">${roundRowsHTML(d, rl.categories || [])}${breakdownHTML(pts, isCaller, room)}</div>`;
 }
 
@@ -6576,9 +6708,9 @@ function showScores(room) {
   G_scNames = sorted.map(([n]) => n);
   const ranks = denseRanks(sorted);
   document.getElementById('sc-list').innerHTML = (rl && rl.players)
-    ? sorted.map(([n,total],i) => scoreCardHTML(i, n, total, medals[i] || ranks[i], players[n]||'🎲', rl, room)).join('')
+    ? sorted.map(([n,total],i) => scoreCardHTML(i, n, total, medals[i] || ranks[i], playerEmojiOf(room, n), rl, room)).join('')
     : sorted.map(([n,pts],i) =>  // fallback: no roundLog for this round (older room)
-        `<div class="score-row"><span>${medals[i]} ${escHtml(n)} ${escHtml(players[n]||'🎲')}</span><span class="pts">${pts} pts</span></div>`
+        `<div class="score-row"><span>${medals[i]} ${escHtml(n)} ${escHtml(playerEmojiOf(room, n))}</span><span class="pts">${pts} pts</span></div>`
       ).join('');
   let btns = '';
   if (G.isHost) {
@@ -6674,6 +6806,7 @@ function historyRecord(room, now) {
   return {
     endedAt: now, lang: room.gameLang || LANG, host: room.host || '', groupName: room.groupName || '',
     scores: room.scores || {}, players: room.players || {}, roundLog: room.roundLog || null,
+    left: Object.fromEntries(Object.entries(room.left || {}).filter(([n, v]) => typeof v === 'string' && !(room.players || {})[n])),
     currentRound: room.currentRound || 0, rounds: room.rounds || 0, reactionPoints: room.reactionPoints !== false,
   };
 }
@@ -6694,7 +6827,7 @@ async function saveGroupGame(room, gid, sorted, winners, now) {
     for (const [player] of sorted) {
       const key = groupPlayerKey(player);
       if (!key) continue;
-      const emoji = rPlayers[player] || '🎲';
+      const emoji = playerEmojiOf(room, player);
       const isWinner = winners.has(player);
       await runTransaction(ref(db, 'groupsLb/' + gid + '/' + key), cur => {
         cur = cur || { name: player, lastEmoji: emoji, wins: 0, games: 0 };
@@ -6911,7 +7044,7 @@ function showFinal(room) {
   const wPlayers = room.players||{};
   if (sorted[0]) {
     document.getElementById('winner-line').textContent = winnerLineText(room);
-    launchConfetti(wPlayers[sorted[0][0]]);
+    launchConfetti(playerEmojiOf(room, sorted[0][0]));
   }
   G_finalRoom = room; // for shareFinal
   // Everyone who reaches the end of a real game gets the group added to / bumped in Mis grupos
@@ -6926,12 +7059,12 @@ function winnerLineText(room) {
   if (!sorted[0]) return '';
   const wPlayers = room.players||{};
   const top = sorted[0][1];
-  const tied = sorted.filter(([,pts]) => pts === top).map(([n]) => n + ' ' + (wPlayers[n]||'🎲'));
+  const tied = sorted.filter(([,pts]) => pts === top).map(([n]) => n + ' ' + playerEmojiOf(room, n));
   if (tied.length > 1) {
     const names = tied.slice(0, -1).join(', ') + ' ' + t('tieAnd') + ' ' + tied[tied.length-1];
     return t('tieLine').replace('{names}', names).replace('{pts}', top);
   }
-  return t('winnerLine').replace('{emoji}', wPlayers[sorted[0][0]]||'🎲').replace('{name}', sorted[0][0]).replace('{pts}', top);
+  return t('winnerLine').replace('{emoji}', playerEmojiOf(room, sorted[0][0])).replace('{name}', sorted[0][0]).replace('{pts}', top);
 }
 
 function awardChipsHTML(room) {
@@ -6950,9 +7083,9 @@ function gameCardsHTML(room, prefix) {
   const rounds = roundLogEntries(room);
   const host = prefix === 'hs' ? (room.host || '') : '';
   return rounds.length
-    ? sorted.map(([n,pts],i) => finalCardHTML(i, n, pts, fMedals[i] || fRanks[i], fPlayers[n]||'🎲', room, rounds, prefix, host === n)).join('')
+    ? sorted.map(([n,pts],i) => finalCardHTML(i, n, pts, fMedals[i] || fRanks[i], playerEmojiOf(room, n), room, rounds, prefix, host === n)).join('')
     : sorted.map(([n,pts],i) =>  // fallback: no roundLog (older room)
-        `<div class="score-row"><span>${fMedals[i]} ${escHtml(n)} ${escHtml(fPlayers[n]||'🎲')}</span><span class="pts">${pts} pts</span></div>`
+        `<div class="score-row"><span>${fMedals[i]} ${escHtml(n)} ${escHtml(playerEmojiOf(room, n))}</span><span class="pts">${pts} pts</span></div>`
       ).join('');
 }
 
@@ -6995,7 +7128,7 @@ function computeAwards(room) {
 // Final card: collapsed row with the final total; opened shows every round (heading, answers, breakdown)
 function finalCardHTML(i, name, total, rank, emoji, room, rounds, prefix = 'fn', isHost = false) {
   const played = rounds.filter(([, rl]) => rl.players[name]);
-  const head = mpRowHTML({ id: prefix + '-row-' + i, rank, name, emoji, total, isHost, onclick: played.length ? `toggleFinalCard(${i},'${prefix}')` : '' });
+  const head = mpRowHTML({ id: prefix + '-row-' + i, rank, name, emoji, total, isHost, gone: isGone(room, name), onclick: played.length ? `toggleFinalCard(${i},'${prefix}')` : '' });
   if (!played.length) return head;
   const rl1 = t('rndLabel');
   const roundWord = rl1.charAt(0).toUpperCase() + rl1.slice(1);
@@ -7072,14 +7205,42 @@ window.playAgain = async () => {
 };
 
 window.leaveGame = () => {
-  // Tell the room I'm gone so nobody waits for my answers (Session 27). Fire and forget.
-  if (G.roomCode && G.playerName) update(roomRef(G.roomCode), {[`left/${G.playerName}`]: true}).catch(() => {});
+  // Tell the room I'm gone (fire and forget). v399: Salir takes me OUT of the room: off the player list, never awaited,
+  // no rows in later rounds, not in the next game. Points already won stay in scores, shown with a "salió" tag
+  // (left/{name} = my emoji, so the cards keep it). Leaving the lobby removes me completely. A host who leaves passes the
+  // role to the next player still in the room; the last one out deletes the room.
+  if (G.roomCode && G.playerName) leaveRoomWrite(G.roomCode, G.playerName, G.playerEmoji).catch(() => {});
   closeCountdown();
   clearSession();
   G.playerName=''; G.roomCode=''; G.isHost=false;
   if (G.unsubscribe) G.unsubscribe();
   show('home');
 };
+
+async function leaveRoomWrite(code, me, emoji) {
+  const s = await get(roomRef(code));
+  if (!s.exists()) return;
+  const room = s.val();
+  const players = room.players || {};
+  if (!(me in players)) return;
+  const rest = Object.keys(players).filter(p => p !== me);
+  if (!rest.length) { await remove(roomRef(code)); return; }
+  const upd = { [`players/${me}`]: null, [`langs/${me}`]: null };
+  if ((room.phase || 'lobby') === 'lobby') { upd[`scores/${me}`] = null; upd[`left/${me}`] = null; }
+  else upd[`left/${me}`] = players[me] || emoji || '🎲';
+  if (room.host === me) {
+    const left = room.left || {};
+    upd.host = rest.find(p => !left[p]) || rest[0];
+  }
+  await update(roomRef(code), upd);
+}
+
+// v399: someone who left with Salir is no longer in players but keeps a left/{name} entry holding their emoji
+function playerEmojiOf(room, n) {
+  const pl = (room.players || {})[n]; if (pl) return pl;
+  const lf = (room.left || {})[n]; return typeof lf === 'string' ? lf : '🎲';
+}
+function isGone(room, n) { return !!(room.left || {})[n] && !((room.players || {})[n]); }
 
 window.continueSession = async () => {
   const snap = await get(roomRef(G.roomCode));
@@ -8084,7 +8245,7 @@ setTimeout(() => updateDailyButtonDate(), 350);
 // Version freshness check — silently reload if a newer version is deployed
 // Runs once on load; does nothing if already on latest or if fetch fails
 (function() {
-  const RUNNING = 'v261124.398';
+  const RUNNING = 'v261124.399';
   if (sessionStorage.getItem('alto_ver_checked') === RUNNING) return; // already checked this session
   sessionStorage.setItem('alto_ver_checked', RUNNING);
   fetch(location.href, { cache: 'no-cache' })
@@ -8108,7 +8269,7 @@ syncMyGroups(); // registered + verified name: bring in groups from the name's o
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v261124.398</div>
+  <div style="font-size: 11px;opacity:0.5">v261124.399</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
