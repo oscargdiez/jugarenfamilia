@@ -469,6 +469,12 @@ body.screen-home #shell-flags, body.screen-welcome #shell-flags { display: flex 
   opacity: 0; transition: opacity .3s; pointer-events: none; z-index: 999; white-space: nowrap;
 }
 #toast.show { opacity: 1; }
+/* v400: offer to take over from a host who disconnected */
+#host-away-bar { display: none; position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); z-index: 998;
+  width: min(92vw, 420px); box-sizing: border-box; flex-direction: column; align-items: stretch; gap: 8px; padding: 10px 12px;
+  background: var(--paper); border: 1.5px solid var(--red); border-radius: var(--radius); box-shadow: 0 4px 14px rgba(0,0,0,.15);
+  font-family: 'Special Elite', monospace; font-size: 13px; color: var(--ink); text-align: center; }
+#host-away-bar button { width: 100%; }
 
 /* ── Claim name overlay ── */
 #claim-overlay {
@@ -779,7 +785,7 @@ body.iphone-mode .theme-bg-stage { position: absolute; }
 @keyframes pencilBounce { 0%, 100% { transform: rotate(-15deg) translateY(0); } 50% { transform: rotate(15deg) translateY(-8px); } }
 
 /* ── Per-entry reactions & voting ── */
-.entry-emoji-strip { display: flex; gap: 2px; align-items: center; }
+.entry-emoji-strip { display: flex; flex-wrap: wrap; gap: 2px; align-items: center; } /* v400: wraps on narrow phones (320 px with counts ran under the 📖 button) */
 .entry-emoji-btn { font-size: 13px; padding: 3px 3px; border-radius: 4px; border: none; background: transparent; cursor: pointer; opacity: 1; transition: all .1s; line-height: 1; display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; }
 .entry-emoji-btn:hover { transform: scale(1.15); }
 .entry-emoji-btn.active { background: var(--paper-dark); }
@@ -1349,7 +1355,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, set, get, onValue, update, runTransaction, remove, query, orderByChild, startAt, endAt, limitToFirst } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getDatabase, ref, set, get, onValue, update, runTransaction, remove, query, orderByChild, startAt, endAt, limitToFirst, onDisconnect } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAnUEgyQ2i9fR3T1CyYWNVb8k6xtHz1OZg",
@@ -4744,11 +4750,75 @@ function restoreLobbyConfig() {
 
 function subscribe(code) {
   if (G.unsubscribe) G.unsubscribe();
-  G.unsubscribe = onValue(roomRef(code), snap => {
-    if (!snap.exists()) return;
-    handleRoom(snap.val());
+  let stopPresence = () => {};
+  const off = onValue(roomRef(code), snap => {
+    // v400: room deleted → cancel the pending "offline" write, or it would create a stray rooms/{code}/online node later
+    if (!snap.exists()) { stopPresence(); stopPresence = () => {}; return; }
+    G_lastRoom = snap.val();
+    handleRoom(G_lastRoom);
   });
+  stopPresence = startPresence(code, G.playerName);
+  if (G._hostAwayTimer) clearInterval(G._hostAwayTimer);
+  G._hostAwayTimer = setInterval(checkHostAway, 3000);
+  G.unsubscribe = () => { off(); stopPresence(); clearInterval(G._hostAwayTimer); G._hostAwayTimer = null; G_lastRoom = null; G._hostAwaySince = 0; hostAwayBar(false); };
 }
+
+// ── v400: who is online, and taking over from a host who disconnected ─────────────────────────
+// online/{name}: true while this phone is connected; Firebase itself writes false when the connection drops (app closed,
+// phone asleep for a while, no signal): onDisconnect is set on the server, re-armed after every reconnect.
+// Rooms from older clients have no online/ entries: undefined = unknown, never treated as offline.
+let G_lastRoom = null;
+const HOST_AWAY_MS = 45000;
+function startPresence(code, name) {
+  if (!code || !name) return () => {};
+  const me = ref(db, `rooms/${code}/online/${name}`);
+  const offConn = onValue(ref(db, '.info/connected'), snap => {
+    if (snap.val() !== true) return;
+    onDisconnect(me).set(false).then(() => set(me, true)).catch(() => {});
+  });
+  return () => { offConn(); onDisconnect(me).cancel().catch(() => {}); };
+}
+// Every 3 s: has the host been offline for 45 s (seen from this phone's own clock, so no clock skew)? Then offer to take over.
+function checkHostAway() {
+  const room = G_lastRoom;
+  const host = room && room.host;
+  const away = !!room && !!host && !G.isHost && room.phase !== 'countdown'
+    && (room.online || {})[host] === false && (room.players || {})[G.playerName] !== undefined;
+  if (!away) { G._hostAwaySince = 0; hostAwayBar(false); return; }
+  if (!G._hostAwaySince) G._hostAwaySince = Date.now();
+  hostAwayBar(Date.now() - G._hostAwaySince >= HOST_AWAY_MS, host);
+}
+const HOST_AWAY_TXT = {
+  es: { gone: '👑 {host} se ha desconectado', take: 'Seguir yo como anfitrión' },
+  en: { gone: '👑 {host} has disconnected', take: "I'll be the host" },
+  fr: { gone: "👑 {host} s'est déconnecté(e)", take: "Je deviens l'hôte" },
+};
+function hostAwayBar(on, host) {
+  let bar = document.getElementById('host-away-bar');
+  if (!on) { if (bar) bar.style.display = 'none'; return; }
+  if (!bar) {
+    bar = document.createElement('div'); bar.id = 'host-away-bar';
+    document.body.appendChild(bar);
+  }
+  const tx = HOST_AWAY_TXT[LANG] || HOST_AWAY_TXT.es;
+  const html = `<span>${escHtml(tx.gone.replace('{host}', host || ''))}</span><button class="pri" onclick="takeOverHost()">${escHtml(tx.take)}</button>`;
+  if (bar.__h !== html) { bar.innerHTML = html; bar.__h = html; }
+  bar.style.display = 'flex';
+}
+window.takeOverHost = async () => {
+  const room = G_lastRoom; if (!room || !G.roomCode || !G.playerName) return;
+  const oldHost = room.host;
+  hostAwayBar(false);
+  try {
+    // only one phone wins: the host must still be the same person and still offline
+    const res = await runTransaction(ref(db, `rooms/${G.roomCode}`), cur => {
+      if (!cur || cur.host !== oldHost || (cur.online || {})[oldHost] !== false || !(cur.players || {})[G.playerName]) return;
+      cur.host = G.playerName;
+      return cur;
+    });
+    if (!res.committed) G._hostAwaySince = 0;
+  } catch (e) { G._hostAwaySince = 0; }
+};
 
 function handleRoom(room) {
   // v399: the host pressed "Seguir sin" while this phone was asleep (left/{me} = true). It's back and listening, so it
@@ -4760,14 +4830,12 @@ function handleRoom(room) {
   // v399: the round label was only set when a round started, so someone joining during review/scores saw a wrong round
   if (room.currentRound > 0 && room.rounds) updateShellRound(room.currentRound, room.rounds);
   // v399: the host left (Salir) and passed the role on: the new host's screen switches to the host's version
+  // v400: also the other way: a host who disconnected and was taken over comes back as a player
   if (room.host && G.playerName && (room.host === G.playerName) !== !!G.isHost) {
     G.isHost = room.host === G.playerName;
     saveSession();
-    if (G.isHost) {
-      toast(t('host'));
-      G.invalidAnswers = {...(room.invalidAnswers || {})};
-      if (!['playing', 'countdown'].includes(G.screen)) { routeToPhase(room); return; }
-    }
+    if (G.isHost) { toast(t('host')); G.invalidAnswers = {...(room.invalidAnswers || {})}; }
+    if (!['playing', 'countdown'].includes(G.screen)) { routeToPhase(room); return; }
   }
   if (G.screen === 'lobby') {
     renderPlayers(room.players || {}, room.langs || {}, room.host || '');
@@ -7225,7 +7293,7 @@ async function leaveRoomWrite(code, me, emoji) {
   if (!(me in players)) return;
   const rest = Object.keys(players).filter(p => p !== me);
   if (!rest.length) { await remove(roomRef(code)); return; }
-  const upd = { [`players/${me}`]: null, [`langs/${me}`]: null };
+  const upd = { [`players/${me}`]: null, [`langs/${me}`]: null, [`online/${me}`]: null };
   if ((room.phase || 'lobby') === 'lobby') { upd[`scores/${me}`] = null; upd[`left/${me}`] = null; }
   else upd[`left/${me}`] = players[me] || emoji || '🎲';
   if (room.host === me) {
@@ -8245,7 +8313,7 @@ setTimeout(() => updateDailyButtonDate(), 350);
 // Version freshness check — silently reload if a newer version is deployed
 // Runs once on load; does nothing if already on latest or if fetch fails
 (function() {
-  const RUNNING = 'v261124.399';
+  const RUNNING = 'v261125.400';
   if (sessionStorage.getItem('alto_ver_checked') === RUNNING) return; // already checked this session
   sessionStorage.setItem('alto_ver_checked', RUNNING);
   fetch(location.href, { cache: 'no-cache' })
@@ -8269,7 +8337,7 @@ syncMyGroups(); // registered + verified name: bring in groups from the name's o
 </script>
 <footer style="text-align:center;padding:1.5rem 1rem 2rem;font-family:'Special Elite',monospace;font-size:11px;color:#b0a090;letter-spacing:2px;border-top:1px dashed #d4c9b0;margin-top:2rem">
   <div style="margin-bottom:4px">JUGARENFAMILIA.ES · ¡ALTO!</div>
-  <div style="font-size: 11px;opacity:0.5">v261124.399</div>
+  <div style="font-size: 11px;opacity:0.5">v261125.400</div>
   <div id="copyright"></div>
 </footer>
 <script>document.getElementById("copyright").textContent = "© " + new Date().getFullYear() + " JugarEnFamilia.es — Todos los derechos reservados";</script>
